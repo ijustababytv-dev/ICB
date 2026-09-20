@@ -1,0 +1,787 @@
+{
+  "_comment": "Resource trackers. Each card is its own Meld layer at http://127.0.0.1:8790/<id>.html - no query string. EVERY token below was taken from a real Inventory/Lockbox line in Baby's own Palia Assistant logs on 2026-08-19. Never add a guessed token here.",
+  "_modes": "lifetime = never resets, carries across streams (Amber and Essence only, per Baby 2026-08-16). session = starts at 0 every time she logs into Palia; the previous value is kept for one-click undo. countdown = starts at startAt and counts DOWN as its token is consumed; snaps back to startAt on every server restart (not persisted like the others), per Baby 2026-08-19. A countdown card can also set 'direction' ('gained' or 'lost') to restrict which event type moves it, and 'starOnly': true to only count (1*) star-quality pickups.",
+  "_valueBox": "Percentages of the card image, measured from the artwork itself by dark+flat detection and checked visually. Re-measure if a card is re-exported.",
+  "cards": [
+    {
+      "id": "amber-echo",
+      "name": "Amber Echo",
+      "image": "AMBER_ECHO.png",
+      "tokens": [
+        "itemtype_currency_echo_amber"
+      ],
+      "mode": "lifetime",
+      "visible": true,
+      "valueBox": {
+        "left": 34,
+        "top": 44.86,
+        "width": 53.4,
+        "height": 31.78
+      }
+    },
+    {
+      "id": "essence",
+      "name": "Infected Essence",
+      "image": "ESSENCE.png",
+      "tokens": [
+        "itemtype_echo_essence"
+      ],
+      "mode": "lifetime",
+      "visible": true,
+      "valueBox": {
+        "left": 36.69,
+        "top": 43.97,
+        "width": 50.89,
+        "height": 29.74
+      }
+    },
+    {
+      "id": "sweet-leaf",
+      "name": "Sweet Leaf",
+      "image": "SWEET_LEAF.png",
+      "tokens": [
+        "itemtype_forage_spice_sweetleaves"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 31.63,
+        "top": 47.09,
+        "width": 52.06,
+        "height": 28.16
+      }
+    },
+    {
+      "id": "gold-ore",
+      "name": "Gold Ore",
+      "image": "GOLD_ORE.png",
+      "tokens": [
+        "itemtype_mineral_ore_gold"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 18.58,
+        "top": 49.36,
+        "width": 61.83,
+        "height": 29.36
+      }
+    },
+    {
+      "id": "palium-ore",
+      "name": "Palium Ore",
+      "image": "PALIUM_ORE.png",
+      "tokens": [
+        "itemtype_mineral_ore_palium"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 19.73,
+        "top": 53.62,
+        "width": 59.79,
+        "height": 28.94
+      }
+    },
+    {
+      "id": "platinum-ore",
+      "name": "Platinum Ore",
+      "image": "PLATINUM_ORE.png",
+      "tokens": [
+        "itemtype_mineral_ore_platinum"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 21.5,
+        "top": 52.71,
+        "width": 58.76,
+        "height": 25.97
+      }
+    },
+    {
+      "id": "jadium",
+      "name": "Jadium Ore",
+      "image": "JADIUM.png",
+      "tokens": [
+        "itemtype_mineral_ore_jadium"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 37.85,
+        "top": 43.98,
+        "width": 51.21,
+        "height": 31.02
+      }
+    },
+    {
+      "id": "flint",
+      "name": "Flint",
+      "image": "FLINT.png",
+      "tokens": [
+        "itemtype_mineral_rock_flint"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 21.46,
+        "top": 44.96,
+        "width": 57.22,
+        "height": 30.67
+      }
+    },
+    {
+      "id": "clay",
+      "name": "Clay",
+      "image": "CLAY.png",
+      "tokens": [
+        "itemtype_mineral_rock_clay"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 21.3,
+        "top": 41.45,
+        "width": 58.19,
+        "height": 26.18
+      }
+    },
+    {
+      "id": "coral",
+      "name": "Coral",
+      "image": "CORAL.png",
+      "tokens": [
+        "itemtype_forage_beach_coral"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 33.73,
+        "top": 47.53,
+        "width": 51.76,
+        "height": 30.04
+      }
+    },
+    {
+      "id": "emerald-moss",
+      "name": "Emerald Carpet Moss",
+      "image": "EMERALD_MOSS.png",
+      "tokens": [
+        "itemtype_forage_moss_emeraldcarpet"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 32.42,
+        "top": 51.36,
+        "width": 54.1,
+        "height": 27.27
+      }
+    },
+    {
+      "id": "dragons-beard-peat",
+      "name": "Dragon's Beard Peat",
+      "image": "DRAGONS_BEARD_PEAT.png",
+      "tokens": [
+        "itemtype_forage_moss_dragonsbeard"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 31.33,
+        "top": 48.83,
+        "width": 54.62,
+        "height": 28.64
+      }
+    },
+    {
+      "id": "apples",
+      "name": "Apples",
+      "image": "APPLES.png",
+      "tokens": [
+        "itemtype_crop_apple"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 36.77,
+        "top": 42.06,
+        "width": 52.92,
+        "height": 34.33
+      }
+    },
+    {
+      "id": "meat",
+      "name": "Meat",
+      "image": "MEAT.png",
+      "tokens": [
+        "itemtype_product_meat_cearnuk",
+        "itemtype_product_meat_ogopuu",
+        "itemtype_product_meat_rabbit",
+        "itemtype_product_meat_treeclimber"
+      ],
+      "mode": "session",
+      "visible": true,
+      "valueBox": {
+        "left": 35.84,
+        "top": 41.67,
+        "width": 52.87,
+        "height": 35.09
+      }
+    },
+    {
+      "id": "sashimi",
+      "name": "Sashimi",
+      "image": "SASHIMI_NEW.png",
+      "tokens": [
+        "itemtype_c_sashimi"
+      ],
+      "starOnly": true,
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 40,
+      "visible": true,
+      "_note": "Redone 2026-09-06. Baby reported the countdown \"did not track the Eldershark\" the day before - diagnosed by reading the real log directly (app-20260905.log): the OLD design watched raw 'itemtype_fish_eldershark (1*) lost' lines, but that day's log also had large unrelated Eldershark sell-off/consumption events (x100, x10, x5 batches) that had nothing to do with cooking Sashimi specifically - by the time she actually cooked Sashimi, the pool had long since floored at 0, so it looked broken. Root cause: the tracker was watching the wrong signal (any Eldershark leaving inventory) instead of the actual Sashimi-cooking output. Fixed by switching to the real, directly-verified cooking-output token instead: 'Inventory gained: itemtype_c_sashimi (1*) x3' (verified in app-20260905.log, 19:01 - every real Sashimi cook produces exactly 3 star Sashimi in one line). Now counts down using the same 'count events, not quantity' mechanic as Ramen Plush's 'Ramen Cooked' secondary count (Baby's own words: 'I want it to countdown the way that the Ramen tracker counts up... 1 Sashimi for each 3 I get when I cook a dish... if I cook 1 dish only 1 counts') - server.js's countEvents flag (previously secondary-count-only) was extended to primary countdown cards for this. startAt is 100 per Baby's explicit confirmation ('if we cook 100 then it starts at 100') - 100 cook events = up to 300 actual Sashimi before it hits 0, matching how she thinks about the pool (in cooks, not raw fish or raw dish count). starOnly stays true (only 1-star Sashimi count, same as before). No more token overlap with Fish Stew (which still watches raw itemtype_fish_eldershark) since Sashimi now watches the cooked-output token instead.",
+      "valueBox": {
+        "left": 26.2,
+        "top": 56,
+        "width": 57.72,
+        "height": 31.99
+      },
+      "countEvents": true
+    },
+    {
+      "id": "fish-stew",
+      "name": "Fish Stew",
+      "image": "FISH_STEW.png",
+      "tokens": [
+        "itemtype_c_stew_fish"
+      ],
+      "starOnly": true,
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 58,
+      "visible": true,
+      "_note": "Redone 2026-09-09 to match the Sashimi redesign (2026-09-06). Baby: \"The fish stew tracker needs to work like the Sashimi tracker and instead of tracking the eldershark being used it should track the fish stew dish being cooked/received. I want it to count down 1 for each time I cook the dish.\" The OLD design watched raw 'Inventory lost: itemtype_fish_eldershark (1*)' - i.e. ANY star Eldershark leaving inventory for any reason, which is the exact bug that broke Sashimi: bulk fish sell-offs (x100/x30/x10 batches) drained the countdown to 0 long before any real cooking happened. Fixed by watching the real cooking-OUTPUT token instead, verified directly in Baby's own logs (app-20260909.log 02:00-02:07, twelve consecutive real cooks): 'Inventory gained: itemtype_c_stew_fish (1*) x3' - every real Fish Stew cook produces exactly 3 star-quality Fish Stew in one line, identical in shape to Sashimi's cook line. countEvents: true makes it count 1 per cook event regardless of the x3 stack size, per Baby's 'count down 1 for each time I cook the dish'. direction: gained watches the cooking output being received, so selling or eating Fish Stew ('Inventory lost: itemtype_c_stew_fish') never moves the counter. mode countdown + startAt 100 unchanged - server.js makes countdown cards always subtract on their direction-filtered event, so 'gained' still counts DOWN. starOnly: true kept (matches Sashimi; non-star Fish Stew does exist in the logs, e.g. 'itemtype_c_stew_fish x15' with no star marker). tokenOverlapOk REMOVED - that flag only existed because Fish Stew and old-Sashimi both watched the same raw Eldershark token. They no longer overlap at all: Sashimi watches itemtype_c_sashimi, Fish Stew watches itemtype_c_stew_fish, and the two countdowns now move completely independently.",
+      "valueBox": {
+        "left": 30.62,
+        "top": 56.96,
+        "width": 56.04,
+        "height": 30.18
+      },
+      "countEvents": true
+    },
+    {
+      "id": "ramen-plush",
+      "name": "Ramen Plush",
+      "image": "RAMEN_PLUSH.png",
+      "tokens": [
+        "itemtype_decor_plush_ramen01_base"
+      ],
+      "mode": "lifetime",
+      "visible": true,
+      "_note": "Built 2026-08-28. Baby dropped a dedicated 2048x768 tracker-card skin (not a plush-bar icon) with its own blank readout box - card title is 'Palia Ramen Plush Tracker'. Token verified in a real Inventory gained line, app-20260828.log line 4737. mode 'lifetime' here just means 'never auto-resets' (it is NOT in LIFETIME_SOURCE, so it does not mirror live.resources like Amber/Essence) - Baby asked for a manual Reset button on the dashboard instead, wired to the existing /set endpoint with value 0. Extended 2026-08-31 with a 'secondary' count (see below) so the one existing blank box shows both how many Ramen she's cooked and how many Plushies she's received, per her request: \"Ramen cooked VS ___ Plushies\" in the same box.",
+      "secondary": {
+        "label": "Ramen Cooked",
+        "primaryLabel": "Plushies",
+        "tokens": [
+          "itemtype_c_ramen"
+        ],
+        "direction": "gained",
+        "countEvents": true,
+        "_note": "Token and mechanic verified live in Baby's own log 2026-08-31 - two 'Crafted recipe' lines (no item token, so not usable directly) immediately followed by the real event: 'Inventory' gained: 'itemtype_c_ramen (1*) x3'. direction:'gained' only, so eating/selling/using a cooked Ramen elsewhere ('Inventory lost') never decrements this - it only ever counts up, same never-resets spirit as the Plushies count beside it. 'countEvents': true because one cooking action hands her a batch (the real line was x3 for a single craft) and she wants 'Ramen Cooked' to count how many times she cooked, not how many Ramen came out of the pot - confirmed by her 2026-08-31 correction: 'we cook only 1 ramen but we get 3 in return so the tracker needs to count only 1 of the 3'. Persists independently in data/resource-trackers.json as secondaryCounts.ramen-plush, has its own dashboard +/-/Reset controls, and its own API route: /api/resource-trackers/ramen-plush/secondary/(adjust|set)."
+      },
+      "valueBox": {
+        "left": 41.8,
+        "top": 62.89,
+        "width": 46.58,
+        "height": 23.05
+      }
+    },
+    {
+      "id": "golden-glory-bee",
+      "name": "Golden Glory Bee",
+      "image": "GOLDEN_GLORY_BEE.png",
+      "tokens": [
+        "itemtype_bug_beer"
+      ],
+      "mode": "session",
+      "visible": true,
+      "_note": "Built 2026-08-30. Baby supplied a 1774x887 tracker-card skin (off-standard canvas - the house standard is 2048x768, but the renderer just scales to the wrapper width so this isn't a functional problem, only a minor size mismatch versus the other cards). Token 'itemtype_bug_beer' looks like a typo (beer/bee) but is the REAL token - confirmed in app-20260830.log line 3477, an Inventory gained line that also dropped itemtype_decor_plush_bee01_golden in the same pickup. Card art arrived RGB with solid black corners (a genuine void this time, unlike Ramen Plush's full-bleed background) - flood-filled the corners to transparent from all four corners, luminance<30 threshold with a soft falloff, ~17.5% of the canvas. mode 'session' (resets each Palia login) since Baby didn't ask for manual-reset behavior this time - see Ramen Plush for the never-auto-reset + dashboard Reset button pattern if she wants that instead.",
+      "valueBox": {
+        "left": 26.1,
+        "top": 63.36,
+        "width": 47.75,
+        "height": 18.83
+      }
+    },
+    {
+      "id": "queen-ushindi-collection",
+      "name": "Queen Ushindi Collection",
+      "image": "QUEEN_USHINDI.png",
+      "_note": "Built 2026-09-01. Baby dropped 'project_tracker_queen.png' (1774x887, off-standard canvas like Golden Glory Bee - renderer just scales it) into assets/resources - a single card with FIVE separate blank readout boxes baked in, one under each of Ash Wood / Stone / Whitestone / Silk Thread / Jadium Ore. This is the first 'slots' card: instead of one count, it carries a `slots` array, each with its own tokens and its own valueBox on the art - see renderCollectionCardPage in server.js. Tracking mode confirmed with Baby: running total per material, never auto-resets, manual Reset (per-material AND a Reset-all for the whole card) - same spirit as Ramen Plush, not a session card. Corners are NOT transparent, same reasoning as Ramen Plush: this is a full-bleed starry nebula background, not a badge with real void corners - a flood-fill test connected 43% of the canvas including speckles inside the readout boxes themselves, so it was left as a full opaque rectangle overlay.",
+      "slots": [
+        {
+          "id": "ash-wood",
+          "label": "Ash Wood",
+          "tokens": [
+            "itemtype_wood_ashwood"
+          ],
+          "_note": "Verified: real Inventory lost line, e.g. 'Inventory lost: itemtype_wood_ashwood x100'.",
+          "valueBox": {
+            "left": 6.2,
+            "top": 69.79,
+            "width": 13.7,
+            "height": 9.13
+          }
+        },
+        {
+          "id": "stone",
+          "label": "Stone",
+          "tokens": [
+            "itemtype_mineral_rock_stone"
+          ],
+          "_note": "Verified: real Inventory gained line, e.g. 'Inventory gained: itemtype_mineral_rock_stone x1'.",
+          "valueBox": {
+            "left": 24.41,
+            "top": 69.79,
+            "width": 14.26,
+            "height": 9.13
+          }
+        },
+        {
+          "id": "whitestone",
+          "label": "Whitestone",
+          "tokens": [
+            "itemtype_mineral_rock_whitestone"
+          ],
+          "_note": "Raw Whitestone rock, NOT the crafted Whitestone Slab (itemtype_mineral_slab_whitestone) - both are real verified tokens in Baby's logs, so she was asked directly which one this collection needs. She confirmed the raw rock, matching the raw boulder shown in the card art (same treatment as Stone/Clay/Flint). Verified: real Inventory gained line, e.g. 'Inventory gained: itemtype_mineral_rock_stone x6, itemtype_mineral_rock_whitestone x2'.",
+          "valueBox": {
+            "left": 42.5,
+            "top": 69.79,
+            "width": 14.6,
+            "height": 9.13
+          }
+        },
+        {
+          "id": "silk-thread",
+          "label": "Silk Thread",
+          "tokens": [
+            "itemtype_material_silkthread"
+          ],
+          "_note": "Verified: real Inventory gained line, e.g. 'Inventory gained: itemtype_bug_beer x2, itemtype_material_silkthread x8' (same token already confirmed real for the Golden Glory Bee build).",
+          "valueBox": {
+            "left": 60.99,
+            "top": 69.79,
+            "width": 14.21,
+            "height": 9.13
+          }
+        },
+        {
+          "id": "jadium-ore",
+          "label": "Jadium Ore",
+          "tokens": [
+            "itemtype_mineral_ore_jadium"
+          ],
+          "_note": "Same real, already-verified token as the existing standalone Jadium Ore card - tracked independently here, does not share state with that card.",
+          "valueBox": {
+            "left": 79.99,
+            "top": 69.79,
+            "width": 13.59,
+            "height": 9.13
+          }
+        }
+      ]
+    },
+    {
+      "id": "long-tracker",
+      "name": "Long Tracker",
+      "image": "LONG TRACKER II.png",
+      "direction": "gained",
+      "_note": "Built 2026-09-05, redone same day as 'Long Tracker II' after Baby decided to add Iron Ore and dropped new art ('LONG TRACKER II.png', 2172x724) with a 6th slot inserted before Bugs. Same card id/slotCounts key (long-tracker) is kept on purpose so the already-accumulated Ash Wood/Amber Echo/Jadium Ore/Gold Ore/Bugs totals carry over untouched - this is the same card, just re-skinned with one more slot, not a new card. Baby confirmed via AskUserQuestion she wants this new art to fully replace the original 5-slot Long Tracker, not run alongside it. Still a single 5-then-6-slot card using the 'slots' mechanism (see Queen Ushindi Collection), still gated to `direction: \"gained\"` at the card level so every slot (including the new Iron Ore slot and Bugs) is a lifetime total that only counts gains, never decrements on loss - same as the rest of this card, per Baby's original choice. Value boxes re-measured from scratch on the new art (all 6 shifted position and size vs. the old 5-slot layout - do not reuse the old coordinates).",
+      "slots": [
+        {
+          "id": "ash-wood",
+          "label": "Ash Wood",
+          "tokens": [
+            "itemtype_wood_ashwood"
+          ],
+          "_note": "Same verified token as the Queen Ushindi Collection Ash Wood slot.",
+          "valueBox": {
+            "left": 3.59,
+            "top": 65.33,
+            "width": 12.8,
+            "height": 11.05
+          }
+        },
+        {
+          "id": "amber-echo",
+          "label": "Amber Echo",
+          "tokens": [
+            "itemtype_currency_echo_amber"
+          ],
+          "_note": "Verified 2026-09-05 against a real Inventory gained line in Baby's actual logs. Same token as the existing standalone Amber Echo card.",
+          "valueBox": {
+            "left": 19.61,
+            "top": 65.33,
+            "width": 12.25,
+            "height": 11.05
+          }
+        },
+        {
+          "id": "jadium-ore",
+          "label": "Jadium Ore",
+          "tokens": [
+            "itemtype_mineral_ore_jadium"
+          ],
+          "_note": "Same verified token as the existing standalone Jadium Ore card and the Queen Ushindi Collection Jadium Ore slot.",
+          "valueBox": {
+            "left": 34.9,
+            "top": 65.33,
+            "width": 12.89,
+            "height": 11.05
+          }
+        },
+        {
+          "id": "gold-ore",
+          "label": "Gold Ore",
+          "tokens": [
+            "itemtype_mineral_ore_gold"
+          ],
+          "_note": "Verified 2026-09-05 against a real Inventory gained line in Baby's actual logs. Same token as the existing standalone Gold Ore card (that card is session-mode; this slot is lifetime gains-only - different tracking, same token).",
+          "valueBox": {
+            "left": 51.2,
+            "top": 65.33,
+            "width": 12.98,
+            "height": 11.05
+          }
+        },
+        {
+          "id": "iron-ore",
+          "label": "Iron Ore",
+          "tokens": [
+            "itemtype_mineral_ore_iron"
+          ],
+          "_note": "New 2026-09-05. Verified against a real Inventory gained line in Baby's actual logs (app-20260902.log): 'Inventory gained: itemtype_mineral_rock_stone x1, itemtype_currency_echo_amber x4, itemtype_mineral_ore_iron x1'. No existing card or slot tracked Iron Ore before this.",
+          "valueBox": {
+            "left": 67.4,
+            "top": 65.33,
+            "width": 12.98,
+            "height": 11.05
+          }
+        },
+        {
+          "id": "bugs",
+          "label": "Bugs",
+          "tokenPrefix": "itemtype_bug_",
+          "_note": "Baby confirmed this should count ANY bug species, not one specific bug - every species is its own distinct token in the logs (e.g. itemtype_bug_beer, itemtype_bug_ladybeetle, etc.), so this uses the tokenPrefix wildcard match instead of an exact tokens list.",
+          "valueBox": {
+            "left": 83.61,
+            "top": 65.33,
+            "width": 12.89,
+            "height": 11.05
+          }
+        }
+      ]
+    },
+    {
+      "id": "ore-vs-kitsuu",
+      "name": "Ore vs Kitsuu",
+      "image": "OreVsKitsuu.png",
+      "direction": "gained",
+      "_note": "Built 2026-09-07. Baby dropped 'OreVsKitsuu.png' (1672x941, off-standard canvas like Queen Ushindi/Golden Glory Bee - renderer just scales it) into assets/resources - a single card titled 'Ore vs Kitsuu' with 11 separate blank readout boxes: one under each of 7 ore icons (Jadium, Gold, Iron, Copper, Silver, Palium, Platinum) across the top, and one under each of 4 Kitsuu plush pictures below them (Cave, Obsidian, Caldera, Rainbow). The card's own printed layout groups the ores into 4 mining 'families', each feeding one plush: Jadium alone -> Cave Kitsuu Plush; Gold+Iron -> Obsidian Kitsuu Plush; Copper+Silver -> Caldera Kitsuu Plush; Palium+Platinum -> Rainbow Kitsuu Plush. Baby gave the 4 plush tokens directly; the ore tokens were cross-checked against real log content (Copper/Silver confirmed as genuine tokens via Primary resync lines even though no recent incremental gather event was seen for them in the last 5 days of logs - same 'token is real, just no recent event' situation as Queen Ushindi's slower-moving materials, not a bug). Confirmed with Baby via AskUserQuestion that all 11 boxes should track live numbers, not just the 4 plush counts. This is a LIFETIME, gains-only tracker per Baby's explicit instruction: 'nothing is subtracted when taken out of my inventory, the numbers stack forever and will never be reset' - implemented the same way as Long Tracker, via a top-level `direction: \"gained\"` field that gates every slot on this card to only count gained events, never lost. Baby also explicitly asked for support up to the millions - the existing slot-card renderer already formats with comma separators (e.g. 1,234,567) but its font-sizing was height-only; extended `renderCollectionCardPage`'s client-side `size()` function to also shrink the font until the number actually fits the box width, since these ore boxes are fairly narrow (~7% of the card width each) and a 7-digit number would have overflowed at the old height-only size. This width-aware shrink applies to every slots-card (Queen Ushindi, Long Tracker too), not just this one - purely additive, only kicks in if a box would otherwise overflow, so it does not change any card that already fit at the height-based size.",
+      "slots": [
+        {
+          "id": "jadium-ore",
+          "label": "Jadium Ore",
+          "tokens": [
+            "itemtype_mineral_ore_jadium"
+          ],
+          "_note": "Same already-verified token as the existing standalone Jadium Ore card and the Queen Ushindi/Long Tracker Jadium Ore slots - tracked independently here, does not share state with those.",
+          "valueBox": {
+            "left": 9.99,
+            "top": 36.98,
+            "width": 13.1,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "gold-ore",
+          "label": "Gold Ore",
+          "tokens": [
+            "itemtype_mineral_ore_gold"
+          ],
+          "_note": "Same already-verified token as the standalone Gold Ore card and the Long Tracker Gold Ore slot - tracked independently here.",
+          "valueBox": {
+            "left": 30.02,
+            "top": 36.98,
+            "width": 7.3,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "iron-ore",
+          "label": "Iron Ore",
+          "tokens": [
+            "itemtype_mineral_ore_iron"
+          ],
+          "_note": "Same already-verified token as the Long Tracker Iron Ore slot - tracked independently here.",
+          "valueBox": {
+            "left": 39.47,
+            "top": 36.98,
+            "width": 7.36,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "copper-ore",
+          "label": "Copper Ore",
+          "tokens": [
+            "itemtype_mineral_ore_copper"
+          ],
+          "_note": "New 2026-09-07. Confirmed as a genuine token via 'Primary' resync lines in Baby's real logs (app-20260901 through app-20260905), but no real incremental 'Inventory gained/lost' event for it was seen in that window - not tracked anywhere else in ICB before this.",
+          "valueBox": {
+            "left": 52.69,
+            "top": 36.98,
+            "width": 7.48,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "silver-ore",
+          "label": "Silver Ore",
+          "tokens": [
+            "itemtype_mineral_ore_silver"
+          ],
+          "_note": "New 2026-09-07. Confirmed as a genuine token via 'Primary' resync lines in Baby's real logs (app-20260901 through app-20260905), but no real incremental 'Inventory gained/lost' event for it was seen in that window - not tracked anywhere else in ICB before this.",
+          "valueBox": {
+            "left": 62.26,
+            "top": 36.98,
+            "width": 7.42,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "palium-ore",
+          "label": "Palium Ore",
+          "tokens": [
+            "itemtype_mineral_ore_palium"
+          ],
+          "_note": "Same already-verified token as the standalone Palium Ore card - tracked independently here.",
+          "valueBox": {
+            "left": 75.54,
+            "top": 36.98,
+            "width": 7.24,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "platinum-ore",
+          "label": "Platinum Ore",
+          "tokens": [
+            "itemtype_mineral_ore_platinum"
+          ],
+          "_note": "Same already-verified token as the standalone Platinum Ore card - tracked independently here.",
+          "valueBox": {
+            "left": 84.87,
+            "top": 36.98,
+            "width": 7.3,
+            "height": 9.35
+          }
+        },
+        {
+          "id": "cave-kitsuu",
+          "label": "Cave Kitsuu Plush",
+          "tokens": [
+            "itemtype_decor_plush_kitsuu_jadium"
+          ],
+          "_note": "Token supplied directly by Baby. Per the card's own printed layout, this is the plush that comes from mining Jadium Ore (despite the plush being named 'Cave', not 'Jadium' - that's the card's own naming, taken as-is).",
+          "valueBox": {
+            "left": 10.29,
+            "top": 76.51,
+            "width": 11.9,
+            "height": 7.76
+          }
+        },
+        {
+          "id": "obsidian-kitsuu",
+          "label": "Obsidian Kitsuu Plush",
+          "tokens": [
+            "itemtype_decor_plush_kitsuu_obsidian"
+          ],
+          "_note": "Token supplied directly by Baby; also independently confirmed present in real logs (app-20260901 - app-20260905). Per the card's own printed layout, this is the plush from mining Gold Ore + Iron Ore together.",
+          "valueBox": {
+            "left": 32.48,
+            "top": 76.51,
+            "width": 12.02,
+            "height": 7.76
+          }
+        },
+        {
+          "id": "caldera-kitsuu",
+          "label": "Caldera Kitsuu Plush",
+          "tokens": [
+            "itemtype_decor_plush_kitsuu_caldera"
+          ],
+          "_note": "Token supplied directly by Baby; also independently confirmed present in real logs (app-20260901 - app-20260905). Per the card's own printed layout, this is the plush from mining Copper Ore + Silver Ore together.",
+          "valueBox": {
+            "left": 55.26,
+            "top": 76.51,
+            "width": 11.78,
+            "height": 7.76
+          }
+        },
+        {
+          "id": "rainbow-kitsuu",
+          "label": "Rainbow Kitsuu Plush",
+          "tokens": [
+            "itemtype_decor_plush_kitsuu_rainbow"
+          ],
+          "_note": "Token supplied directly by Baby; also independently confirmed present in real logs (app-20260901 - app-20260905). Per the card's own printed layout, this is the plush from mining Palium Ore + Platinum Ore together.",
+          "valueBox": {
+            "left": 77.45,
+            "top": 76.51,
+            "width": 12.86,
+            "height": 7.76
+          }
+        }
+      ]
+    },
+    {
+      "id": "bean-burger",
+      "name": "Bean Burger",
+      "image": "itemtype_c_beanburger.png",
+      "tokens": [
+        "itemtype_c_beanburger"
+      ],
+      "direction": "gained",
+      "mode": "lifetime",
+      "visible": true,
+      "countEvents": true,
+      "_note": "Built 2026-09-15. Baby: \"I also need a Bean Burger counter. Make it to every dish I cook it counts as 1 bean burger prepared.\" Token 'itemtype_c_beanburger' confirmed two ways: Baby supplied it directly, and it's independently verified in her own live log that same session (app-20260915.log line 45): 'Inventory gained: itemtype_c_beanburger x1' - a real cook right as this was built. Checked 5 days of her other recent logs (app-20260910 through 20260913) and the token only ever appeared in 'Primary gained/lost' resync lines there (not real cook events) until this one - consistent with the house rule that Primary lines are periodic full-inventory snapshots, never counted as deltas. direction:'gained' so eating/selling a Bean Burger ('Inventory lost') never decrements the count - it only ever counts up, same never-resets spirit as Ramen Plush's Plushies count. countEvents:true per Baby's own framing ('every dish I cook... counts as 1') - counts one per real cook line regardless of stack size, same mechanic as Sashimi/Fish Stew/Ramen Cooked, even though the one observed real cook line was already qty 1 (future batched cooks, if any, still count as 1). mode 'lifetime' here just means 'never auto-resets' (not in LIFETIME_SOURCE, so it persists its own count rather than mirroring live.resources - same usage as Ramen Plush's Plushies count), with the existing per-card dashboard +/-/Reset controls available if a manual correction is ever needed. No starOnly filter - the one real cook line observed had no (1*) marker. Card art is Baby's own 'itemtype_c_beanburger.png' (2048x768, dropped directly into assets/resources mid-build) - a cozy purple-and-gold kitchen scene with the blank readout box baked into the art already. Value box re-measured directly from the artwork by dark+flat detection (interior color ~rgb(23,23,31), row/column projection to find the flat rectangle, then checked visually with a red-outline overlay) rather than reusing the house-standard zone, per the project's own 'value boxes are per-skin' rule.",
+      "valueBox": {
+        "left": 26.42,
+        "top": 53.52,
+        "width": 47.22,
+        "height": 25.65
+      }
+    },
+    {
+      "id": "celebration-cake",
+      "name": "Celebration Cake",
+      "image": "itemtype_c_dessert_celebrationcake.png",
+      "tokens": [
+        "itemtype_c_dessert_celebrationcake"
+      ],
+      "starOnly": true,
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 50,
+      "visible": true,
+      "countEvents": true,
+      "_note": "Built 2026-09-16. Baby: \"now I need a celebration cake tracker to countdown from 100.\" Token 'itemtype_c_dessert_celebrationcake' supplied by Baby along with the card art, dropped directly into assets/resources. This one did NOT fit the usual Sashimi/Fish Stew shape cleanly: real 'Inventory gained' lines for this token are big batches (x30, x60 - looks like restocking/bulk acquisition, not a single cook), and real 'Inventory lost' lines are a mix of single x1 drops (individual gifting/spending) and big batches (x27-30, bulk selling) - watching raw quantity on either direction would risk the exact 'wrong signal drains the pool' bug that broke the old Sashimi/Fish Stew designs. Asked Baby directly via AskUserQuestion rather than guessing which real action should move the countdown; she chose 'count down 1 per cook/batch event (any gained, event-based)' - so direction:'gained' + countEvents:true, same mechanic as Sashimi/Fish Stew/Bean Burger, just applied to a bulk-batch signal instead of a x3 cook line: one 'Inventory gained: itemtype_c_dessert_celebrationcake (1*) xN' line (any N) drops the countdown by exactly 1, never by N. Selling/gifting cakes away ('Inventory lost', x1 or bulk) never touches this countdown, matching her chosen answer. starOnly:true kept - every real gained/lost line observed for this token carried the (1*) marker. mode 'countdown' + startAt 100 per her explicit ask ('countdown from 100'), same snap-back-to-startAt-on-restart behavior as every other countdown card (Sashimi, Fish Stew) - documented, not a bug. Value box re-measured directly from Baby's own art (itemtype_c_dessert_celebrationcake.png, 2048x768, matches house standard) the same way as Bean Burger: dark+flat interior color ~rgb(32,27,38) with a vignette gradient toward the frame, scanned column/row profiles at multiple depths to find the true interior edges (the frame's gold trim starts noticeably outside the flattest-color region), checked visually with a red-outline overlay before finalizing.",
+      "valueBox": {
+        "left": 28.96,
+        "top": 55.99,
+        "width": 42.09,
+        "height": 26.04
+      }
+    },
+    {
+      "id": "giant-goldfish",
+      "name": "Giant Goldfish",
+      "image": "giant_goldfish.png",
+      "tokens": [
+        "itemtype_fish_giant_goldfish"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "session",
+      "visible": true,
+      "_note": "Built 2026-09-17. Baby: \"NEED TO TRACK HOW MANY itemtype_fish_giant_goldfish i CATCH.\" Token confirmed in her own real logs (app-20260916/17.log): real 'Inventory gained' lines are clean, small, one-catch-at-a-time quantities (mostly x1, occasionally x2), some star some not - no bulk-restock or resync noise seen for this token, unlike Celebration Cake/Bean Burger. direction:'gained' so selling/storing goldfish ('Inventory lost') never decrements the catch count - this counts catches, not current holdings. Raw quantity is summed (no countEvents) because there is no fixed per-catch batch size to normalize away - a catch nets 1 or 2 fish and both should count toward 'how many I catch'. No starOnly filter - Baby asked for every catch, not just star-quality ones, and non-star gains were observed in the real log. mode:'session' matches every other raw catch/gather card in this file (Gold Ore, Palium Ore, etc.) - resets each Palia login, same as those. eventSource:'inventory' added defensively (see server.js note by the new eventSource filter) even though this token showed no Lockbox activity in the logs checked - keeps this card's signal source consistent with Eldershark/Mermaid below. Value box measured directly from Baby's own art (giant_goldfish.png, 2048x768) by pixel-profile scanning at the true interior edges (not just the flattest-color core, which undershoots the box on this art due to the vignette), checked visually with a red-outline overlay.",
+      "valueBox": {
+        "left": 29.25,
+        "top": 60.42,
+        "width": 49.02,
+        "height": 22.01
+      }
+    },
+    {
+      "id": "eldershark",
+      "name": "Eldershark",
+      "image": "ELDERSHARK.PNG",
+      "tokens": [
+        "itemtype_fish_eldershark"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "session",
+      "visible": true,
+      "_note": "Built 2026-09-17. Baby: \"ALSO MAKE ME A FISHING TRACKER FOR THE itemtype_fish_eldershark.\" This token needed real investigation before wiring it up (house rule - never guess): its 'Lockbox gained/lost' lines turned out to be periodic full-lockbox-content dumps, not real catch deltas - a single giant line mixing dozens of unrelated housing/decor items together with a fish count, and that fish count repeats the EXACT SAME value many times in a row (e.g. 'itemtype_fish_eldershark (1*) x61' appeared 18 times identically on 2026-09-16, alongside 'x1' also 18 times identically) - the same 'resync mistaken for a delta' bug shape that broke the old Sashimi/Fish Stew designs, just on Lockbox instead of Primary. Added a new opt-in 'eventSource' field to server.js's resourceTrackerScan() specifically to fix this: 'eventSource': 'inventory' restricts a card to only real 'Inventory gained/lost' lines, ignoring Lockbox entirely (every existing card leaves this unset and is unaffected). Real 'Inventory gained' lines for this token are the genuine signal - the large majority observed are clean one-or-two-at-a-time catches (e.g. 78x 'x1' + 12x 'x2' in one day), with one isolated tight-burst cluster of larger identical values (x10/x15, seven lines within 2 seconds on 2026-09-10) that looks like a possible bulk-catch bonus event rather than a bug - left as-is since it's a minority case and the alternative (excluding it) risks under-counting a real bulk catch; worth another look if the count ever looks inflated on a given day. direction:'gained', no starOnly (mixed star/non-star catches are legitimate), no countEvents (raw quantity summed, since a catch's yield varies naturally and there's no fixed batch to normalize away). mode:'session', same convention as every other raw catch/gather card. Value box measured directly from Baby's own art (ELDERSHARK.PNG, 2048x768, 'Legendary Maw' skin) by pixel-profile scanning, checked visually.",
+      "valueBox": {
+        "left": 40.14,
+        "top": 60.03,
+        "width": 38.33,
+        "height": 21.22
+      }
+    },
+    {
+      "id": "inyrevn-mermaid",
+      "name": "Inyrevn Mermaid",
+      "image": "itemtype_fish_inyrevnmermaid.png",
+      "tokens": [
+        "itemtype_fish_inyrevnmermaid"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "session",
+      "visible": true,
+      "_note": "Built 2026-09-17. Baby: \"then make me a tracker to track itemtype_fish_inyrevnmermaid.\" Only sparse real data available (this appears to be a rare/legendary catch) - one real 'Inventory gained: itemtype_fish_inyrevnmermaid x1' line seen in app-20260917.log, no bulk or resync-shaped activity observed for this token in the logs checked. Built the same way as Giant Goldfish/Eldershark for consistency: direction:'gained' (catches only, selling/storing via 'Inventory lost' never decrements), eventSource:'inventory' (defensive, matches the other two fishing cards even though no Lockbox noise was seen here), raw quantity summed (no countEvents - no evidence of a fixed per-catch batch to normalize away), no starOnly, mode:'session' matching every other raw catch/gather card. Given how little real data exists for this token, worth double-checking the count against Baby's own sense of how many she's caught the first few times it moves. Value box measured directly from Baby's own art (itemtype_fish_inyrevnmermaid.png, 2048x768, 'Mermaid' skin) - this one is noticeably smaller and lower on the card than the other two (the readout sits right under the fish rather than centered in the card), located by pixel-profile scanning, checked visually.",
+      "valueBox": {
+        "left": 32.96,
+        "top": 73.7,
+        "width": 34.03,
+        "height": 19.92
+      }
+    },
+    {
+      "id": "veggie-chili",
+      "name": "Veggie Chili",
+      "image": "itemtype_c_veggiechili.png",
+      "tokens": [
+        "itemtype_c_veggiechili"
+      ],
+      "direction": "gained",
+      "mode": "lifetime",
+      "visible": true,
+      "countEvents": true,
+      "_note": "Built 2026-09-17. Baby supplied the card art directly (itemtype_c_veggiechili.png, a warm tavern-kitchen scene, 2048x768, matches the house standard exactly, blank readout box already baked in). Token 'itemtype_c_veggiechili' was checked against all 7 available days of her real logs (app-20260910 through app-20260917) and appears every day, but ONLY inside 'Primary gained:'/'Primary lost:' lines - the periodic full-inventory resync the house rule table says is never a real delta. No 'Inventory gained:'/'Lockbox gained:' line for this token has been observed yet, so unlike Bean Burger (which caught a real cook mid-build) this one has NOT been independently confirmed against an actual cook event - same unverified-but-real-token status as the bugs on the future-tracker wishlist. Wired now on the strength of the confirmed token + supplied art so it's ready the moment Baby cooks one; the count should be spot-checked against her own sense of how many she's made the first time it moves, same caution as Inyrevn Mermaid. Mechanic follows Bean Burger exactly since this is the same 'dish prepared' shape: direction:'gained' (eating/selling one via 'Inventory lost' never decrements - only ever counts up), countEvents:true (one per real cook line regardless of stack size, matching Sashimi/Fish Stew/Ramen Cooked/Bean Burger), mode:'lifetime' meaning never auto-resets (not in LIFETIME_SOURCE, so it persists its own count, manual dashboard +/-/Reset available). No starOnly - no real cook line observed yet to confirm a star marker either way; revisit if one ever shows up starred. Value box measured from the supplied artwork by dark+flat detection (near-black flat panel inside the gold ornate frame, restricted to the plausible zone to avoid the art's other dark shadows/wood-grain, then checked visually with a red-outline overlay per house rule): left 33.40%, top 51.95%, width 33.15%, height 30.47%.",
+      "valueBox": {
+        "left": 33.4,
+        "top": 51.95,
+        "width": 33.15,
+        "height": 30.47
+      }
+    },
+    {
+      "id": "highland-shark",
+      "name": "Highland Shark",
+      "image": "itemtype_fish_highlandshark.png",
+      "tokens": [
+        "itemtype_fish_highlandshark"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "session",
+      "visible": true,
+      "_note": "Built 2026-09-18. Baby: \"Want you to create a highland shark tracker. I will get you the card art.\" Token confirmed BEFORE the art arrived, straight from a real log line: app-20260917.log, 21:18:59 - 'Inventory gained: itemtype_fish_highlandshark (1*) x1', a genuine starred catch, not a resync line. Only one instance observed so far (small sample - no bulk/resync-shaped noise seen for this token yet, unlike Eldershark's Lockbox dumps). Built the same way as the other fishing-catch cards for consistency: direction:'gained' (selling/storing via 'Inventory lost' never decrements - this counts catches, not current holdings), eventSource:'inventory' (defensive, matches Eldershark/Giant Goldfish/Inyrevn Mermaid even though no Lockbox noise has been seen for this specific token yet), no starOnly (the one observed catch was starred, but nothing says non-star catches shouldn't also count - same reasoning as Giant Goldfish), no countEvents (raw quantity summed - no evidence yet of a fixed per-catch batch size to normalize away). mode:'session' matches every other raw catch/gather card, resets each Palia login. Art supplied by Baby directly in chat: 2048x768 (matches house standard exactly, no resize needed), a moonlit waterfall/lake scene with the shark leaping and a dark navy blank readout panel in a gold frame. Value box measured by dark+flat detection (interior sampled at rgb(21,31,46), restricted to the plausible zone to avoid the art's other dark rock/water shadows), checked visually with a red-outline overlay before finalizing: left 29.20%, top 61.20%, width 41.55%, height 27.60%.",
+      "valueBox": {
+        "left": 29.2,
+        "top": 61.2,
+        "width": 41.55,
+        "height": 27.6
+      }
+    }
+  ]
+}

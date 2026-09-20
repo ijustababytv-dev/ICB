@@ -1,0 +1,848 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "item-1788474478590-7715f8",
+      "name": "Chapaa Hut Enkii Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/Chapaa%20Hut%20Enkiii%20pillow.png"
+    },
+    {
+      "id": "item-1788474495795-2819c3",
+      "name": "Chapaa Hut Enkii Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Chapaa%20Hut%20Enkiii%20plush.png"
+    },
+    {
+      "id": "item-1788474509632-dadb92",
+      "name": "Chapaa Hut Fun Guy Plush Rare",
+      "type": "plushie",
+      "image": "/tradeup-art/Chapaa%20Hut%20Fun%20guy%20plush.png"
+    },
+    {
+      "id": "item-1788474526629-924ef2",
+      "name": "Chapaa Hut Inki Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-inki-pillow-1788474526629.png"
+    },
+    {
+      "id": "item-1788474541771-411e1e",
+      "name": "Chapaa Hut Inki Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-inki-plush-1788474541771.png"
+    },
+    {
+      "id": "item-1788476456431-f3ea47",
+      "name": "Chapaa Hut Maji Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-maji-plush-1788476456432.png"
+    },
+    {
+      "id": "item-1788476560575-8c7036",
+      "name": "Chapaa Hut Mini Maji Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-mini-maji-plush-1788476560575.png"
+    },
+    {
+      "id": "item-1788476590442-6af331",
+      "name": "Chapaa Hut Naanshi Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-naanshi-pillow-1788476590442.png"
+    },
+    {
+      "id": "item-1788476612288-9d0d35",
+      "name": "Chapaa Hut Naanshi Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-naanshi-plush-1788476612288.png"
+    },
+    {
+      "id": "item-1788476640405-838b68",
+      "name": "Chapaa Hut Neena Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-neena-pillow-1788476640405.png"
+    },
+    {
+      "id": "item-1788476656864-e5c76b",
+      "name": "Chapaa Hut Neena Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-neena-plush-1788476656865.png"
+    },
+    {
+      "id": "item-1788476675473-9ad8a6",
+      "name": "Chapaa Hut Nergaal Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-nergaal-pillow-1788476675473.png"
+    },
+    {
+      "id": "item-1788476695945-5fe2a3",
+      "name": "Chapaa Hut Nergaal Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-nergaal-plush-1788476695945.png"
+    },
+    {
+      "id": "item-1788480673880-384c56",
+      "name": "Chapaa Hut Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-hut-pillow-1788480673880.png"
+    },
+    {
+      "id": "item-1788480697146-e75ddf",
+      "name": "Chapaa Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chapaa-plush-1788480697146.png"
+    },
+    {
+      "id": "item-1788480738030-5c85dc",
+      "name": "Chatty Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/chatty-plush-1788480738030.png"
+    },
+    {
+      "id": "item-1788480748156-8fed61",
+      "name": "Cutesy Kitty Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/cutesy-kitty-plush-1788480748156.png"
+    },
+    {
+      "id": "item-1788480764630-e32b94",
+      "name": "Duskwing Butterfly Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Duskwing%20Butterfly%20Plush.png"
+    },
+    {
+      "id": "item-1788480772910-d7710b",
+      "name": "Elder Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Elder%20Sernuk%20plush.png"
+    },
+    {
+      "id": "item-1788480778960-c8bbcb",
+      "name": "Elder Shmole Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Elder%20Shmole%20plush.png"
+    },
+    {
+      "id": "item-1788480784270-c88622",
+      "name": "Elderwood Fun Guy",
+      "type": "plushie",
+      "image": "/tradeup-art/Elderwood_Fun_Guy_1.png"
+    },
+    {
+      "id": "item-1788480790538-13cf6e",
+      "name": "Emerald Ogopuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Emerald%20Ogopuu%20plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788480796593-a0c8ce",
+      "name": "Fairy Mantis Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Fairy%20Mantis%20Plush.png"
+    },
+    {
+      "id": "item-1788480803916-852936",
+      "name": "Fall Flutterfox Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Fall%20Flutterfox%20Plush.png"
+    },
+    {
+      "id": "item-1788480812018-87b324",
+      "name": "Finding Friends Chapaa Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Finding_Friends_Chapaa_Plush.png"
+    },
+    {
+      "id": "item-1788480832657-1dbfc4",
+      "name": "Flame Rockhopper Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Flame%20Rockhopper%20plush.png"
+    },
+    {
+      "id": "item-1788480840115-8dbc88",
+      "name": "Floatfish Toadstool Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Floatfish%20Toadstool%20Plush.png"
+    },
+    {
+      "id": "item-1788480849895-eb2a53",
+      "name": "Frogbert Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Frogbert%201.png"
+    },
+    {
+      "id": "item-1788480855611-178136",
+      "name": "Fun Guy Plushie",
+      "type": "plushie",
+      "image": "/tradeup-art/Fun_Guy_Plush.png"
+    },
+    {
+      "id": "item-1788480863607-3e4aca",
+      "name": "Garden Ladybug Plush Epic",
+      "type": "plushie",
+      "image": "/tradeup-art/Garden%20Ladybug%20plush.png"
+    },
+    {
+      "id": "item-1788480874657-cea0a3",
+      "name": "Garden Snail Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Garden%20snail%20plush.png"
+    },
+    {
+      "id": "item-1788480883431-9f7b92",
+      "name": "Giant Ancient Fish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giant_Ancient_Fish_Plush.png"
+    },
+    {
+      "id": "item-1788480889388-14d35e",
+      "name": "Giant Chapaa Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giant_Chapaa_Plush.png"
+    },
+    {
+      "id": "item-1788480895149-0b2286",
+      "name": "Giant Elderwood Fun Guy",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788480900876-889328",
+      "name": "Giant Frogbert Plush",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788480907698-e50781",
+      "name": "Giant Maji Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giant_Maji_Plush.png"
+    },
+    {
+      "id": "item-1788480917169-bc8440",
+      "name": "Giant Shark Fin Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giant_Shark_Fin_Plush.png"
+    },
+    {
+      "id": "item-1788480923138-f9e1ba",
+      "name": "Giga Elderwood Fun Guy",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788480928742-86df24",
+      "name": "Giga Frogbert Plush",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788480938953-c51636",
+      "name": "Giga Maws Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giga%20Maws%20Plush.png"
+    },
+    {
+      "id": "item-1788480945468-80864b",
+      "name": "Giga River Shark Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Giga%20River%20Shark%20Plush.png"
+    },
+    {
+      "id": "item-1788480955741-7e8a12",
+      "name": "Golden Bee Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Golden%20Bee%20Plush.png"
+    },
+    {
+      "id": "item-1788480962297-8a0a0d",
+      "name": "Golden Riffroc Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Golden%20Riffroc%20Plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788480972987-eb1432",
+      "name": "Golden Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/GOLDEN_SERNUK_PLUSH.png"
+    },
+    {
+      "id": "item-1788480979148-7b5099",
+      "name": "Green Cylinder",
+      "type": "plushie",
+      "image": "/tradeup-art/Green%20Cylinder.png"
+    },
+    {
+      "id": "item-1788480988641-680df7",
+      "name": "Grumpy Rockhopper Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Grumpy_Rockhopper_Plush.png"
+    },
+    {
+      "id": "item-1788480994125-bc0e68",
+      "name": "Highland Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/HIGHLAND_SERNUK_PLUSH.png"
+    },
+    {
+      "id": "item-1788481003923-cbd922",
+      "name": "Hollow Jaakcat Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/HALLOW_JAAKCAT.png"
+    },
+    {
+      "id": "item-1788481011967-ba027d",
+      "name": "Jaakcat Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/JAAKCAT_PLUSH.png"
+    },
+    {
+      "id": "item-1788481017483-271213",
+      "name": "King Crab Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/King%20Crab.png"
+    },
+    {
+      "id": "item-1788481023465-d46888",
+      "name": "Lantern Bug Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Lantern_Bug_Plush.png"
+    },
+    {
+      "id": "item-1788481029861-3268eb",
+      "name": "Leafy Flutterfox Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Leafy%20Flutterfox%20Plush.png"
+    },
+    {
+      "id": "item-1788481037142-ff4cfc",
+      "name": "Li'l Beetle",
+      "type": "plushie",
+      "image": "/tradeup-art/Li%27l%20Beetle.png"
+    },
+    {
+      "id": "item-1788481043297-bda020",
+      "name": "Li'l Carrot",
+      "type": "plushie",
+      "image": "/tradeup-art/Li%27l%20Carrot.png"
+    },
+    {
+      "id": "item-1788481050743-de8a38",
+      "name": "Li'l Froggy",
+      "type": "plushie",
+      "image": "/tradeup-art/Li%27l%20Froggy.png"
+    },
+    {
+      "id": "item-1788481060716-d6bd8d",
+      "name": "Li'l Sernuk",
+      "type": "plushie",
+      "image": "/tradeup-art/Li%27l%20Sernuk.png"
+    },
+    {
+      "id": "item-1788481071891-930a53",
+      "name": "Li'l Snail",
+      "type": "plushie",
+      "image": "/tradeup-art/Li%27l%20Snail.png"
+    },
+    {
+      "id": "item-1788481094195-cbe2e9",
+      "name": "Li'l Turnip",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788481099681-4b0b51",
+      "name": "Life-Sized Tau Plushie",
+      "type": "plushie",
+      "image": "/tradeup-art/Life-Sized%20Tau%20Plushie.png"
+    },
+    {
+      "id": "item-1788481105468-274b3a",
+      "name": "Lil Sprout Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Lil%20Sprout%20Plush.png"
+    },
+    {
+      "id": "item-1788481252901-511e28",
+      "name": "Lunar Fairy Moth Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Lunar_Fariy_Moth_Plush.png"
+    },
+    {
+      "id": "item-1788481259250-0de05b",
+      "name": "Madrinas Fun Guy Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Madrinas%20Fun%20Guy%20Plush.png"
+    },
+    {
+      "id": "item-1788481264797-b36108",
+      "name": "Madrinas Maji Plush",
+      "type": "plushie",
+      "image": null
+    },
+    {
+      "id": "item-1788481273259-388e0c",
+      "name": "Maws Fin Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Maws%20Fin%20Plush.png"
+    },
+    {
+      "id": "item-1788481286310-2f6f75",
+      "name": "Maws Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Maws_Plush.png"
+    },
+    {
+      "id": "item-1788481293440-57727a",
+      "name": "Me n' My Honeybunch Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Me_N_Honeybunch_Plush.png"
+    },
+    {
+      "id": "item-1788481299417-dc20f2",
+      "name": "Midnight Floatfish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Midnight%20Floatfish%20Plush.png"
+    },
+    {
+      "id": "item-1788481305341-7bf9f9",
+      "name": "Midnight Jaakcat Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/MIDNIGHT_JAAKCAT_PLUSH.png"
+    },
+    {
+      "id": "item-1788481310748-c50e63",
+      "name": "Minnow Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Minnow%20Plush.png"
+    },
+    {
+      "id": "item-1788481326550-ca2d0f",
+      "name": "Muujin Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Muujin%20plush.png"
+    },
+    {
+      "id": "item-1788481332817-ee3326",
+      "name": "Nibbles the Drake",
+      "type": "plushie",
+      "image": "/tradeup-art/Nibbles%20the%20Drake.png"
+    },
+    {
+      "id": "item-1788481337900-9d0f76",
+      "name": "Nox the Palcat Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Nox%20the%20Palcat%20Plush.png"
+    },
+    {
+      "id": "item-1788481346993-70a5a8",
+      "name": "Obsidian Kitsuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Obsidian%20Kitsuu%20Plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788481352492-bfeb86",
+      "name": "Ogopuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Ogopuu%20plush.png"
+    },
+    {
+      "id": "item-1788481357762-2771a9",
+      "name": "One-in-Ten-Million Cake",
+      "type": "plushie",
+      "image": "/tradeup-art/OneInTenMillion%20Cupcake%20Plush.png"
+    },
+    {
+      "id": "item-1788481364914-2b996a",
+      "name": "One-in-Ten-Million Chapaa",
+      "type": "plushie",
+      "image": "/tradeup-art/OneInTenMillion_Finding_Friends_Chapaa_Plush.png"
+    },
+    {
+      "id": "item-1788481370227-fae3a2",
+      "name": "One-in-Ten-Million Cyl",
+      "type": "plushie",
+      "image": "/tradeup-art/OneInTenMillion%20Cylinder%20plush.png"
+    },
+    {
+      "id": "item-1788481385424-5f29eb",
+      "name": "One-in-Ten-Million Frog",
+      "type": "plushie",
+      "image": "/tradeup-art/One_In_Ten_Million_Frogbert.png"
+    },
+    {
+      "id": "item-1788481392643-592a2b",
+      "name": "One-in-Ten-Million Palcat",
+      "type": "plushie",
+      "image": "/tradeup-art/OneInTenMillion%20Palcat%20Plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788481398822-e0d259",
+      "name": "Palcat Plushie 2",
+      "type": "plushie",
+      "image": "/tradeup-art/Palcat%20plush%202.png"
+    },
+    {
+      "id": "item-1788481404768-59452e",
+      "name": "Palcat Plushie 4",
+      "type": "plushie",
+      "image": "/tradeup-art/Palcat%20plush%204.png"
+    },
+    {
+      "id": "item-1788481410536-beeb8a",
+      "name": "Piksii Floatfish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Piksii%20Floatfish%20Plush.png"
+    },
+    {
+      "id": "item-1788481415644-abec64",
+      "name": "Piksii Shmole Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Piksii%20Shmole%20plush.png"
+    },
+    {
+      "id": "item-1788481420805-a243a5",
+      "name": "Pink Maji Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Pink_Maji_Plush.png"
+    },
+    {
+      "id": "item-1788481427327-44fdb8",
+      "name": "Princess Ladybug Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Princess%20Ladybug%20Plush.png"
+    },
+    {
+      "id": "item-1788481432999-579384",
+      "name": "Prismfish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Prismfish%20Plush.png"
+    },
+    {
+      "id": "item-1788481440808-afb138",
+      "name": "Proudhorned Beetle Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Proudhorn%20Beetle.png"
+    },
+    {
+      "id": "item-1788481447356-d2faed",
+      "name": "Proudhorned Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Proudhorned%20Sernuk%20plush%20-%20Copy%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788481453157-8bb618",
+      "name": "Rainbow Butterfly Plush Epic",
+      "type": "plushie",
+      "image": "/tradeup-art/Rainbow%20Butterfly%20Plush.png"
+    },
+    {
+      "id": "item-1788481459095-68f2e5",
+      "name": "Rainbow Frogbert Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Rainbow%20Frogbert%20Plush.png"
+    },
+    {
+      "id": "item-1788481465728-b414b0",
+      "name": "Rainbow Kitsuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Rainbow%20Kitsuu%20Plush.png"
+    },
+    {
+      "id": "item-1788481471741-fff3e4",
+      "name": "Rainbow Maji Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Rainbow%20Maji%20Plush.png"
+    },
+    {
+      "id": "item-1788481481728-9025f6",
+      "name": "Ramen Bowl Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Ramen%20Bowl%20Plush.png"
+    },
+    {
+      "id": "item-1788481487750-a83e80",
+      "name": "Ranch House Butterball",
+      "type": "plushie",
+      "image": "/tradeup-art/Ranch%20House%20Butterball.png"
+    },
+    {
+      "id": "item-1788481493579-466ee7",
+      "name": "Ranch House Cherrytail",
+      "type": "plushie",
+      "image": "/tradeup-art/Ranch%20House%20Cherrytail.png"
+    },
+    {
+      "id": "item-1788481500087-5e9b19",
+      "name": "Ranch House Cottonbean",
+      "type": "plushie",
+      "image": "/tradeup-art/Ranch%20House%20Cottonbean.png"
+    },
+    {
+      "id": "item-1788481507105-326805",
+      "name": "Red Koi Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Red%20Koi%20Plush.png"
+    },
+    {
+      "id": "item-1788481512496-e85561",
+      "name": "River Shark Fin Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/River%20Shark%20Fin%20Plush.png"
+    },
+    {
+      "id": "item-1788481518415-4043fb",
+      "name": "River Shark Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/River_Shark_Plush.png"
+    },
+    {
+      "id": "item-1788481525522-f10d46",
+      "name": "Royal Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/ROYAL_SERNUK_PLUSH.png"
+    },
+    {
+      "id": "item-1788481530793-71c5fe",
+      "name": "Sandi the Palcat Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Sandi%20the%20Palcat%20Plush.png"
+    },
+    {
+      "id": "item-1788481535730-109b15",
+      "name": "Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Sernuk%20plush.png"
+    },
+    {
+      "id": "item-1788481542587-bcc02c",
+      "name": "Shimmerfly Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Shimmerfly%20Plush.png"
+    },
+    {
+      "id": "item-1788481550229-7d0d41",
+      "name": "Shmole Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Shmole%20plush.png"
+    },
+    {
+      "id": "item-1788481556031-e9d7fc",
+      "name": "Slumber Fox Plush Epic",
+      "type": "plushie",
+      "image": "/tradeup-art/Slumber%20Fox%20Plush.png"
+    },
+    {
+      "id": "item-1788481563520-4b8815",
+      "name": "Spring Flutterfox Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Spring%20Flutterfox%20Plush.png"
+    },
+    {
+      "id": "item-1788481569906-f6a457",
+      "name": "Stackable Chapaa Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/Stackable%20Chapaa%20Pillow.png"
+    },
+    {
+      "id": "item-1788481576774-5eac95",
+      "name": "Stackable Muujin Pillow Rare",
+      "type": "plushie",
+      "image": "/tradeup-art/Stackable%20Muujin%20Pillow.png"
+    },
+    {
+      "id": "item-1788481584039-342d3c",
+      "name": "Stackable Palcat Pillow",
+      "type": "plushie",
+      "image": "/tradeup-art/Stackable%20Palcat%20Pillow.png"
+    },
+    {
+      "id": "item-1788481591884-a724ae",
+      "name": "Striped Chapaa Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Striped_Chapaa_Plush.png"
+    },
+    {
+      "id": "item-1788481597912-88eea6",
+      "name": "Summer Flutterfox Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Summer%20Flutterfox%20Plush.png"
+    },
+    {
+      "id": "item-1788481605791-cd0608",
+      "name": "The Order Sernuk Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/The_Order_Sernuk_Plush.png"
+    },
+    {
+      "id": "item-1788481610608-6a1be0",
+      "name": "Trufflet Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Trufflet%20Plush.png"
+    },
+    {
+      "id": "item-1788481616742-288aaf",
+      "name": "Waveback Ogopuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Waveback%20Ogopuu%20plush.png"
+    },
+    {
+      "id": "item-1788481623536-0e3614",
+      "name": "Winter Flutterfox Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Winter%20Flutterfox%20Plush.png"
+    },
+    {
+      "id": "item-1788481630507-f14afa",
+      "name": "Wisp Rockhopper Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Wisp_Rockhopper_Plush.png"
+    },
+    {
+      "id": "item-1788481636318-456e72",
+      "name": "Worn Mouse Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Worn%20Mouse%20Plush.png"
+    },
+    {
+      "id": "item-1788481642632-aa7705",
+      "name": "Year of the Naga Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Year%20of%20the%20Naga%20Plush.png"
+    },
+    {
+      "id": "item-1788481649948-53f731",
+      "name": "Yellow Koi Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Yellow%20Koi%20Plush.png"
+    },
+    {
+      "id": "item-1788560294791-08ec3b",
+      "name": "1st Anniversary Cupcake Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/1st_Anniversary%20Cupcake_Plush.png"
+    },
+    {
+      "id": "item-1788560294792-532066",
+      "name": "2nd Anniversary Cupcake Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/2nd_Anniversary_Cupcake_Plush.png"
+    },
+    {
+      "id": "item-1788560294793-fa80cd",
+      "name": "3rd Anniversary Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/3rd%20Anniversary%20Plush.png"
+    },
+    {
+      "id": "item-1788560294794-4b905e",
+      "name": "Ancient Fish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Ancient%20Fish%20Plush.png"
+    },
+    {
+      "id": "item-1788560294795-95c2fd",
+      "name": "Ancient Kitsuu plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Ancient%20Kitsuu%20plush.png"
+    },
+    {
+      "id": "item-1788560294797-9a12ce",
+      "name": "Ancient Silverwing plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Ancient%20Silverwing%20plush.png"
+    },
+    {
+      "id": "item-1788560294798-8401a6",
+      "name": "Azure Chapaa plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Azure%20Chapaa%20plush.png"
+    },
+    {
+      "id": "item-1788560294799-e3db3f",
+      "name": "Bahari Bee Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Bahari%20Bee%20Plush.png"
+    },
+    {
+      "id": "item-1788560294800-1b39ae",
+      "name": "Banded Muujin plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Banded%20Muujin%20plush.png"
+    },
+    {
+      "id": "item-1788560294801-a3f95d",
+      "name": "Big Me n My Honeybunch Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Big_Me_n_My_Honeybunch_Plush.png"
+    },
+    {
+      "id": "item-1788560294802-265880",
+      "name": "Blue Crab",
+      "type": "plushie",
+      "image": "/tradeup-art/Blue%20Crab.png"
+    },
+    {
+      "id": "item-1788560294803-aa28cb",
+      "name": "Bluebristle Muujin plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Bluebristle%20Muujin%20plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788560294805-a54f5c",
+      "name": "Caldera Kitsuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Caldera%20Kitsuu%20Plush%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788560294806-416ace",
+      "name": "Catfish Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Catfish%20Plush.png"
+    },
+    {
+      "id": "item-1788560294807-7d32b7",
+      "name": "Cave Kitsuu Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Cave%20Kitsuu%20Plush.png"
+    },
+    {
+      "id": "item-1788560294808-adcd72",
+      "name": "Chapaa Hut Embra plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Chapaa%20Hut%20Embra%20plush.png"
+    },
+    {
+      "id": "item-1788560294809-df7ecd",
+      "name": "Dawnspurs Plush",
+      "type": "plushie",
+      "image": "/tradeup-art/Dawnspurs%20Plush%20-%20Copy%20-%20Copy.png"
+    },
+    {
+      "id": "item-1788560446370-d6d26d",
+      "name": "apple jam",
+      "type": "plushie",
+      "image": "/tradeup-art/apple%20jam.png"
+    }
+  ],
+  "pools": [
+    {
+      "id": 1,
+      "label": "Pool 1 \u2014 Common",
+      "whammyCount": 0
+    },
+    {
+      "id": 2,
+      "label": "Pool 2 \u2014 Uncommon",
+      "whammyCount": 2
+    },
+    {
+      "id": 3,
+      "label": "Pool 3 \u2014 Epic",
+      "whammyCount": 6
+    }
+  ],
+  "whammy": {
+    "label": "WHAMMY",
+    "image": null
+  }
+}

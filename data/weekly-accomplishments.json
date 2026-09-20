@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "weekStart": "2026-09-14T04:00:00.000Z",
+  "progress": {
+    "friends-cook": {
+      "count": 0,
+      "done": false
+    },
+    "friends-fish": {
+      "count": 0,
+      "done": false
+    },
+    "friends-hunt": {
+      "count": 0,
+      "done": false
+    },
+    "friends-mine": {
+      "count": 0,
+      "done": false
+    },
+    "cook-10": {
+      "count": 10,
+      "done": false
+    },
+    "cook-star-3": {
+      "count": 3,
+      "done": false
+    },
+    "forage-30": {
+      "count": 30,
+      "done": false
+    },
+    "trees-10": {
+      "count": 10,
+      "done": false
+    },
+    "magic-trees-10": {
+      "count": 10,
+      "done": false
+    },
+    "furniture-common-5": {
+      "count": 0,
+      "done": false
+    },
+    "furniture-uncommon-3": {
+      "count": 0,
+      "done": false
+    },
+    "furniture-rare-1": {
+      "count": 0,
+      "done": false
+    },
+    "crops-30": {
+      "count": 36,
+      "done": false
+    },
+    "crops-star-10": {
+      "count": 36,
+      "done": false
+    },
+    "fertilizer-30": {
+      "count": 0,
+      "done": false
+    },
+    "hunt-30": {
+      "count": 0,
+      "done": false
+    },
+    "hunt-magical-5": {
+      "count": 0,
+      "done": false
+    },
+    "mine-20": {
+      "count": 0,
+      "done": false
+    },
+    "mine-silver-gold-10": {
+      "count": 0,
+      "done": false
+    },
+    "hometour-visit-15": {
+      "count": 0,
+      "done": false
+    },
+    "hometour-react-5": {
+      "count": 0,
+      "done": false
+    }
+  },
+  "previous": {
+    "weekStart": "2026-09-07T04:00:00.000Z",
+    "progress": [
+      {
+        "id": "friends-cook",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "friends-fish",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "friends-hunt",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "friends-mine",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "cook-10",
+        "count": 10,
+        "done": false
+      },
+      {
+        "id": "cook-star-3",
+        "count": 3,
+        "done": false
+      },
+      {
+        "id": "forage-30",
+        "count": 287,
+        "done": false
+      },
+      {
+        "id": "trees-10",
+        "count": 10,
+        "done": false
+      },
+      {
+        "id": "magic-trees-10",
+        "count": 2,
+        "done": false
+      },
+      {
+        "id": "furniture-common-5",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "furniture-uncommon-3",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "furniture-rare-1",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "crops-30",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "crops-star-10",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "fertilizer-30",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "hunt-30",
+        "count": 30,
+        "done": false
+      },
+      {
+        "id": "hunt-magical-5",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "mine-20",
+        "count": 20,
+        "done": false
+      },
+      {
+        "id": "mine-silver-gold-10",
+        "count": 16,
+        "done": false
+      },
+      {
+        "id": "hometour-visit-15",
+        "count": 0,
+        "done": false
+      },
+      {
+        "id": "hometour-react-5",
+        "count": 0,
+        "done": false
+      }
+    ]
+  },
+  "lastResetAt": "2026-09-15T20:41:15.067Z",
+  "updatedAt": "2026-09-19T23:35:39.171Z"
+}

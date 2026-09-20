@@ -1,0 +1,217 @@
+{
+  "_comment": "Weekly Accomplishments. Palia's week rolls over MONDAY 04:00 UTC (Sunday 11 PM Central in summer, 10 PM in winter). Anchored to UTC so daylight saving cannot drift it.",
+  "_types": "manual = Baby ticks it. collect = counted from the log. mode 'items' sums quantities; mode 'events' counts matching log LINES - use events when one action drops a pile (one felled tree is one line carrying 17 wood). direction 'lost' counts things leaving the inventory (using fertilizer). starOnly counts only pickups carrying the (1*) star-quality flag.",
+  "_evidence": "Every automatic entry was checked against 30 of Baby's real logs on 2026-08-19. Manual entries carry whyManual explaining what the log cannot see. Do not 'improve' a manual entry into an automatic one without new log evidence.",
+  "weekStartsUtc": {
+    "weekday": 1,
+    "hour": 4
+  },
+  "items": [
+    {
+      "id": "friends-cook",
+      "label": "Cook 3 Meals with Friends",
+      "type": "manual",
+      "target": 1,
+      "group": "With Friends",
+      "whyManual": "The log never names or counts another player."
+    },
+    {
+      "id": "friends-fish",
+      "label": "Catch 10 Fish with Friends",
+      "type": "manual",
+      "target": 1,
+      "group": "With Friends",
+      "whyManual": "The log never names or counts another player."
+    },
+    {
+      "id": "friends-hunt",
+      "label": "Hunt 10 Creatures with Friends",
+      "type": "manual",
+      "target": 1,
+      "group": "With Friends",
+      "whyManual": "The log never names or counts another player."
+    },
+    {
+      "id": "friends-mine",
+      "label": "Mine 5 Nodes with Friends",
+      "type": "manual",
+      "target": 1,
+      "group": "With Friends",
+      "whyManual": "The log never names or counts another player."
+    },
+    {
+      "id": "cook-10",
+      "label": "Cook 10 Meals",
+      "type": "collect",
+      "mode": "events",
+      "tokenPattern": "^itemtype_c_",
+      "target": 10,
+      "group": "Cooking",
+      "verified": false,
+      "note": "Counts finished dishes arriving. Pulling a dish out of storage looks identical - needs the cook-three-dishes test."
+    },
+    {
+      "id": "cook-star-3",
+      "label": "Cook 3 Star Quality Meals",
+      "type": "collect",
+      "mode": "events",
+      "tokenPattern": "^itemtype_c_",
+      "starOnly": true,
+      "target": 3,
+      "group": "Cooking",
+      "verified": false,
+      "note": "(1*) is confirmed to be the star flag: only 4.6% of pickups carry it and 65 items appear both ways."
+    },
+    {
+      "id": "forage-30",
+      "label": "Gather 30 Forageables",
+      "type": "collect",
+      "mode": "items",
+      "tokenPattern": "^itemtype_forage_",
+      "target": 30,
+      "group": "Foraging",
+      "verified": true
+    },
+    {
+      "id": "trees-10",
+      "label": "Chop Down 10 Trees",
+      "type": "collect",
+      "mode": "events",
+      "tokenPattern": "^itemtype_wood_",
+      "target": 10,
+      "group": "Foraging",
+      "verified": true,
+      "note": "One felled tree is ONE log line carrying 14-22 wood, so events are counted, not items."
+    },
+    {
+      "id": "magic-trees-10",
+      "label": "Chop Down 10 Magical Trees",
+      "type": "collect",
+      "mode": "events",
+      "tokens": [
+        "itemtype_wood_magicwood"
+      ],
+      "target": 10,
+      "group": "Foraging",
+      "verified": true
+    },
+    {
+      "id": "furniture-common-5",
+      "label": "Craft 5 Common Furniture",
+      "type": "manual",
+      "target": 1,
+      "group": "Furniture Making",
+      "whyManual": "Crafting logs as 'Crafted recipe 7342' - a numeric ID with no name and no rarity."
+    },
+    {
+      "id": "furniture-uncommon-3",
+      "label": "Craft 3 Uncommon Furniture",
+      "type": "manual",
+      "target": 1,
+      "group": "Furniture Making",
+      "whyManual": "Crafting logs a numeric recipe ID with no rarity."
+    },
+    {
+      "id": "furniture-rare-1",
+      "label": "Craft 1 Rare Furniture",
+      "type": "manual",
+      "target": 1,
+      "group": "Furniture Making",
+      "whyManual": "Crafting logs a numeric recipe ID with no rarity."
+    },
+    {
+      "id": "crops-30",
+      "label": "Harvest 30 Crops",
+      "type": "collect",
+      "mode": "items",
+      "tokenPattern": "^itemtype_crop_",
+      "target": 30,
+      "group": "Gardening",
+      "verified": true
+    },
+    {
+      "id": "crops-star-10",
+      "label": "Harvest 10 Star Quality Crops",
+      "type": "collect",
+      "mode": "items",
+      "tokenPattern": "^itemtype_crop_",
+      "starOnly": true,
+      "target": 10,
+      "group": "Gardening",
+      "verified": true
+    },
+    {
+      "id": "fertilizer-30",
+      "label": "Use Fertilizer 30 Times",
+      "type": "collect",
+      "mode": "items",
+      "direction": "lost",
+      "tokenPattern": "^itemtype_fertilizer_",
+      "target": 30,
+      "group": "Gardening",
+      "verified": true,
+      "note": "Using fertilizer removes it from inventory, so losses are counted. Moving fertilizer into storage would also count."
+    },
+    {
+      "id": "hunt-30",
+      "label": "Hunt 30 Creatures",
+      "type": "collect",
+      "mode": "events",
+      "tokens": [
+        "itemtype_material_hide"
+      ],
+      "target": 30,
+      "group": "Hunting",
+      "verified": true,
+      "note": "Every kill in the logs drops a hide, and one kill is one line. Looting several corpses at once undercounts slightly."
+    },
+    {
+      "id": "hunt-magical-5",
+      "label": "Hunt 5 Magical Creatures",
+      "type": "manual",
+      "target": 1,
+      "group": "Hunting",
+      "whyManual": "Nothing marks a creature as magical. The only 'magic' token in any log is itemtype_wood_magicwood."
+    },
+    {
+      "id": "mine-20",
+      "label": "Mine 20 Nodes",
+      "type": "collect",
+      "mode": "events",
+      "tokenPattern": "^itemtype_mineral_(ore|rock)_",
+      "target": 20,
+      "group": "Mining",
+      "verified": true,
+      "note": "One node is one log line, so events are counted rather than ore."
+    },
+    {
+      "id": "mine-silver-gold-10",
+      "label": "Mine 10 Silver or Gold Ore",
+      "type": "collect",
+      "mode": "items",
+      "tokens": [
+        "itemtype_mineral_ore_silver",
+        "itemtype_mineral_ore_gold"
+      ],
+      "target": 10,
+      "group": "Mining",
+      "verified": true
+    },
+    {
+      "id": "hometour-visit-15",
+      "label": "Visit 15 Homes in Home Tours",
+      "type": "manual",
+      "target": 1,
+      "group": "Home Tours",
+      "whyManual": "Home Tours leave no trace in the log at all."
+    },
+    {
+      "id": "hometour-react-5",
+      "label": "React 5 Times While Touring",
+      "type": "manual",
+      "target": 1,
+      "group": "Home Tours",
+      "whyManual": "Home Tours leave no trace in the log at all."
+    }
+  ]
+}

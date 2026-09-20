@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "resources": {
+    "amber": 8371,
+    "essence": 0,
+    "sweetLeaf": 0
+  },
+  "session": {
+    "mode": "on-air"
+  },
+  "reader": {
+    "state": "offline",
+    "file": "C:\\Users\\mrsch\\AppData\\Local\\PaliaAssistant\\logs\\app-20260919.log",
+    "fileModifiedAt": "2026-09-19T23:37:00.558Z",
+    "lastEvent": {
+      "at": "2026-09-18T03:31:57.686Z",
+      "line": "2026-09-17 22:31:56.803 -05:00 [INF] Inventory gained: itemtype_fish_az3_ray_epic (1*) x1, itemtype_currency_echo_amber x69, itemtype_forage_extremelyagedcheese x1",
+      "resource": "amber",
+      "amount": 69,
+      "token": "itemtype_currency_echo_amber"
+    },
+    "lastUpdateAt": "2026-09-18T03:31:57.686Z"
+  },
+  "reconciliation": {
+    "required": false,
+    "reason": "Palia was played after the last Palia Assistant log update. The historical totals are not current.",
+    "historicalBaseline": {
+      "amber": 10122,
+      "essence": 1505,
+      "sweetLeaf": 408
+    },
+    "reconciledAt": "2026-08-14T18:20:17.896Z",
+    "reconciledBy": "operator"
+  },
+  "updatedAt": "2026-09-19T23:47:01.076Z",
+  "migration": {
+    "source": "C:\\Users\\mrsch\\Documents\\ChatGPT\\ICB\\data\\palia.json",
+    "sourceLastUpdateAt": "2026-08-12T18:56:40.839Z",
+    "importedOn": "2026-08-14",
+    "reason": "Historical snapshot retained only. Palia was played after Palia Assistant stopped, so current totals must be reconciled from the game before tracking resumes."
+  }
+}

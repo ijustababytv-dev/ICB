@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="768" viewBox="0 0 2048 768" role="img" aria-label="ICB tracker card master template, 2048 by 768, 8 to 3">
+  <title>ICB Official Resource Tracker Skin — master template (2048 × 768, 8:3)</title>
+  <desc>Layout guide only, NOT a skin. Confirmed geometry from Baby's Tracker Card Master Template, 2026-08-14. Safe area 64,64 1920x640. Title zone 128,96 1792x260. Value box zone 448,392 1152x280. Corner radius 64. Origin top-left.</desc>
+
+  <defs>
+    <pattern id="checker" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#0b1420"/>
+      <rect width="32" height="32" fill="#101c2c"/>
+      <rect x="32" y="32" width="32" height="32" fill="#101c2c"/>
+    </pattern>
+    <style>
+      .lbl  { font-family: "Segoe UI", system-ui, sans-serif; font-weight: 700; }
+      .dim  { font-family: "Segoe UI", system-ui, sans-serif; font-weight: 700; font-size: 22px; fill: #cfe6ff; }
+      .note { font-family: "Segoe UI", system-ui, sans-serif; font-weight: 600; }
+    </style>
+    <marker id="ar" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="14" refY="8" orient="auto">
+      <path d="M0,1 L15,8 L0,15 z" fill="#cfe6ff"/>
+    </marker>
+    <marker id="al" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="2" refY="8" orient="auto">
+      <path d="M16,1 L1,8 L16,15 z" fill="#cfe6ff"/>
+    </marker>
+  </defs>
+
+  <!-- transparent-canvas indicator -->
+  <rect width="2048" height="768" fill="url(#checker)"/>
+
+  <!-- OUTER CARD: rounded rectangle, corner radius 64 -->
+  <rect x="4" y="4" width="2040" height="760" rx="64" ry="64"
+        fill="none" stroke="#6ee7f9" stroke-width="8"/>
+
+  <!-- SAFE AREA 64,64 1920x640 -->
+  <rect x="64" y="64" width="1920" height="640" rx="32" ry="32"
+        fill="none" stroke="#8df0ae" stroke-width="4" stroke-dasharray="20 14"/>
+  <text x="84" y="52" class="lbl" font-size="26" fill="#8df0ae">SAFE AREA  64,64 · 1920×640</text>
+
+  <!-- TITLE ZONE 128,96 1792x260 -->
+  <rect x="128" y="96" width="1792" height="260" rx="24" ry="24"
+        fill="rgba(185,168,255,0.10)" stroke="#b9a8ff" stroke-width="4" stroke-dasharray="16 12"/>
+  <text x="148" y="132" class="lbl" font-size="24" fill="#b9a8ff">TITLE ZONE  128,96 · 1792×260  ·  center x=1024</text>
+  <text x="1024" y="248" text-anchor="middle" class="lbl" font-size="88" fill="#b9a8ff" letter-spacing="4">RESOURCE TITLE</text>
+  <text x="1024" y="308" text-anchor="middle" class="note" font-size="30" fill="#8f81cc">baked into artwork · e.g. Sweet Leaf, Amber Echo, Palium</text>
+
+  <!-- VALUE BOX ZONE 448,392 1152x280 -->
+  <rect x="448" y="392" width="1152" height="280" rx="32" ry="32"
+        fill="rgba(255,158,171,0.08)" stroke="#ff9eab" stroke-width="6" stroke-dasharray="22 14"/>
+  <text x="468" y="428" class="lbl" font-size="24" fill="#ff9eab">VALUE BOX ZONE  448,392 · 1152×280  ·  center x=1024</text>
+  <text x="1024" y="510" text-anchor="middle" class="lbl" font-size="54" fill="#ff9eab" letter-spacing="2">LEAVE THIS BOX BLANK</text>
+  <text x="1024" y="562" text-anchor="middle" class="note" font-size="30" fill="#ffc4cc">ICB renders the live value here at runtime</text>
+  <text x="1024" y="606" text-anchor="middle" class="note" font-size="25" fill="#d68d98">never bake in 1234 / 10,122 / x1234 or any placeholder count</text>
+
+  <!-- dimension: safe area top -> title top = 32 -->
+  <line x1="1740" y1="64" x2="1740" y2="96" stroke="#cfe6ff" stroke-width="2" marker-start="al" marker-end="ar"/>
+  <text x="1756" y="88" class="dim">32px</text>
+
+  <!-- dimension: title bottom -> value box top = 36 -->
+  <line x1="300" y1="356" x2="300" y2="392" stroke="#cfe6ff" stroke-width="2" marker-start="al" marker-end="ar"/>
+  <text x="316" y="382" class="dim">36px</text>
+
+  <!-- dimension: value box bottom -> safe area bottom = 32 -->
+  <line x1="1740" y1="672" x2="1740" y2="704" stroke="#cfe6ff" stroke-width="2" marker-start="al" marker-end="ar"/>
+  <text x="1756" y="696" class="dim">32px</text>
+
+  <!-- dimension: value box side margins 448 -->
+  <line x1="128" y1="532" x2="448" y2="532" stroke="#cfe6ff" stroke-width="2" marker-start="al" marker-end="ar"/>
+  <text x="288" y="524" text-anchor="middle" class="dim">448px</text>
+  <line x1="1600" y1="532" x2="1920" y2="532" stroke="#cfe6ff" stroke-width="2" marker-start="al" marker-end="ar"/>
+  <text x="1760" y="524" text-anchor="middle" class="dim">448px</text>
+
+  <!-- corner radius callout -->
+  <text x="1964" y="44" text-anchor="end" class="lbl" font-size="24" fill="#6ee7f9">corner radius 64px</text>
+
+  <!-- footer -->
+  <text x="32" y="744" class="lbl" font-size="27" fill="#6ee7f9">MASTER 2048 × 768 · 8:3 · origin (0,0) top-left</text>
+  <text x="2016" y="744" text-anchor="end" class="note" font-size="22" fill="#99abc5">LAYOUT GUIDE — NOT A SKIN · do not move or resize the value box</text>
+</svg>

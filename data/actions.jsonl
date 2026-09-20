@@ -1,0 +1,4 @@
+{"commandId":"cmd-1786732361059-1158f1","target":"reader.rescan","payload":{},"status":"accepted","requestedAt":"2026-08-14T18:32:41.059Z"}
+{"commandId":"cmd-1786732361059-1158f1","target":"reader.rescan","payload":{},"status":"completed","requestedAt":"2026-08-14T18:32:41.059Z","message":"Reader scan requested.","completedAt":"2026-08-14T18:32:41.061Z"}
+{"commandId":"cmd-1787020983835-3f9318","target":"session.set-mode","payload":{"mode":"on-air"},"status":"accepted","requestedAt":"2026-08-18T02:43:03.836Z"}
+{"commandId":"cmd-1787020983835-3f9318","target":"session.set-mode","payload":{"mode":"on-air"},"status":"completed","requestedAt":"2026-08-18T02:43:03.836Z","message":"Session mode set to on-air.","completedAt":"2026-08-18T02:43:03.837Z"}

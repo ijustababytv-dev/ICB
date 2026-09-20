@@ -1,0 +1,572 @@
+{
+  "standardId": "icb-tracker-skin-2048x768-8x3",
+  "title": "Official ICB Resource Tracker Skin Standard",
+  "version": 3,
+  "adoptedOn": "2026-08-14",
+  "geometryConfirmedOn": "2026-08-14",
+  "geometryConfirmedBy": "Baby, via the Tracker Card Master Template (Measurements & Scales) artwork",
+  "authority": "Baby (IJUSTABABY). This is the required default for every ICB resource tracker skin. It may only be changed or waived by an explicit instruction from Baby - never by inference, convenience, or an AI session's own judgement.",
+  "status": "active",
+  "master": {
+    "width": 2048,
+    "height": 768,
+    "aspectRatio": "8:3",
+    "aspectRatioDecimal": 2.6666666666666665,
+    "units": "px",
+    "origin": "top-left corner of the full canvas, (0,0)",
+    "note": "This is the MASTER / NATIVE artwork resolution. It is deliberately oversized so skins stay crisp when scaled. It is NOT the on-stream display size."
+  },
+  "scaling": {
+    "preserveAspectRatio": true,
+    "masterIsNotDisplaySize": true,
+    "rule": "The overlay may scale a skin down proportionally to suit its placement in the scene. Whatever display width is chosen, the 8:3 ratio must be preserved. Never letterbox, stretch, crop, or pad to a different ratio.",
+    "allGeometryScalesProportionally": true,
+    "scaleFactorFormula": "scale = displayWidth / 2048. Every zone coordinate and the corner radius multiply by that same factor.",
+    "exampleDisplayWidths": [
+      {
+        "width": 512,
+        "height": 192,
+        "scale": 0.25
+      },
+      {
+        "width": 480,
+        "height": 180,
+        "scale": 0.234375
+      },
+      {
+        "width": 400,
+        "height": 150,
+        "scale": 0.1953125
+      },
+      {
+        "width": 384,
+        "height": 144,
+        "scale": 0.1875
+      }
+    ],
+    "exampleNote": "Illustrative only. These are not approved sizes; any width works provided height = width * 3 / 8."
+  },
+  "card": {
+    "orientation": "horizontal",
+    "shape": "rounded rectangle",
+    "cornerRadius": 64,
+    "stacking": "vertical",
+    "stackingSides": [
+      "left",
+      "right",
+      "both"
+    ],
+    "targetScene": {
+      "width": 1920,
+      "height": 1080
+    },
+    "rationale": "Trackers appear on stream together as a vertical stack of compact horizontal cards. Identical geometry is what allows one resource skin to be swapped for another with no resizing or repositioning."
+  },
+  "structure": {
+    "resourceTitle": {
+      "required": true,
+      "position": "upper / central portion of the card",
+      "bakedIntoArtwork": true,
+      "note": "The resource name is part of the skin artwork, e.g. 'Sweet Leaf', 'Infected Essence', 'Amber Echo'."
+    },
+    "valueBox": {
+      "required": true,
+      "position": "directly underneath the resource title",
+      "bakedIntoArtwork": false,
+      "mustBeBlankInArtwork": true,
+      "mustNotBeMovedOrResized": true,
+      "renderedBy": "ICB overlay at runtime",
+      "forbiddenInArtwork": [
+        "1234",
+        "10,122",
+        "x1234",
+        "any placeholder count",
+        "any example number"
+      ],
+      "note": "CRITICAL. The artwork supplies a blank readout box. ICB draws the live value on top of it. A number baked into the PNG can never update and will silently contradict the live tracker.",
+      "perSkin": true,
+      "perSkinNote": "Each skin declares its OWN value box in the skins registry below. ICB renders the live value into whichever card is showing, using that card's coordinates. This replaced an earlier assumption that every card had to share one identical box position - image generation could not hit pixel targets reliably, and the fixed-zone requirement was never actually necessary. Skin swapping is still fully automatic."
+    },
+    "decorativeArtwork": {
+      "variesByResource": true,
+      "mustStayInsideSafeArea": true,
+      "note": "Art direction is free to change per resource and per game update. The card geometry and functional layout are what must stay constant."
+    }
+  },
+  "referenceZones": {
+    "status": "confirmed",
+    "confirmedOn": "2026-08-14",
+    "source": "Baby's Tracker Card Master Template (Measurements & Scales)",
+    "coordinateSpace": "master pixels, origin at top-left of the 2048x768 canvas",
+    "safeArea": {
+      "x": 64,
+      "y": 64,
+      "width": 1920,
+      "height": 640,
+      "right": 1984,
+      "bottom": 704
+    },
+    "titleZone": {
+      "x": 128,
+      "y": 96,
+      "width": 1792,
+      "height": 260,
+      "right": 1920,
+      "bottom": 356,
+      "centerX": 1024,
+      "horizontallyCentered": true
+    },
+    "valueBoxZone": {
+      "x": 448,
+      "y": 392,
+      "width": 1152,
+      "height": 280,
+      "right": 1600,
+      "bottom": 672,
+      "centerX": 1024,
+      "horizontallyCentered": true
+    },
+    "appliesTo": "Design guidance for NEW artwork. safeArea and titleZone remain the layout guide. valueBoxZone is a suggested default only - the authoritative value box for any existing card is the one in skins.cards[].valueBox."
+  },
+  "derivedSpacing": {
+    "note": "Computed from the confirmed zone coordinates. Provided so artwork tools and future code do not have to recalculate.",
+    "canvasEdgeToSafeArea": {
+      "top": 64,
+      "right": 64,
+      "bottom": 64,
+      "left": 64
+    },
+    "safeAreaTopToTitleTop": 32,
+    "titleBottomToValueBoxTop": 36,
+    "valueBoxBottomToSafeAreaBottom": 32,
+    "valueBoxBottomToCanvasBottom": 96,
+    "valueBoxSideMargins": {
+      "left": 448,
+      "right": 448
+    },
+    "annotationDiscrepancyResolved": "RESOLVED 2026-08-14 by Baby: the gap is 36px. The master template image annotates it as 48px, but the zone coordinates stated on the same image (title y=96 h=260 -> bottom 356; value box y=392) give 36px, and Baby confirmed the coordinates are authoritative. The 48px label is an annotation error in that image. Value box stays at y=392. Do not 'correct' this to 48."
+  },
+  "artworkRules": [
+    "Keep all key text and artwork inside the SAFE AREA (64,64 - 1920x640).",
+    "Do not place important elements outside the safe area.",
+    "The VALUE BOX must remain completely blank in the artwork.",
+    "Do not move or resize the value box.",
+    "ICB injects the live value at runtime.",
+    "All future tracker cards must follow this exact geometry."
+  ],
+  "appliesTo": {
+    "rule": "Every ICB resource tracker skin, current and future, unless Baby explicitly exempts it.",
+    "knownResources": [
+      "Sweet Leaf",
+      "Infected Essence",
+      "Amber Echo",
+      "Gold Ore",
+      "Palium",
+      "Celebration Cakes"
+    ],
+    "knownResourcesNote": "Sweet Leaf, Infected Essence and Amber Echo are the three resources currently wired into the ICB server. Gold Ore, Palium and Celebration Cakes are named future trackers that are not yet built.",
+    "futureResources": "Assume this standard automatically. Do not ask Baby for the skin size or card geometry again."
+  },
+  "exemptions": [],
+  "newTrackerChecklist": [
+    "Exact Palia Assistant itemtype_ token, copied from a real log line - never guessed from the item name",
+    "Current in-game starting total",
+    "Skin artwork at 2048x768, 8:3, matching the confirmed zone geometry, value box left blank",
+    "Server wiring: RESOURCE_META entry, API output, SSE update, persistence",
+    "Automated test coverage",
+    "Runbook documentation",
+    "Meld Browser-layer URL and any cache-busting version"
+  ],
+  "relatedDocs": [
+    "docs/ICB-TRACKER-SKIN-STANDARD.md",
+    "docs/ICB-CLEAN-RUNBOOK.md",
+    "docs/tracker-skin-template.svg",
+    "CLAUDE.md"
+  ],
+  "changePolicy": "This file is the single source of truth for tracker skin geometry. Code and documentation must read from it rather than restating the numbers. The master canvas size and the blank-value-box rule are hard requirements. Per-card value box coordinates are measured from the artwork - if a card is re-exported, re-measure it and update its entry. Changing the master size or the blank-value-box rule requires an explicit instruction from Baby, and test/e2e.js will fail if either is altered.",
+  "skins": {
+    "model": "per-skin-value-box",
+    "sourceFolder": "C:\\\\Users\\\\mrsch\\\\Desktop\\\\00TRACKER IMAGES00",
+    "measuredOn": "2026-08-15",
+    "measurementMethod": "Value box detected as the largest solid, horizontally-centred region that is both dark (mean luminance < 95) and visually flat (9x9 local std-dev < 9), restricted to opaque pixels (alpha > 200) below the top 34% of the canvas. Every detection was verified visually against an overlay contact sheet.",
+    "verified": {
+      "canvasSize": true,
+      "alphaTransparency": true,
+      "valueBoxBlank": true,
+      "overlayVisualCheck": true
+    },
+    "cards": [
+      {
+        "slug": "amber-echo",
+        "displayName": "Amber Echo",
+        "file": "AMBER ECHO CARD.png",
+        "resource": "amber",
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 523,
+          "y": 365,
+          "width": 999,
+          "height": 313
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 768,
+          "canvasCoveragePercent": 100.0
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "apples",
+        "displayName": "Apples",
+        "file": "APPLE CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 540,
+          "y": 400,
+          "width": 969,
+          "height": 273
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 768,
+          "canvasCoveragePercent": 100.0
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "briar-daisies",
+        "displayName": "Briar Daisies",
+        "file": "BRIAR DAISIES.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 568,
+          "y": 400,
+          "width": 972,
+          "height": 289
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 765,
+          "canvasCoveragePercent": 99.6
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "copper-ore",
+        "displayName": "Copper Ore",
+        "file": "COPPER ORE CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 550,
+          "y": 399,
+          "width": 953,
+          "height": 261
+        },
+        "visibleCard": {
+          "width": 2029,
+          "height": 751,
+          "canvasCoveragePercent": 96.9
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "coral",
+        "displayName": "Coral",
+        "file": "CORAL CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 645,
+          "y": 380,
+          "width": 774,
+          "height": 276
+        },
+        "visibleCard": {
+          "width": 2029,
+          "height": 754,
+          "canvasCoveragePercent": 97.3
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "crab-shell",
+        "displayName": "Crab Shell",
+        "file": "CRAB SHELL CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 585,
+          "y": 366,
+          "width": 886,
+          "height": 251
+        },
+        "visibleCard": {
+          "width": 2019,
+          "height": 737,
+          "canvasCoveragePercent": 94.6
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "crystal-lake-lotus",
+        "displayName": "Crystal Lake Lotus",
+        "file": "CRYSTAL LAKE LOTUS CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 646,
+          "y": 397,
+          "width": 757,
+          "height": 260
+        },
+        "visibleCard": {
+          "width": 2022,
+          "height": 746,
+          "canvasCoveragePercent": 95.9
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "dawnspur-lilies",
+        "displayName": "Dawnspur Lilies",
+        "file": "DAWNSPUR LILIES.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 596,
+          "y": 356,
+          "width": 857,
+          "height": 325
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 768,
+          "canvasCoveragePercent": 100.0
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "dragons-beard-peat",
+        "displayName": "Dragon's Beard Peat",
+        "file": "DRAGONS BEARD PEAT CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 513,
+          "y": 369,
+          "width": 1021,
+          "height": 248
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 768,
+          "canvasCoveragePercent": 100.0
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "elderwood-orchid",
+        "displayName": "Elderwood Orchid",
+        "file": "ELDERWOOD ORCHID CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 650,
+          "y": 407,
+          "width": 761,
+          "height": 256
+        },
+        "visibleCard": {
+          "width": 2045,
+          "height": 768,
+          "canvasCoveragePercent": 99.9
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "emerald-carpet-moss",
+        "displayName": "Emerald Carpet Moss",
+        "file": "EMERALD CARPET MOSS CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 603,
+          "y": 331,
+          "width": 847,
+          "height": 232
+        },
+        "visibleCard": {
+          "width": 2002,
+          "height": 767,
+          "canvasCoveragePercent": 97.6
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "gold-ore",
+        "displayName": "Gold Ore",
+        "file": "GOLD ORE CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 593,
+          "y": 399,
+          "width": 953,
+          "height": 257
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 744,
+          "canvasCoveragePercent": 96.9
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "infected-essence",
+        "displayName": "Infected Essence",
+        "file": "INFECTED ESSENCE CARD.png",
+        "resource": "essence",
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 579,
+          "y": 430,
+          "width": 923,
+          "height": 195
+        },
+        "visibleCard": {
+          "width": 1998,
+          "height": 711,
+          "canvasCoveragePercent": 90.3
+        },
+        "hasAlpha": true,
+        "status": "ready-but-undersized",
+        "note": "Artwork fills only 90.3% of the canvas, noticeably smaller than the rest of the set, and its value box is short (195px). It will read as undersized when stacked with the others. Recommend regenerating to fill the canvas edge-to-edge with a taller readout panel."
+      },
+      {
+        "slug": "jadium-ore",
+        "displayName": "Jadium Ore",
+        "file": "JADIUM ORE CARD.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 594,
+          "y": 398,
+          "width": 952,
+          "height": 258
+        },
+        "visibleCard": {
+          "width": 2048,
+          "height": 747,
+          "canvasCoveragePercent": 97.3
+        },
+        "hasAlpha": true,
+        "status": "ready"
+      },
+      {
+        "slug": "sweet-leaf-v2",
+        "displayName": "Sweet Leaf (variant 2)",
+        "file": "SWEET LEAF CARD 2.png",
+        "resource": null,
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 600,
+          "y": 483,
+          "width": 839,
+          "height": 137
+        },
+        "visibleCard": {
+          "width": 1974,
+          "height": 630,
+          "canvasCoveragePercent": 79.1
+        },
+        "hasAlpha": true,
+        "status": "ready-but-undersized",
+        "note": "Artwork fills only 79.1% of the canvas, noticeably smaller than the rest of the set, and its value box is short (137px). It will read as undersized when stacked with the others. Recommend regenerating to fill the canvas edge-to-edge with a taller readout panel."
+      },
+      {
+        "slug": "sweet-leaf",
+        "displayName": "Sweet Leaf",
+        "file": "SWEET LEAF CARD.png",
+        "resource": "sweetLeaf",
+        "canvas": {
+          "width": 2048,
+          "height": 768
+        },
+        "valueBox": {
+          "x": 600,
+          "y": 483,
+          "width": 839,
+          "height": 137
+        },
+        "visibleCard": {
+          "width": 1975,
+          "height": 632,
+          "canvasCoveragePercent": 79.4
+        },
+        "hasAlpha": true,
+        "status": "ready-but-undersized",
+        "note": "Artwork fills only 79.4% of the canvas, noticeably smaller than the rest of the set, and its value box is short (137px). It will read as undersized when stacked with the others. Recommend regenerating to fill the canvas edge-to-edge with a taller readout panel."
+      }
+    ]
+  }
+}

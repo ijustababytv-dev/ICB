@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Plushie Wheel Board</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; width: 100%; height: 100%; }
+  #stage { position: relative; width: 100vw; height: 100vh; font-family: Arial, Helvetica, sans-serif; }
+  .box {
+    position: absolute;
+    box-sizing: border-box;
+    border: 3px solid #6b4fa0;
+    border-radius: 10px;
+    background: rgba(20, 10, 35, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+    transition: box-shadow 0.08s linear, transform 0.08s linear, opacity 0.12s linear, filter 0.12s linear;
+  }
+  .box img { max-width: 80%; max-height: 60%; object-fit: contain; }
+  .box .label { font-size: 0.9vw; padding: 2px 4px; line-height: 1.1; }
+  .box.empty { background: rgba(40, 40, 40, 0.6); }
+  .box.lit {
+    border-color: #ffd94a;
+    border-width: 5px;
+    box-shadow: 0 0 45px 16px rgba(255, 217, 74, 1);
+    transform: scale(1.15);
+    z-index: 10;
+  }
+  /* While the marquee is traveling, dim and desaturate every box except the
+     one currently lit - a plain glow border was getting lost next to busy
+     plushie photos filling 30 boxes at once, so during a spin the lit box
+     needs to visibly pop out of the crowd, not just get a slightly brighter
+     edge. */
+  #stage.spinning .box { opacity: 0.3; filter: grayscale(70%) brightness(0.6); }
+  #stage.spinning .box.lit { opacity: 1; filter: none; }
+  #center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    width: 32vw;
+    max-height: 46vh;
+    background: rgba(15, 5, 30, 0.92);
+    border: 4px solid #ffd94a;
+    border-radius: 20px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.6);
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #center.show { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #center img { max-width: 70%; max-height: 45%; object-fit: contain; margin-bottom: 14px; }
+  #center .title { font-size: 2.2vw; font-weight: bold; margin-bottom: 6px; }
+  #center .sub { font-size: 1.1vw; opacity: 0.85; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="center"><div class="title" id="centerTitle"></div><img id="centerImg" style="display:none;"><div class="sub" id="centerSub"></div></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var TOP = 10, RIGHT = 5, BOTTOM = 10, LEFT = 5;
+  var stage = document.getElementById('stage');
+  var boxEls = [];
+  var lastSpinSeq = -1;
+  var animating = false;
+
+  function layoutBoxes(layout) {
+    var top = layout.top, right = layout.right, bottom = layout.bottom, left = layout.left;
+    var total = top + right + bottom + left;
+    var boxW = 100 / top;
+    var boxH = 8; // vh, top/bottom row thickness
+    var sideH = (100 - boxH * 2) / left; // assumes left === right count
+    var positions = [];
+    var i;
+    for (i = 0; i < top; i += 1) positions.push({ left: i * boxW, top: 0, width: boxW, height: boxH });
+    for (i = 0; i < right; i += 1) positions.push({ left: 100 - boxW, top: boxH + i * sideH, width: boxW, height: sideH });
+    for (i = 0; i < bottom; i += 1) positions.push({ left: 100 - boxW - i * boxW, top: 100 - boxH, width: boxW, height: boxH });
+    for (i = 0; i < left; i += 1) positions.push({ left: 0, top: 100 - boxH - i * sideH - sideH, width: boxW, height: sideH });
+    return positions;
+  }
+
+  function ensureBoxes(count, layout) {
+    if (boxEls.length === count) return;
+    var i;
+    for (i = 0; i < boxEls.length; i += 1) stage.removeChild(boxEls[i].el);
+    boxEls = [];
+    var positions = layoutBoxes(layout);
+    for (i = 0; i < count; i += 1) {
+      var el = document.createElement('div');
+      el.className = 'box';
+      var pos = positions[i] || { left: 0, top: 0, width: 5, height: 5 };
+      el.style.left = pos.left + 'vw';
+      el.style.top = pos.top + 'vh';
+      el.style.width = pos.width + 'vw';
+      el.style.height = pos.height + 'vh';
+      var img = document.createElement('img');
+      img.style.display = 'none';
+      var label = document.createElement('div');
+      label.className = 'label';
+      el.appendChild(img);
+      el.appendChild(label);
+      stage.appendChild(el);
+      boxEls.push({ el: el, img: img, label: label });
+    }
+  }
+
+  function renderBoard(state) {
+    ensureBoxes(state.board.length, state.boardLayout);
+    var i;
+    for (i = 0; i < state.board.length; i += 1) {
+      var box = state.board[i];
+      var slot = boxEls[i];
+      slot.el.className = 'box' + (box.kind === 'empty' ? ' empty' : '');
+      if (box.kind === 'item' && box.item) {
+        slot.label.textContent = box.item.name;
+        if (box.item.image) {
+          slot.img.src = box.item.image;
+          slot.img.style.display = 'block';
+        } else {
+          slot.img.style.display = 'none';
+        }
+      } else {
+        slot.label.textContent = '';
+        slot.img.style.display = 'none';
+      }
+    }
+  }
+
+  function clearLit() {
+    var i;
+    for (i = 0; i < boxEls.length; i += 1) boxEls[i].el.classList.remove('lit');
+  }
+
+  function showCenter(state) {
+    var center = document.getElementById('center');
+    var title = document.getElementById('centerTitle');
+    var img = document.getElementById('centerImg');
+    var sub = document.getElementById('centerSub');
+    var revealed = state.revealed;
+    if (!revealed) { center.className = ''; return; }
+    if (revealed.kind === 'item' && revealed.item) {
+      center.className = 'show';
+      title.textContent = revealed.item.name;
+      if (revealed.item.image) {
+        img.src = revealed.item.image;
+        img.style.display = 'block';
+      } else {
+        img.style.display = 'none';
+      }
+      sub.textContent = revealed.item.type === 'points' ? (revealed.item.points + ' Channel Points') : '';
+    } else {
+      center.className = '';
+    }
+  }
+
+  function hideCenter() {
+    document.getElementById('center').className = '';
+  }
+
+  // Travels a highlight around the fixed loop order, doing a couple of full
+  // laps and decelerating to land exactly on targetIndex, then reveals the
+  // center card. Purely cosmetic - the server already decided the winner.
+  function animateSpin(targetIndex, total, onDone) {
+    animating = true;
+    hideCenter();
+    stage.classList.add('spinning');
+    var laps = 2;
+    var steps = laps * total + ((targetIndex % total) + total) % total;
+    var i = 0;
+    var current = 0;
+
+    function tick() {
+      clearLit();
+      current = i % total;
+      if (boxEls[current]) boxEls[current].el.classList.add('lit');
+      i += 1;
+      if (i > steps) {
+        animating = false;
+        stage.classList.remove('spinning');
+        if (onDone) onDone();
+        return;
+      }
+      // ease out: delay grows as we approach the final steps
+      var remaining = steps - i;
+      var delay = 45 + Math.max(0, (40 - remaining)) * 9;
+      if (remaining < 0) delay = 45;
+      setTimeout(tick, delay);
+    }
+    tick();
+  }
+
+  function applyState(state, isInitialLoad) {
+    renderBoard(state);
+    // The simplified server has no turn-state machine - it just reports
+    // { board, revealed, spinSeq }. "Revealed" is whenever state.revealed is
+    // present; "ready" (board dealt/shuffled, nothing revealed) is whenever
+    // it's not. There is no separate "ended" concept anymore.
+    if (state.revealed) {
+      // Already showing (or mid-animation toward) this exact spin - a poll
+      // tick landing here must NOT touch the DOM, or it would reveal the
+      // prize instantly and cut the marquee animation short.
+      if (state.spinSeq === lastSpinSeq) return;
+      lastSpinSeq = state.spinSeq;
+      if (isInitialLoad) {
+        // The page just loaded onto an already-resolved spin (e.g. Meld
+        // restarted mid-turn) - show the result immediately, nothing to
+        // animate toward since we didn't witness the spin happen.
+        clearLit();
+        if (boxEls[state.revealed.position]) boxEls[state.revealed.position].el.classList.add('lit');
+        showCenter(state);
+      } else {
+        // A live spin just happened - travel the marquee first, and only
+        // reveal the prize once it actually lands.
+        animateSpin(state.revealed.position, state.board.length, function () {
+          showCenter(state);
+        });
+      }
+    } else {
+      // No revealed prize right now (fresh deal, shuffle, or cleared result).
+      if (state.spinSeq === lastSpinSeq) return;
+      lastSpinSeq = state.spinSeq;
+      clearLit();
+      hideCenter();
+    }
+  }
+
+  var hasLoadedOnce = false;
+
+  function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/tradeup/state', true);
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        try {
+          applyState(JSON.parse(xhr.responseText), !hasLoadedOnce);
+          hasLoadedOnce = true;
+        } catch (e) {}
+      }
+    };
+    xhr.send();
+  }
+
+  poll();
+  setInterval(poll, 1500);
+})();
+</script>
+</body>
+</html>

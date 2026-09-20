@@ -1,0 +1,5 @@
+@echo off
+setlocal
+powershell -NoProfile -Command "$root=Split-Path -Parent '%~f0'; $stamp=Get-Date -Format 'yyyyMMdd-HHmmss'; $destination=Join-Path $root ('backups\state-' + $stamp); New-Item -ItemType Directory -Force -Path $destination | Out-Null; foreach($name in 'settings.json','live.json','actions.jsonl','legacy-palia-snapshot-20260814.json'){ $source=Join-Path $root ('data\' + $name); if(Test-Path -LiteralPath $source){ Copy-Item -LiteralPath $source -Destination (Join-Path $destination $name) } }; $skinStandard=Join-Path $root 'config\tracker-skin-standard.json'; if(Test-Path -LiteralPath $skinStandard){ Copy-Item -LiteralPath $skinStandard -Destination (Join-Path $destination 'tracker-skin-standard.json') }; [pscustomobject]@{createdAt=(Get-Date).ToString('o');source=(Join-Path $root 'data');includes='data state files plus config/tracker-skin-standard.json'} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $destination 'backup-manifest.json') -Encoding UTF8; Write-Host ''; Write-Host ('ICB Clean backup created: ' + $destination); Write-Host ''"
+pause
+endlocal

@@ -1,0 +1,28 @@
+# Mac temp files
+.DS_Store
+
+# JetBrains IDE temp files
+.idea/
+
+# dotenv file
+*.env*
+
+# Visual Studio IDE temp files
+.vs/
+.vscode/
+
+# Node
+node_modules/
+
+# Instanbul HTML Coverage docs
+coverage/
+.nyc_output/
+
+dist/
+
+CLAUDE.md
+.claude/
+
+
+/backups/
+/Claude*

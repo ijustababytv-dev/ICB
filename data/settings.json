@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "countdown": {
+    "heading": "STARTING SOON",
+    "subheading": "Grab a snack & get comfy!",
+    "targetAt": "2026-09-16T22:00:00.000Z",
+    "timezone": "America/Chicago",
+    "status": "running"
+  },
+  "worldClock": {
+    "zones": [
+      {
+        "id": "zone1",
+        "label": "ijustababyTv",
+        "subLabel": "",
+        "timezone": "America/Chicago",
+        "visible": true
+      },
+      {
+        "id": "zone2",
+        "label": "Lavender",
+        "subLabel": "",
+        "timezone": "America/Los_Angeles",
+        "visible": true
+      },
+      {
+        "id": "zone3",
+        "label": "Eastern",
+        "subLabel": "",
+        "timezone": "America/New_York",
+        "visible": true
+      },
+      {
+        "id": "zone4",
+        "label": "LONDON",
+        "subLabel": "",
+        "timezone": "Europe/London",
+        "visible": true
+      },
+      {
+        "id": "zone5",
+        "label": "Australia",
+        "subLabel": "",
+        "timezone": "Australia/Sydney",
+        "visible": true
+      },
+      {
+        "id": "zone6",
+        "label": "CZECH REPUBLIC",
+        "subLabel": "",
+        "timezone": "Pacific/Honolulu",
+        "visible": false
+      }
+    ]
+  },
+  "stream": {
+    "title": "",
+    "category": "Palia",
+    "goLiveMessage": ""
+  },
+  "ticker": {
+    "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
+    "speed": 50,
+    "pause": 1
+  },
+  "layout": {
+    "panelOrder": [
+      "todo-daily",
+      "todo-weekly",
+      "ticker",
+      "resources",
+      "tradeup",
+      "run",
+      "trackers",
+      "stream",
+      "runtime",
+      "weekly",
+      "log"
+    ]
+  },
+  "updatedAt": "2026-09-16T20:42:34.856Z"
+}

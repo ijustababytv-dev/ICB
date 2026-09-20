@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Time Bar — control</title>
+<style>
+  :root{
+    --bg:#181022; --panel:#241933; --panel-2:#2c1f42; --line:#3d2b57;
+    --text:#f4ecff; --text-soft:#c6b6e0; --text-faint:#8f7ab0;
+    --accent:#c084fc; --accent-2:#ff4d7e; --good:#3ddc97;
+    --font:"Baloo 2","Comic Sans MS","Trebuchet MS",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font)}
+  body{padding:24px 20px 60px;max-width:1080px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:.02em}
+  .lede{color:var(--text-faint);margin:0 0 22px;font-size:14px}
+
+  .preview-outer{background:repeating-conic-gradient(#241933 0% 25%, #1c1428 0% 50%) 0 0/22px 22px;
+    border-radius:14px;padding:22px 16px;display:flex;align-items:stretch;justify-content:center;
+    gap:12px;min-height:110px;margin:0 0 24px;flex-wrap:wrap}
+  .pv-card{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    min-width:120px;padding:11px 16px 13px;border-radius:15px;
+    background:rgba(40,10,60,0.5);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.3);
+    box-shadow:0 0 0 1px rgba(150,60,220,.2),0 6px 18px rgba(30,0,50,.4);
+    opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;
+  }
+  .pv-card.show{opacity:1;transform:translateY(0)}
+  .pv-label{margin:0;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;
+    color:#fff8ff;text-align:center;white-space:nowrap;
+    text-shadow:0 0 6px rgba(255,255,255,.8),0 0 12px rgba(210,140,255,.7)}
+  .pv-sublabel{margin:0;font-size:9px;color:#f1d9ff;opacity:.85;text-align:center;white-space:nowrap}
+  .pv-time{font-size:20px;font-weight:700;color:#fff;margin-top:2px;
+    text-shadow:0 0 8px rgba(255,255,255,.9);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pv-ap{font-size:10px;font-weight:700;color:#f1d9ff;opacity:.85;margin-left:2px}
+  .pv-empty{color:var(--text-faint);font-size:12.5px;align-self:center}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 16px 18px}
+  .card.dim{opacity:.55}
+  .cardhead{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+  .cardhead h2{margin:0;font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .toggle{position:relative;display:inline-block;width:38px;height:22px;flex:none}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle .slider{position:absolute;inset:0;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;cursor:pointer;transition:background .15s}
+  .toggle .slider:before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;
+    background:var(--text-faint);border-radius:50%;transition:transform .15s,background .15s}
+  .toggle input:checked + .slider{background:var(--accent)}
+  .toggle input:checked + .slider:before{transform:translateX(16px);background:#22102f}
+
+  label{display:block;font-size:12px;color:var(--text-soft);margin:0 0 5px;font-weight:600}
+  input[type=text],select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+    color:var(--text);font-family:var(--font);font-size:14px;padding:8px 10px;margin:0 0 10px;
+  }
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .row2{display:flex;gap:10px}
+  .row2 > div{flex:1}
+
+  .sync{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-faint);margin:14px 0 0}
+  .sync .led{width:8px;height:8px;border-radius:50%;background:var(--text-faint)}
+  .sync.ok .led{background:var(--good);box-shadow:0 0 6px 1px var(--good)}
+  .sync.err .led{background:var(--accent-2);box-shadow:0 0 6px 1px var(--accent-2)}
+  .sync.busy .led{background:var(--accent);box-shadow:0 0 6px 1px var(--accent)}
+
+  .link-back{display:block;margin-top:22px;font-size:12.5px;color:var(--text-faint);text-decoration:none}
+  .link-back:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+  <h1>World Time Bar</h1>
+  <p class="lede">Controls the <code>worldclock.html</code> overlay layer live — edits save automatically, no page reload needed on the Meld side.</p>
+
+  <div class="preview-outer" id="previewOuter"></div>
+
+  <div class="sync" id="syncRow"><div class="led"></div><span id="syncText">connecting…</span></div>
+
+  <div class="grid" id="zoneGrid" style="margin-top:16px"></div>
+
+  <a class="link-back" href="/control.html">&larr; back to main dashboard</a>
+
+<script>
+(function(){
+  'use strict';
+
+  var ZONES_META = [
+    { id: 'zone1' }, { id: 'zone2' }, { id: 'zone3' },
+    { id: 'zone4' }, { id: 'zone5' }, { id: 'zone6' },
+  ];
+
+  var TIMEZONE_OPTIONS = [
+    { value: 'America/Los_Angeles', label: 'Pacific (PT)' },
+    { value: 'America/Denver', label: 'Mountain (MT)' },
+    { value: 'America/Chicago', label: 'Central (CT)' },
+    { value: 'America/New_York', label: 'Eastern (ET)' },
+    { value: 'America/Anchorage', label: 'Alaska (AKT)' },
+    { value: 'Pacific/Honolulu', label: 'Hawaii (HST)' },
+    { value: 'UTC', label: 'UTC' },
+    { value: 'Europe/London', label: 'London (UK)' },
+    { value: 'Europe/Paris', label: 'Paris / Berlin (CET)' },
+    { value: 'Europe/Moscow', label: 'Moscow' },
+    { value: 'Asia/Dubai', label: 'Dubai' },
+    { value: 'Asia/Kolkata', label: 'India (IST)' },
+    { value: 'Asia/Shanghai', label: 'China (CST)' },
+    { value: 'Asia/Tokyo', label: 'Tokyo / Seoul' },
+    { value: 'Australia/Sydney', label: 'Sydney' },
+    { value: 'Pacific/Auckland', label: 'Auckland' },
+  ];
+
+  var previewOuter = document.getElementById('previewOuter');
+  var zoneGrid = document.getElementById('zoneGrid');
+  var syncRow = document.getElementById('syncRow');
+  var syncText = document.getElementById('syncText');
+
+  var zones = {};        // id -> { label, subLabel, timezone, visible }
+  var els = {};          // id -> { card, label, sublabel, tz, toggle, pvCard, pvLabel, pvSub, pvTime, pvAp }
+  var saveTimers = {};   // id -> setTimeout handle (debounce per zone)
+  var haveSynced = false;
+
+  function setSync(state, text){
+    syncRow.className = 'sync ' + (state || '');
+    syncText.textContent = text;
+  }
+
+  function buildTimezoneSelect(id){
+    var sel = document.createElement('select');
+    sel.id = 'tz-' + id;
+    TIMEZONE_OPTIONS.forEach(function(opt){
+      var o = document.createElement('option');
+      o.value = opt.value;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
+    return sel;
+  }
+
+  function buildZoneCard(id){
+    var card = document.createElement('div');
+    card.className = 'card';
+
+    var head = document.createElement('div');
+    head.className = 'cardhead';
+    var h2 = document.createElement('h2');
+    h2.textContent = id.replace('zone', 'Clock ');
+    var toggleLabel = document.createElement('label');
+    toggleLabel.className = 'toggle';
+    var toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    var toggleSlider = document.createElement('span');
+    toggleSlider.className = 'slider';
+    toggleLabel.appendChild(toggleInput);
+    toggleLabel.appendChild(toggleSlider);
+    head.appendChild(h2);
+    head.appendChild(toggleLabel);
+    card.appendChild(head);
+
+    var labelField = document.createElement('label');
+    labelField.textContent = 'Heading';
+    var labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.maxLength = 40;
+    labelInput.placeholder = 'CHICAGO';
+
+    var subField = document.createElement('label');
+    subField.textContent = 'Subtitle (optional)';
+    var subInput = document.createElement('input');
+    subInput.type = 'text';
+    subInput.maxLength = 40;
+    subInput.placeholder = 'HOME BASE';
+
+    var tzField = document.createElement('label');
+    tzField.textContent = 'Time zone';
+    var tzSelect = buildTimezoneSelect(id);
+
+    card.appendChild(labelField);
+    card.appendChild(labelInput);
+    card.appendChild(subField);
+    card.appendChild(subInput);
+    card.appendChild(tzField);
+    card.appendChild(tzSelect);
+
+    zoneGrid.appendChild(card);
+
+    var refs = {
+      card: card, toggle: toggleInput,
+      label: labelInput, sublabel: subInput, tz: tzSelect,
+    };
+    els[id] = refs;
+
+    function queueSave(){
+      if (saveTimers[id]) clearTimeout(saveTimers[id]);
+      saveTimers[id] = setTimeout(function(){ saveZone(id); }, 500);
+    }
+    toggleInput.addEventListener('change', function(){ saveZone(id); });
+    labelInput.addEventListener('input', queueSave);
+    subInput.addEventListener('input', queueSave);
+    tzSelect.addEventListener('change', function(){ saveZone(id); });
+  }
+
+  function buildPreviewCard(id){
+    var pvCard = document.createElement('div');
+    pvCard.className = 'pv-card';
+    var pvLabel = document.createElement('p');
+    pvLabel.className = 'pv-label';
+    var pvSub = document.createElement('p');
+    pvSub.className = 'pv-sublabel';
+    var pvTimeRow = document.createElement('div');
+    var pvTime = document.createElement('span');
+    pvTime.className = 'pv-time';
+    var pvAp = document.createElement('span');
+    pvAp.className = 'pv-ap';
+    pvTimeRow.appendChild(pvTime);
+    pvTimeRow.appendChild(pvAp);
+    pvCard.appendChild(pvLabel);
+    pvCard.appendChild(pvSub);
+    pvCard.appendChild(pvTimeRow);
+    previewOuter.appendChild(pvCard);
+    els[id].pvCard = pvCard;
+    els[id].pvLabel = pvLabel;
+    els[id].pvSub = pvSub;
+    els[id].pvTime = pvTime;
+    els[id].pvAp = pvAp;
+  }
+
+  ZONES_META.forEach(function(z){
+    buildZoneCard(z.id);
+    buildPreviewCard(z.id);
+  });
+
+  var pvEmpty = document.createElement('div');
+  pvEmpty.className = 'pv-empty';
+  pvEmpty.textContent = 'no clocks visible';
+  previewOuter.appendChild(pvEmpty);
+
+  // --- server calls -----------------------------------------------------
+  function saveZone(id){
+    var refs = els[id];
+    var patch = {
+      id: id,
+      label: refs.label.value.trim() || id,
+      subLabel: refs.sublabel.value.trim(),
+      timezone: refs.tz.value,
+      visible: refs.toggle.checked,
+    };
+    setSync('busy', 'saving…');
+    var xhr = new XMLHttpRequest();
+    xhr.open('PUT', '/api/settings', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function(){
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          var d = JSON.parse(xhr.responseText);
+          applyState(d.settings.worldClock);
+          setSync('ok', 'synced');
+        } catch (e) { setSync('err', 'bad response'); }
+      } else {
+        setSync('err', 'save failed (' + xhr.status + ')');
+      }
+    };
+    xhr.onerror = function(){ setSync('err', 'connection lost'); };
+    xhr.send(JSON.stringify({ worldClock: { zones: [patch] } }));
+  }
+
+  // --- state -> form + preview ---------------------------------------------
+  function applyState(wc){
+    var list = (wc && wc.zones) || [];
+    var next = {};
+    list.forEach(function(z){ if (z && typeof z.id === 'string') next[z.id] = z; });
+    zones = next;
+
+    ZONES_META.forEach(function(meta){
+      var id = meta.id;
+      var zone = zones[id];
+      var refs = els[id];
+      if (!zone) return;
+      // Don't stomp on a field the operator is actively editing.
+      if (document.activeElement !== refs.label) refs.label.value = zone.label || '';
+      if (document.activeElement !== refs.sublabel) refs.sublabel.value = zone.subLabel || '';
+      if (document.activeElement !== refs.tz) refs.tz.value = zone.timezone || 'UTC';
+      refs.toggle.checked = !!zone.visible;
+      refs.card.className = zone.visible ? 'card' : 'card dim';
+    });
+
+    renderPreview();
+  }
+
+  function renderPreview(){
+    var now = new Date();
+    var anyVisible = false;
+    ZONES_META.forEach(function(meta){
+      var id = meta.id;
+      var zone = zones[id];
+      var refs = els[id];
+      if (!refs.pvCard) return;
+      if (!zone || !zone.visible) { refs.pvCard.className = 'pv-card'; return; }
+      anyVisible = true;
+      refs.pvCard.className = 'pv-card show';
+      refs.pvLabel.textContent = zone.label || id;
+      if (zone.subLabel) { refs.pvSub.textContent = zone.subLabel; refs.pvSub.style.display = 'block'; }
+      else { refs.pvSub.style.display = 'none'; }
+      try {
+        var dtf = new Intl.DateTimeFormat('en-US', {
+          timeZone: zone.timezone, hour: 'numeric', minute: '2-digit', hour12: true,
+        });
+        var parts = dtf.formatToParts(now);
+        var hh = '', mm = '', ap = '';
+        parts.forEach(function(p){
+          if (p.type === 'hour') hh = p.value;
+          else if (p.type === 'minute') mm = p.value;
+          else if (p.type === 'dayPeriod') ap = p.value;
+        });
+        refs.pvTime.textContent = hh + ':' + mm;
+        refs.pvAp.textContent = ap;
+      } catch (e) {
+        refs.pvTime.textContent = '--:--';
+        refs.pvAp.textContent = '';
+      }
+    });
+    pvEmpty.style.display = anyVisible ? 'none' : 'block';
+  }
+
+  // --- initial load + poll for external changes -----------------------------
+  function fetchState(){
+    fetch('/api/settings?_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        setSync('ok', 'synced');
+        haveSynced = true;
+        applyState(d.settings.worldClock);
+      })
+      .catch(function(){ setSync('err', 'can\'t reach server on :8790'); });
+  }
+
+  fetchState();
+  setInterval(fetchState, 4000);
+  setInterval(renderPreview, 1000);
+})();
+</script>
+</body>
+</html>

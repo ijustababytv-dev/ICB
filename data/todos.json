@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "daily": [
+    {
+      "id": "todo-1787949114046-b7eb24",
+      "text": "#1 Palia Daily",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:31:54.046Z",
+      "done": false
+    },
+    {
+      "id": "todo-1787949120742-be1efe",
+      "text": "#2 Palia Daily",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:32:00.742Z",
+      "done": false
+    },
+    {
+      "id": "todo-1787949140053-a1b9c1",
+      "text": "#1 Campfire @Royal Highlands",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:32:20.053Z",
+      "done": false
+    },
+    {
+      "id": "todo-1787949150157-627c6f",
+      "text": "#2 Campfire @Royal Highlands",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:32:30.157Z",
+      "done": false
+    },
+    {
+      "id": "todo-1787949166441-c732df",
+      "text": "#1 Pile @Elderwoods",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:32:46.441Z",
+      "done": false
+    },
+    {
+      "id": "todo-1787949174081-4c7609",
+      "text": "#2 Pile @Elderwoods",
+      "kind": "check",
+      "createdAt": "2026-08-28T20:32:54.081Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788043505482-a294ca",
+      "text": "Delete old friends from Palia list",
+      "kind": "check",
+      "createdAt": "2026-08-29T22:45:05.483Z",
+      "done": false
+    }
+  ],
+  "weekly": [
+    {
+      "id": "todo-1788641931160-8d189e",
+      "text": "Perks for Supporters",
+      "kind": "check",
+      "createdAt": "2026-09-05T20:58:51.160Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788641939731-583705",
+      "text": "Palia ingame cookbook",
+      "kind": "check",
+      "createdAt": "2026-09-05T20:58:59.731Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788642107566-d49971",
+      "text": "Price Ingot ranch animal",
+      "kind": "check",
+      "createdAt": "2026-09-05T21:01:47.566Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788642117637-6ef006",
+      "text": "Channel points ideas",
+      "kind": "check",
+      "createdAt": "2026-09-05T21:01:57.637Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788642123972-7bfebd",
+      "text": "Blerb",
+      "kind": "check",
+      "createdAt": "2026-09-05T21:02:03.972Z",
+      "done": false
+    },
+    {
+      "id": "todo-1788642199274-65c692",
+      "text": "Tints",
+      "kind": "check",
+      "createdAt": "2026-09-05T21:03:19.274Z",
+      "done": false
+    }
+  ],
+  "updatedAt": "2026-09-05T21:03:19.274Z"
+}
