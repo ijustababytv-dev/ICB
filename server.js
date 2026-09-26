@@ -13,6 +13,8 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const LIVE_FILE = path.join(DATA_DIR, 'live.json');
 const ACTIONS_FILE = path.join(DATA_DIR, 'actions.jsonl');
 const TODOS_FILE = path.join(DATA_DIR, 'todos.json');
+const GIVEAWAY_FILE = path.join(DATA_DIR, 'giveaway.json');
+const ACTIVITY_DIR = path.join(DATA_DIR, 'activity');
 const STALE_LOG_MS = Number(process.env.ICB_CLEAN_LOG_STALE_MS || 10 * 60 * 1000);
 
 // The Official ICB Resource Tracker Skin Standard (2048x768, 8:3) is defined
@@ -134,6 +136,281 @@ let todos = normalizeTodos(readJson(TODOS_FILE, DEFAULT_TODOS));
 let actions = loadActions();
 const startedAt = Date.now();
 const clients = new Set();
+
+// -----------------------------------------------------------------------
+// STREAM GIVEAWAY — built 2026-09-24 for the pink/purple "fluffy unicorn"
+// giveaway, one night's worth of tickets, two prize types (plushie, mystery
+// outfit), fed by a Meld Firehose listener layer (giveaway-listener.html)
+// that relays raw chat/sub/gifts/purchase events to /api/giveaway/event.
+// This server does ALL the ticket math - the listener page is a dumb relay.
+//
+// Ticket rules, confirmed with Baby:
+//   - Chat: 1 ticket per rolling 10-minute window with >=1 message, no cap,
+//     adds up all night (CHAT_WINDOW_MS tick below).
+//   - Sub/resub: 1 ticket per sub event (one per real month subscribed,
+//     assuming Twitch/Firehose fires a sub event once per billing month -
+//     unverified against a real event yet, first thing to check on air).
+//   - Gifted subs: 2 tickets per sub gifted, credited to the GIFTER.
+//   - Bits: 1 ticket per full 100 bits (250 bits = 2 tickets, remainder
+//     dropped). NOTE: the exact field name Firehose uses for a bits amount
+//     on its "purchase" event is unverified - see giveaway-listener.html.
+//   - Donations: explicitly out of scope for tonight (Baby's call) - use
+//     the dashboard's manual ticket adjuster for anything that isn't chat/
+//     sub/gift/bits.
+//   - Same ticket pool feeds both prize types.
+//   - Plushie winners stay in the pool (can win again). Mystery Outfit
+//     winners are removed from future Mystery Outfit draws only - they
+//     stay eligible for Plushie draws.
+//   - Everything ROLLS OVER between streams (entrants, unicorn counts,
+//     breakdowns, winners, Mystery Outfit locks) - it's all saved to
+//     data/giveaway.json and only the dashboard's Reset button clears it.
+//     Baby's call, 2026-09-25.
+//
+// Rates (2026-09-25, Baby: "2 and 4 everywhere"): each entrant stores raw
+// COUNTS (chat windows, sub months, gifted subs, bits cheered) and the
+// *Tickets fields are recomputed from giveaway.rates. Changing a rate on the
+// dashboard re-prices everyone, live and hand-entered alike.
+const GIVEAWAY_DEFAULTS = {
+  windowStartedAt: null,
+  entrants: {},   // username -> { username, counts:{chatWindows,subMonths,giftedSubs,bits}, chatTickets, subTickets, giftTickets, bitsTickets (derived), manualTickets, note, mysteryOutfitWon, lastSeenAt }
+  chatActiveThisWindow: {}, // username -> true, cleared every CHAT_WINDOW_MS tick
+  winners: [],    // { username, prize, tickets, at }
+  manualLog: [],  // { username, kind, amount, delta, reason, at } - dashboard "Give fluffy unicorns" history, newest last
+  // Fluffy unicorns earned per thing. Survives Reset (it's a setting).
+  rates: { chatWindow: 1, subMonth: 2, giftedSub: 4, bitsPerUnicorn: 100 },
+  // The on-screen jar starts empty each stream day while everyone's counts
+  // roll over (Baby, 2026-09-25). Snapshot of each viewer's counts when the
+  // jar was last emptied; the jar shows only what was earned since.
+  jarBaseline: { night: null, startedAt: null, snapshot: {} },
+  // Never part of the giveaway: Baby herself + chat bots. Case-insensitive.
+  // Survives Reset. Edited on the dashboard. (Baby, 2026-09-25: "I don't
+  // want me nor any bots in the giveaways".)
+  blocked: [
+    'IJustABabyTv', 'StreamDatabase', 'Nightbot', 'StreamElements', 'Streamlabs', 'Moobot',
+    'Fossabot', 'Sery_Bot', 'Wizebot', 'SoundAlerts', 'Blerp', 'KofiStreamBot', 'StreamStickers',
+    'TangiaBot', 'PokemonCommunityGame', 'BotRixOficial', 'CommanderRoot', 'LurxxBot', 'Streamlootsbot',
+    'Own3d', 'Anonymous',
+  ],
+  // On-screen wording for the overlays, edited from giveaway-control.html.
+  // Survives "Reset for tonight" - reset only clears entrants/winners.
+  display: {
+    entrantsTitle: '🦄 Giveaway Entrants 🦄',
+    emptyMessage: 'No entries yet — chat, sub, gift, or cheer to get in!',
+    maxRows: 10,
+    tickerMessages: [
+      'Chat every 10 min = 1 fluffy unicorn, all night long!',
+      'Sub = 2 fluffy unicorns a month. Gift a sub = 4 fluffy unicorns EACH!',
+      '100 bits = 1 fluffy unicorn (250 bits = 2 fluffy unicorns)',
+      'Plushie drawings every ~30 min - you can win more than once!',
+      'Mystery Outfit drawing every hour - one per person per night!',
+    ],
+    winnersTitle: '🏆 Winners Circle 🏆',
+    winnersEmptyMessage: 'No winners drawn yet tonight!',
+    // unicorn-jar.html settings
+    jarSide: 'right',       // 'left' | 'center' | 'right'
+    unicornSize: 'medium',  // 'small' | 'medium' | 'large'
+    showNames: false,       // print each viewer's name on their unicorns (Baby turned this off 2026-09-25)
+    magic: true,            // cloud, falling stars and rainbow on unicorn-jar.html
+  },
+};
+const CHAT_WINDOW_MS = 10 * 60 * 1000;
+
+let giveaway = mergeDefaults(GIVEAWAY_DEFAULTS, readJson(GIVEAWAY_FILE, GIVEAWAY_DEFAULTS));
+if (!giveaway.windowStartedAt) giveaway.windowStartedAt = new Date().toISOString();
+migrateGiveaway();
+purgeBlocked();
+
+function isBlocked(name) {
+  const lower = String(name || '').toLowerCase().replace(/^@/, '');
+  return (giveaway.blocked || []).some(b => String(b).toLowerCase() === lower);
+}
+
+// Drop blocked names from entrants and this chat window. Returns names removed.
+function purgeBlocked() {
+  const removed = [];
+  for (const key of Object.keys(giveaway.entrants)) {
+    if (isBlocked(key)) { removed.push(key); delete giveaway.entrants[key]; }
+  }
+  for (const key of Object.keys(giveaway.chatActiveThisWindow)) {
+    if (isBlocked(key)) delete giveaway.chatActiveThisWindow[key];
+  }
+  return removed;
+}
+
+// Live status of giveaway-listener.html (the Meld layer). Kept in memory only,
+// sent to the dashboard so Baby can see before going live that Meld is feeding
+// ICB. Never written to disk.
+const listenerStatus = { lastSeen: null, firehose: 'unknown', lastEventAt: null, lastEvent: null };
+
+// ---------------- nightly activity log ----------------
+// Every stream event (chat, follow, sub, gifted subs, cheer, raid, chat-time
+// unicorns, hand-added unicorns, winners, resets) is appended as one JSON
+// line to data/activity/YYYY-MM-DD.jsonl. A "night" runs 6 AM to 6 AM local
+// time, so a stream that goes past midnight stays in one report.
+// giveaway-report.html turns a night into a printable report / CSV.
+const NIGHT_CUTOFF_HOURS = 6;
+function nightKey(date) {
+  const d = new Date(date.getTime() - NIGHT_CUTOFF_HOURS * 3600 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function logActivity(entry) {
+  try {
+    const now = new Date();
+    fs.mkdirSync(ACTIVITY_DIR, { recursive: true });
+    fs.appendFile(path.join(ACTIVITY_DIR, `${nightKey(now)}.jsonl`), JSON.stringify({ at: now.toISOString(), ...entry }) + '\n', () => {});
+  } catch (_error) { /* a missed log line must never break the giveaway */ }
+}
+function readNight(key) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
+  const file = path.join(ACTIVITY_DIR, `${key}.jsonl`);
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean).map(line => {
+    try { return JSON.parse(line); } catch (_error) { return null; }
+  }).filter(Boolean);
+}
+
+// ---- fresh jar each stream, counts roll over ----
+function snapshotJar() {
+  const snapshot = {};
+  for (const [key, e] of Object.entries(giveaway.entrants)) snapshot[key] = { counts: clone(e.counts), manual: e.manualTickets || 0 };
+  giveaway.jarBaseline = { night: nightKey(new Date()), startedAt: new Date().toISOString(), snapshot };
+}
+// New stream day (6 AM cutoff, same as the nightly report) -> empty jar.
+function ensureJarBaseline() {
+  if (!giveaway.jarBaseline || giveaway.jarBaseline.night !== nightKey(new Date())) { snapshotJar(); saveGiveaway(); }
+}
+// Priced at today's rates so a rate change never makes the jar jump.
+function snapshotTotal(snap) {
+  const r = giveaway.rates, c = snap.counts || {};
+  return (c.chatWindows || 0) * r.chatWindow + (c.subMonths || 0) * r.subMonth + (c.giftedSubs || 0) * r.giftedSub
+    + Math.floor((c.bits || 0) / r.bitsPerUnicorn) + (snap.manual || 0);
+}
+function jarView() {
+  ensureJarBaseline();
+  const counts = {};
+  let total = 0;
+  for (const [key, e] of Object.entries(giveaway.entrants)) {
+    const snap = giveaway.jarBaseline.snapshot[key];
+    const n = Math.max(0, entrantTotal(e) - (snap ? snapshotTotal(snap) : 0));
+    if (n > 0) { counts[e.username] = n; total += n; }
+  }
+  return { night: giveaway.jarBaseline.night, startedAt: giveaway.jarBaseline.startedAt, counts, total };
+}
+
+function publicGiveaway() {
+  return { ...clone(giveaway), listener: { ...listenerStatus }, jar: jarView() };
+}
+
+function cleanRate(value, fallback, min, max) {
+  const n = Math.trunc(Number(value));
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+}
+
+// Older giveaway.json files stored ticket totals only. Turn them back into
+// counts using the rates that were live then (chat 1, sub 1, gift 2,
+// 100 bits = 1), so the new rates can re-price them.
+function migrateGiveaway() {
+  const r = giveaway.rates;
+  r.chatWindow = cleanRate(r.chatWindow, 1, 0, 100);
+  r.subMonth = cleanRate(r.subMonth, 2, 0, 100);
+  r.giftedSub = cleanRate(r.giftedSub, 4, 0, 100);
+  r.bitsPerUnicorn = cleanRate(r.bitsPerUnicorn, 100, 1, 100000);
+  for (const key of Object.keys(giveaway.entrants)) {
+    const e = giveaway.entrants[key];
+    if (!e.counts) {
+      e.counts = {
+        chatWindows: e.chatTickets || 0,
+        subMonths: e.subTickets || 0,
+        giftedSubs: Math.round((e.giftTickets || 0) / 2),
+        bits: (e.bitsTickets || 0) * 100,
+      };
+    }
+    if (typeof e.note !== 'string') e.note = '';
+    if (typeof e.manualTickets !== 'number') e.manualTickets = 0;
+    recomputeEntrant(e);
+  }
+  // Names on unicorns shipped briefly as ON; Baby asked for them off. Flip saved
+  // copies off once, after which the dashboard toggle is respected.
+  if (!giveaway.display.namesOffV2) { giveaway.display.showNames = false; giveaway.display.namesOffV2 = true; }
+  const oldTicker = 'Sub = 1 fluffy unicorn. Gift a sub = 2 fluffy unicorns EACH!';
+  const t = giveaway.display.tickerMessages;
+  if (Array.isArray(t)) {
+    const i = t.indexOf(oldTicker);
+    if (i >= 0) t[i] = 'Sub = 2 fluffy unicorns a month. Gift a sub = 4 fluffy unicorns EACH!';
+  }
+}
+
+function recomputeEntrant(e) {
+  const r = giveaway.rates, c = e.counts;
+  e.chatTickets = c.chatWindows * r.chatWindow;
+  e.subTickets = c.subMonths * r.subMonth;
+  e.giftTickets = c.giftedSubs * r.giftedSub;
+  e.bitsTickets = Math.floor(c.bits / r.bitsPerUnicorn);
+  // Hand take-aways can go negative to correct earned unicorns, never below a 0 total.
+  const earned = e.chatTickets + e.subTickets + e.giftTickets + e.bitsTickets;
+  if (e.manualTickets < -earned) e.manualTickets = -earned;
+  return e;
+}
+
+function saveGiveaway() {
+  writeJson(GIVEAWAY_FILE, giveaway);
+}
+
+function broadcastGiveaway() {
+  saveGiveaway();
+  broadcast('giveaway', publicGiveaway());
+}
+
+// Case-insensitive: "bob" from the dashboard and "Bob" from chat are one person.
+function findEntrantKey(username) {
+  if (giveaway.entrants[username]) return username;
+  const lower = String(username).toLowerCase();
+  return Object.keys(giveaway.entrants).find(k => k.toLowerCase() === lower) || null;
+}
+
+function ensureEntrant(username) {
+  const existing = findEntrantKey(username);
+  if (existing) return giveaway.entrants[existing];
+  {
+    giveaway.entrants[username] = {
+      username,
+      counts: { chatWindows: 0, subMonths: 0, giftedSubs: 0, bits: 0 },
+      note: '',
+      chatTickets: 0,
+      subTickets: 0,
+      giftTickets: 0,
+      bitsTickets: 0,
+      manualTickets: 0,
+      mysteryOutfitWon: false,
+      lastSeenAt: null,
+    };
+  }
+  return giveaway.entrants[username];
+}
+
+function entrantTotal(entrant) {
+  return entrant.chatTickets + entrant.subTickets + entrant.giftTickets + entrant.bitsTickets + entrant.manualTickets;
+}
+
+// Every CHAT_WINDOW_MS, anyone who chatted at least once since the last
+// tick gets exactly 1 ticket, then the window clears. This is deliberately
+// NOT per-message - spamming chat doesn't earn extra tickets, only being
+// present across separate windows does.
+const chatWindowTimer = setInterval(() => {
+  const activeUsers = Object.keys(giveaway.chatActiveThisWindow).filter(u => !isBlocked(u));
+  for (const username of activeUsers) {
+    const entrant = ensureEntrant(username);
+    entrant.counts.chatWindows += 1;
+    recomputeEntrant(entrant);
+  }
+  if (activeUsers.length) logActivity({ type: 'chat_unicorns', usernames: activeUsers, each: giveaway.rates.chatWindow });
+  giveaway.chatActiveThisWindow = {};
+  giveaway.windowStartedAt = new Date().toISOString();
+  if (activeUsers.length) broadcastGiveaway();
+  else saveGiveaway();
+}, CHAT_WINDOW_MS);
+chatWindowTimer.unref();
 
 function loadActions() {
   try {
@@ -997,6 +1274,307 @@ async function handleApi(req, res, url) {
 
   if (pathname.startsWith('/api/tradeup/')) return handleTradeupApi(req, res, pathname, method);
 
+  // ---------------- Stream Giveaway ----------------
+  if (pathname === '/api/giveaway/state' && method === 'GET') {
+    return sendJson(res, 200, { ok: true, giveaway: publicGiveaway() });
+  }
+
+  // Called by giveaway-listener.html (the Meld Firehose relay) for every raw
+  // chat/sub/gifts/bits event. This is the ONLY place ticket math happens.
+  if (pathname === '/api/giveaway/event' && method === 'POST') {
+    const body = await readBody(req);
+    const type = cleanString(body.type);
+    const username = cleanString(body.username);
+    listenerStatus.lastSeen = new Date().toISOString();
+    listenerStatus.lastEventAt = listenerStatus.lastSeen;
+    listenerStatus.lastEvent = `${type}${username ? ' from ' + username : ''}${type === 'bits' ? ' (' + body.amount + ' bits)' : ''}${type === 'gifts' ? ' (' + body.count + ' gifted)' : ''}${type === 'sub' && body.months > 1 ? ' (' + body.months + ' months)' : ''}`;
+    const blocked = username && isBlocked(username);
+    // Report-only events: no unicorns, just the nightly log.
+    if (type === 'follow') {
+      if (username) logActivity({ type: 'follow', username });
+      return sendJson(res, 200, { ok: true });
+    }
+    if (type === 'raid') {
+      logActivity({ type: 'raid', username, viewers: Math.max(0, Math.trunc(Number(body.viewers)) || 0) });
+      return sendJson(res, 200, { ok: true });
+    }
+    if (blocked) {
+      // Real support from a blocked name (e.g. a sub) still goes in the report.
+      if (type !== 'chat') logActivity({ type, username, blocked: true, months: body.months, count: body.count, amount: body.amount, tier: cleanString(body.tier), subType: cleanString(body.subType) });
+      return sendJson(res, 200, { ok: true, note: 'blocked name, ignored.' });
+    }
+
+    if (type === 'chat') {
+      if (!username) return sendJson(res, 400, { ok: false, error: 'username is required.' });
+      logActivity({ type: 'chat', username });
+      giveaway.chatActiveThisWindow[ensureEntrant(username).username] = true;
+      ensureEntrant(username).lastSeenAt = new Date().toISOString();
+      saveGiveaway();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    if (type === 'sub') {
+      if (!username) return sendJson(res, 400, { ok: false, error: 'username is required.' });
+      const entrant = ensureEntrant(username);
+      // Firehose sends months_purchased: 1 for a normal sub/resub, more when
+      // someone buys several months at once.
+      const months = Math.min(24, Math.max(1, Math.trunc(Number(body.months)) || 1));
+      const before = entrantTotal(entrant);
+      entrant.counts.subMonths += months;
+      recomputeEntrant(entrant);
+      logActivity({ type: 'sub', username: entrant.username, months, tier: cleanString(body.tier), subType: cleanString(body.subType), unicorns: entrantTotal(entrant) - before });
+      entrant.lastSeenAt = new Date().toISOString();
+      broadcastGiveaway();
+      return sendJson(res, 200, { ok: true, entrant: { ...entrant, totalTickets: entrantTotal(entrant) } });
+    }
+
+    if (type === 'gifts') {
+      if (!username) return sendJson(res, 400, { ok: false, error: 'username is required.' });
+      const count = Math.max(0, Math.trunc(Number(body.count)) || 0);
+      if (count <= 0) return sendJson(res, 200, { ok: true, note: 'count was 0, nothing awarded.' });
+      const entrant = ensureEntrant(username);
+      const before = entrantTotal(entrant);
+      entrant.counts.giftedSubs += count;
+      recomputeEntrant(entrant);
+      const recipients = Array.isArray(body.recipients) ? body.recipients.map(r => cleanString(r)).filter(Boolean).slice(0, 100) : [];
+      logActivity({ type: 'gifts', username: entrant.username, count, tier: cleanString(body.tier), recipients, unicorns: entrantTotal(entrant) - before });
+      entrant.lastSeenAt = new Date().toISOString();
+      broadcastGiveaway();
+      return sendJson(res, 200, { ok: true, entrant: { ...entrant, totalTickets: entrantTotal(entrant) } });
+    }
+
+    if (type === 'bits') {
+      if (!username) return sendJson(res, 400, { ok: false, error: 'username is required.' });
+      const amount = Math.max(0, Math.trunc(Number(body.amount)) || 0);
+      if (amount <= 0) return sendJson(res, 200, { ok: true, note: 'no bits, nothing recorded.' });
+      const entrant = ensureEntrant(username);
+      // Bits add up across cheers: 60 + 50 = 110 bits = 1 unicorn at 100 per.
+      const before = entrantTotal(entrant);
+      entrant.counts.bits += amount;
+      recomputeEntrant(entrant);
+      logActivity({ type: 'bits', username: entrant.username, amount, unicorns: entrantTotal(entrant) - before });
+      entrant.lastSeenAt = new Date().toISOString();
+      broadcastGiveaway();
+      return sendJson(res, 200, { ok: true, entrant: { ...entrant, totalTickets: entrantTotal(entrant) } });
+    }
+
+    return sendJson(res, 400, { ok: false, error: `Unknown event type "${type}".` });
+  }
+
+  // Dashboard-only manual ticket adjustment (donations, corrections, etc.
+  // that don't come through Firehose).
+  // Accepts one `username` or a `usernames` array (e.g. a list of existing
+  // subs), matches existing entrants case-insensitively so "bob" and "Bob"
+  // don't become two people, and logs every give/take with a reason.
+  if (pathname === '/api/giveaway/manual' && method === 'POST') {
+    const body = await readBody(req);
+    const rawNames = Array.isArray(body.usernames) ? body.usernames : [body.username];
+    const seen = new Set();
+    const names = [];
+    for (const raw of rawNames) {
+      const name = cleanString(raw).replace(/^@/, '');
+      if (name && !seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); names.push(name); }
+    }
+    // kind: what Baby is adding. "unicorns" = plain fluffy unicorns;
+    // "subMonths" / "giftedSubs" / "bits" = the real thing, priced by rates
+    // and shown in that viewer's breakdown + sub info (6 months -> sub 12).
+    const KIND_FIELDS = { subMonths: 'subMonths', giftedSubs: 'giftedSubs', bits: 'bits' };
+    const kind = KIND_FIELDS[body.kind] ? body.kind : 'unicorns';
+    const amount = Math.trunc(Number(body.amount !== undefined ? body.amount : body.delta));
+    const maxAmount = kind === 'bits' ? 1000000 : 1000;
+    const reason = cleanString(body.reason).slice(0, 80);
+    if (!names.length) return sendJson(res, 400, { ok: false, error: 'Type at least one username.' });
+    if (names.length > 200) return sendJson(res, 400, { ok: false, error: 'Max 200 names at once.' });
+    if (!Number.isFinite(amount) || amount === 0) return sendJson(res, 400, { ok: false, error: 'Amount must be a non-zero whole number.' });
+    if (Math.abs(amount) > maxAmount) return sendJson(res, 400, { ok: false, error: `Amount must be between -${maxAmount} and ${maxAmount}.` });
+
+    if (!Array.isArray(giveaway.manualLog)) giveaway.manualLog = [];
+    const results = [];
+    const now = new Date().toISOString();
+    const skipped = names.filter(n => isBlocked(n));
+    for (const name of names.filter(n => !isBlocked(n))) {
+      const existingKey = findEntrantKey(name);
+      const entrant = ensureEntrant(existingKey || name);
+      const totalBefore = entrantTotal(entrant);
+      let appliedAmount;
+      if (kind === 'unicorns') {
+        const before = entrant.manualTickets;
+        // Manual can go negative to correct auto-earned unicorns, but a
+        // viewer's total never drops below 0.
+        const autoEarned = totalBefore - before;
+        entrant.manualTickets = Math.max(-autoEarned, entrant.manualTickets + amount);
+        appliedAmount = entrant.manualTickets - before;
+      } else {
+        const field = KIND_FIELDS[kind];
+        const before = entrant.counts[field];
+        entrant.counts[field] = Math.max(0, before + amount);
+        appliedAmount = entrant.counts[field] - before;
+        recomputeEntrant(entrant);
+      }
+      const delta = entrantTotal(entrant) - totalBefore;
+      giveaway.manualLog.push({ username: entrant.username, kind, amount: appliedAmount, delta, reason, at: now });
+      logActivity({ type: 'manual', username: entrant.username, kind, amount: appliedAmount, unicorns: delta, reason });
+      results.push({ username: entrant.username, kind, appliedAmount, applied: delta, totalTickets: entrantTotal(entrant), wasNew: !existingKey });
+    }
+    if (giveaway.manualLog.length > 300) giveaway.manualLog = giveaway.manualLog.slice(-300);
+    if (!results.length) return sendJson(res, 400, { ok: false, error: `${skipped.join(', ')} ${skipped.length === 1 ? 'is' : 'are'} on the block list.` });
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, results, skipped });
+  }
+
+  // Raw Firehose events from the listener's catch-all, for the nightly report.
+  // Body is capped (readBody) and nothing here touches unicorns.
+  if (pathname === '/api/activity/raw' && method === 'POST') {
+    const body = await readBody(req);
+    const kind = cleanString(body.kind).slice(0, 60);
+    if (kind) logActivity({ type: 'raw', kind, data: body.data });
+    return sendJson(res, 200, { ok: true });
+  }
+
+  // Empty the on-screen jar now (counts are untouched).
+  if (pathname === '/api/giveaway/jar/empty' && method === 'POST') {
+    snapshotJar();
+    logActivity({ type: 'jar_emptied' });
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, jar: jarView() });
+  }
+
+  // Nightly report data (giveaway-report.html).
+  if (pathname === '/api/activity/nights' && method === 'GET') {
+    let nights = [];
+    try {
+      nights = fs.readdirSync(ACTIVITY_DIR).filter(n => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(n)).map(n => n.slice(0, 10)).sort().reverse();
+    } catch (_error) { nights = []; }
+    return sendJson(res, 200, { ok: true, nights, tonight: nightKey(new Date()) });
+  }
+  if (pathname === '/api/activity/night' && method === 'GET') {
+    const key = url.searchParams.get('date') || nightKey(new Date());
+    const events = readNight(key);
+    if (events === null) return sendJson(res, 400, { ok: false, error: 'date must look like 2026-09-25.' });
+    return sendJson(res, 200, { ok: true, date: key, events, rates: clone(giveaway.rates), blocked: clone(giveaway.blocked || []),
+      standings: Object.values(giveaway.entrants).map(e => ({ username: e.username, total: entrantTotal(e), counts: e.counts, note: e.note, mysteryOutfitWon: !!e.mysteryOutfitWon })) });
+  }
+
+  // Heartbeat from giveaway-listener.html every few seconds.
+  if (pathname === '/api/giveaway/listener' && method === 'POST') {
+    const body = await readBody(req);
+    const wasConnected = listenerStatus.firehose === 'connected';
+    listenerStatus.lastSeen = new Date().toISOString();
+    listenerStatus.firehose = ['connected', 'connecting', 'no-sdk'].includes(body.firehose) ? body.firehose : 'unknown';
+    if (wasConnected !== (listenerStatus.firehose === 'connected')) broadcast('giveaway', publicGiveaway());
+    return sendJson(res, 200, { ok: true });
+  }
+
+  // Block list: never in the giveaway. Removes anyone already entered.
+  if (pathname === '/api/giveaway/blocked' && method === 'POST') {
+    const body = await readBody(req);
+    if (!Array.isArray(body.names)) return sendJson(res, 400, { ok: false, error: 'names must be a list.' });
+    const seen = new Set();
+    giveaway.blocked = body.names.map(n => cleanString(n).replace(/^@/, '')).filter(n => {
+      if (!n || seen.has(n.toLowerCase())) return false;
+      seen.add(n.toLowerCase()); return true;
+    }).slice(0, 200);
+    const removed = purgeBlocked();
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, blocked: giveaway.blocked, removed });
+  }
+
+  // Free-text info per viewer ("subbed since March", "tier 3", ...).
+  if (pathname === '/api/giveaway/note' && method === 'POST') {
+    const body = await readBody(req);
+    const username = cleanString(body.username).replace(/^@/, '');
+    if (!username) return sendJson(res, 400, { ok: false, error: 'username is required.' });
+    const entrant = ensureEntrant(username);
+    entrant.note = cleanString(body.note).slice(0, 200);
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, entrant });
+  }
+
+  // How many fluffy unicorns each thing is worth. Re-prices everyone.
+  if (pathname === '/api/giveaway/rates' && method === 'POST') {
+    const body = await readBody(req);
+    const r = giveaway.rates;
+    if (body.chatWindow !== undefined) r.chatWindow = cleanRate(body.chatWindow, r.chatWindow, 0, 100);
+    if (body.subMonth !== undefined) r.subMonth = cleanRate(body.subMonth, r.subMonth, 0, 100);
+    if (body.giftedSub !== undefined) r.giftedSub = cleanRate(body.giftedSub, r.giftedSub, 0, 100);
+    if (body.bitsPerUnicorn !== undefined) r.bitsPerUnicorn = cleanRate(body.bitsPerUnicorn, r.bitsPerUnicorn, 1, 100000);
+    for (const key of Object.keys(giveaway.entrants)) recomputeEntrant(giveaway.entrants[key]);
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, rates: clone(r) });
+  }
+
+  // Draws a weighted-random winner. Plushie winners stay in the pool for
+  // future draws; Mystery Outfit winners are excluded from future Mystery
+  // Outfit draws only (still eligible for Plushie).
+  if (pathname === '/api/giveaway/draw' && method === 'POST') {
+    const body = await readBody(req);
+    const prize = body.prize === 'mystery-outfit' ? 'mystery-outfit' : (body.prize === 'plushie' ? 'plushie' : null);
+    if (!prize) return sendJson(res, 400, { ok: false, error: 'prize must be "plushie" or "mystery-outfit".' });
+
+    const pool = [];
+    for (const username of Object.keys(giveaway.entrants)) {
+      const entrant = giveaway.entrants[username];
+      if (prize === 'mystery-outfit' && entrant.mysteryOutfitWon) continue;
+      if (isBlocked(username)) continue;
+      const tickets = entrantTotal(entrant);
+      for (let i = 0; i < tickets; i++) pool.push(username);
+    }
+    if (!pool.length) return sendJson(res, 400, { ok: false, error: 'No eligible entrants with tickets for this drawing.' });
+
+    const winnerName = pool[Math.floor(Math.random() * pool.length)];
+    const winnerEntrant = giveaway.entrants[winnerName];
+    if (prize === 'mystery-outfit') winnerEntrant.mysteryOutfitWon = true;
+    const winnerRecord = { username: winnerName, prize, tickets: entrantTotal(winnerEntrant), at: new Date().toISOString() };
+    giveaway.winners.push(winnerRecord);
+    logActivity({ type: 'winner', username: winnerName, prize, unicorns: winnerRecord.tickets, poolSize: pool.length });
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, winner: winnerRecord });
+  }
+
+  // Full reset for a new stream night. Manual only - no auto-reset.
+  if (pathname === '/api/giveaway/reset' && method === 'POST') {
+    logActivity({ type: 'reset' });
+    const keptDisplay = clone(giveaway.display);
+    const keptRates = clone(giveaway.rates);
+    const keptBlocked = clone(giveaway.blocked);
+    giveaway = clone(GIVEAWAY_DEFAULTS);
+    giveaway.display = keptDisplay; // wording is a setting, not tonight's data
+    giveaway.rates = keptRates;
+    giveaway.blocked = keptBlocked;
+    giveaway.windowStartedAt = new Date().toISOString();
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true });
+  }
+
+  // Overlay wording, edited from the dashboard's "Board text" card.
+  if (pathname === '/api/giveaway/display' && method === 'POST') {
+    const body = await readBody(req);
+    const d = giveaway.display;
+    if (typeof body.entrantsTitle === 'string') d.entrantsTitle = cleanString(body.entrantsTitle);
+    if (typeof body.emptyMessage === 'string') d.emptyMessage = cleanString(body.emptyMessage);
+    if (typeof body.winnersTitle === 'string') d.winnersTitle = cleanString(body.winnersTitle);
+    if (typeof body.winnersEmptyMessage === 'string') d.winnersEmptyMessage = cleanString(body.winnersEmptyMessage);
+    if (body.maxRows !== undefined) {
+      const n = Math.trunc(Number(body.maxRows));
+      if (Number.isFinite(n)) d.maxRows = Math.min(50, Math.max(1, n));
+    }
+    if (['left', 'center', 'right'].includes(body.jarSide)) d.jarSide = body.jarSide;
+    if (['small', 'medium', 'large'].includes(body.unicornSize)) d.unicornSize = body.unicornSize;
+    if (typeof body.showNames === 'boolean') d.showNames = body.showNames;
+    if (typeof body.magic === 'boolean') d.magic = body.magic;
+    if (Array.isArray(body.tickerMessages)) {
+      d.tickerMessages = body.tickerMessages.map(m => cleanString(m)).filter(Boolean).slice(0, 30);
+    }
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, display: clone(d) });
+  }
+
+  if (pathname === '/api/giveaway/display/reset' && method === 'POST') {
+    giveaway.display = clone(GIVEAWAY_DEFAULTS.display);
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, display: clone(giveaway.display) });
+  }
+
   return sendJson(res, 404, { ok: false, error: 'Not found.' });
 }
 
@@ -1005,6 +1583,10 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
+  '.m4a': 'audio/mp4',
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.gif': 'image/gif',
@@ -2253,6 +2835,7 @@ const server = http.createServer(async (req, res) => {
     clients.add(res);
     sendSse(res, 'snapshot', publicState());
     sendSse(res, 'tradeup', tradeupPublicState());
+    sendSse(res, 'giveaway', publicGiveaway());
     req.on('close', () => clients.delete(res));
     return;
   }

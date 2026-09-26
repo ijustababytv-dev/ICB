@@ -28,7 +28,7 @@ const OUTPUT_DIR = process.env.ICB_CLEAN_PALIA_LOG_DIR || path.join(LOCALAPPDATA
 const STATE_FILE = path.join(__dirname, '.palia-log-bridge-state.json');
 
 const POLL_MS = 1000;
-const DEDUP_WINDOW_MS = 5000;
+const DEDUP_WINDOW_MS = 200; // see bridge-core.js DedupTracker comment for why
 
 // ---------------------------------------------------------------------
 // State (persists read offset + which file we were tailing, across restarts)

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "countdown": {
-    "heading": "STARTING SOON",
-    "subheading": "Grab a snack & get comfy!",
-    "targetAt": "2026-09-16T22:00:00.000Z",
+    "heading": "YOU'RE INVITED!",
+    "subheading": "Untill Party Time",
+    "targetAt": "2026-09-26T00:00:00.000Z",
     "timezone": "America/Chicago",
     "status": "running"
   },
@@ -20,7 +20,7 @@
         "id": "zone2",
         "label": "Lavender",
         "subLabel": "",
-        "timezone": "America/Los_Angeles",
+        "timezone": "Asia/Tokyo",
         "visible": true
       },
       {
@@ -56,7 +56,7 @@
   "stream": {
     "title": "",
     "category": "Palia",
-    "goLiveMessage": ""
+    "goLiveMessage": "UNICORN_GOAL:586:10:1000:0"
   },
   "ticker": {
     "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
@@ -78,5 +78,5 @@
       "log"
     ]
   },
-  "updatedAt": "2026-09-16T20:42:34.856Z"
+  "updatedAt": "2026-09-26T00:21:07.756Z"
 }

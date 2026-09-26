@@ -43,22 +43,36 @@ function parseLine(line) {
 }
 
 // Dedup strategy: a single real event can produce up to 3 broadcast lines
-// (ITEM RECEIVED, ITEM ADDED, MULTICAST ITEM ADDED) sharing the same frame
-// number, and for discrete crafted/UI items MULTICAST ITEM ADDED can fire
-// many times more for the same frame (once per UI observer). Continuous
-// currency gains (Echo Amber, Essence) get distinct frame numbers per real
-// event and rarely go through ITEM RECEIVED/ADDED at all.
+// (ITEM RECEIVED, ITEM ADDED, MULTICAST ITEM ADDED), and for discrete
+// crafted/cooked items MULTICAST ITEM ADDED can fire many times more (once
+// per UI observer). Continuous currency gains (Echo Amber, Essence) rarely
+// go through ITEM RECEIVED/ADDED at all.
 //
-// Rule: group by (frame, token, amount). Within a group, count it as ONE
-// real event, regardless of how many lines (or which kinds) appear for it.
+// IMPORTANT: the frame number is NOT a reliable disambiguator on its own.
+// A single real event's burst of broadcast lines can span more than one
+// engine frame (observed directly in Baby's own log: one real Sashimi cook
+// produced lines at frame 393 AND frame 395, ~30ms apart, all same
+// token+amount) - keying on (frame, token, amount) treats that as TWO
+// separate real events and double-counts it (this is the bug that made
+// Sashimi/Fish Stew/Celebration Cake count down by 2 per cook instead of 1
+// once starOnly was removed and these lines started actually matching).
+//
+// Fix: key on (token, amount) only, and use a tight TIME window instead of
+// frame identity to decide "same burst" vs "new real event". Verified
+// against real data: a same-event broadcast burst completes within ~30-40ms
+// end to end, while the closest two genuinely separate real events sharing
+// the exact same token+amount observed in Baby's logs were ~400ms apart
+// (three consecutive real Echo Amber pickups of amount 36, at 448/473/508ms
+// apart). A 200ms window comfortably merges the former and comfortably
+// keeps the latter distinct.
 class DedupTracker {
-  constructor(windowMs = 5000) {
+  constructor(windowMs = 200) {
     this.windowMs = windowMs;
     this.seen = new Map(); // key -> lastSeenEpochMs
   }
 
   key(evt) {
-    return evt.frame + '|' + evt.token + '|' + evt.amount;
+    return evt.token + '|' + evt.amount;
   }
 
   // Returns true if this event is a NEW real event (should be emitted),
