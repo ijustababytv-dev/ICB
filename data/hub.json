@@ -1,0 +1,71 @@
+{
+  "order": [
+    "c1790715802794",
+    "c1790715802796",
+    "c1790715802799",
+    "c1790715802797",
+    "c1790715802795",
+    "trackers",
+    "giveaway",
+    "report",
+    "plushie",
+    "decor",
+    "timer",
+    "worldclock",
+    "c1790715802798",
+    "walkers",
+    "c1790719767680"
+  ],
+  "startup": [],
+  "custom": [
+    {
+      "id": "c1790715802794",
+      "icon": "💜",
+      "name": "Twitch Stream Manager",
+      "url": "https://dashboard.twitch.tv/u/ijustababytv/stream-manager",
+      "desc": "Go live, stream info, chat & activity"
+    },
+    {
+      "id": "c1790715802796",
+      "icon": "🤖",
+      "name": "ChatGPT Titles & Go Live",
+      "url": "https://chatgpt.com/c/6a90deb2-156c-83e9-9f75-70eb00d1313d",
+      "desc": "Stream titles and go-live posts"
+    },
+    {
+      "id": "c1790715802799",
+      "icon": "⭐",
+      "name": "OneStarLive",
+      "url": "https://app.onestarlive.com/events",
+      "desc": "Events"
+    },
+    {
+      "id": "c1790715802797",
+      "icon": "📅",
+      "name": "Sesh",
+      "url": "https://sesh.fyi/dashboard/1410457844490436680",
+      "desc": "Discord event scheduling"
+    },
+    {
+      "id": "c1790715802795",
+      "icon": "🎉",
+      "name": "My PPA Parties",
+      "url": "https://paliaparty.app/?partyTab=my-parties",
+      "desc": "Palia Party App - your parties"
+    },
+    {
+      "id": "c1790715802798",
+      "icon": "⏰",
+      "name": "Timestamp Converter",
+      "url": "https://sesh.fyi/timestamp/",
+      "desc": "Make Discord timestamps"
+    },
+    {
+      "id": "c1790719767680",
+      "icon": "🔗",
+      "name": "Unicorn Follower Goal",
+      "url": "https://elements.meldstudio.co/0190f77ac22f465496634cf4b557c240/23j2m2gnjctmegrc/dashboard-control.html",
+      "desc": ""
+    }
+  ]
+}

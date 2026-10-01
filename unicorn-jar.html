@@ -66,7 +66,18 @@
   var TIP_MS = 1300, SHAKE_MS = 3800, RISE_MS = 1200, BANNER_MS = 6500, UPRIGHT_MS = 1300;
   // Lottery drawing (Baby, 2026-09-25): cloud rains EVERY unicorn on file,
   // the screen mixes like a lottery machine, 10-second countdown, reveal.
-  var RAIN_MS = 6000, MIX_MS = 5000, COUNTDOWN_MS = 10000, GATHER_MS = 2600;
+  // Baby (2026-09-27): the whole song should play and the winner should be
+  // revealed right as it ends, instead of cutting it off ~23s in. So the
+  // "mix" stretch (the swirling lottery-machine part) is no longer a fixed
+  // length - it stretches to fill whatever's left of the song once the
+  // rain, countdown and rise are accounted for. See mixMsFor() below.
+  var RAIN_MS = 6000, COUNTDOWN_MS = 10000, GATHER_MS = 2600;
+  var DRAW_JAR_ONLY = true;
+  var MIN_MIX_MS = 5000; // floor, in case the song is short or hasn't loaded yet
+  // Baby (2026-09-26, later): reveal the winner about 20 s BEFORE the song
+  // ends, then let the song keep playing to the very end and fade out slowly.
+  var REVEAL_BEFORE_END_MS = 20000;
+  var SONG_FADE_MS = 8000; // the last 8 s of the song fade gently to silence
 
   // Optional sound (MP3s in assets/sounds). Missing files are simply silent.
   //   draw song  - plays from the moment the cloud appears until the reveal
@@ -75,7 +86,18 @@
   // Baby's song, straight from assets/resources (name URL-encoded for the spaces/brackets).
   var DRAW_SONG = 'assets/resources/' + encodeURIComponent('Pink Fluffy Unicorns Dancing on Rainbows (Trap Remix).mp3');
   var drawAudio = new Audio(DRAW_SONG);
-  drawAudio.preload = 'auto'; drawAudio.loop = true;
+  drawAudio.preload = 'auto'; drawAudio.loop = false;
+  // Actual length of the song above (measured), used to time the drawing so
+  // the winner is revealed right as it ends. If the browser reports a real
+  // duration once the file loads, that takes over instead.
+  var DEFAULT_SONG_MS = 101720;
+  var songMs = DEFAULT_SONG_MS;
+  drawAudio.addEventListener('loadedmetadata', function(){
+    if (isFinite(drawAudio.duration) && drawAudio.duration > 5) songMs = Math.round(drawAudio.duration * 1000);
+  });
+  function mixMsFor(){
+    return Math.max(MIN_MIX_MS, songMs - REVEAL_BEFORE_END_MS - RAIN_MS - COUNTDOWN_MS - RISE_MS);
+  }
   var winnerAudio = new Audio('assets/sounds/winner.mp3');
   winnerAudio.preload = 'auto';
   var audioFade = null;
@@ -89,6 +111,18 @@
       if (p >= 1) { clearInterval(audioFade); audioFade = null; try { a.pause(); a.volume = 1; } catch (e) {} }
     }, 50);
   }
+  // Called every frame: as the draw song nears its natural end, ease the
+  // volume down so it fades out slowly instead of stopping abruptly.
+  function songFadeTick(){
+    try {
+      if (drawAudio.paused || audioFade) return;
+      var d = drawAudio.duration;
+      if (!isFinite(d) || d <= 0) return;
+      var left = (d - drawAudio.currentTime) * 1000;
+      drawAudio.volume = left < SONG_FADE_MS ? Math.max(0, Math.min(1, left / SONG_FADE_MS)) : 1;
+    } catch (e) {}
+  }
+  drawAudio.addEventListener('ended', function(){ try { drawAudio.volume = 1; } catch (e) {} });
   var DEFAULT_FILTER_MASK = 0xFFFFFFFF;
   var FONT = '"Baloo 2","Comic Sans MS","Trebuchet MS",sans-serif';
 
@@ -103,6 +137,7 @@
   var lastDropAt = 0;
   var totalEntries = 0;
   var lastWinnerCount = null;
+  var lastTestSeq = 0;
   var drawQueue = [];
   var phase = 'idle', phaseStart = 0, current = null;
   var flights = [];
@@ -183,9 +218,51 @@
     ];
     jar = Body.create({ parts: parts, isStatic: true });
     Composite.add(world, jar);
+
+    // Park the cloud over the jar right away so it's visible from the very
+    // first frame, not just after the first drop (Baby, 2026-09-26).
+    cloud.inited = true; cloud.x = J.cx; cloud.y = Math.max(60, cloudW() * 0.28);
   }
 
   // --------------------------------------------------------------- unicorns
+  // Small star/rainbow accent pieces (Baby, 2026-09-26): unlike the transient
+  // sparkleAt() twinkles, these are real physics bodies that fall in and
+  // STAY with the unicorns, in the jar or on the overflow floor, instead of
+  // fading away. Reuses the exact same bodies[] / render pipeline as
+  // unicorns (isInJar, removeUnicorn, clearAll, the MAX_BODIES cap all just
+  // work), so only makeAccent() + drawAccent() + the spawn call below are new.
+  function makeAccent(x, y){
+    var img = null, roll = Math.random();
+    if (roll < 0.7 && FX.stars.length) img = FX.stars[Math.floor(Math.random() * FX.stars.length)];
+    else if (FX.rainbow) img = FX.rainbow;
+    if (!img) return null; // art not loaded yet - skip this one, not worth waiting for
+    var ar = img === FX.rainbow ? R * 0.95 : R * 0.5; // stars half a unicorn; rainbows bigger (Baby 2026-09-26)
+    var b = Bodies.circle(x, y, ar, {
+      restitution: 0.45, friction: 0.03, frictionStatic: 0.3, frictionAir: 0.012,
+      density: 0.0008, sleepThreshold: 45
+    });
+    Body.setAngle(b, Math.random() * Math.PI * 2);
+    b.isAccent = true; b.accentImg = img; b.renderScale = 1;
+    Composite.add(world, b);
+    bodies.push(b);
+    return b;
+  }
+
+  // Big moments (gift bombs, big hand-adds) get a handful of these that drop
+  // in alongside the unicorns and settle into the pile for good.
+  function spawnAccentShower(added){
+    var n = Math.min(6, Math.max(2, Math.round(added / 5)));
+    for (var i = 0; i < n; i++) {
+      if (bodies.length >= MAX_BODIES) break;
+      var intoJar = inJarCount() < J.capacity;
+      var x = intoJar ? (J.mouthLeft + R + Math.random() * Math.max(1, J.mouthRight - J.mouthLeft - 2 * R)) : overflowX();
+      var b = makeAccent(x, cloud.y + R * 0.5);
+      if (!b) break;
+      Body.setVelocity(b, { x: (Math.random() - 0.5) * 2, y: 2 });
+      Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3);
+    }
+  }
+
   function makeUnicorn(owner, x, y){
     var b = Bodies.circle(x, y, R, {
       restitution: 0.45, friction: 0.03, frictionStatic: 0.3, frictionAir: 0.012,
@@ -261,7 +338,7 @@
     img.src = src;
   }
   loadFx('cloud', 'assets/resources/CLOUD_01.png', 520);
-  loadFx('rainbow', 'assets/resources/RAINBOW_01.png', 120);
+  loadFx('rainbow', 'assets/resources/RAINBOW_01.png', 260);
   loadFx('stars', 'assets/resources/STAR_PINK.png', 96);
   loadFx('stars', 'assets/resources/STAR_BLUE.png', 96);
   loadFx('stars', 'assets/resources/STAR_YELLOW.png', 96);
@@ -281,22 +358,23 @@
     if (intoJar) {
       return J.mouthLeft + R + Math.random() * Math.max(1, J.mouthRight - J.mouthLeft - 2 * R);
     }
-    // Jar full: drop under the cloud as it sweeps along the screen, never over the jar.
-    var x = cloud.x + (Math.random() - 0.5) * cw * 0.6;
-    x = Math.max(R, Math.min(W - R, x));
-    if (x > J.left - R * 1.5 && x < J.right + R * 1.5) x = overflowX();
-    return x;
+    // Jar full: the cloud stays over the jar, so overflow unicorns pop out of
+    // the cloud's left or right edge and get flung out to the floor (see
+    // spawnDrop, which gives them the sideways push).
+    return null;
   }
 
   function updateCloud(now){
     var drawCloudOn = phase === 'rain' || phase === 'gather';
-    var active = drawCloudOn || dropQueue.length > 0 || (now - cloud.lastUse) < 1400;
-    // The drawing always gets its cloud, even with magic effects switched off.
-    cloud.alpha += ((active && (magic || drawCloudOn) ? 1 : 0) - cloud.alpha) * 0.08;
+    // Baby (2026-09-26): the cloud now parks over the jar for the whole
+    // stream instead of fading out between drops - always visible.
+    cloud.alpha += (1 - cloud.alpha) * 0.08;
     var cw = cloudW();
     if (phase === 'gather') { cloud.x += (W / 2 - cloud.x) * 0.06; cloud.y = Math.max(60, cw * 0.28); return; }
-    var jarFull = phase === 'rain' || inJarCount() >= J.capacity;
-    if (!jarFull) {
+    // Baby (2026-09-26): no more run-away cloud - it stays parked over the
+    // jar all stream, even when the jar is full. It only sweeps across the
+    // screen during a drawing's rain.
+    if (phase !== 'rain' || DRAW_JAR_ONLY) {
       cloud.x += (J.cx - cloud.x) * 0.06;
     } else {
       // Sweep back and forth over the free part of the screen.
@@ -321,7 +399,7 @@
         vx: (Math.random() - 0.5) * 2.4, vy: 0.6 + Math.random() * 2.2,
         rot: isRainbow ? (Math.random() - 0.5) * 0.4 : Math.random() * 6.28,
         vr: isRainbow ? (Math.random() - 0.5) * 0.02 : (Math.random() - 0.5) * 0.12,
-        size: img ? R * 1.2 * (0.9 + Math.random() * 0.2) : 2 + Math.random() * 3,
+        size: img ? R * (isRainbow ? 3.2 : 1.2) * (0.9 + Math.random() * 0.2) : 2 + Math.random() * 3,
         img: img,
         born: Date.now(), life: 1500 + Math.random() * 1300, tw: Math.random() * 6.28
       });
@@ -356,13 +434,33 @@
     ctx.restore();
   }
 
-  // Stars & little rainbows that get blown around with the lottery mix.
+  // Stars & rainbows that get blown around with the lottery mix while a
+  // winner is being picked. Baby (2026-09-27): more of them, and sized
+  // "medium" on purpose - bigger than the half-size accents that settle
+  // into the jar, smaller than a unicorn, so they read clearly while they
+  // swirl but don't crowd out the unicorns themselves. Built directly
+  // (rather than through sparkleAt) so every one is a star or rainbow at
+  // that size, not the occasional plain sparkle dot.
   function swirlAccents(n, life){
-    var saved = sparks.length;
-    for (var i = 0; i < n; i++) sparkleAt(Math.random() * W, H * 0.15 + Math.random() * H * 0.8, 1);
-    for (var k = saved; k < sparks.length; k++) {
-      sparks[k].swirl = true; sparks[k].life = life * (0.85 + Math.random() * 0.15);
-      sparks[k].vx = (Math.random() - 0.5) * 8; sparks[k].vy = (Math.random() - 0.5) * 8;
+    if (!magic) return;
+    // "Medium" here means: clearly bigger than the half-size accents that
+    // settle into the jar (those draw at ~R wide) and smaller than a full
+    // unicorn (~R*2.4 wide) - big enough to read clearly while they swirl.
+    var mediumSize = R * 1.6;
+    var RAINBOW_SCALE = 4.2; // Baby: rainbows much bigger - ~2.6x the stars
+    for (var i = 0; i < n && sparks.length < MAX_SPARKS; i++) {
+      var isRainbow = Math.random() < 0.22 && FX.rainbow;
+      var img = isRainbow ? FX.rainbow : (FX.stars.length ? FX.stars[Math.floor(Math.random() * FX.stars.length)] : null);
+      if (!img) continue;
+      sparks.push({
+        x: Math.random() * W, y: H * 0.15 + Math.random() * H * 0.8,
+        vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
+        rot: isRainbow ? (Math.random() - 0.5) * 0.4 : Math.random() * 6.28,
+        vr: isRainbow ? (Math.random() - 0.5) * 0.02 : (Math.random() - 0.5) * 0.12,
+        size: (isRainbow ? R * RAINBOW_SCALE : mediumSize) * (0.85 + Math.random() * 0.3),
+        img: img, swirl: true,
+        born: Date.now(), life: life * (0.85 + Math.random() * 0.15), tw: Math.random() * 6.28
+      });
     }
   }
 
@@ -403,8 +501,19 @@
     var x = magic ? dropPoint(intoJar) : (intoJar ? J.mouthLeft + R + Math.random() * Math.max(1, J.mouthRight - J.mouthLeft - 2 * R) : overflowX());
     // With magic on they tumble out of the cloud; otherwise from the top edge.
     var y = magic ? cloud.y + R * 0.5 : -R * 2 - Math.random() * R * 3;
+    var vx = (Math.random() - 0.5) * 2;
+    if (x === null) {
+      // Overflow out of the parked cloud: pick a spot on the floor, leave from
+      // the cloud edge on that side, and aim the throw so it lands there.
+      var target = overflowX(), cw2 = cloudW();
+      var side = target < cloud.x ? -1 : 1;
+      x = Math.max(R, Math.min(W - R, cloud.x + side * cw2 * 0.45));
+      var fallSteps = Math.sqrt(2 * Math.max(100, H - R - y) / 0.28);
+      vx = (target - x) / fallSteps;
+      if (Math.abs(vx) < 6) vx = side * 6; // always clear the jar
+    }
     var b = makeUnicorn(owner, x, y);
-    Body.setVelocity(b, { x: (Math.random() - 0.5) * 2, y: 2 });
+    Body.setVelocity(b, { x: vx, y: 2 });
     Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.3);
     sparkleAt(x, y, 3);
   }
@@ -489,7 +598,10 @@
         else { dropQueue.push(o); queuedByOwner[o] = (queuedByOwner[o] || 0) + 1; added++; }
       }
     }
-    if (!first && added >= 5) triggerRainbow(3500 + Math.min(4000, added * 60)); // gift bombs, big hand-adds
+    if (!first && added >= 5) {
+      triggerRainbow(3500 + Math.min(4000, added * 60)); // transient sparkle burst
+      spawnAccentShower(added); // + a few stars/rainbows that fall in and stay
+    }
     if (first && toPlace.length) {
       // Shuffle so the jar isn't sorted by viewer.
       for (var s = toPlace.length - 1; s > 0; s--) { var r = Math.floor(Math.random() * (s + 1)); var tmp = toPlace[s]; toPlace[s] = toPlace[r]; toPlace[r] = tmp; }
@@ -565,6 +677,10 @@
   var fullTotals = {}, lastG = null, rainList = [], rainStartedAt = 0, rainSpawned = 0;
 
   function buildRainList(){
+    // Baby (2026-09-26): the drawing now only uses the unicorns already in
+    // the jar / on screen - no extra rain of everyone's rolled-over unicorns.
+    // (Winner odds are still from everyone's full count, picked by ICB.)
+    if (DRAW_JAR_ONLY) return [];
     var list = [], o, have, need, k;
     for (o in fullTotals) {
       if (!Object.prototype.hasOwnProperty.call(fullTotals, o)) continue;
@@ -622,6 +738,7 @@
       wakeAll();
       rainList = buildRainList(); rainSpawned = 0; rainStartedAt = now;
       cloud.inited = true; cloud.x = W / 2;
+      current.mixMs = mixMsFor(); // lock in the target for this drawing (song may still be loading)
       playSound(drawAudio);
       setPhase('rain', now);
       return;
@@ -635,14 +752,14 @@
       var due = Math.min(rainList.length, Math.ceil(rainList.length * Math.min(1, t / (RAIN_MS - 1000))));
       while (rainSpawned < due) rainOne(rainList[rainSpawned++]);
       cloud.lastUse = now;
-      if (t > RAIN_MS) { engine.gravity.y = 0.35; swirlAccents(90, MIX_MS + COUNTDOWN_MS); setPhase('mix', now); }
+      if (t > RAIN_MS) { engine.gravity.y = 0.35; swirlAccents(160, current.mixMs + COUNTDOWN_MS); setPhase('mix', now); }
       return;
     }
 
     if (phase === 'mix') {
       spillJar();
       lotteryMix(now, 0.8 + 0.4 * Math.min(1, t / 1500));
-      if (t > MIX_MS) setPhase('countdown', now);
+      if (t > current.mixMs) setPhase('countdown', now);
       return;
     }
 
@@ -673,7 +790,7 @@
         // Hold it in place (flight finished) while the banner shows.
         if (!flightFor(winnerBody)) { Body.setPosition(winnerBody, { x: W / 2, y: H * 0.3 + Math.sin(now / 300) * 6 }); Body.setVelocity(winnerBody, { x: 0, y: 0 }); }
       }
-      if (now > current.bannerAt + BANNER_MS - 1500 && !current.fading) { current.fading = true; fadeOut(drawAudio, 2500); }
+      // (No cut-off here any more - the song plays on to its end; see songFadeTick.)
       if (now > current.bannerAt + BANNER_MS) {
         if (winnerBody) {
           var wb = winnerBody;
@@ -853,6 +970,17 @@
     return c;
   }
 
+  function drawAccent(b){
+    var img = b.accentImg;
+    if (!img) return;
+    var s = b.renderScale || 1, w = R * (img === FX.rainbow ? 2.4 : 1.0) * s, h = w * img.height / img.width;
+    ctx.save();
+    ctx.translate(b.position.x, b.position.y);
+    ctx.rotate(b.angle);
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+
   function drawUnicorn(b, glow){
     var s = b.renderScale || 1, w = R * 2.4 * s, h = w * UNI_ASPECT;
     ctx.save();
@@ -895,7 +1023,9 @@
     if (phase !== 'rise') return;
     var age = now - current.bannerAt;
     var alpha = Math.min(1, age / 300);
-    var prize = current.prize === 'mystery-outfit' ? 'Mystery Outfit' : 'Plushie';
+    // Baby (2026-09-26): a custom prize name (set on the dashboard) overrides
+    // the generic "Plushie"/"Mystery Outfit" wording, e.g. "Squishmallow Corgi".
+    var prize = current.prizeLabel || (current.prize === 'mystery-outfit' ? 'Mystery Outfit' : 'Plushie');
     var name = current.username;
     var cy = H * 0.3 + (winnerBody ? R * 4.2 * 1.3 : 0) + 40;
     ctx.save();
@@ -913,6 +1043,16 @@
     ctx.shadowColor = 'rgba(255,200,110,0.9)'; ctx.shadowBlur = 25; ctx.stroke(); ctx.shadowBlur = 0;
     ctx.font = '800 30px ' + FONT; ctx.fillStyle = '#ffe9c9';
     ctx.fillText('WINNER!', W / 2, cy - 8);
+    if (current.isTest) {
+      // Baby (2026-09-27): the demo/test draw looks the same as a real one,
+      // but a small tag makes it obvious to anyone watching that this run
+      // didn't pick a real player and isn't going in the Winners Circle.
+      ctx.save();
+      ctx.font = '700 20px ' + FONT; ctx.fillStyle = '#fff2a8';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
+      ctx.fillText('TEST DRAW - just a demo', W / 2, cy - 45 - 34);
+      ctx.restore();
+    }
     ctx.font = '900 ' + nameSize + 'px ' + FONT; ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(255,120,230,1)'; ctx.shadowBlur = 20;
     ctx.fillText(name, W / 2, cy + 18 + nameSize / 2);
@@ -938,7 +1078,10 @@
     ctx.clearRect(0, 0, W, H);
     if (!settings) return;
     drawJarBack();
-    for (var i = 0; i < bodies.length; i++) if (bodies[i] !== winnerBody) drawUnicorn(bodies[i], false);
+    for (var i = 0; i < bodies.length; i++) {
+      if (bodies[i] === winnerBody) continue;
+      if (bodies[i].isAccent) drawAccent(bodies[i]); else drawUnicorn(bodies[i], false);
+    }
     drawJarFront();
     drawSparks(now);
     if (winnerBody) drawUnicorn(winnerBody, true);
@@ -950,6 +1093,7 @@
 
   // ------------------------------------------------------------------- loop
   function frame(){
+    songFadeTick();
     var now = Date.now();
     if (settings) {
       if (phase === 'idle' && dropQueue.length) {
@@ -977,6 +1121,7 @@
       init(d);
       applyState(g, true);
       lastWinnerCount = (g.winners || []).length;
+      lastTestSeq = (g.testDraw && g.testDraw.seq) || 0;
       lastG = g;
       return;
     }
@@ -988,11 +1133,19 @@
     }
     var winners = g.winners || [];
     if (winners.length > lastWinnerCount) {
-      for (var i = lastWinnerCount; i < winners.length; i++) drawQueue.push({ username: winners[i].username, prize: winners[i].prize });
+      for (var i = lastWinnerCount; i < winners.length; i++) drawQueue.push({ username: winners[i].username, prize: winners[i].prize, prizeLabel: winners[i].prizeLabel });
     } else if (winners.length < lastWinnerCount) {
       abortDraw();
     }
     lastWinnerCount = winners.length;
+    // Baby (2026-09-27): the "Test" button on the dashboard - runs the same
+    // show but always picks IJustABabyTv, without ever touching winners,
+    // entrants, or the activity log, so demos never leak into anything real.
+    var td = g.testDraw || {};
+    if ((td.seq || 0) > lastTestSeq) {
+      drawQueue.push({ username: 'IJustABabyTv', prize: td.prize || 'plushie', prizeLabel: d.currentPrizeLabel || '', isTest: true });
+    }
+    lastTestSeq = td.seq || 0;
     lastG = g;
     fullTotals = {};
     var ents = g.entrants || {};
@@ -1017,7 +1170,7 @@
   }
 
   // Test hook for the dashboard-less preview (harmless on stream).
-  window.__jar = { state: function(){ return { bodies: bodies.length, inJar: settings ? inJarCount() : 0, capacity: J.capacity, phase: phase, angle: J.angle, total: totalEntries, queued: dropQueue.length, soundPlaying: !drawAudio.paused, soundTime: Math.round(drawAudio.currentTime * 10) / 10, soundVolume: drawAudio.volume }; } };
+  window.__jar = { state: function(){ return { bodies: bodies.length, inJar: settings ? inJarCount() : 0, capacity: J.capacity, phase: phase, angle: J.angle, total: totalEntries, queued: dropQueue.length, soundPlaying: !drawAudio.paused, soundTime: Math.round(drawAudio.currentTime * 10) / 10, soundVolume: drawAudio.volume, songMs: songMs, mixMs: current ? current.mixMs : mixMsFor(), isTest: current ? !!current.isTest : false }; } };
 
   poll();
   setInterval(poll, 1000);

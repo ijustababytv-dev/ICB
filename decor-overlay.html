@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Decor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  canvas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ICB decor overlay (Baby, 2026-09-29). One Meld layer per effect:
+//   http://127.0.0.1:8790/decor/<effect-id>.html
+// The effect id comes from the page's own path (no query strings in Meld
+// URLs). Settings come from decor-control.html via /api/decor/state, polled
+// every second, so changes show up live with no layer reload.
+// Plain ES5 so it runs in any browser source.
+(function(){
+  var m = /\/decor\/([a-z0-9-]+)\.html/.exec(window.location.pathname);
+  var EFFECT_ID = m ? m[1] : 'leaves';
+
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var W = 1920, H = 1080, DPR = 1;
+  function resize(){
+    DPR = window.devicePixelRatio || 1;
+    W = window.innerWidth || 1920; H = window.innerHeight || 1080;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  var effect = null;          // current settings for this layer
+  var sprites = [];           // pre-shrunk canvases of Baby's art
+  var spriteKey = '';
+  var parts = [];
+  var lastSpawn = 0;
+
+  // Pre-shrink each image once so hundreds of particles stay cheap.
+  function loadSprites(urls){
+    var key = urls.join('|');
+    if (key === spriteKey) return;
+    spriteKey = key;
+    var next = [];
+    for (var i = 0; i < urls.length; i++) (function(url){
+      var img = new Image();
+      img.onload = function(){
+        var max = 320, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * sc));
+        c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.src = url;
+        next.push(c);
+        if (spriteKey === key) sprites = next.slice();
+      };
+      img.src = url;
+    })(urls[i]);
+    if (!urls.length) sprites = [];
+  }
+
+  // Placeholder leaf, only used until Baby adds her own art for this effect.
+  var PLACEHOLDER_COLORS = ['#d9531e', '#e8892b', '#c23b22', '#f0b13a', '#9c3a1a'];
+  function drawPlaceholder(size, color){
+    var s = size / 2;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, -s);
+    ctx.bezierCurveTo(s * 0.9, -s * 0.6, s * 0.8, s * 0.4, 0, s);
+    ctx.bezierCurveTo(-s * 0.8, s * 0.4, -s * 0.9, -s * 0.6, 0, -s);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(80,30,10,0.55)'; ctx.lineWidth = Math.max(1, s * 0.07);
+    ctx.beginPath(); ctx.moveTo(0, -s * 0.85); ctx.lineTo(0, s * 1.15); ctx.stroke();
+  }
+
+  function spawn(fromTop){
+    var e = effect;
+    var size = e.size * (0.75 + Math.random() * 0.5);
+    var sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
+    parts.push({
+      x: Math.random() * (W + 200) - 100,
+      y: fromTop ? -size - Math.random() * 60 : Math.random() * H,
+      size: size,
+      sprite: sprite,
+      color: PLACEHOLDER_COLORS[Math.floor(Math.random() * PLACEHOLDER_COLORS.length)],
+      vy: 0.7 + Math.random() * 0.8,          // base fall, scaled by speed
+      phase: Math.random() * Math.PI * 2,
+      swayFreq: 0.6 + Math.random() * 0.8,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.04,
+      flip: Math.random() * Math.PI * 2       // fake 3D flutter
+    });
+  }
+
+  var lastT = 0;
+  function frame(t){
+    var dt = lastT ? Math.min(3, (t - lastT) / 16.67) : 1; // in 60fps "frames"
+    lastT = t;
+    ctx.clearRect(0, 0, W, H);
+    var e = effect;
+    if (e) {
+      var on = e.enabled;
+      // Keep the screen topped up to `amount`, trickling in from the top so
+      // turning it on looks natural instead of everything appearing at once.
+      if (on && parts.length < e.amount && t - lastSpawn > Math.max(20, 900 / e.amount / e.speed)) {
+        spawn(true); lastSpawn = t;
+      }
+      ctx.globalAlpha = e.opacity;
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var p = parts[i];
+        p.phase += 0.02 * p.swayFreq * dt * e.speed;
+        p.y += p.vy * 1.6 * e.speed * dt;
+        p.x += (e.drift * 0.9 + Math.sin(p.phase) * 1.4 * e.sway) * dt * e.speed;
+        p.rot += p.vr * e.spin * dt * e.speed * 1.5;
+        p.flip += 0.03 * e.spin * dt * e.speed;
+        // Gone off screen (or too many after lowering the amount): drop it.
+        if (p.y > H + p.size || p.x < -p.size * 2 - 120 || p.x > W + p.size * 2 + 120 || (parts.length > e.amount && p.y < -p.size * 0.5)) {
+          parts.splice(i, 1); continue;
+        }
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot + Math.sin(p.phase) * 0.35 * e.spin);
+        ctx.scale(e.spin > 0 ? 0.55 + 0.45 * Math.abs(Math.cos(p.flip)) : 1, 1);
+        if (p.sprite) {
+          var sw = p.size, sh = sw * p.sprite.height / p.sprite.width;
+          if (sh > p.size) { sh = p.size; sw = sh * p.sprite.width / p.sprite.height; }
+          ctx.drawImage(p.sprite, -sw / 2, -sh / 2, sw, sh);
+        } else if (!sprites.length) {
+          drawPlaceholder(p.size, p.color);
+        } else {
+          p.sprite = sprites[Math.floor(Math.random() * sprites.length)];
+        }
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function poll(){
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/decor/state?_=' + new Date().getTime(), true);
+    x.onreadystatechange = function(){
+      if (x.readyState !== 4 || x.status !== 200) return;
+      try {
+        var d = JSON.parse(x.responseText);
+        if (!d || !d.effects) return;
+        var found = null;
+        for (var i = 0; i < d.effects.length; i++) if (d.effects[i].id === EFFECT_ID) found = d.effects[i];
+        if (!found) { effect = effect ? mergeOff(effect) : null; return; }
+        var sizeChanged = effect && effect.size !== found.size;
+        effect = found;
+        loadSprites(found.images || []);
+        if (sizeChanged) for (var k = 0; k < parts.length; k++) parts[k].size = found.size * (0.75 + Math.random() * 0.5);
+        // New art set: let the old pieces fall away, new ones use the new art.
+        for (var j = 0; j < parts.length; j++) if (parts[j].sprite && (found.images || []).join('|').indexOf(parts[j].sprite.src) < 0) parts[j].sprite = null;
+      } catch (err) {}
+    };
+    x.send();
+  }
+  function mergeOff(e){ var c = {}; for (var k in e) c[k] = e[k]; c.enabled = false; return c; }
+  poll();
+  setInterval(poll, 1000);
+
+  // Debug hook for testing.
+  window.__decor = { state: function(){ return { id: EFFECT_ID, on: !!(effect && effect.enabled), parts: parts.length, sprites: sprites.length }; } };
+})();
+</script>
+</body>
+</html>

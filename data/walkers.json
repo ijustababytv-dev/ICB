@@ -1,0 +1,485 @@
+{
+  "settings": {
+    "enabled": true,
+    "artFacesLeft": false,
+    "size": 210,
+    "speed": 0.3,
+    "afkMinutes": 10,
+    "bubbleSeconds": 7,
+    "reminderEveryMinutes": 4,
+    "namePosition": "above",
+    "nameFont": "Baloo 2",
+    "nameSize": 22,
+    "nameColor": "#ffffff",
+    "nameBold": true,
+    "nameOutlineColor": "#3a1446",
+    "nameOutlineWidth": 3,
+    "nameBackground": false,
+    "nameBgColor": "#782896",
+    "showChat": false,
+    "chatTextSize": 22,
+    "reminders": [
+      "Check out !discord",
+      "Remember to drink water! 💧",
+      "Check out our !ppa"
+    ]
+  },
+  "people": {
+    "testunicorn6": {
+      "name": "TestUnicorn6",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T21:56:38.101Z"
+    },
+    "testunicorn7": {
+      "name": "TestUnicorn7",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T22:11:10.953Z"
+    },
+    "testunicorn2": {
+      "name": "TestUnicorn2",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T21:58:07.613Z"
+    },
+    "testunicorn8": {
+      "name": "TestUnicorn8",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T21:58:08.651Z"
+    },
+    "testunicorn5": {
+      "name": "TestUnicorn5",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T22:07:38.829Z"
+    },
+    "testunicorn1": {
+      "name": "TestUnicorn1",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T22:38:07.800Z"
+    },
+    "astrid_hatter": {
+      "name": "Astrid_Hatter",
+      "allowed": null,
+      "art": "6.png",
+      "lastSeen": "2026-09-30T02:22:28.615Z"
+    },
+    "frostytools": {
+      "name": "FrostyTools",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:08:17.886Z"
+    },
+    "keathegreat": {
+      "name": "keathegreat",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T23:04:37.696Z"
+    },
+    "bunnybliss_": {
+      "name": "bunnybliss_",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T03:29:16.787Z"
+    },
+    "ijustababytv": {
+      "name": "IJustABabyTv",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:29:57.312Z"
+    },
+    "kjdragon2018": {
+      "name": "kjdragon2018",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T02:29:44.109Z"
+    },
+    "geckotryhard": {
+      "name": "geckotryhard",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T03:07:28.584Z"
+    },
+    "haley_please_hush": {
+      "name": "haley_please_hush",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T02:08:12.043Z"
+    },
+    "soundalerts": {
+      "name": "SoundAlerts",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:04:32.030Z"
+    },
+    "sammiileigh": {
+      "name": "sammiileigh",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T02:09:20.377Z"
+    },
+    "nbgaming2001": {
+      "name": "nbgaming2001",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-29T23:49:39.436Z"
+    },
+    "voxdawnbringer": {
+      "name": "VoxDawnbringer",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T03:30:51.556Z"
+    },
+    "3kiy": {
+      "name": "3kiy",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "4kayslayz": {
+      "name": "4KaySlayz",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T02:42:26.314Z"
+    },
+    "allybethv": {
+      "name": "allybethv",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "airsoftfxtty": {
+      "name": "airsoftfxtty",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "alyaviv": {
+      "name": "alyaviv",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "memeseeku": {
+      "name": "MeMeSeeKu",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "lilnuggett_t": {
+      "name": "lilnuggett_t",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "kaylah42": {
+      "name": "kaylah42",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "jbelle127": {
+      "name": "jbelle127",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "itsmisscupcake": {
+      "name": "ItsMissCupcake",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "isillies": {
+      "name": "iSillies",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "honkhonks__": {
+      "name": "honkhonks__",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "gerberdaisy88": {
+      "name": "GerberDaisy88",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "emilyyb35": {
+      "name": "emilyyb35",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "dylans__babygirl": {
+      "name": "Dylans__Babygirl",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T01:42:33.970Z"
+    },
+    "doozzer666": {
+      "name": "doozzer666",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "caitrionamossheart": {
+      "name": "caitrionamossheart",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "barbiebubbles7": {
+      "name": "barbiebubbles7",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "b6h97": {
+      "name": "b6h97",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "ashleylynmagic": {
+      "name": "AshleyLynMagic",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "armarosthecursed": {
+      "name": "ArmarosTheCursed",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "angelic_phoeniix": {
+      "name": "angelic_phoeniix",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "anasersia": {
+      "name": "AnaSersia",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "llexv": {
+      "name": "llexv",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "velvetgrin": {
+      "name": "velvetgrin",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "thekidsrule": {
+      "name": "thekidsrule",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "teextrasuga": {
+      "name": "TeeXtraSuga",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "wulfmoonlight_goddess": {
+      "name": "wulfmoonlight_goddess",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "wonwoo__2005": {
+      "name": "wonwoo__2005",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "wonderlilyes": {
+      "name": "wonderlilyes",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T01:01:37.885Z"
+    },
+    "wallflower_024": {
+      "name": "wallflower_024",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "talvirhornshoal": {
+      "name": "TalvirHornshoal",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "strikertk4416": {
+      "name": "strikertk4416",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "silverstepz": {
+      "name": "silverstepz",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "shiz1805": {
+      "name": "shiz1805",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "silentsoulpr": {
+      "name": "SilentSoulPR",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "savbxtch_": {
+      "name": "savbxtch_",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "sarah_elizabethx90": {
+      "name": "Sarah_Elizabethx90",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "sapphiramoonstar": {
+      "name": "sapphiramoonstar",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "sammiesparkle": {
+      "name": "SammieSparkle",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T01:38:28.091Z"
+    },
+    "radbanannas": {
+      "name": "radbanannas",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "poisonivyrose": {
+      "name": "poisonivyrose",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "nukpana_mikasasi": {
+      "name": "Nukpana_Mikasasi",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "moontuii": {
+      "name": "moontuii",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "mimi7710padilla": {
+      "name": "Mimi7710padilla",
+      "allowed": true,
+      "art": null,
+      "lastSeen": "2026-09-30T02:54:26.940Z"
+    },
+    "mrsotterton171": {
+      "name": "mrsotterton171",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "pinkhaze975": {
+      "name": "pinkhaze975",
+      "allowed": true,
+      "art": null,
+      "lastSeen": null
+    },
+    "katalinahalia": {
+      "name": "katalinahalia",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:24:13.433Z"
+    },
+    "leafycelestine": {
+      "name": "LeafyCelestine",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T00:15:32.773Z"
+    },
+    "miskey31": {
+      "name": "miskey31",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-29T23:40:49.961Z"
+    },
+    "elleedovee": {
+      "name": "elleedovee",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T01:22:35.598Z"
+    },
+    "captain_sabine": {
+      "name": "captain_sabine",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:31:11.819Z"
+    },
+    "liv_a98": {
+      "name": "Liv_A98",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T00:50:37.993Z"
+    },
+    "tragicsunrise": {
+      "name": "tragicsunrise",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T00:39:16.036Z"
+    },
+    "mizzylouise": {
+      "name": "mizzylouise",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T01:38:53.479Z"
+    },
+    "mars23723": {
+      "name": "mars23723",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T02:30:14.620Z"
+    },
+    "cabaysmom": {
+      "name": "Cabaysmom",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:08:47.261Z"
+    },
+    "railgunxxc": {
+      "name": "Railgunxxc",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-09-30T03:31:47.896Z"
+    }
+  }
+}

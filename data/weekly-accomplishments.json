@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "weekStart": "2026-09-21T04:00:00.000Z",
+  "weekStart": "2026-09-28T04:00:00.000Z",
   "progress": {
     "friends-cook": {
       "count": 0,
@@ -51,7 +51,7 @@
       "done": false
     },
     "crops-30": {
-      "count": 32,
+      "count": 0,
       "done": false
     },
     "crops-star-10": {
@@ -63,7 +63,7 @@
       "done": false
     },
     "hunt-30": {
-      "count": 30,
+      "count": 2,
       "done": false
     },
     "hunt-magical-5": {
@@ -75,7 +75,7 @@
       "done": false
     },
     "mine-silver-gold-10": {
-      "count": 11,
+      "count": 10,
       "done": false
     },
     "hometour-visit-15": {
@@ -88,7 +88,7 @@
     }
   },
   "previous": {
-    "weekStart": "2026-09-14T04:00:00.000Z",
+    "weekStart": "2026-09-21T04:00:00.000Z",
     "progress": [
       {
         "id": "friends-cook",
@@ -117,7 +117,7 @@
       },
       {
         "id": "cook-star-3",
-        "count": 3,
+        "count": 0,
         "done": false
       },
       {
@@ -152,12 +152,12 @@
       },
       {
         "id": "crops-30",
-        "count": 36,
+        "count": 32,
         "done": false
       },
       {
         "id": "crops-star-10",
-        "count": 36,
+        "count": 0,
         "done": false
       },
       {
@@ -167,7 +167,7 @@
       },
       {
         "id": "hunt-30",
-        "count": 26,
+        "count": 30,
         "done": false
       },
       {
@@ -182,7 +182,7 @@
       },
       {
         "id": "mine-silver-gold-10",
-        "count": 4,
+        "count": 11,
         "done": false
       },
       {
@@ -197,6 +197,6 @@
       }
     ]
   },
-  "lastResetAt": "2026-09-21T20:30:46.372Z",
-  "updatedAt": "2026-09-25T20:40:43.264Z"
+  "lastResetAt": "2026-09-28T04:00:16.678Z",
+  "updatedAt": "2026-10-01T04:59:31.316Z"
 }

@@ -782,6 +782,80 @@
         "width": 41.55,
         "height": 27.6
       }
+    },
+    {
+      "id": "pumpkin-rockhopper",
+      "name": "Pumpkin Rockhopper Frog vs Plushie",
+      "image": "PUMPKIN_ROCKHOPPER_TRACKER.png",
+      "direction": "gained",
+      "eventSource": "inventory",
+      "_note": "Built 2026-10-01. Baby dropped PUMPKIN_ROCKHOPPER_TRACKER.png (2048x768) into assets/resources: one card, two blank boxes labelled FROGS and PLUSHIES. Her instruction: 'track how many of each I pick up and only reset when I manually reset it on the dashboard' - so this is a slots card (never auto-resets; per-slot Reset and Reset-all on control.html), gains only (direction:'gained' - selling/storing never subtracts), Inventory lines only (eventSource:'inventory', ignores Lockbox and Primary resync dumps; slot loop honours eventSource since this build). Tokens verified in real logs (app-bridge-20260930.log): frog = itemtype_bug_az3_hopper_pumpkin (356 caught 2026-09-30/10-01, all 'Inventory gained', x1 or x2 each); plush = itemtype_decor_plush_rockhopper01_pumpkin ('Inventory gained: itemtype_decor_plush_rockhopper01_pumpkin x1' at 2026-10-01 02:43:31). Value boxes measured by dark+flat detection (interior ~rgb(24,40,30)) and checked with a red-outline overlay. Same caveat as other catch cards: a party member's catch broadcast can occasionally count (see icb-highland-shark-tracker).",
+      "slots": [
+        {
+          "id": "frogs",
+          "label": "Frogs",
+          "tokens": [
+            "itemtype_bug_az3_hopper_pumpkin"
+          ],
+          "_note": "Verified: 'Inventory gained: itemtype_bug_az3_hopper_pumpkin x1' (many real lines 2026-10-01).",
+          "valueBox": {
+            "left": 23.54,
+            "top": 66.54,
+            "width": 23.0,
+            "height": 19.4
+          }
+        },
+        {
+          "id": "plushies",
+          "label": "Plushies",
+          "tokens": [
+            "itemtype_decor_plush_rockhopper01_pumpkin"
+          ],
+          "_note": "Verified: 'Inventory gained: itemtype_decor_plush_rockhopper01_pumpkin x1' at 2026-10-01 02:43:31.",
+          "valueBox": {
+            "left": 53.37,
+            "top": 66.54,
+            "width": 23.1,
+            "height": 19.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "banshee-beetle",
+      "name": "Banshee Beetle vs Plushie",
+      "image": "BANSHEE_BEETLE_TRACKER.png",
+      "direction": "gained",
+      "eventSource": "inventory",
+      "_note": "Built 2026-10-01, same pattern as pumpkin-rockhopper. Baby: 'create the banshee tracker' (art BANSHEE_BEETLE_TRACKER.png, 1774x887, two boxes BANSHEE BEETLE and PLUSHIE). Slots card: never auto-resets, manual per-slot Reset + Reset-all, gains only, Inventory lines only. Tokens verified in real logs: bug = itemtype_bug_az3_beetle_banshee (252 'Inventory gained' lines 2026-09-10..10-01, x1/x2; also Primary resync lines, which are ignored); plush = itemtype_decor_plush_beetle03_banshee ('Inventory gained ... x1' at 2026-10-01 04:00:08). Boxes by dark+flat detection (interior ~rgb(8,26,53)), checked with red overlay.",
+      "slots": [
+        {
+          "id": "beetles",
+          "label": "Banshee Beetle",
+          "tokens": [
+            "itemtype_bug_az3_beetle_banshee"
+          ],
+          "valueBox": {
+            "left": 10.43,
+            "top": 71.25,
+            "width": 30.1,
+            "height": 17.36
+          }
+        },
+        {
+          "id": "plushies",
+          "label": "Plushie",
+          "tokens": [
+            "itemtype_decor_plush_beetle03_banshee"
+          ],
+          "valueBox": {
+            "left": 59.47,
+            "top": 71.25,
+            "width": 30.16,
+            "height": 17.36
+          }
+        }
+      ]
     }
   ]
 }

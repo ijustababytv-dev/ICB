@@ -2,8 +2,9 @@
 // palia-log-bridge.js
 //
 // Replaces Palia Assistant as ICB's data source. Tails Palia's OWN raw
-// game log (LogInventoryComponent lines) directly, dedupes the broadcast
-// noise, and writes synthetic "Inventory gained: itemtype_x xN" lines into
+// game log (LogInventoryComponent lines) directly, keeps ONLY Baby's own
+// real gains (see OwnEventClassifier in bridge-core.js - 2026-09-27: the
+// old dedup counted items for every player near her), and writes synthetic "Inventory gained: itemtype_x xN" lines into
 // an app-bridge-YYYYMMDD.log file inside the same folder Palia Assistant
 // used to write to. ICB's server.js already auto-discovers any file
 // matching /^app-.*\.log$/i in that folder and polls it every second, so
@@ -15,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { parseLine, DedupTracker, formatEventLine } = require('./bridge-core');
+const { OwnEventClassifier, formatEventLine } = require('./bridge-core');
 
 // ---------------------------------------------------------------------
 // Config
@@ -28,7 +29,9 @@ const OUTPUT_DIR = process.env.ICB_CLEAN_PALIA_LOG_DIR || path.join(LOCALAPPDATA
 const STATE_FILE = path.join(__dirname, '.palia-log-bridge-state.json');
 
 const POLL_MS = 1000;
-const DEDUP_WINDOW_MS = 200; // see bridge-core.js DedupTracker comment for why
+// If the game log goes quiet for this many polls, decide any held lines now
+// (each RECEIVED line waits ~1.5 s of log time for the stat line after it).
+const QUIET_POLLS_BEFORE_FORCE = 3;
 
 // ---------------------------------------------------------------------
 // State (persists read offset + which file we were tailing, across restarts)
@@ -50,7 +53,8 @@ function saveState(state) {
 }
 
 let state = loadState();
-const tracker = new DedupTracker(DEDUP_WINDOW_MS);
+let classifier = new OwnEventClassifier();
+let quietPolls = 0;
 
 function log(msg) {
   const ts = new Date().toISOString();
@@ -110,6 +114,7 @@ function readNewLines() {
     // acceptable since rotation only happens on game relaunch.)
     state = { filePath: PALIA_LOG_FILE, birthtimeMs: st.birthtimeMs.valueOf(), offset: st.size };
     saveState(state);
+    classifier = new OwnEventClassifier(); // fresh game session = fresh context
     return [];
   }
 
@@ -159,17 +164,17 @@ function pollOnce() {
     const lines = readNewLines();
     let newEvents = 0;
     for (const line of lines) {
-      const evt = parseLine(line);
-      if (!evt) continue;
-      if (tracker.observe(evt)) {
-        emitEvent(evt);
-        newEvents++;
-      }
+      classifier.feed(line);
+      for (const evt of classifier.flush(false)) { emitEvent(evt); newEvents++; }
+    }
+    quietPolls = lines.length ? 0 : quietPolls + 1;
+    if (quietPolls >= QUIET_POLLS_BEFORE_FORCE && classifier.pending.length) {
+      for (const evt of classifier.flush(true)) { emitEvent(evt); newEvents++; }
     }
     if (newEvents > 0) {
-      log(`Emitted ${newEvents} new event(s).`);
+      const st = classifier.stats;
+      log(`Emitted ${newEvents} of your own gain(s). (so far: ${st.received} counted, ${st.movedNotEarned} moved-not-earned skipped, ${st.ignoredMulticast} other-player/broadcast lines ignored)`);
     }
-    tracker.prune(Date.now());
   } catch (e) {
     log(`ERROR during poll: ${e.stack || e.message}`);
   } finally {

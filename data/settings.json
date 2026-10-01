@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "countdown": {
     "heading": "YOU'RE INVITED!",
-    "subheading": "Untill Party Time",
-    "targetAt": "2026-09-26T00:00:00.000Z",
+    "subheading": "Bean Burgers!!",
+    "targetAt": "2026-09-30T00:00:00.000Z",
     "timezone": "America/Chicago",
     "status": "running"
   },
@@ -56,7 +56,7 @@
   "stream": {
     "title": "",
     "category": "Palia",
-    "goLiveMessage": "UNICORN_GOAL:586:10:1000:0"
+    "goLiveMessage": "UNICORN_GOAL:614:10:1000:0"
   },
   "ticker": {
     "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
@@ -78,5 +78,5 @@
       "log"
     ]
   },
-  "updatedAt": "2026-09-26T00:21:07.756Z"
+  "updatedAt": "2026-09-30T23:49:18.586Z"
 }

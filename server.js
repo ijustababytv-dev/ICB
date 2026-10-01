@@ -72,7 +72,7 @@ const DEFAULT_SETTINGS = {
   // An array of panel keys (e.g. ["run","trackers","stream",...]); empty until she first
   // reorders something, at which point control.html sends the full current order here.
   // Meld/overlay pages never read this - it only affects the private Chrome dashboard layout.
-  layout: { panelOrder: [] },
+  layout: { panelOrder: [], trackerOrder: [], trackerHidden: [] },
   updatedAt: null,
 };
 
@@ -211,11 +211,114 @@ const GIVEAWAY_DEFAULTS = {
     unicornSize: 'medium',  // 'small' | 'medium' | 'large'
     showNames: false,       // print each viewer's name on their unicorns (Baby turned this off 2026-09-25)
     magic: true,            // cloud, falling stars and rainbow on unicorn-jar.html
+    // What to call the current prize on the winner banner/board (Baby,
+    // 2026-09-26), e.g. "Squishmallow Corgi" instead of the generic
+    // "Plushie". Baked into each winnerRecord at draw time (see /draw
+    // below) so past winners keep whatever was current when they won.
+    // Empty = fall back to the generic "Plushie" / "Mystery Outfit" wording.
+    currentPrizeLabel: '',
   },
+  // Baby (2026-09-26): a "Test" button so she can show someone how a
+  // drawing looks without it being a real one. Bumping seq tells
+  // unicorn-jar.html to run the full show with IJustABabyTv as the
+  // winner - it never touches entrants, giveaway.winners, or the
+  // activity log, so it can't leak into the real Winners Circle or
+  // nightly report, and it works even though IJustABabyTv is blocked.
+  testDraw: { seq: 0, prize: 'plushie' },
 };
 const CHAT_WINDOW_MS = 10 * 60 * 1000;
 
-let giveaway = mergeDefaults(GIVEAWAY_DEFAULTS, readJson(GIVEAWAY_FILE, GIVEAWAY_DEFAULTS));
+// ---------------------------------------------------------------- backups
+// Baby (2026-09-26): automatic backups of the giveaway data so a bad file,
+// a bad deploy, or a misclick can never wipe everyone's fluffy unicorns.
+//   - every 5 minutes: a rolling copy (last 144 kept = about 12 hours)
+//   - once per stream day: a daily copy (last 60 kept)
+//   - right before Reset everything / Reset winners only / Empty the jar
+//     / a restore: a "before-..." copy (last 40 kept)
+// All live in data/backups/giveaway/. The dashboard lists them and can
+// restore any one (which itself backs up the current state first).
+const GIVEAWAY_BACKUP_DIR = path.join(DATA_DIR, 'backups', 'giveaway');
+const BACKUP_EVERY_MS = 5 * 60 * 1000;
+const BACKUP_KEEP = { auto: 144, daily: 60, before: 40, corrupt: 20 };
+
+function backupStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function pruneBackups(kind) {
+  try {
+    const files = fs.readdirSync(GIVEAWAY_BACKUP_DIR).filter(f => f.startsWith(kind + '_') && f.endsWith('.json')).sort();
+    const extra = files.length - (BACKUP_KEEP[kind] || 50);
+    for (let i = 0; i < extra; i++) fs.unlinkSync(path.join(GIVEAWAY_BACKUP_DIR, files[i]));
+  } catch (_error) {}
+}
+
+// kind: 'auto' | 'daily' | 'before' | 'corrupt'. label is a short tag, e.g. "reset".
+function backupGiveaway(kind, label) {
+  try {
+    fs.mkdirSync(GIVEAWAY_BACKUP_DIR, { recursive: true });
+    const name = `${kind}_${backupStamp()}${label ? '_' + String(label).replace(/[^a-z0-9-]/gi, '') : ''}.json`;
+    const target = path.join(GIVEAWAY_BACKUP_DIR, name);
+    if (kind === 'corrupt') fs.copyFileSync(GIVEAWAY_FILE, target);
+    else fs.writeFileSync(target, `${JSON.stringify(giveaway, null, 2)}\n`, 'utf8');
+    pruneBackups(kind);
+    return name;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function listGiveawayBackups() {
+  try {
+    return fs.readdirSync(GIVEAWAY_BACKUP_DIR).filter(f => f.endsWith('.json')).map(f => {
+      const full = path.join(GIVEAWAY_BACKUP_DIR, f);
+      const stat = fs.statSync(full);
+      let entrants = null, unicorns = null, winners = null;
+      try {
+        const g = JSON.parse(fs.readFileSync(full, 'utf8'));
+        const list = Object.values(g.entrants || {});
+        entrants = list.length;
+        unicorns = list.reduce((s, e) => s + (e.chatTickets || 0) + (e.subTickets || 0) + (e.giftTickets || 0) + (e.bitsTickets || 0) + (e.manualTickets || 0), 0);
+        winners = (g.winners || []).length;
+      } catch (_error) {}
+      return { file: f, kind: f.split('_')[0], at: stat.mtime.toISOString(), bytes: stat.size, entrants, unicorns, winners };
+    }).sort((a, b) => (a.at < b.at ? 1 : -1));
+  } catch (_error) {
+    return [];
+  }
+}
+
+// Newest readable backup, preferring one that actually has people in it (so
+// an empty just-after-Reset copy never wins over real data).
+function newestUsableBackup() {
+  const good = listGiveawayBackups().filter(b => b.entrants !== null && b.kind !== 'corrupt');
+  return good.find(b => b.entrants > 0) || good[0] || null;
+}
+
+// Load the saved giveaway. If the file exists but can't be read (damaged),
+// DON'T silently start empty and save over it: keep a copy of the damaged
+// file and fall back to the newest good backup instead.
+function loadGiveawayFile() {
+  if (!fs.existsSync(GIVEAWAY_FILE)) {
+    const newest = newestUsableBackup();
+    if (newest) {
+      console.warn(`[giveaway] giveaway.json is missing - restoring newest backup ${newest.file}`);
+      return readJson(path.join(GIVEAWAY_BACKUP_DIR, newest.file), GIVEAWAY_DEFAULTS);
+    }
+    return clone(GIVEAWAY_DEFAULTS);
+  }
+  try {
+    return JSON.parse(fs.readFileSync(GIVEAWAY_FILE, 'utf8'));
+  } catch (_error) {
+    backupGiveaway('corrupt', 'unreadable');
+    const newest = newestUsableBackup();
+    console.warn(`[giveaway] giveaway.json could not be read - kept a copy, ${newest ? 'restoring ' + newest.file : 'no backup found'}`);
+    return newest ? readJson(path.join(GIVEAWAY_BACKUP_DIR, newest.file), GIVEAWAY_DEFAULTS) : clone(GIVEAWAY_DEFAULTS);
+  }
+}
+
+let giveaway = mergeDefaults(GIVEAWAY_DEFAULTS, loadGiveawayFile());
 if (!giveaway.windowStartedAt) giveaway.windowStartedAt = new Date().toISOString();
 migrateGiveaway();
 purgeBlocked();
@@ -254,6 +357,23 @@ function nightKey(date) {
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
+
+// Backup schedule (see backupGiveaway above). One right at startup, then
+// every 5 minutes; the first backup of each stream day is also kept as a
+// daily copy.
+function hasDailyBackupFor(key) {
+  try { return fs.readdirSync(GIVEAWAY_BACKUP_DIR).some(f => f.startsWith(`daily_`) && f.includes(`_night-${key}`)); }
+  catch (_error) { return false; }
+}
+function runScheduledBackup() {
+  backupGiveaway('auto', 'every5min');
+  const key = nightKey(new Date());
+  if (!hasDailyBackupFor(key)) backupGiveaway('daily', `night-${key}`);
+}
+runScheduledBackup();
+const giveawayBackupTimer = setInterval(runScheduledBackup, BACKUP_EVERY_MS);
+giveawayBackupTimer.unref();
+
 function logActivity(entry) {
   try {
     const now = new Date();
@@ -1090,13 +1210,18 @@ async function handleApi(req, res, url) {
   // automatically every time Baby clicks a ▲/▼ button, separately from the "Save settings" button.
   if (pathname === '/api/layout' && ['PUT', 'POST', 'PATCH'].includes(method)) {
     const body = await readBody(req);
-    const incomingOrder = Array.isArray(body.panelOrder) ? body.panelOrder : null;
-    if (!incomingOrder) return sendJson(res, 400, { ok: false, error: 'panelOrder must be an array of panel keys.' });
-    const panelOrder = incomingOrder
-      .filter(key => typeof key === 'string' && key)
-      .map(key => key.slice(0, 60))
-      .slice(0, 50);
-    settings = mergeDefaults(settings, { layout: { panelOrder } });
+    // 2026-10-01: also carries the Tracker Command Center's card order
+    // (trackerOrder) and the cards Baby removed from the dashboard
+    // (trackerHidden). Each field is optional so the panel arrows and the
+    // tracker drag/remove can save independently. Removing a card only hides
+    // it on the dashboard - its config, count and Meld page are untouched.
+    const keys = list => list.filter(key => typeof key === 'string' && key).map(key => key.slice(0, 60)).slice(0, 200);
+    const next = {};
+    if (Array.isArray(body.panelOrder)) next.panelOrder = keys(body.panelOrder).slice(0, 50);
+    if (Array.isArray(body.trackerOrder)) next.trackerOrder = keys(body.trackerOrder);
+    if (Array.isArray(body.trackerHidden)) next.trackerHidden = keys(body.trackerHidden);
+    if (!Object.keys(next).length) return sendJson(res, 400, { ok: false, error: 'Send panelOrder, trackerOrder or trackerHidden as an array.' });
+    settings = mergeDefaults(settings, { layout: next });
     saveSettings();
     broadcast('settings', clone(settings));
     return sendJson(res, 200, { ok: true, settings: clone(settings) });
@@ -1273,6 +1398,10 @@ async function handleApi(req, res, url) {
   }
 
   if (pathname.startsWith('/api/tradeup/')) return handleTradeupApi(req, res, pathname, method);
+  if (pathname.startsWith('/api/decor/')) return handleDecorApi(req, res, pathname, method);
+  if (pathname === '/api/hub' || pathname.startsWith('/api/hub/')) return handleHubApi(req, res, pathname, method);
+  if (pathname === '/api/connection-check' || pathname.startsWith('/api/connection-check/')) return handleHealthApi(req, res, pathname, method);
+  if (pathname.startsWith('/api/walkers/')) return handleWalkersApi(req, res, pathname, method, url);
 
   // ---------------- Stream Giveaway ----------------
   if (pathname === '/api/giveaway/state' && method === 'GET') {
@@ -1428,11 +1557,17 @@ async function handleApi(req, res, url) {
     const body = await readBody(req);
     const kind = cleanString(body.kind).slice(0, 60);
     if (kind) logActivity({ type: 'raw', kind, data: body.data });
+    try { healthNoteRaw(kind, body.data); } catch (_error) {}
+    // Chat Unicorns: every chat message (sender + text + emote pictures).
+    if (kind === 'chat' && body.data && typeof body.data.sender === 'string') {
+      try { walkerChat(body.data.sender, walkerParts(body.data), false); } catch (_error) {}
+    }
     return sendJson(res, 200, { ok: true });
   }
 
   // Empty the on-screen jar now (counts are untouched).
   if (pathname === '/api/giveaway/jar/empty' && method === 'POST') {
+    backupGiveaway('before', 'empty-jar');
     snapshotJar();
     logActivity({ type: 'jar_emptied' });
     broadcastGiveaway();
@@ -1462,7 +1597,10 @@ async function handleApi(req, res, url) {
     listenerStatus.lastSeen = new Date().toISOString();
     listenerStatus.firehose = ['connected', 'connecting', 'no-sdk'].includes(body.firehose) ? body.firehose : 'unknown';
     if (wasConnected !== (listenerStatus.firehose === 'connected')) broadcast('giveaway', publicGiveaway());
-    return sendJson(res, 200, { ok: true });
+    if (typeof body.page === 'string') listenerStatus.page = body.page.slice(0, 200);
+    const reload = health.listenerReload;
+    health.listenerReload = false;
+    return sendJson(res, 200, { ok: true, reload });
   }
 
   // Block list: never in the giveaway. Removes anyone already entered.
@@ -1524,15 +1662,76 @@ async function handleApi(req, res, url) {
     const winnerName = pool[Math.floor(Math.random() * pool.length)];
     const winnerEntrant = giveaway.entrants[winnerName];
     if (prize === 'mystery-outfit') winnerEntrant.mysteryOutfitWon = true;
-    const winnerRecord = { username: winnerName, prize, tickets: entrantTotal(winnerEntrant), at: new Date().toISOString() };
+    // Bake in whatever the current custom prize name is right now (Baby,
+    // 2026-09-26), so this winner's record keeps it even if the label
+    // changes before the next draw. Empty means "use the generic wording".
+    const prizeLabel = giveaway.display.currentPrizeLabel || '';
+    const winnerRecord = { username: winnerName, prize, prizeLabel, tickets: entrantTotal(winnerEntrant), at: new Date().toISOString() };
     giveaway.winners.push(winnerRecord);
     logActivity({ type: 'winner', username: winnerName, prize, unicorns: winnerRecord.tickets, poolSize: pool.length });
     broadcastGiveaway();
     return sendJson(res, 200, { ok: true, winner: winnerRecord });
   }
 
+  // Backups (Baby, 2026-09-26). List them, make one now, or restore one.
+  if (pathname === '/api/giveaway/backups' && method === 'GET') {
+    return sendJson(res, 200, { ok: true, backups: listGiveawayBackups() });
+  }
+  if (pathname === '/api/giveaway/backups/now' && method === 'POST') {
+    const file = backupGiveaway('before', 'manual');
+    return sendJson(res, file ? 200 : 500, { ok: !!file, file });
+  }
+  if (pathname === '/api/giveaway/backups/restore' && method === 'POST') {
+    const body = await readBody(req);
+    const file = String(body.file || '');
+    if (!/^[a-z]+_[0-9_-]+(_[a-z0-9-]+)?\.json$/i.test(file)) return sendJson(res, 400, { ok: false, error: 'Bad backup name.' });
+    const full = path.join(GIVEAWAY_BACKUP_DIR, file);
+    let restored;
+    try { restored = JSON.parse(fs.readFileSync(full, 'utf8')); }
+    catch (_error) { return sendJson(res, 404, { ok: false, error: 'That backup could not be read.' }); }
+    const safety = backupGiveaway('before', 'restore');
+    giveaway = mergeDefaults(GIVEAWAY_DEFAULTS, restored);
+    if (!giveaway.windowStartedAt) giveaway.windowStartedAt = new Date().toISOString();
+    migrateGiveaway();
+    purgeBlocked();
+    logActivity({ type: 'backup_restored', file, safetyCopy: safety });
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, restored: file, safetyCopy: safety });
+  }
+
+  // Runs the full drawing show on unicorn-jar.html with IJustABabyTv as the
+  // winner, for demos - no entrant, winners-list, or activity-log data is
+  // touched, so it never shows up in the real Winners Circle or nightly
+  // report. Baby (2026-09-26).
+  if (pathname === '/api/giveaway/draw-test' && method === 'POST') {
+    const body = await readBody(req);
+    const prize = body.prize === 'mystery-outfit' ? 'mystery-outfit' : 'plushie';
+    giveaway.testDraw = { seq: (giveaway.testDraw && giveaway.testDraw.seq || 0) + 1, prize };
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, testDraw: clone(giveaway.testDraw) });
+  }
+
+  // Clears just the Winners Circle history (and the Mystery Outfit "already
+  // won" lock, since that's tied to being in the winners list) - everything
+  // else (entrants, fluffy unicorn counts, sub info, rates, board text,
+  // blocked list) is left alone. Baby (2026-09-27): a way to reset the
+  // winners list on its own, e.g. once a day, without touching the rest.
+  // Manual only - she presses the button, nothing resets on a timer.
+  if (pathname === '/api/giveaway/winners/reset' && method === 'POST') {
+    backupGiveaway('before', 'reset-winners');
+    const clearedCount = giveaway.winners.length;
+    logActivity({ type: 'winners_reset', count: clearedCount });
+    giveaway.winners = [];
+    for (const username of Object.keys(giveaway.entrants)) {
+      giveaway.entrants[username].mysteryOutfitWon = false;
+    }
+    broadcastGiveaway();
+    return sendJson(res, 200, { ok: true, cleared: clearedCount });
+  }
+
   // Full reset for a new stream night. Manual only - no auto-reset.
   if (pathname === '/api/giveaway/reset' && method === 'POST') {
+    backupGiveaway('before', 'reset-everything');
     logActivity({ type: 'reset' });
     const keptDisplay = clone(giveaway.display);
     const keptRates = clone(giveaway.rates);
@@ -1562,6 +1761,7 @@ async function handleApi(req, res, url) {
     if (['small', 'medium', 'large'].includes(body.unicornSize)) d.unicornSize = body.unicornSize;
     if (typeof body.showNames === 'boolean') d.showNames = body.showNames;
     if (typeof body.magic === 'boolean') d.magic = body.magic;
+    if (typeof body.currentPrizeLabel === 'string') d.currentPrizeLabel = cleanString(body.currentPrizeLabel).slice(0, 60);
     if (Array.isArray(body.tickerMessages)) {
       d.tickerMessages = body.tickerMessages.map(m => cleanString(m)).filter(Boolean).slice(0, 30);
     }
@@ -1601,7 +1801,8 @@ function serveStatic(res, pathname) {
   // Browsers ask for this unprompted; a 404 in the console during a live
   // overlay debug is pure noise.
   if (pathname === '/favicon.ico') { res.writeHead(204); return res.end(); }
-  const requested = pathname === '/' ? '/control.html' : pathname;
+  // "/" is now ICB Home, the page with a tile for every dashboard (2026-09-29).
+  const requested = pathname === '/' ? '/hub.html' : pathname;
   let decoded;
   try {
     decoded = decodeURIComponent(requested);
@@ -1903,6 +2104,7 @@ function resourceTrackerScan(line) {
   for (const card of resourceTrackers.cards) {
     if (!Array.isArray(card.slots)) continue;
     if (card.direction && card.direction !== direction) continue;
+    if (card.eventSource && card.eventSource !== source) continue; // 2026-10-01, Pumpkin Rockhopper
     for (const slot of card.slots) {
       let qty = 0;
       for (const token of slot.tokens || []) qty += quantityFor(line, token);
@@ -2822,8 +3024,669 @@ async function handleTradeupApi(req, res, pathname, method) {
 
 tradeupInit();
 
+// ---------------------------------------------------------------------------
+// DECOR OVERLAYS (Baby, 2026-09-29) - seasonal screen decorations like
+// falling leaves, controlled from their OWN dashboard (decor-control.html),
+// kept completely separate from the trackers.
+//
+//  - Each effect is its own Meld layer at /decor/<id>.html (a plain path, no
+//    query string - see the handbook note on Meld URLs).
+//  - Baby's own art lives in assets/decor/<id>/ (PNG/JPG/WEBP/GIF). Anything
+//    dropped in that folder, or uploaded from the dashboard, shows up as an
+//    option. Unticked images are remembered in `off`, so new uploads start on.
+//  - Settings + saved presets persist in data/decor.json.
+//  - Removing art from the dashboard MOVES it to assets/decor/<id>/_removed/,
+//    never deletes it.
+// ---------------------------------------------------------------------------
+const DECOR_FILE = path.join(DATA_DIR, 'decor.json');
+const DECOR_ART_DIR = path.join(APP_DIR, 'assets', 'decor');
+const DECOR_OVERLAY_PAGE = path.join(APP_DIR, 'decor-overlay.html');
+const DECOR_IMAGE_EXT = /\.(png|jpe?g|webp|gif)$/i;
+const DECOR_TYPES = ['fall'];
+// min, max, default for every slider on the dashboard.
+const DECOR_LIMITS = {
+  amount: [1, 200, 40],     // how many on screen at once
+  speed: [0.2, 3, 1],       // fall speed multiplier
+  size: [16, 300, 70],      // px (each one varies +/-25%)
+  opacity: [0.1, 1, 0.9],   // see-through
+  drift: [-3, 3, 0.4],      // wind: negative blows left, positive right
+  sway: [0, 2, 1],          // side-to-side flutter
+  spin: [0, 2, 1],          // how much they twirl
+};
+
+function decorDefaults() {
+  return { rev: 1, effects: [decorNewEffect('leaves', 'Falling leaves')], presets: [] };
+}
+
+function decorNewEffect(id, name) {
+  const e = { id, name, type: 'fall', enabled: false, off: [] };
+  for (const [k, lim] of Object.entries(DECOR_LIMITS)) e[k] = lim[2];
+  return e;
+}
+
+function decorClamp(key, value, fallback) {
+  const lim = DECOR_LIMITS[key];
+  const n = Number(value);
+  if (!lim || !Number.isFinite(n)) return fallback;
+  return Math.min(lim[1], Math.max(lim[0], n));
+}
+
+function decorCleanEffect(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const id = tradeupSlug(raw.id || raw.name || '');
+  if (!id || id === 'item') return null;
+  const e = decorNewEffect(id, cleanString(raw.name) || id);
+  e.type = DECOR_TYPES.includes(raw.type) ? raw.type : 'fall';
+  e.enabled = raw.enabled === true;
+  e.off = Array.isArray(raw.off) ? raw.off.map(f => path.basename(String(f))).filter(f => DECOR_IMAGE_EXT.test(f)).slice(0, 500) : [];
+  for (const k of Object.keys(DECOR_LIMITS)) e[k] = decorClamp(k, raw[k], e[k]);
+  return e;
+}
+
+function loadDecor() {
+  const raw = readJson(DECOR_FILE, null);
+  if (!raw || !Array.isArray(raw.effects)) return decorDefaults();
+  const effects = raw.effects.map(decorCleanEffect).filter(Boolean);
+  const presets = Array.isArray(raw.presets) ? raw.presets.filter(p => p && p.id && p.name && p.effects) : [];
+  return { rev: Number(raw.rev) || 1, effects: effects.length ? effects : decorDefaults().effects, presets };
+}
+
+let decor = loadDecor();
+for (const e of decor.effects) { try { fs.mkdirSync(path.join(DECOR_ART_DIR, e.id), { recursive: true }); } catch (_error) {} }
+
+function decorFiles(id) {
+  try {
+    return fs.readdirSync(path.join(DECOR_ART_DIR, id)).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b));
+  } catch (_error) {
+    return [];
+  }
+}
+
+function decorPublicState() {
+  return {
+    ok: true,
+    rev: decor.rev,
+    limits: DECOR_LIMITS,
+    effects: decor.effects.map(e => {
+      const files = decorFiles(e.id);
+      return { ...e, files, images: files.filter(f => !e.off.includes(f)).map(f => `/decor-art/${e.id}/${encodeURIComponent(f)}`) };
+    }),
+    presets: decor.presets.map(p => ({ id: p.id, name: p.name, savedAt: p.savedAt })),
+  };
+}
+
+function saveDecor() {
+  decor.rev += 1;
+  writeJson(DECOR_FILE, { rev: decor.rev, effects: decor.effects, presets: decor.presets });
+  broadcast('decor', decorPublicState());
+}
+
+function decorFind(id) {
+  return decor.effects.find(e => e.id === id) || null;
+}
+
+function serveDecorArt(res, pathname) {
+  let parts;
+  try { parts = decodeURIComponent(pathname.slice('/decor-art/'.length)).split('/'); } catch (_error) { return sendJson(res, 400, { ok: false, error: 'Invalid art path.' }); }
+  if (parts.length !== 2) return sendJson(res, 404, { ok: false, error: 'Not found.' });
+  const id = tradeupSlug(parts[0]), name = path.basename(parts[1]);
+  if (!DECOR_IMAGE_EXT.test(name)) return sendJson(res, 404, { ok: false, error: 'Not found.' });
+  const file = path.join(DECOR_ART_DIR, id, name);
+  if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return sendJson(res, 404, { ok: false, error: 'Not found.' });
+  res.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+  return res.end(fs.readFileSync(file));
+}
+
+function serveDecorOverlay(res) {
+  if (!fs.existsSync(DECOR_OVERLAY_PAGE)) return sendJson(res, 404, { ok: false, error: 'decor-overlay.html is missing.' });
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' });
+  return res.end(fs.readFileSync(DECOR_OVERLAY_PAGE));
+}
+
+async function handleDecorApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/decor/state' && method === 'GET') return sendJson(res, 200, decorPublicState());
+
+    // New effect: { name } -> gets its own art folder and Meld URL.
+    if (pathname === '/api/decor/effects' && method === 'POST') {
+      const body = await readBody(req);
+      const name = cleanString(body.name).slice(0, 40);
+      if (!name) return sendJson(res, 400, { ok: false, error: 'Give the effect a name.' });
+      let id = tradeupSlug(name), n = 2;
+      if (id === 'item') id = 'effect';
+      while (decorFind(id)) id = `${tradeupSlug(name)}-${n++}`;
+      const e = decorNewEffect(id, name);
+      decor.effects.push(e);
+      fs.mkdirSync(path.join(DECOR_ART_DIR, id), { recursive: true });
+      saveDecor();
+      return sendJson(res, 200, { ok: true, effect: e });
+    }
+
+    if (pathname === '/api/decor/all-off' && method === 'POST') {
+      for (const e of decor.effects) e.enabled = false;
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    let m = /^\/api\/decor\/effects\/([a-z0-9-]+)$/.exec(pathname);
+    if (m && (method === 'PATCH' || method === 'POST')) {
+      const e = decorFind(m[1]);
+      if (!e) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
+      const body = await readBody(req);
+      if (typeof body.name === 'string' && cleanString(body.name)) e.name = cleanString(body.name).slice(0, 40);
+      if (typeof body.enabled === 'boolean') e.enabled = body.enabled;
+      for (const k of Object.keys(DECOR_LIMITS)) if (body[k] !== undefined) e[k] = decorClamp(k, body[k], e[k]);
+      if (Array.isArray(body.off)) e.off = body.off.map(f => path.basename(String(f))).filter(f => DECOR_IMAGE_EXT.test(f)).slice(0, 500);
+      saveDecor();
+      return sendJson(res, 200, { ok: true, effect: e });
+    }
+    if (m && method === 'DELETE') {
+      const i = decor.effects.findIndex(e => e.id === m[1]);
+      if (i < 0) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
+      decor.effects.splice(i, 1); // its art folder is left alone on disk
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    // Upload art: { dataUrl, name }
+    m = /^\/api\/decor\/effects\/([a-z0-9-]+)\/images$/.exec(pathname);
+    if (m && method === 'POST') {
+      const e = decorFind(m[1]);
+      if (!e) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
+      const body = await readBody(req);
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(body.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Image must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 8 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Image is too large (max 8MB).' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(String(body.name || 'art').replace(/\.[a-z0-9]+$/i, ''));
+      const dir = path.join(DECOR_ART_DIR, e.id);
+      fs.mkdirSync(dir, { recursive: true });
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(dir, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(dir, filename), buffer);
+      saveDecor();
+      return sendJson(res, 200, { ok: true, file: filename });
+    }
+
+    // Remove art: moved into _removed/, never deleted.
+    m = /^\/api\/decor\/effects\/([a-z0-9-]+)\/images\/(.+)$/.exec(pathname);
+    if (m && method === 'DELETE') {
+      const e = decorFind(m[1]);
+      if (!e) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
+      const name = path.basename(decodeURIComponent(m[2]));
+      const from = path.join(DECOR_ART_DIR, e.id, name);
+      if (!DECOR_IMAGE_EXT.test(name) || !fs.existsSync(from)) return sendJson(res, 404, { ok: false, error: 'No such image.' });
+      const bin = path.join(DECOR_ART_DIR, e.id, '_removed');
+      fs.mkdirSync(bin, { recursive: true });
+      fs.renameSync(from, path.join(bin, `${Date.now()}-${name}`));
+      e.off = e.off.filter(f => f !== name);
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    // Presets: save the current settings of every effect under a name.
+    if (pathname === '/api/decor/presets' && method === 'POST') {
+      const body = await readBody(req);
+      const name = cleanString(body.name).slice(0, 40);
+      if (!name) return sendJson(res, 400, { ok: false, error: 'Give the preset a name.' });
+      const snapshot = {};
+      for (const e of decor.effects) snapshot[e.id] = { ...e };
+      const existing = decor.presets.find(p => p.name.toLowerCase() === name.toLowerCase());
+      if (existing) { existing.effects = snapshot; existing.savedAt = new Date().toISOString(); }
+      else decor.presets.push({ id: `p${Date.now()}`, name, effects: snapshot, savedAt: new Date().toISOString() });
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+    m = /^\/api\/decor\/presets\/([a-z0-9]+)\/apply$/.exec(pathname);
+    if (m && method === 'POST') {
+      const p = decor.presets.find(x => x.id === m[1]);
+      if (!p) return sendJson(res, 404, { ok: false, error: 'No such preset.' });
+      for (const e of decor.effects) {
+        const saved = p.effects[e.id];
+        if (!saved) { e.enabled = false; continue; } // effect made after the preset: off
+        const clean = decorCleanEffect({ ...saved, id: e.id, name: e.name });
+        Object.assign(e, clean, { name: e.name });
+      }
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+    m = /^\/api\/decor\/presets\/([a-z0-9]+)$/.exec(pathname);
+    if (m && method === 'DELETE') {
+      decor.presets = decor.presets.filter(x => x.id !== m[1]);
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    return sendJson(res, 404, { ok: false, error: 'Unknown decor route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Decor request failed.' });
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// CONNECTION CHECK (Baby, 2026-09-30) - powers the "Connection check" card on
+// ICB Home so she can see at a glance what is and isn't talking to ICB, and
+// fix it without help. Everything here is in memory only (resets on restart).
+//   - pages: every ICB page that calls /api/* or opens /events, keyed by the
+//     page's own address (from the browser's Referer header), with when it
+//     was last heard from and how many live /events connections it has.
+//     Meld browser layers show up here the same as Chrome tabs do.
+//   - relay: the last raw Firehose event / last chat message the Meld
+//     listener passed on, and Meld's own per-platform connection states
+//     (CONNECTION_STATE events) and live/offline (STREAM_STATUS events).
+//   - listenerReload: set by the "Reload the listener" button; handed to the
+//     listener in its next heartbeat reply, and the listener reloads itself.
+// ---------------------------------------------------------------------------
+const health = {
+  pages: {},
+  lastRawAt: null, lastRawKind: null, rawSinceStart: 0,
+  lastChatAt: null, lastChatFrom: null, chatSinceStart: 0,
+  meldConnections: {}, meldConnectionsAt: null,
+  streamLive: null, streamLiveAt: null,
+  listenerReload: false, listenerReloadAskedAt: null,
+};
+
+function healthNotePage(req) {
+  const ref = req.headers.referer || req.headers.referrer;
+  if (!ref) return null;
+  let page;
+  try {
+    const u = new URL(ref);
+    if (!/^(127\.0\.0\.1|localhost)$/i.test(u.hostname)) return null;
+    page = u.pathname === '/' ? '/hub.html' : u.pathname;
+  } catch (_error) { return null; }
+  page = page.slice(0, 120);
+  const entry = health.pages[page] || (health.pages[page] = { firstSeen: new Date().toISOString(), lastSeen: null, agent: '' });
+  entry.lastSeen = new Date().toISOString();
+  entry.agent = String(req.headers['user-agent'] || '').slice(0, 200);
+  const keys = Object.keys(health.pages);
+  if (keys.length > 80) {
+    keys.sort((a, b) => (health.pages[a].lastSeen < health.pages[b].lastSeen ? -1 : 1));
+    delete health.pages[keys[0]];
+  }
+  return page;
+}
+
+function healthNoteRaw(kind, data) {
+  const now = new Date().toISOString();
+  health.lastRawAt = now;
+  health.lastRawKind = kind;
+  health.rawSinceStart += 1;
+  if (!data || typeof data !== 'object') return;
+  if (kind === 'chat') {
+    health.lastChatAt = now;
+    health.lastChatFrom = typeof data.sender === 'string' ? data.sender.slice(0, 60) : null;
+    health.chatSinceStart += 1;
+  } else if (kind === 'connection' && data.states && typeof data.states === 'object') {
+    // Meld sends partial lists (one platform group at a time), so merge.
+    for (const [name, state] of Object.entries(data.states)) {
+      if (typeof state === 'string') health.meldConnections[String(name).slice(0, 60)] = { state: state.slice(0, 30), at: now };
+    }
+    health.meldConnectionsAt = now;
+  } else if (kind === 'stream_status' && typeof data.is_live === 'boolean') {
+    health.streamLive = data.is_live; health.streamLiveAt = now;
+  } else if (kind === 'meld.stream_status' && typeof data.is_streaming === 'boolean') {
+    health.streamLive = data.is_streaming; health.streamLiveAt = now;
+  }
+}
+
+const meldRequestLog = [];
+function healthReport() {
+  const openByPage = {};
+  for (const client of clients) {
+    if (client.icbPage) openByPage[client.icbPage] = (openByPage[client.icbPage] || 0) + 1;
+  }
+  const pages = Object.entries(health.pages).map(([page, e]) => ({ page, lastSeen: e.lastSeen, firstSeen: e.firstSeen, open: openByPage[page] || 0, agent: e.agent }))
+    .sort((a, b) => (a.page < b.page ? -1 : 1));
+  let latestBackup = null;
+  try { latestBackup = (listGiveawayBackups()[0] || null); } catch (_error) {}
+  let people = 0, winners = 0;
+  try { people = Object.keys(giveaway.entrants || {}).length; winners = (giveaway.winners || []).length; } catch (_error) {}
+  let walkerInfo = null;
+  try { walkerInfo = { enabled: walkers.settings ? walkers.settings.enabled !== false : null, showChat: walkers.settings ? walkers.settings.showChat !== false : null, people: Object.keys(walkers.people || {}).length }; } catch (_error) {}
+  return {
+    meldRequests: meldRequestLog.slice(0, 40),
+    ok: true,
+    now: new Date().toISOString(),
+    server: { startedAt: new Date(startedAt).toISOString(), uptimeSeconds: Math.floor((Date.now() - startedAt) / 1000), port: PORT, folder: APP_DIR, node: process.version },
+    listener: { ...listenerStatus, reloadPending: health.listenerReload, reloadAskedAt: health.listenerReloadAskedAt },
+    relay: { lastRawAt: health.lastRawAt, lastRawKind: health.lastRawKind, rawSinceStart: health.rawSinceStart, lastChatAt: health.lastChatAt, lastChatFrom: health.lastChatFrom, chatSinceStart: health.chatSinceStart },
+    meld: { connections: health.meldConnections, connectionsAt: health.meldConnectionsAt, live: health.streamLive, liveAt: health.streamLiveAt },
+    pages,
+    palia: clone(live.reader),
+    giveaway: { people, winners, latestBackup },
+    walkers: walkerInfo,
+  };
+}
+
+async function handleHealthApi(req, res, pathname, method) {
+  if (pathname === '/api/connection-check' && method === 'GET') return sendJson(res, 200, healthReport());
+  if (pathname === '/api/connection-check/reload-listener' && method === 'POST') {
+    health.listenerReload = true;
+    health.listenerReloadAskedAt = new Date().toISOString();
+    return sendJson(res, 200, { ok: true });
+  }
+  if (pathname === '/api/connection-check/forget-pages' && method === 'POST') {
+    health.pages = {};
+    return sendJson(res, 200, { ok: true });
+  }
+  return sendJson(res, 404, { ok: false, error: 'Not found.' });
+}
+// ---------------------------------------------------------------------------
+// ICB HOME (Baby, 2026-09-29) - one master page (hub.html, also served at
+// "/") with a tile for every dashboard, so she doesn't need a bookmark for
+// each. Tiles can be dragged into any order, custom links can be added, and
+// each tile has an "open when ICB starts" box - the start/restart .bat files
+// ask /api/hub/startup-urls which pages to open.
+// Saved in data/hub.json: { order: [ids], startup: [ids], custom: [...] }.
+// ---------------------------------------------------------------------------
+const HUB_FILE = path.join(DATA_DIR, 'hub.json');
+const HUB_BUILTIN = [
+  { id: 'trackers', icon: '📊', name: 'Tracker Command Center', url: '/control.html', desc: 'Resource trackers, skins, to-do lists, weekly goals' },
+  { id: 'giveaway', icon: '🦄', name: 'Giveaway & Unicorn Jar', url: '/giveaway-control.html', desc: 'Draws, give unicorns, rates, board text, backups' },
+  { id: 'report', icon: '📄', name: 'Nightly Report', url: '/giveaway-report.html', desc: 'Everything that happened on stream - print or CSV' },
+  { id: 'plushie', icon: '🧸', name: 'Plushie Jar', url: '/tradeup-control.html', desc: 'Plushie catalog and the plushie jar pick' },
+  { id: 'decor', icon: '🍂', name: 'Decor Overlays', url: '/decor-control.html', desc: 'Falling leaves and other seasonal screen decor' },
+  { id: 'timer', icon: '⏱️', name: 'Stream Timer', url: '/timer-control.html', desc: 'Starting soon / BRB countdowns' },
+  { id: 'worldclock', icon: '🌍', name: 'World Time Bar', url: '/worldclock-control.html', desc: 'Time zone clocks overlay' },
+  { id: 'walkers', icon: '💬', name: 'Chat Unicorns', url: '/walkers-control.html', desc: 'Chatters\' unicorns hopping along the bottom - who gets one, reminders' },
+];
+const HUB_DEFAULT_STARTUP = ['trackers']; // what the .bat opened before the hub existed
+
+function hubCleanUrl(value) {
+  const url = cleanString(value).slice(0, 500);
+  if (/^\/[^\s]*$/.test(url)) return url;             // an ICB page like /timer-control.html
+  if (/^https?:\/\/[^\s]+$/i.test(url)) return url;   // any web link
+  return '';
+}
+
+function loadHub() {
+  const raw = readJson(HUB_FILE, {}) || {};
+  const custom = Array.isArray(raw.custom) ? raw.custom.map(c => ({
+    id: /^c\d+$/.test(String(c && c.id)) ? c.id : `c${Date.now()}${Math.floor(Math.random() * 1000)}`,
+    icon: cleanString(c && c.icon).slice(0, 8) || '🔗',
+    name: cleanString(c && c.name).slice(0, 60),
+    url: hubCleanUrl(c && c.url),
+    desc: cleanString(c && c.desc).slice(0, 120),
+  })).filter(c => c.name && c.url) : [];
+  const ids = new Set([...HUB_BUILTIN.map(t => t.id), ...custom.map(c => c.id)]);
+  const order = (Array.isArray(raw.order) ? raw.order : []).filter(id => ids.has(id));
+  for (const id of ids) if (!order.includes(id)) order.push(id); // new tiles go at the end
+  const startup = Array.isArray(raw.startup) ? raw.startup.filter(id => ids.has(id)) : HUB_DEFAULT_STARTUP.slice();
+  return { order, startup, custom };
+}
+
+let hub = loadHub();
+
+function hubPublic() {
+  const all = [...HUB_BUILTIN.map(t => ({ ...t, builtin: true })), ...hub.custom.map(c => ({ ...c, builtin: false }))];
+  const byId = new Map(all.map(t => [t.id, t]));
+  return { ok: true, tiles: hub.order.map(id => ({ ...byId.get(id), startup: hub.startup.includes(id) })).filter(t => t.id) };
+}
+
+async function handleHubApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/hub' && method === 'GET') return sendJson(res, 200, hubPublic());
+
+    // What the start/restart .bat files open: the hub first, then every
+    // ticked page, as full URLs.
+    if (pathname === '/api/hub/startup-urls' && method === 'GET') {
+      const base = `http://${HOST}:${PORT}`;
+      const pub = hubPublic().tiles;
+      const urls = [`${base}/hub.html`];
+      for (const t of pub) if (t.startup) urls.push(t.url.startsWith('/') ? base + t.url : t.url);
+      return sendJson(res, 200, { ok: true, urls });
+    }
+
+    // Save order / startup ticks / custom links (any subset).
+    if (pathname === '/api/hub' && (method === 'PUT' || method === 'POST')) {
+      const body = await readBody(req);
+      const next = { order: hub.order, startup: hub.startup, custom: hub.custom };
+      if (Array.isArray(body.custom)) next.custom = body.custom;
+      if (Array.isArray(body.order)) next.order = body.order.map(String);
+      if (Array.isArray(body.startup)) next.startup = body.startup.map(String);
+      writeJson(HUB_FILE, next);
+      hub = loadHub();
+      writeJson(HUB_FILE, hub);
+      broadcast('hub', hubPublic());
+      return sendJson(res, 200, hubPublic());
+    }
+
+    return sendJson(res, 404, { ok: false, error: 'Unknown hub route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Hub request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// CHAT UNICORNS (Baby, 2026-09-29) - allowed chatters get their own unicorn
+// that hops back and forth along the bottom of the stream, says their chat
+// messages in a speech bubble, pops the occasional reminder, and walks off
+// after 10 minutes of quiet.
+//   - Overlay:   /walkers.html (Meld layer, full screen)
+//   - Dashboard: /walkers-control.html
+//   - Chat comes from the Meld listener's raw relay (/api/activity/raw,
+//     kind "chat"), which already carries the text and emote pictures.
+//   - Who gets one: subscribers automatically (sub months recorded in the
+//     giveaway - live subs or hand-added "already subbed"), plus anyone Baby
+//     ticks on the dashboard; she can also untick a sub. Names on the giveaway
+//     block list (bots, herself) never get one.
+//   - Art: assets/decor/unicorn/ (served at /decor-art/unicorn/<file>). Each
+//     person keeps the same picture (random unless Baby picks one).
+// Saved in data/walkers.json.
+// ---------------------------------------------------------------------------
+const WALKERS_FILE = path.join(DATA_DIR, 'walkers.json');
+const WALKERS_ART_DIR = path.join(APP_DIR, 'assets', 'decor', 'unicorn');
+const WALKERS_DEFAULT_SETTINGS = {
+  enabled: true,
+  artFacesLeft: false,  // set true if the unicorn pictures face LEFT (so they never walk backwards)
+  size: 140,            // unicorn height in px
+  speed: 1,             // walking speed multiplier
+  afkMinutes: 10,       // walk off after this long without chatting
+  bubbleSeconds: 7,     // how long a chat bubble stays up
+  reminderEveryMinutes: 4,
+  // Names + chat look (Baby, 2026-09-29): name above the head, no bubble.
+  namePosition: 'above',     // 'above' | 'below' | 'hidden'
+  nameFont: 'Baloo 2',
+  nameSize: 22,
+  nameColor: '#ffffff',
+  nameBold: true,
+  nameOutlineColor: '#3a1446',
+  nameOutlineWidth: 3,
+  nameBackground: false,     // true = old pill behind the name
+  nameBgColor: '#782896',
+  showChat: true,            // false = no chat speech bubbles (reminders still show)
+  chatTextSize: 22,
+  reminders: [
+    'Check out !discord to join our cozy community!',
+    'Remember to drink water! 💧',
+    'Type !socials to find us everywhere!',
+  ],
+};
+const WALKERS_LIMITS = { size: [50, 300], speed: [0.3, 3], afkMinutes: [1, 120], bubbleSeconds: [2, 20], reminderEveryMinutes: [0, 60], nameSize: [10, 72], nameOutlineWidth: [0, 8], chatTextSize: [12, 44] };
+const WALKERS_FONTS = ['Baloo 2', 'Comic Sans MS', 'Arial', 'Arial Black', 'Trebuchet MS', 'Segoe UI', 'Verdana', 'Georgia', 'Impact', 'Courier New', 'Times New Roman'];
+const WALKERS_COLOR = /^#[0-9a-f]{6}$/i;
+// Checks the look settings (shared by load + the settings route).
+function walkerCleanLook(s, src) {
+  if (['above', 'below', 'hidden'].includes(src.namePosition)) s.namePosition = src.namePosition;
+  if (WALKERS_FONTS.includes(src.nameFont)) s.nameFont = src.nameFont;
+  for (const k of ['nameColor', 'nameOutlineColor', 'nameBgColor']) if (WALKERS_COLOR.test(String(src[k] || ''))) s[k] = String(src[k]).toLowerCase();
+  for (const k of ['nameBold', 'nameBackground', 'showChat']) if (typeof src[k] === 'boolean') s[k] = src[k];
+  return s;
+}
+
+function loadWalkers() {
+  const raw = readJson(WALKERS_FILE, {}) || {};
+  const s = { ...WALKERS_DEFAULT_SETTINGS, ...(raw.settings || {}) };
+  s.enabled = s.enabled !== false;
+  s.artFacesLeft = s.artFacesLeft === true;
+  const look = walkerCleanLook({ ...WALKERS_DEFAULT_SETTINGS }, s);
+  for (const k of ['namePosition', 'nameFont', 'nameColor', 'nameOutlineColor', 'nameBgColor', 'nameBold', 'nameBackground', 'showChat']) s[k] = look[k];
+  for (const [k, [lo, hi]] of Object.entries(WALKERS_LIMITS)) {
+    const n = Number(s[k]);
+    s[k] = Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : WALKERS_DEFAULT_SETTINGS[k];
+  }
+  s.reminders = (Array.isArray(s.reminders) ? s.reminders : []).map(r => cleanString(r).slice(0, 140)).filter(Boolean).slice(0, 30);
+  const people = {};
+  for (const [key, p] of Object.entries(raw.people || {})) {
+    if (!p || !p.name) continue;
+    people[key.toLowerCase()] = {
+      name: cleanString(p.name).slice(0, 40),
+      allowed: p.allowed === true ? true : (p.allowed === false ? false : null), // null = automatic (subs)
+      art: p.art ? path.basename(String(p.art)) : null,
+      lastSeen: p.lastSeen || null,
+    };
+  }
+  return { settings: s, people };
+}
+
+let walkers = loadWalkers();
+let walkerEvents = [];   // recent chat for the overlay: { seq, name, parts, at }
+let walkerSeq = 0;
+try { fs.mkdirSync(WALKERS_ART_DIR, { recursive: true }); } catch (_error) {}
+
+function saveWalkers() { writeJson(WALKERS_FILE, { settings: walkers.settings, people: walkers.people }); }
+
+function walkerArt() {
+  try { return fs.readdirSync(WALKERS_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b)); }
+  catch (_error) { return []; }
+}
+
+function walkerIsSub(name) {
+  const key = findEntrantKey(name);
+  const e = key ? giveaway.entrants[key] : null;
+  return !!(e && e.counts && e.counts.subMonths > 0);
+}
+
+function walkerAllowed(name) {
+  if (!name || isBlocked(name)) return false;
+  const p = walkers.people[name.toLowerCase()];
+  if (p && p.allowed !== null) return p.allowed;
+  return walkerIsSub(name);
+}
+
+// Keep only what the bubble needs: text and emote pictures.
+function walkerParts(data) {
+  const parts = [];
+  for (const f of (Array.isArray(data && data.fragments) ? data.fragments : []).slice(0, 40)) {
+    if (!f || typeof f !== 'object') continue;
+    if (f.type === 'EMOTE' && /^https:\/\/[^\s"']+$/i.test(String(f.imageLink || ''))) parts.push({ t: 'emote', url: f.imageLink, name: cleanString(f.emoteName || f.text).slice(0, 40) });
+    else if (typeof f.text === 'string' || typeof f.raw === 'string') parts.push({ t: 'text', v: String(f.text != null ? f.text : f.raw).slice(0, 300) });
+  }
+  if (!parts.length && data && typeof data.raw === 'string') parts.push({ t: 'text', v: data.raw.slice(0, 300) });
+  return parts;
+}
+
+// Called for every relayed chat message.
+function walkerChat(name, parts, force) {
+  name = cleanString(name).replace(/^@/, '').slice(0, 40);
+  if (!name) return false;
+  const key = name.toLowerCase();
+  const known = walkers.people[key];
+  if (!known) walkers.people[key] = { name, allowed: null, art: null, lastSeen: new Date().toISOString() };
+  else { known.name = name; known.lastSeen = new Date().toISOString(); }
+  if (!known) saveWalkers(); // remember new chatters so they show on the dashboard list
+  if (!force && !walkerAllowed(name)) return false;
+  walkerEvents.push({ seq: ++walkerSeq, name, parts, at: Date.now() });
+  if (walkerEvents.length > 200) walkerEvents = walkerEvents.slice(-200);
+  return true;
+}
+
+function walkerOverlayState(since) {
+  const art = walkerArt();
+  const pick = {};
+  for (const [key, p] of Object.entries(walkers.people)) if (p.art && art.includes(p.art)) pick[key] = `/decor-art/unicorn/${encodeURIComponent(p.art)}`;
+  return {
+    ok: true,
+    settings: walkers.settings,
+    art: art.map(f => `/decor-art/unicorn/${encodeURIComponent(f)}`),
+    pick,                       // lowercase name -> chosen art
+    seq: walkerSeq,
+    events: walkerEvents.filter(e => e.seq > since),
+    clearAt: walkers.clearAt || 0,
+  };
+}
+
+function walkerAdminState() {
+  const art = walkerArt();
+  const names = new Map();
+  for (const p of Object.values(walkers.people)) names.set(p.name.toLowerCase(), p.name);
+  for (const e of Object.values(giveaway.entrants || {})) if (e && e.username && !names.has(e.username.toLowerCase())) names.set(e.username.toLowerCase(), e.username);
+  const people = [...names.entries()].filter(([, n]) => !isBlocked(n)).map(([key, name]) => {
+    const p = walkers.people[key] || {};
+    return { name, isSub: walkerIsSub(name), override: p.allowed === undefined ? null : p.allowed, allowed: walkerAllowed(name), art: p.art || null, lastSeen: p.lastSeen || null };
+  }).sort((a, b) => (b.allowed - a.allowed) || String(b.lastSeen || '').localeCompare(String(a.lastSeen || '')) || a.name.localeCompare(b.name));
+  return { ok: true, settings: walkers.settings, art, people, fonts: WALKERS_FONTS };
+}
+
+async function handleWalkersApi(req, res, pathname, method, url) {
+  try {
+    if (pathname === '/api/walkers/state' && method === 'GET') {
+      const since = Number(url.searchParams.get('since')) || 0;
+      return sendJson(res, 200, walkerOverlayState(since));
+    }
+    if (pathname === '/api/walkers/admin' && method === 'GET') return sendJson(res, 200, walkerAdminState());
+
+    if (pathname === '/api/walkers/settings' && (method === 'PUT' || method === 'POST')) {
+      const body = await readBody(req);
+      const s = walkers.settings;
+      if (typeof body.enabled === 'boolean') s.enabled = body.enabled;
+      if (typeof body.artFacesLeft === 'boolean') s.artFacesLeft = body.artFacesLeft;
+      walkerCleanLook(s, body);
+      for (const [k, [lo, hi]] of Object.entries(WALKERS_LIMITS)) {
+        if (body[k] === undefined) continue;
+        const n = Number(body[k]);
+        if (Number.isFinite(n)) s[k] = Math.min(hi, Math.max(lo, n));
+      }
+      if (Array.isArray(body.reminders)) s.reminders = body.reminders.map(r => cleanString(r).slice(0, 140)).filter(Boolean).slice(0, 30);
+      saveWalkers();
+      return sendJson(res, 200, walkerAdminState());
+    }
+
+    // { name, allowed: true | false | null (automatic), art: filename | null }
+    if (pathname === '/api/walkers/person' && (method === 'PUT' || method === 'POST')) {
+      const body = await readBody(req);
+      const name = cleanString(body.name).replace(/^@/, '').slice(0, 40);
+      if (!name) return sendJson(res, 400, { ok: false, error: 'Missing name.' });
+      const key = name.toLowerCase();
+      const p = walkers.people[key] || (walkers.people[key] = { name, allowed: null, art: null, lastSeen: null });
+      if (body.allowed === true || body.allowed === false || body.allowed === null) p.allowed = body.allowed;
+      if (body.art === null || body.art === '') p.art = null;
+      else if (typeof body.art === 'string' && walkerArt().includes(path.basename(body.art))) p.art = path.basename(body.art);
+      saveWalkers();
+      return sendJson(res, 200, walkerAdminState());
+    }
+
+    // Test button: a pretend chatter says something (shows even if not ticked).
+    if (pathname === '/api/walkers/test' && method === 'POST') {
+      const body = await readBody(req);
+      const name = cleanString(body.name) || `TestUnicorn${1 + Math.floor(Math.random() * 9)}`;
+      const text = cleanString(body.text).slice(0, 300) || 'Hi everyone! 🦄';
+      walkerChat(name, [{ t: 'text', v: text }], true);
+      return sendJson(res, 200, { ok: true, name });
+    }
+
+    // Send every unicorn off screen right now.
+    if (pathname === '/api/walkers/clear' && method === 'POST') {
+      walkers.clearAt = Date.now();
+      return sendJson(res, 200, { ok: true });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown walkers route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Walkers request failed.' });
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || `${HOST}:${PORT}`}`);
+  // 2026-09-30: every request from Meld's built-in browser, newest first, so
+  // Connection check can show exactly which Meld layers are reaching ICB.
+  if (/Meld\//.test(String(req.headers['user-agent'] || ''))) {
+    meldRequestLog.unshift({ at: new Date().toISOString(), method: req.method, path: url.pathname.slice(0, 80), referer: String(req.headers.referer || '').replace(/^https?:\/\/[^/]+/, '').slice(0, 80) || null, origin: String(req.headers.origin || '').slice(0, 60) || null });
+    while (meldRequestLog.length > 60) meldRequestLog.pop();
+  }
   if (req.method === 'OPTIONS') {
     res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' });
     return res.end();
@@ -2832,17 +3695,22 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', Connection: 'keep-alive', 'Access-Control-Allow-Origin': '*' });
     const role = url.searchParams.get('role');
     res.icbRole = ['control', 'overlay'].includes(role) ? role : 'other';
+    res.icbPage = healthNotePage(req);
     clients.add(res);
     sendSse(res, 'snapshot', publicState());
     sendSse(res, 'tradeup', tradeupPublicState());
     sendSse(res, 'giveaway', publicGiveaway());
+    sendSse(res, 'decor', decorPublicState());
+    sendSse(res, 'hub', hubPublic());
     req.on('close', () => clients.delete(res));
     return;
   }
   try {
-    if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
+    if (url.pathname.startsWith('/api/')) { if (url.pathname !== '/api/connection-check' && url.pathname !== '/api/health') healthNotePage(req); return await handleApi(req, res, url); }
     if (url.pathname.startsWith('/resource-art/')) return serveResourceArt(res, url.pathname);
     if (url.pathname.startsWith('/tradeup-art/')) return serveTradeupArt(res, url.pathname);
+    if (url.pathname.startsWith('/decor-art/')) return serveDecorArt(res, url.pathname);
+    if (/^\/decor\/[a-z0-9-]+\.html$/.test(url.pathname)) return serveDecorOverlay(res);
     if (url.pathname === '/weekly.html' || url.pathname === '/weekly-wide.html') {
       // Two addresses rather than a query string. Query strings are barred from
       // Meld URLs (see the handbook) - the one overlay that ever used them never

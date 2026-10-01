@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>ICB Giveaway Listener (do not display on stream)</title>
-<script src="https://elements.meldstudio.co/cdn/v2/firehose.js"></script>
+<!-- Meld's Firehose SDK is loaded by the script below (not here), so a slow
+     download can never freeze this page before it tells ICB it's alive. -->
 </head>
 <body style="background:transparent;margin:0;color:#fff;font-family:sans-serif;font-size:11px;">
 <div id="status">starting...</div>
@@ -27,6 +28,10 @@
   //   follow = FOLLOW { follower }; raid = RAID { host, viewers } - relayed
   //           for the nightly report only, they don't earn unicorns.
   //   purchase = shop purchases (e.g. Fourthwall), NOT bits - not used.
+  // Works from ICB (http://127.0.0.1:8790/giveaway-listener.html) AND when
+  // pasted into a Meld element hosted elsewhere: anywhere else, talk to ICB
+  // by its full address (ICB allows this - CORS is open to any page).
+  var ICB = (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) && location.port === '8790') ? '' : 'http://127.0.0.1:8790';
   var statusEl = document.getElementById('status');
   var firehose = null;
   var BIT_TYPES = { TWITCH_BITS: true };
@@ -37,7 +42,7 @@
   function post(path, payload){
     try {
       var x = new XMLHttpRequest();
-      x.open('POST', path, true);
+      x.open('POST', ICB + path, true);
       x.setRequestHeader('Content-Type', 'application/json');
       x.send(JSON.stringify(payload));
     } catch (e) { /* best-effort - a dropped event is one fewer unicorn, not a crash */ }
@@ -92,18 +97,62 @@
 
   // Tell ICB we're alive (and whether Meld's connection is open) so the
   // dashboard can show a green "listener connected" badge.
+  // Self-repair: if Meld's connection hasn't been open for 90 s straight,
+  // reload this page (same as right-click > reload in Meld). ICB Home's
+  // "Reload the listener" button asks for the same thing through the
+  // heartbeat reply. Meld's history replay on reconnect is skipped below,
+  // so a reload never double-counts anything.
+  var notConnectedSince = new Date().getTime();
+  var SELF_RELOAD_MS = 90000;
+  function reloadMe(){ setStatus('reloading...'); setTimeout(function(){ location.reload(); }, 300); }
+
   function heartbeat(){
     var state = !firehose ? 'no-sdk' : (firehose.socketOpen ? 'connected' : 'connecting');
-    post('/api/giveaway/listener', { firehose: state });
+    var now = new Date().getTime();
+    if (state === 'connected') { notConnectedSince = now; }
+    else if (now - notConnectedSince > SELF_RELOAD_MS) { notConnectedSince = now; reloadMe(); return; }
+    try {
+      var x = new XMLHttpRequest();
+      x.open('POST', ICB + '/api/giveaway/listener', true);
+      x.setRequestHeader('Content-Type', 'application/json');
+      x.onreadystatechange = function(){
+        if (x.readyState !== 4 || x.status !== 200) { return; }
+        try { if (JSON.parse(x.responseText).reload === true) { reloadMe(); } } catch (e) {}
+      };
+      x.send(JSON.stringify({ firehose: state, page: String(location.href).slice(0, 200) }));
+    } catch (e) {}
     setStatus(state === 'connected' ? 'connected to Meld, relaying to ICB' : (state === 'connecting' ? 'waiting for Meld...' : 'Firehose SDK not loaded'));
   }
 
   var bootAttempts = 0;
+  // 2026-09-30: the SDK used to be a normal <script src> to Meld's CDN in
+  // <head>. If that download stalled inside Meld, the page froze before any
+  // of this ran - no heartbeat, "NOT running", fixed only by a restart.
+  // Now: load ICB's own copy (meld-firehose.js, same file, served locally so
+  // no internet needed) without blocking, and fall back to Meld's CDN if the
+  // local copy is missing. Heartbeats run the whole time either way.
+  var SDK_URLS = [ICB + '/meld-firehose.js', 'https://elements.meldstudio.co/cdn/v2/firehose.js'];
+  var sdkTry = 0;
+  function reloadSdk(){
+    try {
+      var sc = document.createElement('script');
+      var src = SDK_URLS[sdkTry % SDK_URLS.length];
+      sdkTry++;
+      sc.src = src + (src.indexOf('?') < 0 ? '?' : '&') + 't=' + new Date().getTime();
+      sc.async = true;
+      document.getElementsByTagName('head')[0].appendChild(sc);
+    } catch (e) {}
+  }
   function boot(){
     bootAttempts++;
     if (typeof Firehose === 'undefined') {
-      if (bootAttempts > 30) { setStatus('Firehose SDK never loaded - check internet/Meld version.'); heartbeat(); return; }
-      setTimeout(boot, 1000);
+      // Keep telling ICB we're alive while we wait, so the dashboard shows
+      // "Firehose didn't load" instead of "NOT running". Every 30 tries we
+      // re-add Meld's script in case the first download failed.
+      heartbeat();
+      if (bootAttempts > 30) { setStatus('Firehose SDK not loaded yet - retrying (check internet / Meld).'); }
+      if (bootAttempts % 8 === 0) { reloadSdk(); } // try the next copy every ~8 s
+      setTimeout(boot, bootAttempts > 30 ? 5000 : 1000);
       return;
     }
 
@@ -163,6 +212,7 @@
     setInterval(heartbeat, 5000);
   }
 
+  reloadSdk();
   boot();
 })();
 </script>

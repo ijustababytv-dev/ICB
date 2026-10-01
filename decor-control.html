@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Decor Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d;
+    --text:#f3ecff; --dim:#a898c0; --accent:#ff8a2a; --accent2:#b77cff;
+    --good:#58d68d; --bad:#ff5c6c;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2c1b3f 0%, var(--bg) 60%) fixed; color:var(--text);
+        font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:24px; }
+  h1{ margin:0; font-size:24px; letter-spacing:.3px; }
+  h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 18px; }
+  .topbar{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  .spacer{ flex:1; }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 14px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(180deg,#ff9a3c,#e8701a); border-color:#ff9a3c; color:#1a0f05; font-weight:700; }
+  .btn-danger{ border-color:#6b2a33; color:#ffb3bb; }
+  .btn-small{ padding:4px 10px; font-size:12px; }
+  input[type=text]{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:8px 12px; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
+  .health.offline{ background:#4a1f26; color:var(--bad); }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2{ margin:0 0 12px; font-size:16px; }
+  .presets{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .preset{ display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--panel2); }
+  .preset button{ border:0; border-radius:0; background:transparent; padding:7px 12px; }
+  .preset button.x{ color:var(--dim); padding:7px 10px; border-left:1px solid var(--line); }
+  .effects{ display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:16px; }
+  .fx-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .fx-head .name{ font-size:18px; font-weight:700; flex:1; }
+  .switch{ position:relative; width:56px; height:30px; flex:none; }
+  .switch input{ display:none; }
+  .switch span{ position:absolute; inset:0; border-radius:999px; background:#3b3148; transition:.2s; cursor:pointer; }
+  .switch span::after{ content:""; position:absolute; left:3px; top:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch input:checked + span{ background:var(--accent); }
+  .switch input:checked + span::after{ left:29px; }
+  .status{ font-size:12px; color:var(--dim); min-width:44px; }
+  .status.on{ color:var(--accent); font-weight:700; }
+  .url{ display:flex; gap:8px; align-items:center; background:#130d1b; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; margin-bottom:12px; font-family:Consolas, monospace; font-size:12px; color:var(--dim); }
+  .url code{ flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sliders{ display:grid; grid-template-columns:110px 1fr 54px; gap:6px 10px; align-items:center; margin-bottom:12px; }
+  .sliders label{ color:var(--dim); }
+  .sliders output{ text-align:right; font-variant-numeric:tabular-nums; }
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  .art{ display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:8px; margin-bottom:10px; }
+  .thumb{ position:relative; background:#130d1b url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="8" height="8" fill="%231c1526"/><rect x="8" y="8" width="8" height="8" fill="%231c1526"/></svg>'); border:2px solid var(--line); border-radius:12px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; }
+  .thumb img{ max-width:84%; max-height:84%; }
+  .thumb.on{ border-color:var(--accent); }
+  .thumb.off img{ opacity:.25; filter:grayscale(1); }
+  .thumb .rm{ position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; border:0; padding:0; font-size:12px; line-height:20px; background:rgba(0,0,0,.6); color:#fff; display:none; }
+  .thumb:hover .rm{ display:block; }
+  .thumb .tag{ position:absolute; bottom:3px; left:3px; right:3px; font-size:10px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+  .drop{ border:2px dashed var(--line); border-radius:12px; padding:14px; text-align:center; color:var(--dim); cursor:pointer; }
+  .drop.hover{ border-color:var(--accent); color:var(--text); }
+  .note{ color:var(--dim); font-size:12px; margin-top:8px; }
+  .warn{ color:#ffcc66; font-size:12px; margin:0 0 10px; }
+  .fx-foot{ display:flex; gap:8px; margin-top:12px; justify-content:space-between; align-items:center; }
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1>🍂 ICB <span>Decor</span> Dashboard</h1>
+      <div class="sub">Seasonal screen decorations — separate from your trackers. Each effect is its own Meld layer.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+    <button class="btn-danger" onclick="allOff()">Turn everything off</button>
+  </div>
+
+  <div class="card">
+    <h2>Presets</h2>
+    <div class="presets" id="presets"></div>
+    <div class="presets" style="margin-top:10px;">
+      <input type="text" id="presetName" placeholder="Name this look, e.g. Cozy fall" maxlength="40">
+      <button onclick="savePreset()">💾 Save current look</button>
+    </div>
+    <div class="note">A preset remembers every effect's on/off, amount, speed, size, see-through and which art is ticked. Saving with an existing name updates it.</div>
+  </div>
+
+  <div class="effects" id="effects"></div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>Add a new effect</h2>
+    <div class="presets">
+      <input type="text" id="newName" placeholder="e.g. Spooky ghosts" maxlength="40">
+      <button class="btn-accent" onclick="addEffect()">＋ Add effect</button>
+    </div>
+    <div class="note">Every effect gets its own art folder and its own Meld link. Right now every effect falls down the screen like leaves — so it works for leaves, snow, candy corn, little ghosts, anything that drifts down.</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const ORIGIN = location.origin;
+  let state = null;
+  const LABELS = {
+    amount: ['How many', v => Math.round(v)],
+    speed: ['Speed', v => v.toFixed(1) + '×'],
+    size: ['Size', v => Math.round(v) + 'px'],
+    opacity: ['See-through', v => Math.round(v * 100) + '%'],
+    drift: ['Wind', v => (v > 0.05 ? '→ ' : v < -0.05 ? '← ' : '') + Math.abs(v).toFixed(1)],
+    sway: ['Flutter', v => v.toFixed(1)],
+    spin: ['Twirl', v => v.toFixed(1)],
+  };
+  const STEPS = { amount: 1, speed: 0.1, size: 2, opacity: 0.05, drift: 0.1, sway: 0.1, spin: 0.1 };
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
+  async function api(path, method = 'GET', body){
+    const res = await fetch(path, { method, headers: body ? {'Content-Type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({ ok:false, error:'Bad response' }));
+    if (!data.ok) toast(data.error || 'Something went wrong');
+    return data;
+  }
+
+  // Sliders send while dragging (throttled) so the overlay moves live.
+  const pending = {};
+  function sendSetting(id, key, value){
+    pending[id] = Object.assign(pending[id] || {}, { [key]: value });
+    clearTimeout(sendSetting['t' + id]);
+    sendSetting['t' + id] = setTimeout(() => { const b = pending[id]; delete pending[id]; api('/api/decor/effects/' + id, 'PATCH', b); }, 120);
+  }
+
+  let dragging = false;
+  function render(s){
+    state = s;
+    renderPresets();
+    if (dragging) return; // don't rebuild the cards under the mouse mid-drag
+    const box = $('effects');
+    box.innerHTML = s.effects.map(e => {
+      const link = ORIGIN + '/decor/' + e.id + '.html';
+      const sliders = Object.keys(LABELS).map(k => {
+        const lim = s.limits[k];
+        return `<label for="${e.id}-${k}">${LABELS[k][0]}</label>
+          <input type="range" id="${e.id}-${k}" min="${lim[0]}" max="${lim[1]}" step="${STEPS[k]}" value="${e[k]}"
+            oninput="slide('${e.id}','${k}',this)" onpointerdown="dragging=true" onpointerup="dragging=false" onchange="dragging=false">
+          <output id="${e.id}-${k}-v">${LABELS[k][1](e[k])}</output>`;
+      }).join('');
+      const art = e.files.map(f => {
+        const on = !e.off.includes(f);
+        const src = '/decor-art/' + e.id + '/' + encodeURIComponent(f);
+        return `<div class="thumb ${on ? 'on' : 'off'}" title="${esc(f)} — click to ${on ? 'stop using' : 'use'}" onclick="toggleArt('${e.id}', ${esc(JSON.stringify(f))})">
+          <img src="${src}" alt=""><button class="rm" title="Remove" onclick="event.stopPropagation(); removeArt('${e.id}', ${esc(JSON.stringify(f))})">✕</button>
+          <div class="tag">${esc(f)}</div></div>`;
+      }).join('');
+      const usedCount = e.files.filter(f => !e.off.includes(f)).length;
+      const warn = !e.files.length
+        ? `<p class="warn">No art yet — it's showing simple placeholder leaves until you add your own images below.</p>`
+        : (!usedCount ? `<p class="warn">All art is unticked — it's showing placeholder leaves. Click an image to use it.</p>` : '');
+      return `<div class="card" id="fx-${e.id}">
+        <div class="fx-head">
+          <div class="name">${esc(e.name)}</div>
+          <span class="status ${e.enabled ? 'on' : ''}">${e.enabled ? 'ON AIR' : 'off'}</span>
+          <label class="switch"><input type="checkbox" ${e.enabled ? 'checked' : ''} onchange="setOn('${e.id}', this.checked)"><span></span></label>
+        </div>
+        <div class="url"><span>Meld link</span><code>${esc(link)}</code><button class="btn-small" onclick="copy('${esc(link)}')">Copy</button></div>
+        <div class="sliders">${sliders}</div>
+        ${warn}
+        <div class="art">${art}</div>
+        <div class="drop" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')"
+             ondrop="event.preventDefault(); this.classList.remove('hover'); upload('${e.id}', event.dataTransfer.files)"
+             onclick="this.nextElementSibling.click()">Drop PNG art here, or click to pick files (transparent PNGs look best)</div>
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="upload('${e.id}', this.files); this.value=''">
+        <div class="note">Art folder: <code>ICB\\assets\\decor\\${esc(e.id)}\\</code> — files you drop in there show up here too (refresh). Click an image to turn it on/off for this effect.</div>
+        <div class="fx-foot">
+          <span class="note" style="margin:0">Art in use: ${usedCount} of ${e.files.length}</span>
+          <button class="btn-small btn-danger" onclick="removeEffect('${e.id}', ${esc(JSON.stringify(e.name))})">Delete effect</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderPresets(){
+    const p = state.presets;
+    $('presets').innerHTML = p.length ? p.map(x => `<span class="preset"><button onclick="applyPreset('${x.id}', ${esc(JSON.stringify(x.name))})">✨ ${esc(x.name)}</button><button class="x" title="Delete preset" onclick="deletePreset('${x.id}', ${esc(JSON.stringify(x.name))})">✕</button></span>`).join('')
+      : '<span class="note" style="margin:0">No presets yet — set things up the way you like, name it below, and save.</span>';
+  }
+
+  function slide(id, key, el){
+    const v = parseFloat(el.value);
+    $(id + '-' + key + '-v').textContent = LABELS[key][1](v);
+    sendSetting(id, key, v);
+  }
+  async function setOn(id, on){ await api('/api/decor/effects/' + id, 'PATCH', { enabled: on }); }
+  async function toggleArt(id, file){
+    const e = state.effects.find(x => x.id === id);
+    const off = e.off.includes(file) ? e.off.filter(f => f !== file) : e.off.concat([file]);
+    await api('/api/decor/effects/' + id, 'PATCH', { off });
+  }
+  async function removeArt(id, file){
+    if (!confirm(`Remove "${file}" from this effect?\n\nIt's moved into the _removed folder inside the art folder, not deleted.`)) return;
+    await api('/api/decor/effects/' + id + '/images/' + encodeURIComponent(file), 'DELETE');
+  }
+  async function upload(id, files){
+    const list = Array.from(files || []).filter(f => /^image\//.test(f.type));
+    if (!list.length) return toast('Pick PNG, JPG, WEBP or GIF images');
+    let done = 0;
+    for (const f of list) {
+      const dataUrl = await new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = fail; r.readAsDataURL(f); });
+      const d = await api('/api/decor/effects/' + id + '/images', 'POST', { dataUrl, name: f.name });
+      if (d.ok) done++;
+    }
+    toast(`Added ${done} image${done === 1 ? '' : 's'}`);
+  }
+  async function addEffect(){
+    const name = $('newName').value.trim();
+    if (!name) return toast('Type a name first');
+    const d = await api('/api/decor/effects', 'POST', { name });
+    if (d.ok) { $('newName').value = ''; toast(`Added "${name}" — add its art and copy its Meld link`); }
+  }
+  async function removeEffect(id, name){
+    if (!confirm(`Delete the "${name}" effect?\n\nIts Meld layer will go blank. Its art folder is kept on your PC.`)) return;
+    await api('/api/decor/effects/' + id, 'DELETE');
+  }
+  async function savePreset(){
+    const name = $('presetName').value.trim();
+    if (!name) return toast('Name the preset first');
+    const d = await api('/api/decor/presets', 'POST', { name });
+    if (d.ok) { $('presetName').value = ''; toast(`Saved "${name}"`); }
+  }
+  async function applyPreset(id, name){ const d = await api('/api/decor/presets/' + id + '/apply', 'POST'); if (d.ok) toast(`Switched to "${name}"`); }
+  async function deletePreset(id, name){ if (confirm(`Delete the "${name}" preset?`)) await api('/api/decor/presets/' + id, 'DELETE'); }
+  async function allOff(){ const d = await api('/api/decor/all-off', 'POST'); if (d.ok) toast('Everything off'); }
+  function copy(text){ navigator.clipboard.writeText(text).then(() => toast('Link copied — paste it into a Meld browser layer'), () => prompt('Copy this link:', text)); }
+
+  async function load(){ const d = await api('/api/decor/state'); if (d.ok) render(d); }
+  document.addEventListener('pointerup', () => { if (dragging) { dragging = false; load(); } });
+  const events = new EventSource('/events?role=control');
+  events.addEventListener('decor', e => render(JSON.parse(e.data)));
+  events.onerror = () => { $('health').classList.add('offline'); $('health').textContent = 'ICB offline'; };
+  events.onopen = () => { $('health').classList.remove('offline'); $('health').textContent = 'connected'; };
+  load();
+  // Picks up art dropped straight into the folder on your PC.
+  setInterval(() => { if (!dragging && document.visibilityState === 'visible') load(); }, 5000);
+</script>
+</body>
+</html>

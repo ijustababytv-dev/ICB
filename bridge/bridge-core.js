@@ -96,6 +96,131 @@ class DedupTracker {
   }
 }
 
+// ---------------------------------------------------------------------
+// OwnEventClassifier (2026-09-27) - count ONLY Baby's own real gains.
+//
+// Why: Palia's log is written by her game client, and the client hears
+// about inventory changes for EVERY player near her, not just her. Seen in
+// her real logs: a group chopping one big tree gives her one "ITEM RECEIVED"
+// and then 10+ "MULTICAST ITEM ADDED" lines of the same loot, one per nearby
+// player. The old DedupTracker counted any MULTICAST line that wasn't within
+// 200ms of an identical one, so busy areas made the trackers count other
+// people's stuff (e.g. 9/27 log: 1,282 Ash Wood counted, she earned 325).
+//
+// What the log tells us (checked against 15 of her real log files):
+//  1. "ITEM RECEIVED" is only ever written for HER character.
+//  2. Her own account stat "ItemEarned_<id>" (tagged with her account id)
+//     is logged right around each RECEIVED line. On a real gain it goes up by
+//     exactly the amount (e.g. Ash Wood 5913 -> 5920 for "Amount=7"). When
+//     she just moves items (e.g. pulling from storage) RECEIVED still fires
+//     but the stat does NOT go up - those are skipped (this was part of why
+//     Sashimi sometimes jumped by more than she cooked).
+//  3. "ITEM ADDED" confirms the same gain again - ignored (would double).
+//  4. "MULTICAST ITEM ADDED" fires for her AND everyone nearby - always
+//     ignored. (Checked fishing specifically: the fishing "Finished" lines in
+//     the log also fire for other people fishing near her - her own catches
+//     all come with a RECEIVED line, so nothing of hers is lost.)
+// RECEIVED lines are held for HOLD_MS (log time) so the stat line that
+// follows each one has arrived before deciding.
+// ---------------------------------------------------------------------
+const GENERIC_LINE = /^\[(\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3})\]\[\s*\d+\](\w+):\s*(.*)$/;
+const INVENTORY_LINE = /^(ITEM RECEIVED|ITEM ADDED|MULTICAST ITEM ADDED):\s*\[FItemInfo Amount=(-?\d+)\s+ItemType=([^\]]+)\]/;
+const EARNED_STAT = /Updated value of stat ItemEarned_(\d+) to (\d+) for /;
+
+class OwnEventClassifier {
+  constructor(opts = {}) {
+    this.holdMs = opts.holdMs || 1500;
+    this.lineNo = 0;
+    this.pending = [];            // RECEIVED events waiting for their stat line
+    this.rcvIdx = [];             // line numbers of every RECEIVED line (recent)
+    this.statEvents = [];         // { idx, ms, id, value, prev } for her ItemEarned stat
+    this.statVal = new Map();     // stat id -> last value seen
+    this.lastLogMs = 0;
+    this.stats = { received: 0, movedNotEarned: 0, ignoredMulticast: 0, ignoredAdded: 0 };
+  }
+
+  // Feed one raw log line. Nothing is counted here - call flush() after.
+  feed(line) {
+    const idx = ++this.lineNo;
+    const g = GENERIC_LINE.exec(line);
+    if (!g) return;
+    const date = parseTimestamp(g[1]);
+    const ms = date ? date.getTime() : this.lastLogMs;
+    if (ms > this.lastLogMs) this.lastLogMs = ms;
+    const cat = g[2], msg = g[3];
+    if (cat === 'LogAccomplishmentsManager') {
+      const s = EARNED_STAT.exec(msg);
+      if (s) {
+        const value = parseInt(s[2], 10);
+        const prev = this.statVal.get(s[1]);
+        this.statVal.set(s[1], value);
+        this.statEvents.push({ idx, ms, id: s[1], value, prev });
+      }
+      return;
+    }
+    if (cat !== 'LogInventoryComponent') return;
+    const m = INVENTORY_LINE.exec(msg);
+    if (!m) return;
+    const amount = parseInt(m[2], 10);
+    if (!(amount > 0)) return; // spends/removals (negative) are never "gained"
+    const evt = { timestamp: g[1], date, kind: m[1], amount, itemType: m[3], token: tokenFromItemType(m[3]), ms, idx };
+    if (evt.kind === 'ITEM ADDED') { this.stats.ignoredAdded++; return; }
+    if (evt.kind === 'MULTICAST ITEM ADDED') { this.stats.ignoredMulticast++; return; }
+    this.rcvIdx.push(idx);
+    this.pending.push(evt);
+  }
+
+  // For a RECEIVED line: did her ItemEarned stat go up right after it?
+  // Real gain:   stat "to 5913" | RECEIVED x7 | stat "to 5920"   (rises)
+  // Moved only:  stat "to 25401" | RECEIVED x30 | (no rise follows)
+  // true = earned, false = only moved, null = no stat lines around it
+  // (stat logging isn't always active) - unknown is counted.
+  _earned(evt) {
+    let prevRcv = -Infinity, nextRcv = Infinity;
+    for (const i of this.rcvIdx) {
+      if (i < evt.idx) prevRcv = i;
+      else if (i > evt.idx) { nextRcv = i; break; }
+    }
+    let pre = null, post = null;
+    for (const s of this.statEvents) {
+      if (s.idx < evt.idx) {
+        if (s.idx > prevRcv && evt.ms - s.ms <= 5) pre = s;
+      } else if (s.idx > evt.idx) {
+        if (s.idx < nextRcv && s.ms - evt.ms <= 50) post = s;
+        break;
+      }
+    }
+    if (post) return post.prev === undefined ? null : post.value > post.prev;
+    if (pre) return false;
+    return null;
+  }
+
+  // Decide held events; returns the ones to count. force=true decides
+  // everything now (use when the log has gone quiet).
+  flush(force = false) {
+    const out = [];
+    const cutoff = this.lastLogMs - this.holdMs;
+    const keep = [];
+    for (const evt of this.pending) {
+      if (!force && evt.ms > cutoff) { keep.push(evt); continue; }
+      if (this._earned(evt) === false) { this.stats.movedNotEarned++; continue; }
+      evt.source = 'received';
+      this.stats.received++;
+      out.push(evt);
+    }
+    this.pending = keep;
+    this._prune();
+    return out;
+  }
+
+  _prune() {
+    const old = this.lastLogMs - 60000;
+    this.statEvents = this.statEvents.filter(s => s.ms >= old);
+    const oldestPending = this.pending.length ? this.pending[0].idx : this.lineNo;
+    this.rcvIdx = this.rcvIdx.filter(i => i >= oldestPending - 5000);
+  }
+}
+
 // Formats a deduped event into a synthetic Palia-Assistant-style log line.
 // Example: 2026-09-20 02:15:33.123 -05:00 [INF] Inventory gained: itemtype_currency_echo_amber x20
 function formatEventLine(evt, tzOffset = '-05:00') {
@@ -112,5 +237,6 @@ module.exports = {
   parseTimestamp,
   parseLine,
   DedupTracker,
+  OwnEventClassifier,
   formatEventLine,
 };

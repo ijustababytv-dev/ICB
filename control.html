@@ -66,6 +66,15 @@
     .rt .correct{flex-basis:100%;margin-top:2px}
     .rt-life{font-size:10px;letter-spacing:.05em;color:#8df0ae}
     .rt-url{font-family:ui-monospace,Consolas,monospace;font-size:11px;opacity:.85}
+    .rt{align-content:flex-start}
+    .rt-bar{flex-basis:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+    .rt-handle{cursor:grab;user-select:none;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.06)}
+    .rt-handle:active{cursor:grabbing}
+    .rt-bar button{padding:2px 8px;font-size:11px}
+    .rt.dragging{opacity:.45;outline:2px dashed var(--cyan)}
+    .rt-hidden{margin-top:14px;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);font-size:13px}
+    .rt-hidden .chip{display:inline-flex;align-items:center;gap:6px;margin:4px 6px 0 0;padding:3px 4px 3px 10px;border-radius:20px;background:#0c182b;border:1px solid var(--line)}
+    .rt-hidden .chip button{padding:2px 8px;font-size:11px}
     .rt-undo{margin-top:10px;padding:10px;border-radius:10px;font-size:13px;
              background:rgba(255,200,90,.12);border:1px solid rgba(255,200,90,.6)}
     .danger{background:#3a1520;border-color:#7a2740;color:#ffd0da}
@@ -184,7 +193,9 @@
         <span class="hint" id="rtState"></span>
       </div>
       <div id="rtUndo"></div>
+      <div class="hint" style="margin-top:10px">Drag a tracker by its <b>⠿ move</b> handle to put it where you want. <b>✕ Remove</b> only takes it off this dashboard — it keeps counting, its Meld layer keeps working, and you can bring it back below any time.</div>
       <div class="rt-grid" id="rtGrid"></div>
+      <div id="rtHidden"></div>
     </section>
     <section class="card wide" data-panel="log">
       <div class="panel-move"><button class="secondary" data-move="up" title="Move panel up">▲</button><button class="secondary" data-move="down" title="Move panel down">▼</button></div>
@@ -196,6 +207,10 @@
   let state = null;
   let lastHealth = null;
   let panelOrderApplied = false;
+  // Tracker card order + cards removed from the dashboard (saved in ICB's settings via /api/layout).
+  let rtLay = {order:[],hidden:[]};
+  let rtLayLocal = false;   // true once she has changed it here, so a stale broadcast can't undo it
+  let rtDragging = null, rtRenderWaiting = false;
   const fmt = value => value === null || value === undefined ? '—' : Number(value).toLocaleString();
   const stamp = value => value ? new Date(value).toLocaleString() : '—';
   const phEsc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -212,6 +227,7 @@
     const needsReconciliation=Boolean(l.reconciliation?.required); $('reconcilePanel').hidden=!needsReconciliation; document.querySelectorAll('[data-correct]').forEach(button=>button.disabled=needsReconciliation);
     renderGuide();
     if(!panelOrderApplied){ applyPanelOrder(s.layout?.panelOrder); panelOrderApplied=true; }
+    if(!rtLayLocal){ rtLay={order:Array.isArray(s.layout?.trackerOrder)?s.layout.trackerOrder:[],hidden:Array.isArray(s.layout?.trackerHidden)?s.layout.trackerHidden:[]}; if(typeof rtRender==='function') rtRender(); }
   }
   // ---------------- panel reordering ----------------
   function applyPanelOrder(order){
@@ -366,10 +382,16 @@
   let RT={cards:[]};
   function rtRender(){
     const g=$('rtGrid'); if(!g) return;
-    const cards=RT.cards||[];
+    if(rtDragging){ rtRenderWaiting=true; return; }  // don't redraw under her mouse mid-drag
+    rtBindDrag(g);
+    const allCards=RT.cards||[];
+    const hiddenIds=rtLay.hidden||[];
+    const pos=id=>{ const i=(rtLay.order||[]).indexOf(id); return i<0 ? 100000+allCards.findIndex(x=>x.id===id) : i; };
+    const cards=allCards.filter(c=>!hiddenIds.includes(c.id)).sort((a,b)=>pos(a.id)-pos(b.id));
+    const removed=allCards.filter(c=>hiddenIds.includes(c.id));
     $('rtState').textContent = RT.lastLoginAt
       ? `last Palia login seen ${new Date(RT.lastLoginAt).toLocaleTimeString()}` : '';
-    g.innerHTML=cards.map(c=>{
+    g.innerHTML=cards.map(c=>rtWrap(c,(()=>{
       if(c.slots){
         // Multi-slot 'collection' card (e.g. Queen Ushindi Collection): one
         // dashboard card, N independent materials each with its own −/+/Reset,
@@ -390,7 +412,7 @@
       </div>
       <div class="rt-v" style="font-size:16px;line-height:1.6;display:block">${rows}</div>
       <div class="rt-btns">
-        <button class="secondary" data-rtslotsreset="${phEsc(c.id)}" data-rtresetname="all 5 materials">Reset All</button>
+        <button class="secondary" data-rtslotsreset="${phEsc(c.id)}" data-rtresetname="all ${(c.slots||[]).length} counts on ${phEsc(c.name)}">Reset All</button>
       </div>
     </div>`;
       }
@@ -444,7 +466,10 @@
         <button data-rt="${phEsc(c.id)}" data-d="1">+</button>
         <button class="secondary" data-rtreset="${phEsc(c.id)}" data-rtresetname="${phEsc(c.name)}">Reset</button></div>`}
     </div>`;
-    }).join('');
+    })())).join('');
+    $('rtHidden').innerHTML = !removed.length ? '' :
+      `<div class="rt-hidden"><b>Removed from dashboard</b> <span class="muted">(still counting in the background)</span><br>${
+        removed.map(c=>`<span class="chip">${phEsc(c.name||c.id)} <button class="secondary" data-rtshow="${phEsc(c.id)}">Bring back</button></span>`).join('')}</div>`;
     // She logs into Palia many times a day, so a reset she did not want has to
     // be recoverable rather than just explained.
     $('rtUndo').innerHTML = !RT.canUndoReset ? '' :
@@ -452,6 +477,46 @@
        ${RT.lastResetAt?` at ${new Date(RT.lastResetAt).toLocaleTimeString()}`:''}.
        <button class="secondary" id="rtUndoBtn" style="margin-left:8px">Undo — put the numbers back</button></div>`;
   }
+  function rtWrap(c,html){
+    // Adds the move handle + remove button to the top of each tracker card.
+    const bar=`<div class="rt-bar"><span class="rt-handle" draggable="true" title="Drag to move">⠿ move</span><span class="rt-name" style="flex:1">${phEsc(c.name||c.id)}</span><button class="secondary" data-rttop="${phEsc(c.id)}" title="Move this tracker to the top">⇧ Top</button><button class="secondary" data-rthide="${phEsc(c.id)}" title="Take this tracker off the dashboard">✕ Remove</button></div>`;
+    return html.replace('<div class="rt">',`<div class="rt" data-rtid="${phEsc(c.id)}">${bar}`);
+  }
+  async function rtSaveLayout(){
+    rtLayLocal=true;
+    try{ await fetch('/api/layout',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({trackerOrder:rtLay.order,trackerHidden:rtLay.hidden})}); log('tracker layout saved','layout'); }
+    catch(_error){ log('could not save tracker layout - is ICB running?','layout'); }
+  }
+  function rtBindDrag(g){
+    if(g.dataset.dnd) return; g.dataset.dnd='1';
+    // Only the handle starts a drag, so typing in a box or clicking buttons never moves a card.
+    g.addEventListener('dragstart',e=>{ const h=e.target.closest&&e.target.closest('.rt-handle'); const card=h&&h.closest('.rt[data-rtid]'); if(!card) return;
+      rtDragging=card; card.classList.add('dragging'); e.dataTransfer.effectAllowed='move';
+      try{ e.dataTransfer.setData('text/plain',card.dataset.rtid); e.dataTransfer.setDragImage(card,20,20); }catch(_){ } });
+    g.addEventListener('dragover',e=>{ if(!rtDragging) return; e.preventDefault();
+      const over=e.target.closest('.rt[data-rtid]'); if(!over||over===rtDragging) return;
+      const r=over.getBoundingClientRect(); const after=(e.clientX-r.left)>r.width/2;
+      g.insertBefore(rtDragging, after?over.nextSibling:over); });
+    g.addEventListener('drop',e=>{ if(rtDragging) e.preventDefault(); });
+    g.addEventListener('dragend',()=>{ if(!rtDragging) return;
+      rtDragging.classList.remove('dragging'); rtDragging=null;
+      const shown=Array.from(g.querySelectorAll('.rt[data-rtid]')).map(x=>x.dataset.rtid);
+      rtLay.order=shown.concat((rtLay.order||[]).filter(id=>!shown.includes(id)));
+      rtSaveLayout(); rtRenderWaiting=false; rtRender(); });
+  }
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.rthide){
+      const name=(b.closest('.rt')?.querySelector('.rt-name')?.textContent)||'this tracker';
+      if(!confirm(`Remove ${name} from the dashboard?\n\nIt keeps counting and its Meld layer keeps working. You can bring it back from the "Removed from dashboard" list at the bottom.`)) return;
+      rtLay.hidden=Array.from(new Set((rtLay.hidden||[]).concat(b.dataset.rthide))); rtSaveLayout(); rtRender();
+    } else if(b.dataset.rttop){
+      const shown=Array.from($('rtGrid').querySelectorAll('.rt[data-rtid]')).map(x=>x.dataset.rtid).filter(id=>id!==b.dataset.rttop);
+      rtLay.order=[b.dataset.rttop].concat(shown, (rtLay.order||[]).filter(id=>id!==b.dataset.rttop&&!shown.includes(id))); rtSaveLayout(); rtRender();
+    } else if(b.dataset.rtshow){
+      rtLay.hidden=(rtLay.hidden||[]).filter(id=>id!==b.dataset.rtshow); rtSaveLayout(); rtRender();
+    }
+  });
   async function rtCall(url,body,method='PUT'){
     const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
     const d=await r.json().catch(()=>({}));

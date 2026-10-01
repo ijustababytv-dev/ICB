@@ -146,8 +146,14 @@
       <button class="btn-plushie" onclick="draw('plushie')">🧸 Draw Plushie Winner</button>
       <button class="btn-mystery" onclick="draw('mystery-outfit')">🎁 Draw Mystery Outfit Winner</button>
     </div>
-    <p class="footer-note">The winner is picked fairly the instant you click, from everyone's full fluffy unicorn count. On stream the cloud rains all their unicorns, the screen mixes like a lottery machine, a 10-second countdown runs, and the winner is revealed about 23 seconds after your click. The name stays hidden here and on the Winners Circle until then.</p>
+    <p class="footer-note">The winner is picked fairly the instant you click, from everyone's full fluffy unicorn count. On stream the jar tips, its unicorns tumble out and mix like a lottery machine while the song plays, and the winner is revealed about 20 seconds before the song ends (about 1 min 20 s after your click). The song then plays out and fades. The name stays hidden here and on the Winners Circle until then.</p>
     <p class="footer-note">Plushie winners stay eligible for future plushie drawings. Mystery Outfit winners are removed from future Mystery Outfit drawings only (still eligible for plushies).</p>
+
+    <div class="draw-row" style="margin-top:4px; align-items:center;">
+      <button class="btn-ghost" onclick="testDraw()">🧪 Test drawing (demo)</button>
+      <span class="save-status" id="testDrawStatus"></span>
+    </div>
+    <p class="footer-note">Runs the exact same show on the unicorn jar so you can show someone how it works, but the winner is always IJustABabyTv and nothing real gets touched — no entrant, no Winners Circle entry, nothing in the nightly report. Safe to click any time, even mid-stream.</p>
 
     <div class="draw-row" style="margin-top:4px; align-items:center;">
       <button class="btn-ghost" onclick="emptyJar()">🫙 Empty the jar</button>
@@ -159,9 +165,10 @@
     <div class="winners-list" id="winnersList"><div style="color:var(--text-dim); font-size:13px;">None yet.</div></div>
 
     <div class="draw-row" style="margin-top:18px;">
+      <button class="btn-ghost" onclick="resetWinnersOnly()">Reset winners only</button>
       <button class="btn-danger" onclick="resetGiveaway()">Reset everything</button>
     </div>
-    <p class="footer-note">Everything carries over to your next stream — entrants, fluffy unicorns, sub info, winners, and who's already won a Mystery Outfit. Only this button clears it. Board text and rates are kept.</p>
+    <p class="footer-note">"Reset winners only" clears the Winners Circle history and lets anyone who already won a Mystery Outfit be drawn for one again — entrants, fluffy unicorn counts, and sub info are untouched. "Reset everything" wipes all of it. Board text and rates are always kept.</p>
   </div>
 </div>
 
@@ -220,6 +227,17 @@
 </div>
 
 <div class="card text-card">
+  <h2>Backups <span class="breakdown">— automatic copies of everyone's fluffy unicorns, winners, and notes</span></h2>
+  <div class="draw-row" style="margin-bottom:10px; align-items:center;">
+    <button class="btn-ghost" onclick="backupNow()">💾 Back up now</button>
+    <button class="btn-ghost" onclick="loadBackups()">↻ Refresh list</button>
+    <span class="save-status" id="backupStatus"></span>
+  </div>
+  <div id="backupList" style="max-height:260px; overflow:auto; font-size:13px;"><div style="color:var(--text-dim);">Loading…</div></div>
+  <p class="footer-note">ICB saves a copy every 5 minutes (last ~12 hours kept), one per stream day (last 60 days), and one right before Reset everything, Reset winners only, Empty the jar, or a restore. Restoring puts the giveaway back exactly as it was at that moment — and saves a copy of the current state first, so a restore can always be undone. Files live in data\backups\giveaway.</p>
+</div>
+
+<div class="card text-card">
   <h2>Blocked from the giveaway <span class="breakdown">— you and chat bots never earn or win</span></h2>
   <div class="field">
     <label for="blockedList">One name per line</label>
@@ -266,6 +284,11 @@
       <label for="dTicker">Rotating reminder lines (one per line)</label>
       <textarea id="dTicker"></textarea>
       <div class="hint">Each line shows for 5 seconds, then the next. Leave it empty to hide the reminder line.</div>
+    </div>
+    <div class="field wide">
+      <label for="dPrizeLabel">Current prize name (shown on the winner banner &amp; Winners Circle)</label>
+      <input type="text" id="dPrizeLabel" maxlength="60" placeholder="Leave blank for the generic &quot;Plushie&quot; / &quot;Mystery Outfit&quot; wording">
+      <div class="hint">Set this before you draw, e.g. "Squishmallow Corgi" — each winner keeps whatever this said at the moment they won.</div>
     </div>
     <div class="field">
       <label for="dWinnersTitle">Winners Circle heading</label>
@@ -333,7 +356,7 @@
     return parts.join(' · ') || '—';
   }
 
-  const DISPLAY_FIELDS = ['dEntrantsTitle','dMaxRows','dEmptyMessage','dTicker','dWinnersTitle','dWinnersEmpty','dJarSide','dUnicornSize','dShowNames','dMagic'];
+  const DISPLAY_FIELDS = ['dEntrantsTitle','dMaxRows','dEmptyMessage','dTicker','dPrizeLabel','dWinnersTitle','dWinnersEmpty','dJarSide','dUnicornSize','dShowNames','dMagic'];
   let displayDirty = false;
   DISPLAY_FIELDS.forEach(id => ['input','change'].forEach(evt => $(id).addEventListener(evt, () => {
     displayDirty = true;
@@ -346,6 +369,7 @@
     $('dMaxRows').value = d.maxRows || 10;
     $('dEmptyMessage').value = d.emptyMessage || '';
     $('dTicker').value = (d.tickerMessages || []).join('\n');
+    $('dPrizeLabel').value = d.currentPrizeLabel || '';
     $('dWinnersTitle').value = d.winnersTitle || '';
     $('dWinnersEmpty').value = d.winnersEmptyMessage || '';
     $('dJarSide').value = d.jarSide || 'right';
@@ -360,6 +384,7 @@
       maxRows: parseInt($('dMaxRows').value, 10) || 10,
       emptyMessage: $('dEmptyMessage').value,
       tickerMessages: $('dTicker').value.split('\n').map(l => l.trim()).filter(Boolean),
+      currentPrizeLabel: $('dPrizeLabel').value,
       winnersTitle: $('dWinnersTitle').value,
       winnersEmptyMessage: $('dWinnersEmpty').value,
       jarSide: $('dJarSide').value,
@@ -518,10 +543,11 @@
       toast.style.borderColor = 'var(--bad)';
       return;
     }
-    // The stream reveals the winner after the cloud rain, lottery mix and
-    // 10-second countdown (~23 s). Keep it a secret here until then.
+    // The stream reveals the winner ~20 s before the draw song ends
+    // (~82 s: DEFAULT_SONG_MS 101720 - REVEAL_BEFORE_END_MS 20000 in unicorn-jar.html).
+    // Keep it a secret here until then.
     const prizeName = data.winner.prize === 'mystery-outfit' ? 'Mystery Outfit' : 'Plushie';
-    const revealAt = Date.now() + 23000;
+    const revealAt = Date.now() + 81720;
     toast.style.display = 'block';
     toast.style.borderColor = 'var(--accent)';
     clearInterval(window.__drawTimer);
@@ -532,6 +558,19 @@
       toast.textContent = `🎉 ${data.winner.username} won the ${prizeName}!`;
     };
     tick(); window.__drawTimer = setInterval(tick, 500);
+  }
+
+  async function testDraw(){
+    const status = $('testDrawStatus');
+    status.textContent = 'Running demo…';
+    const res = await fetch('/api/giveaway/draw-test', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ prize: 'plushie' }),
+    });
+    const data = await res.json();
+    if (!data.ok) { status.textContent = 'Could not start the demo.'; return; }
+    status.textContent = '🧪 Demo running on stream now — IJustABabyTv "wins" every time. Nothing real was touched.';
+    setTimeout(() => { if (status.textContent.indexOf('Demo running') === 0 || status.textContent.indexOf('🧪') === 0) status.textContent = ''; }, 8000);
   }
 
   function setGiveAmount(n){ $('giveAmount').value = n; updateGivePreview(); }
@@ -644,11 +683,47 @@
     $('jarStatus').textContent = `In the jar this stream: ${j.total} 🦄${since ? ' · since ' + since : ''}`;
   }
 
+  async function resetWinnersOnly(){
+    if (!confirm('Clear the Winners Circle history? This also lets anyone who already won a Mystery Outfit be drawn for one again. Entrants, fluffy unicorn counts, and sub info are NOT touched. This cannot be undone.')) return;
+    await fetch('/api/giveaway/winners/reset', { method: 'POST' });
+    $('winnerToast').style.display = 'none';
+  }
+
   async function resetGiveaway(){
-    if (!confirm('Reset the whole giveaway? This wipes EVERY entrant, fluffy unicorn, sub info, note, winner, and give-history record. Board text and rates are kept. This cannot be undone.')) return;
+    if (!confirm('Reset the whole giveaway? This wipes EVERY entrant, fluffy unicorn, sub info, note, winner, and give-history record. Board text and rates are kept. A backup is saved first, so it can be restored from the Backups card.')) return;
     await fetch('/api/giveaway/reset', { method: 'POST' });
     $('winnerToast').style.display = 'none';
   }
+
+  const BACKUP_KIND = { auto: 'Every 5 min', daily: 'Daily', before: 'Before a change', corrupt: 'Damaged file (kept)' };
+  async function loadBackups(){
+    const box = $('backupList');
+    try {
+      const data = await (await fetch('/api/giveaway/backups')).json();
+      if (!data.ok || !data.backups.length) { box.innerHTML = '<div style="color:var(--text-dim);">No backups yet — the first one is made when ICB starts.</div>'; return; }
+      box.innerHTML = data.backups.map(b => {
+        const when = new Date(b.at).toLocaleString();
+        const tag = b.file.replace(/^[a-z]+_[0-9_-]+_?/i, '').replace(/\.json$/, '').replace(/-/g, ' ');
+        const stats = b.entrants === null ? 'unreadable' : `${b.entrants} people · ${b.unicorns} 🦄 · ${b.winners} winners`;
+        const btn = b.kind === 'corrupt' || b.entrants === null ? '' : `<button class="btn-ghost" style="padding:3px 10px; font-size:12px;" onclick="restoreBackup('${escapeHtml(b.file)}', '${escapeHtml(when)}')">Restore</button>`;
+        return `<div style="display:flex; gap:10px; align-items:center; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="flex:1;"><b>${escapeHtml(when)}</b> <span style="color:var(--text-dim);">— ${escapeHtml(BACKUP_KIND[b.kind] || b.kind)}${tag ? ' (' + escapeHtml(tag) + ')' : ''}</span><br><span style="color:var(--text-dim); font-size:12px;">${escapeHtml(stats)}</span></div>${btn}</div>`;
+      }).join('');
+    } catch (e) { box.innerHTML = '<div style="color:var(--bad);">Could not load backups.</div>'; }
+  }
+  async function backupNow(){
+    const data = await (await fetch('/api/giveaway/backups/now', { method: 'POST' })).json();
+    $('backupStatus').textContent = data.ok ? 'Backed up ✓' : 'Backup failed';
+    loadBackups();
+  }
+  async function restoreBackup(file, when){
+    if (!confirm(`Restore the giveaway to how it was at ${when}?\n\nEveryone's fluffy unicorns, winners, notes and settings go back to that moment. A copy of how things are right now is saved first, so you can undo this.`)) return;
+    const data = await (await fetch('/api/giveaway/backups/restore', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ file }) })).json();
+    $('backupStatus').textContent = data.ok ? `Restored ✓ (current state saved as ${data.safetyCopy})` : (data.error || 'Restore failed');
+    loadBackups();
+  }
+  loadBackups();
+  setInterval(loadBackups, 60000);
 
   async function load(){
     const res = await fetch('/api/giveaway/state');
@@ -662,6 +737,18 @@
   events.onopen = () => { $('health').classList.remove('offline'); $('health').textContent = 'connected'; };
 
   load();
+
+  // The listener's heartbeat only reaches this page when something else
+  // changes, so on a quiet chat the badge used to go stale and say
+  // "NOT running" after 20 s even though the layer was fine. Ask ICB for
+  // the fresh listener status every 5 s instead.
+  async function refreshListener(){
+    try {
+      const d = await (await fetch('/api/giveaway/state')).json();
+      if (d.ok && d.giveaway && d.giveaway.listener) { state.listener = d.giveaway.listener; renderListener(); }
+    } catch (e) {}
+  }
+  setInterval(refreshListener, 5000);
 </script>
 </body>
 </html>

@@ -70,10 +70,13 @@
   var listEl = document.getElementById('list');
   var emptyEl = document.getElementById('empty');
 
-  function prizeLabel(prize){
-    if (prize === 'mystery-outfit') return 'Mystery Outfit';
-    if (prize === 'plushie') return 'Plushie';
-    return prize;
+  function prizeLabel(w){
+    // A custom prize name set on the dashboard (e.g. "Squishmallow Corgi")
+    // overrides the generic wording (Baby, 2026-09-26).
+    if (w.prizeLabel) return w.prizeLabel;
+    if (w.prize === 'mystery-outfit') return 'Mystery Outfit';
+    if (w.prize === 'plushie') return 'Plushie';
+    return w.prize;
   }
   function prizeMedal(prize){
     return prize === 'mystery-outfit' ? '🎁' : '🧸';
@@ -96,8 +99,9 @@
     applyDisplay(giveaway.display);
     // Hide winners for the first few seconds so unicorn-jar.html can do the
     // big reveal before their name lands on this board.
-    // Cloud rain + lottery mix + 10 s countdown on unicorn-jar.html = ~23 s.
-    var REVEAL_DELAY_MS = 25000;
+    // unicorn-jar.html reveals the winner ~20 s before the draw song ends
+    // (song is ~1:42, so the reveal lands ~82 s after the click). Baby 2026-09-26.
+    var REVEAL_DELAY_MS = 83000;
     var nowMs = new Date().getTime();
     var all = giveaway.winners || [], visible = [];
     for (var v = 0; v < all.length; v++) {
@@ -118,7 +122,7 @@
       html += '<div class="row' + (i === 0 ? ' latest' : '') + '">'
         + '<span class="medal">' + prizeMedal(w.prize) + '</span>'
         + '<span class="who"><span class="name">' + escapeHtml(w.username) + '</span><br>'
-        + '<span class="prize">' + prizeLabel(w.prize) + '</span></span>'
+        + '<span class="prize">' + escapeHtml(prizeLabel(w)) + '</span></span>'
         + '</div>';
     }
     listEl.innerHTML = html;
