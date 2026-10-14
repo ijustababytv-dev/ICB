@@ -1,0 +1,14 @@
+# Updates
+
+## New Features
+
+- None.
+
+## Improvements
+
+- 2026-10-13: Made `RULES.md` mandatory before code changes and required regular GitHub commits and pushes, at least daily when there are changes.
+- 2026-10-13: Excluded assets and data backups from Git tracking while preserving all local files.
+
+## Bug Fixes
+
+- None.

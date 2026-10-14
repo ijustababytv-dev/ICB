@@ -4,11 +4,15 @@
 [`CLAUDE.md`](CLAUDE.md). The handbook is the complete record: the method, the failures and their
 root causes, and the recipes for adding trackers.
 
+**Always read [`RULES.md`](RULES.md) before creating or editing any code. This is required.**
+Follow it to determine how code must be written, edited, documented, and maintained, including
+recording completed work in `UPDATES.md`.
+
 ---
 
-**Read [`CLAUDE.md`](CLAUDE.md) first.** It holds the standing decisions for this project and is
-the canonical onboarding file for any AI session (Claude, Codex, ChatGPT, or otherwise). This file
-exists only so agents that look for `AGENTS.md` by convention still find their way there.
+[`CLAUDE.md`](CLAUDE.md) holds the standing decisions for this project and is the canonical
+onboarding file for any AI session (Claude, Codex, ChatGPT, or otherwise). Agents that discover
+`AGENTS.md` must follow the reading order above and the requirements in this file.
 
 The three things most likely to be got wrong by a fresh session:
 
@@ -21,3 +25,8 @@ The three things most likely to be got wrong by a fresh session:
 
 Verify work with `npm run test:e2e`. The skin standard is asserted there — if you change it, the
 build fails, and that is deliberate.
+
+**Commit and push all pending project changes to GitHub whenever it makes logical sense**, such
+as after completing a coherent task or fix, and **at least once per day when there are changes**.
+Include all project work while respecting `.gitignore` and the prohibition on committing secrets
+in `RULES.md`.
