@@ -20,9 +20,10 @@ coverage/
 
 dist/
 
-CLAUDE.md
 .claude/
 /Claude*
+# Keep the canonical project instructions tracked.
+!/CLAUDE.md
 
 # Local assets and backups
 /assets/

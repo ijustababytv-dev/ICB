@@ -11,4 +11,4 @@
 
 ## Bug Fixes
 
-- None.
+- 2026-10-13: Allowed `CLAUDE.md` to be tracked while keeping other Claude files ignored.
