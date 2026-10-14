@@ -56,6 +56,26 @@
   .pv-walker img{ height:90px; }
   .pv-name{ white-space:nowrap; line-height:1.1; margin:4px 0; }
   input[type=color]{ width:54px; height:32px; border:1px solid var(--line); border-radius:8px; background:#130d1b; padding:2px; cursor:pointer; }
+  .anim-list{ display:flex; flex-direction:column; gap:6px; }
+  .anim{ display:grid; grid-template-columns:56px 1fr 150px 30px 64px; gap:10px; align-items:center; padding:6px 8px; border-radius:10px; background:#181122; }
+  .anim.off .anim-name, .anim.off .anim-desc{ opacity:.45; }
+  .anim-name{ font-weight:700; }
+  .anim-desc{ color:var(--dim); font-size:12px; }
+  .anim output{ text-align:right; color:var(--dim); font-size:12px; }
+  .anim button{ padding:4px 8px; font-size:12px; }
+  .anim-head{ display:flex; align-items:center; gap:8px; margin:14px 0 8px; }
+  .anim-head h3{ margin:0; font-size:14px; flex:1; }
+  .anim-head button{ padding:3px 10px; font-size:12px; }
+  .pool{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pool .pt{ position:relative; width:86px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .pool .pt img{ width:80px; height:68px; object-fit:contain; background:#130d1b; border:1px solid var(--line); border-radius:10px; padding:4px; }
+  .pool.subs .pt img{ border-color:var(--gold); }
+  .pool .pt button{ font-size:10px; padding:2px 6px; border-radius:8px; }
+  .pool .pt .fn{ font-size:10px; color:var(--dim); max-width:84px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .drop{ border:2px dashed var(--line); border-radius:12px; padding:10px; text-align:center; color:var(--dim); cursor:pointer; margin-top:8px; font-size:13px; }
+  .drop.hover{ border-color:var(--accent); color:var(--text); }
+  .pic-cell{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .pv-thumb{ width:40px; height:36px; object-fit:contain; background:#130d1b; border:1px solid var(--line); border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-size:16px; }
   .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
   .toast.show{ opacity:1; }
 </style>
@@ -64,7 +84,7 @@
   <div class="top">
     <div>
       <h1>💬 <span>Chat Unicorns</span></h1>
-      <div class="sub">Chatters' unicorns hop along the bottom of the stream and say their messages.</div>
+      <div class="sub">Chatters' unicorns hop, glide, float and skip along the bottom of the stream and say their messages.</div>
     </div>
     <div class="spacer"></div>
     <span class="health" id="health">connecting…</span>
@@ -94,8 +114,33 @@
           <label>Chat bubble shows for</label><input type="range" id="bubbleSeconds" min="2" max="20" step="1" oninput="slide(this,'bubbleSeconds', v => v + ' sec')"><output id="bubbleSeconds-v"></output>
         </div>
         <div class="switchrow" style="margin-top:14px"><label class="switch"><input type="checkbox" id="artFacesLeft" onchange="saveSetting('artFacesLeft', this.checked)"><span></span></label><span>My unicorn pictures face <b id="faceText">right</b> <span class="note">(flip this if they ever walk backwards)</span></span></div>
-        <div class="note" style="margin-top:4px">Unicorn art: <code>ICB\assets\decor\unicorn\</code> — every picture in there can be used. Each person keeps the same one (random, unless you pick one in the list). Pictures with <b>ghost</b> in the file name (like ghost2.png) float and drift instead of hopping. Until you add art, a simple drawn unicorn is used.</div>
-        <div class="art" id="art" style="margin-top:10px"></div>
+        <div class="note" style="margin-top:4px">Pictures with <b>ghost</b> in the file name float and drift instead of hopping. Until you add art, a simple drawn unicorn is used.</div>
+        <h3 style="margin:14px 0 6px;font-size:14px">🎲 Everyone's random pool</h3>
+        <div class="note" style="margin:0 0 8px">Everyone who chats gets one of these at random (and keeps the same one), unless you pick one for them in the list. Folder: <code>ICB\assets\decor\unicorn\</code></div>
+        <div class="pool" id="art"></div>
+        <div class="drop" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')" ondrop="event.preventDefault(); this.classList.remove('hover'); uploadArt(event.dataTransfer.files, 'all')" onclick="this.nextElementSibling.click()">Drop pictures here to add them to the random pool</div>
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadArt(this.files, 'all'); this.value=''">
+        <h3 style="margin:16px 0 6px;font-size:14px">⭐ Subscriber-only pictures</h3>
+        <div class="note" style="margin:0 0 8px">Never used for random picks. Only subscribers can have these — pick one for a sub in the list, or let subs get one automatically. Folder: <code>ICB\assets\decor\unicorn-subs\</code></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="subsAuto" onchange="saveSetting('subsAuto', this.checked)"><span></span></label><span id="subsAutoText"></span></div>
+        <div class="pool subs" id="subArt"></div>
+        <div class="drop" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')" ondrop="event.preventDefault(); this.classList.remove('hover'); uploadArt(event.dataTransfer.files, 'subs')" onclick="this.nextElementSibling.click()">Drop pictures here to add subscriber-only pictures</div>
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadArt(this.files, 'subs'); this.value=''">
+      </div>
+
+      <div class="card">
+        <h2>✨ Animations</h2>
+        <div class="note" style="margin:0 0 10px">Switch any animation on or off and choose how often it happens (1 = rarely, 10 = a lot). <b>▶ Try</b> makes every unicorn on screen do it right now — press 🧪 Test above first if nobody's on screen.</div>
+        <div class="sliders" style="grid-template-columns:150px 1fr 60px">
+          <label>Time between tricks</label><input type="range" id="trickGap" min="2" max="30" step="1" oninput="slide(this,'trickGap', v => '~' + v + ' sec')"><output id="trickGap-v"></output>
+          <label>How they arrive</label><select id="entrance" onchange="saveSetting('entrance', this.value)"></select><button style="white-space:nowrap;padding:6px 8px" onclick="tryAnim('enter:' + $('entrance').value)">▶ Try</button>
+          <label>How they leave</label><select id="exitStyle" onchange="saveSetting('exitStyle', this.value)"></select><button style="white-space:nowrap;padding:6px 8px" onclick="tryAnim('exit:' + $('exitStyle').value)">▶ Try</button>
+        </div>
+        <div class="anim-head"><h3>🦄 How they get around</h3><button onclick="setGroup('move', true)">All on</button><button onclick="setGroup('move', false)">All off</button></div>
+        <div class="anim-list" id="animMove"></div>
+        <div class="note">Each unicorn switches between the ones that are on every 10–20 seconds, so they don't all move the same way. Ghost pictures always float.</div>
+        <div class="anim-head"><h3>🎪 Tricks</h3><button onclick="setGroup('trick', true)">All on</button><button onclick="setGroup('trick', false)">All off</button></div>
+        <div class="anim-list" id="animTrick"></div>
       </div>
 
       <div class="card">
@@ -140,6 +185,11 @@
     <div class="card">
       <h2>Who gets a unicorn</h2>
       <div class="row" style="margin-bottom:10px">
+        <select id="whoGets" onchange="saveSetting('whoGets', this.value)">
+          <option value="everyone">Everyone who chats gets one</option><option value="subs">Only subscribers (plus anyone you tick)</option>
+        </select>
+      </div>
+      <div class="row" style="margin-bottom:10px">
         <input type="search" id="search" placeholder="Search names…" oninput="renderPeople()" style="flex:1">
         <label class="row" style="gap:6px;color:var(--dim)"><input type="checkbox" id="onlyOn" onchange="renderPeople()"> only ticked</label>
       </div>
@@ -147,7 +197,7 @@
         <thead><tr><th></th><th>Chatter</th><th>Unicorn picture</th><th></th></tr></thead>
         <tbody id="people"></tbody>
       </table></div>
-      <div class="note">Subscribers are ticked automatically (anyone with sub months in the giveaway — live subs, or ones you added as "already subbed"). Tick anyone else you want to have one, or untick a sub. "Reset" puts someone back to automatic. Everyone who chats shows up here; bots and names on your giveaway block list never get one.</div>
+      <div class="note">With "Everyone", anyone who chats is ticked automatically — untick someone to leave them out. With "Only subscribers", subs are ticked automatically (anyone with sub months in the giveaway — live subs, or ones you added as "already subbed") and you can tick anyone else. "Reset" puts someone back to automatic. Bots and names on your giveaway block list never get one. The picture menu shows ⭐ subscriber-only pictures for subs only. <b>📷 Their own</b> uploads a picture of their choice just for that person — nobody else ever gets it, and it's never used at random (saved in <code>ICB\assets\decor\unicorn-personal\</code>).</div>
     </div>
   </div>
 
@@ -191,10 +241,57 @@
     for (const k of ['nameBold', 'nameBackground', 'showChat']) $(k).checked = s[k];
     $('showChatText').textContent = s.showChat ? 'Show what they type in speech bubbles' : 'Chat bubbles are OFF';
     if (!dragging) for (const [k, f] of [['nameSize', v => v + 'px'], ['nameOutlineWidth', v => v ? v + 'px' : 'none'], ['chatTextSize', v => v + 'px']]) { $(k).value = s[k]; $(k + '-v').textContent = f(Number(s[k])); }
+    renderAnims();
     renderPreview();
-    $('art').innerHTML = d.art.length ? d.art.map(f => `<img src="/decor-art/unicorn/${encodeURIComponent(f)}" title="${esc(f)}">`).join('') : '<span class="note" style="margin:0">No unicorn pictures yet - add some to the folder above.</span>';
+    $('art').innerHTML = d.art.length ? d.art.map(f => `<div class="pt"><img src="/decor-art/unicorn/${encodeURIComponent(f)}" title="${esc(f)}"><span class="fn" title="${esc(f)}">${esc(f)}</span><button onclick="moveArt(${esc(JSON.stringify(f))}, 'subs')" title="Make this a subscriber-only picture">⭐ subs only</button></div>`).join('') : '<span class="note" style="margin:0">No pictures in the random pool yet.</span>';
+    const subArt = d.subArt || [];
+    $('subArt').innerHTML = subArt.length ? subArt.map(f => `<div class="pt"><img src="/decor-art/unicorn-subs/${encodeURIComponent(f)}" title="${esc(f)}"><span class="fn" title="${esc(f)}">${esc(f)}</span><button onclick="moveArt(${esc(JSON.stringify(f))}, 'all')" title="Put this back in everyone's random pool">🎲 to everyone</button></div>`).join('') : '<span class="note" style="margin:0">No subscriber-only pictures yet — drop some below, or press ⭐ subs only on a picture above.</span>';
+    $('subsAuto').checked = s.subsAuto !== false;
+    $('subsAutoText').innerHTML = s.subsAuto !== false ? 'Subs with no picture picked get a <b>random subscriber-only</b> picture' : 'Subs with no picture picked get a random picture from <b>everyone\'s pool</b>';
+    $('whoGets').value = s.whoGets || 'everyone';
     renderPeople();
   }
+
+  // ---- animations ----
+  function renderAnims(){
+    const s = state.settings, list = state.anims || [];
+    if (state.entrances && !$('entrance').options.length) $('entrance').innerHTML = Object.entries(state.entrances).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    if (state.exits && !$('exitStyle').options.length) $('exitStyle').innerHTML = Object.entries(state.exits).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    $('entrance').value = s.entrance; $('exitStyle').value = s.exitStyle;
+    if (dragging) return;
+    $('trickGap').value = s.trickGap; $('trickGap-v').textContent = '~' + s.trickGap + ' sec';
+    const row = a => {
+      const cur = (s.anims || {})[a.id] || { on: a.on, often: a.often };
+      return `<div class="anim ${cur.on ? '' : 'off'}">
+        <label class="switch"><input type="checkbox" ${cur.on ? 'checked' : ''} onchange="setAnim('${a.id}', { on: this.checked })"><span></span></label>
+        <div><div class="anim-name">${esc(a.label)}</div><div class="anim-desc">${esc(a.desc)}</div></div>
+        <input type="range" min="1" max="10" step="1" value="${cur.often}" title="How often" oninput="oftenSlide('${a.id}', this)">
+        <output id="often-${a.id}">${cur.often}</output>
+        <button onclick="tryAnim('${a.id}')">▶ Try</button>
+      </div>`;
+    };
+    $('animMove').innerHTML = list.filter(a => a.kind === 'move').map(row).join('');
+    $('animTrick').innerHTML = list.filter(a => a.kind === 'trick').map(row).join('');
+  }
+  async function setAnim(id, change){
+    const anims = JSON.parse(JSON.stringify(state.settings.anims || {}));
+    anims[id] = Object.assign({}, anims[id] || {}, change);
+    const d = await api('/api/walkers/settings', 'PUT', { anims });
+    if (d.ok) render(d);
+  }
+  function oftenSlide(id, el){
+    const v = Number(el.value); $('often-' + id).textContent = v;
+    state.settings.anims[id] = Object.assign({}, state.settings.anims[id] || {}, { often: v });
+    dragging = true; clearTimeout(timers['often-' + id]);
+    timers['often-' + id] = setTimeout(async () => { dragging = false; await setAnim(id, { often: v }); }, 300);
+  }
+  async function setGroup(kind, on){
+    const anims = JSON.parse(JSON.stringify(state.settings.anims || {}));
+    for (const a of state.anims) if (a.kind === kind) anims[a.id] = Object.assign({}, anims[a.id] || {}, { on });
+    const d = await api('/api/walkers/settings', 'PUT', { anims });
+    if (d.ok) { render(d); toast(on ? 'All on' : 'All off'); }
+  }
+  async function tryAnim(id){ const d = await api('/api/walkers/try', 'POST', { id }); if (d.ok) toast('Watch the stream!'); }
 
   function outline(w, c){ if (!w) return 'none'; const o = []; for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; o.push(`${(Math.cos(a) * w).toFixed(2)}px ${(Math.sin(a) * w).toFixed(2)}px 0 ${c}`); } return o.join(','); }
   function renderPreview(){
@@ -218,11 +315,18 @@
     if (!state) return;
     const q = $('search').value.trim().toLowerCase(), onlyOn = $('onlyOn').checked;
     const rows = state.people.filter(p => (!q || p.name.toLowerCase().includes(q)) && (!onlyOn || p.allowed));
-    const artOpts = sel => '<option value="">Random</option>' + state.art.map(f => `<option value="${esc(f)}" ${sel === f ? 'selected' : ''}>${esc(f)}</option>`).join('');
+    const subArt = state.subArt || [];
+    const artOpts = (sel, isSub, personal) => (personal ? `<option value="personal:${esc(personal)}" ${sel === 'personal:' + personal ? 'selected' : ''}>📷 Their own picture</option>` : '') + `<option value="">${isSub && state.settings.subsAuto !== false && subArt.length ? 'Random ⭐ sub picture' : 'Random'}</option>` +
+      (isSub && subArt.length ? `<optgroup label="⭐ Subscriber-only">${subArt.map(f => `<option value="subs:${esc(f)}" ${sel === 'subs:' + f ? 'selected' : ''}>⭐ ${esc(f)}</option>`).join('')}</optgroup>` : '') +
+      `<optgroup label="Everyone's pictures">${state.art.map(f => `<option value="${esc(f)}" ${sel === f ? 'selected' : ''}>${esc(f)}</option>`).join('')}</optgroup>`;
     $('people').innerHTML = rows.length ? rows.map(p => `<tr>
         <td class="chk"><input type="checkbox" ${p.allowed ? 'checked' : ''} onchange="setAllowed(${esc(JSON.stringify(p.name))}, this.checked)"></td>
-        <td>${esc(p.name)}${p.isSub ? '<span class="badge b-sub">SUB</span>' : ''}${p.override === null ? (p.isSub ? '<span class="badge b-auto">auto</span>' : '') : '<span class="badge b-you">your pick</span>'}</td>
-        <td>${state.art.length ? `<select onchange="setArt(${esc(JSON.stringify(p.name))}, this.value)">${artOpts(p.art)}</select>` : '<span class="note" style="margin:0">—</span>'}</td>
+        <td>${esc(p.name)}${p.isSub ? '<span class="badge b-sub">SUB</span>' : ''}${p.override === null ? ((p.isSub || state.settings.whoGets !== 'subs') ? '<span class="badge b-auto">auto</span>' : '') : '<span class="badge b-you">your pick</span>'}</td>
+        <td><div class="pic-cell">
+          ${p.art ? `<img class="pv-thumb" src="${picUrl(p.art)}" alt="" title="Current picture">` : '<span class="pv-thumb rnd" title="Random picture">🎲</span>'}
+          <select onchange="setArt(${esc(JSON.stringify(p.name))}, this.value)">${artOpts(p.art, p.isSub, p.personal)}</select>
+          <button class="reset" title="Upload a picture just for ${esc(p.name)}" onclick="pickPersonal(${esc(JSON.stringify(p.name))})">📷 Their own</button>
+        </div></td>
         <td>${p.override === null ? '' : `<button class="reset" onclick="resetPerson(${esc(JSON.stringify(p.name))})">Reset</button>`}</td>
       </tr>`).join('') : `<tr><td colspan="4" class="note">${state.people.length ? 'No matches.' : 'Nobody yet - people show up here as soon as they chat.'}</td></tr>`;
   }
@@ -242,10 +346,42 @@
   }
   async function setAllowed(name, on){ const d = await api('/api/walkers/person', 'PUT', { name, allowed: on }); if (d.ok) render(d); }
   async function resetPerson(name){ const d = await api('/api/walkers/person', 'PUT', { name, allowed: null }); if (d.ok) render(d); }
+  function picUrl(ref){
+    if (ref.indexOf('personal:') === 0) return '/decor-art/unicorn-personal/' + encodeURIComponent(ref.slice(9));
+    if (ref.indexOf('subs:') === 0) return '/decor-art/unicorn-subs/' + encodeURIComponent(ref.slice(5));
+    return '/decor-art/unicorn/' + encodeURIComponent(ref);
+  }
+  // "📷 Their own": upload a picture that only this person will ever get.
+  const personalInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif' });
+  personalInput.style.display = 'none'; document.body.appendChild(personalInput);
+  let personalFor = null;
+  function pickPersonal(name){ personalFor = name; personalInput.value = ''; personalInput.click(); }
+  personalInput.addEventListener('change', async () => {
+    const f = personalInput.files && personalInput.files[0]; if (!f || !personalFor) return;
+    const dataUrl = await new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = fail; r.readAsDataURL(f); });
+    const d = await api('/api/walkers/person-art', 'POST', { name: personalFor, dataUrl });
+    if (d.ok) { render(d); toast(`${personalFor} now has their own picture`); }
+  });
   async function setArt(name, art){ const d = await api('/api/walkers/person', 'PUT', { name, art: art || null }); if (d.ok) render(d); }
   async function test(){
     const d = await api('/api/walkers/test', 'POST', { name: $('testName').value.trim(), text: $('testText').value.trim() });
     if (d.ok) toast(`${d.name} is saying hi on stream`);
+  }
+  async function uploadArt(files, pool){
+    const list = Array.from(files || []).filter(f => /^image\//.test(f.type));
+    if (!list.length) return toast('Pick PNG, JPG, WEBP or GIF images');
+    let done = 0, last = null;
+    for (const f of list) {
+      const dataUrl = await new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = fail; r.readAsDataURL(f); });
+      const d = await api('/api/walkers/art', 'POST', { dataUrl, name: f.name, pool });
+      if (d.ok) { done++; last = d; }
+    }
+    if (last) render(last);
+    toast(`Added ${done} picture${done === 1 ? '' : 's'}${pool === 'subs' ? ' (subscriber-only)' : ''}`);
+  }
+  async function moveArt(file, to){
+    const d = await api('/api/walkers/art/move', 'POST', { file, to });
+    if (d.ok) { render(d); toast(to === 'subs' ? `${file} is now subscriber-only` : `${file} is back in everyone's pool`); }
   }
   async function clearAll(){ const d = await api('/api/walkers/clear', 'POST'); if (d.ok) toast('Everyone is heading home'); }
 

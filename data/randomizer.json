@@ -1,0 +1,42 @@
+{
+  "games": [
+    {
+      "id": "palia",
+      "name": "Palia",
+      "titles": [
+        "🦄 Cozy Palia Vibes | Farming, Fishing & Good Company",
+        "🌸 Chill Palia Day in Kilima | Come Hang Out!",
+        "🎣 Fishing for Rare Catches in Palia | Chat & Chill",
+        "🐞 Bug Hunting Bonanza | Cozy Palia Stream",
+        "🍳 Cooking Up a Storm in Palia | Unicorn Giveaway Tonight!",
+        "🌙 Late Night Palia | Grinding with the Herd",
+        "🏡 Decorating My Palia Plot | Help Me Choose!",
+        "💖 Palia & Plushies | Chat Earns Fluffy Unicorns"
+      ],
+      "golives": [
+        "✨ I'm LIVE in Palia! {title} — come hang out 🦄 {link}",
+        "🦄 The herd is gathering! We're live now: {title} {link}",
+        "🌸 Grab a cozy drink and join me — live in Palia! {link}",
+        "💖 Going live! Chat to earn fluffy unicorns tonight 🦄 {title} {link}",
+        "🎣 Rods out, snacks ready — I'm live! {title} {link}"
+      ]
+    }
+  ],
+  "link": "https://twitch.tv/ijustababytv",
+  "recent": {
+    "palia:title": [
+      "💖 Palia & Plushies | Chat Earns Fluffy Unicorns",
+      "🌙 Late Night Palia | Grinding with the Herd",
+      "🏡 Decorating My Palia Plot | Help Me Choose!",
+      "🌸 Chill Palia Day in Kilima | Come Hang Out!",
+      "🎣 Fishing for Rare Catches in Palia | Chat & Chill"
+    ],
+    "palia:golive": [
+      "🌸 Grab a cozy drink and join me — live in Palia! {link}",
+      "🦄 The herd is gathering! We're live now: {title} {link}",
+      "🎣 Rods out, snacks ready — I'm live! {title} {link}",
+      "✨ I'm LIVE in Palia! {title} — come hang out 🦄 {link}",
+      "💖 Going live! Chat to earn fluffy unicorns tonight 🦄 {title} {link}"
+    ]
+  }
+}

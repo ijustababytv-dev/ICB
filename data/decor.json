@@ -1,19 +1,47 @@
 {
-  "rev": 17,
+  "rev": 80,
   "effects": [
     {
       "id": "leaves",
       "name": "Falling leaves",
       "type": "fall",
-      "enabled": true,
-      "off": [],
+      "enabled": false,
+      "off": [
+        "leaf2.png",
+        "leaf1.png"
+      ],
+      "extra": [
+        "misc/heart2.png",
+        "misc/6bb7823b-15ec-46fc-931a-55b1b34b23dc.png"
+      ],
       "amount": 17,
       "speed": 1,
       "size": 42,
       "opacity": 0.9,
       "drift": -2.4,
       "sway": 1.7,
-      "spin": 1.7
+      "spin": 1.7,
+      "fade": 0
+    },
+    {
+      "id": "ghosts",
+      "name": "Floating ghosts",
+      "type": "float",
+      "enabled": true,
+      "off": [
+        "ghost1.png"
+      ],
+      "extra": [
+        "misc/6898131d-2db1-47dd-bbd7-b4bda80da4ae.png"
+      ],
+      "amount": 8,
+      "speed": 0.7,
+      "size": 122,
+      "opacity": 1,
+      "drift": 0.5,
+      "sway": 2,
+      "spin": 2,
+      "fade": 0.1
     }
   ],
   "presets": []

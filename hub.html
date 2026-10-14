@@ -52,6 +52,31 @@
   .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
   .toast.show{ opacity:1; }
   .startcount{ color:var(--dim); font-size:13px; }
+  /* Title & go-live randomizer */
+  .rz{ background:linear-gradient(180deg,#2a1d3d,var(--panel)); border:1px solid var(--accent); border-radius:18px; padding:18px; margin:0 0 22px; }
+  .rz-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .rz-head h2{ margin:0; font-size:20px; }
+  .rz-games{ display:flex; gap:6px; flex-wrap:wrap; }
+  .rz-game{ font:inherit; font-size:13px; padding:5px 12px; border-radius:999px; border:1px solid var(--line); background:#150f1f; color:var(--dim); cursor:pointer; }
+  .rz-game.on{ background:var(--accent); color:#1b0f2a; border-color:var(--accent); font-weight:700; }
+  .rz-roll{ font:inherit; font-weight:800; font-size:16px; padding:10px 22px; border:0; border-radius:12px; cursor:pointer; color:#1b0f2a; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .rz-roll:hover{ filter:brightness(1.08); }
+  .rz-out{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+  @media (max-width:900px){ .rz-out{ grid-template-columns:1fr; } }
+  .rz-box{ background:#150f1f; border:1px solid var(--line); border-radius:14px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .rz-box.locked{ border-color:#ffd36e; }
+  .rz-label{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
+  .rz-text{ font-size:17px; font-weight:600; min-height:48px; word-break:break-word; outline:none; border-radius:8px; padding:2px 4px; }
+  .rz-text:focus{ background:#1f1630; }
+  .rz-count{ font-size:12px; color:var(--dim); }
+  .rz-count.over{ color:var(--bad); font-weight:700; }
+  .rz-btns{ display:flex; gap:6px; flex-wrap:wrap; }
+  .rz-edit{ margin-top:14px; }
+  .rz-edit summary{ cursor:pointer; color:var(--accent); font-weight:700; }
+  .rz-lists{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+  @media (max-width:900px){ .rz-lists{ grid-template-columns:1fr; } }
+  .rz-lists textarea{ width:100%; min-height:220px; font:inherit; font-size:13px; background:#110b19; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:10px; resize:vertical; }
+  .rz-lists label{ font-size:13px; color:var(--dim); font-weight:700; display:block; margin-bottom:4px; }
   /* Connection check */
   .check{ background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px 18px; margin:0 0 22px; }
   .check-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -88,6 +113,55 @@
   </header>
   <p class="sub">Every ICB dashboard in one place. Drag the tiles into whatever order helps you find things fastest — it's saved.
      <span class="startcount" id="startcount"></span></p>
+
+  <div class="rz" id="rz">
+    <div class="rz-head">
+      <h2>🎲 Title &amp; Go-Live Randomizer</h2>
+      <div class="rz-games" id="rzGames"></div>
+      <div class="spacer"></div>
+      <button class="rz-roll" onclick="rzRoll()">🎲 Randomize</button>
+    </div>
+    <div class="rz-out">
+      <div class="rz-box" id="rzTitleBox">
+        <div class="rz-label">📺 Stream title <span class="spacer"></span><span class="rz-count" id="rzTitleCount"></span></div>
+        <div class="rz-text" id="rzTitle" contenteditable="true" spellcheck="true" oninput="rzEdited()"></div>
+        <div class="rz-btns">
+          <button class="sm" onclick="rzCopy('title')">📋 Copy title</button>
+          <button class="sm" onclick="rzRoll('title')">🎲 New title</button>
+          <button class="sm" id="rzLockTitle" onclick="rzLock('title')">🔓 Keep this one</button>
+        </div>
+      </div>
+      <div class="rz-box" id="rzGoliveBox">
+        <div class="rz-label">📣 Go-live message <span class="spacer"></span><span class="rz-count" id="rzGoliveCount"></span></div>
+        <div class="rz-text" id="rzGolive" contenteditable="true" spellcheck="true" oninput="rzEdited()"></div>
+        <div class="rz-btns">
+          <button class="sm" onclick="rzCopy('golive')">📋 Copy message</button>
+          <button class="sm" onclick="rzRoll('golive')">🎲 New message</button>
+          <button class="sm" id="rzLockGolive" onclick="rzLock('golive')">🔓 Keep this one</button>
+          <button class="sm" onclick="rzCopy('both')">📋 Copy both</button>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:8px">Press 🎲 Randomize for a fresh title and go-live message — it won't repeat your last few. "Keep this one" stops that side from changing when you randomize. You can also click into either box and tweak the words before copying.</div>
+    <details class="rz-edit">
+      <summary>✏️ Add or change titles and go-live messages</summary>
+      <div class="rz-lists">
+        <div><label for="rzTitles">Stream titles for <span class="rzGameName"></span> — one per line (<span id="rzTitlesN">0</span>)</label><textarea id="rzTitles" placeholder="One title per line"></textarea></div>
+        <div><label for="rzGolives">Go-live messages for <span class="rzGameName"></span> — one per line (<span id="rzGolivesN">0</span>)</label><textarea id="rzGolives" placeholder="One message per line"></textarea></div>
+      </div>
+      <div class="note" style="margin-top:6px">In go-live messages, <code>{title}</code> becomes the picked title and <code>{link}</code> becomes your channel link. Twitch titles can be up to 140 characters — the counter turns red if a title is too long.</div>
+      <div class="form" style="margin-top:10px">
+        <input type="text" id="rzLink" placeholder="Your channel link, e.g. https://twitch.tv/yourname" style="flex:1;min-width:240px">
+        <button class="btn" onclick="rzSave()">💾 Save lists</button>
+      </div>
+      <div class="form" style="margin-top:10px">
+        <input type="text" id="rzNewGame" placeholder="Add another game, e.g. Horse Life" maxlength="40">
+        <button class="btn" onclick="rzAddGame()">＋ Add game</button>
+        <button class="btn" onclick="rzRenameGame()">✏️ Rename this game</button>
+        <button class="btn" onclick="rzDeleteGame()">🗑️ Delete this game</button>
+      </div>
+    </details>
+  </div>
 
   <div class="check" id="check">
     <div class="check-head">
@@ -168,6 +242,114 @@
 
   function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2000); }
+
+  // ---------------- Title & go-live randomizer ----------------
+  let RZ = null, rzGameId = null, rzRaw = { title: '', golive: '' }, rzLocked = { title: false, golive: false }, rzDirty = false;
+  function rzGame(){ return RZ && (RZ.games.find(g => g.id === rzGameId) || RZ.games[0]); }
+  function rzFill(msg, title){ return String(msg || '').split('{title}').join(title || '').split('{link}').join((RZ && RZ.link) || '').replace(/\s+/g, ' ').trim(); }
+  function rzPick(list, recentKey){
+    if (!list.length) return '';
+    const recent = (RZ.recent[recentKey] || []);
+    const avoid = Math.min(5, list.length - 1);
+    const pool = list.filter(x => recent.slice(0, avoid).indexOf(x) < 0);
+    const pick = (pool.length ? pool : list)[Math.floor(Math.random() * (pool.length || list.length))];
+    RZ.recent[recentKey] = [pick].concat(recent.filter(x => x !== pick)).slice(0, 10);
+    return pick;
+  }
+  async function rzLoad(){
+    try { const d = await (await fetch('/api/randomizer', { cache: 'no-store' })).json(); if (!d.ok) return; RZ = d; }
+    catch (e) { return; }
+    if (!rzGameId || !RZ.games.some(g => g.id === rzGameId)) rzGameId = RZ.games[0].id;
+    const g = rzGame();
+    // Show the last picks again after a refresh.
+    rzRaw.title = (RZ.recent[g.id + ':title'] || [])[0] || '';
+    rzRaw.golive = (RZ.recent[g.id + ':golive'] || [])[0] || '';
+    rzRender(true);
+  }
+  function rzRender(lists){
+    const g = rzGame(); if (!g) return;
+    $('rzGames').innerHTML = RZ.games.map(x => `<button class="rz-game ${x.id === g.id ? 'on' : ''}" onclick="rzSwitch('${x.id}')">${esc(x.name)}</button>`).join('');
+    $('rzTitle').textContent = rzRaw.title || (g.titles.length ? 'Press 🎲 Randomize' : 'No titles yet — add some below');
+    $('rzGolive').textContent = rzRaw.golive ? rzFill(rzRaw.golive, rzTitleText()) : (g.golives.length ? 'Press 🎲 Randomize' : 'No go-live messages yet — add some below');
+    rzCounts();
+    for (const k of ['title', 'golive']) {
+      const btn = $(k === 'title' ? 'rzLockTitle' : 'rzLockGolive');
+      btn.textContent = rzLocked[k] ? '🔒 Kept' : '🔓 Keep this one';
+      $(k === 'title' ? 'rzTitleBox' : 'rzGoliveBox').classList.toggle('locked', rzLocked[k]);
+    }
+    document.querySelectorAll('.rzGameName').forEach(el => el.textContent = g.name);
+    if (lists && !rzDirty) {
+      $('rzTitles').value = g.titles.join('\n'); $('rzGolives').value = g.golives.join('\n'); $('rzLink').value = RZ.link || '';
+      $('rzTitlesN').textContent = g.titles.length; $('rzGolivesN').textContent = g.golives.length;
+    }
+  }
+  function rzTitleText(){ return rzRaw.title ? $('rzTitle').textContent : ''; }
+  function rzCounts(){
+    const t = rzRaw.title ? $('rzTitle').textContent : '', m = rzRaw.golive ? $('rzGolive').textContent : '';
+    const tc = $('rzTitleCount'); tc.textContent = t ? `${t.length} / 140` : ''; tc.classList.toggle('over', t.length > 140);
+    $('rzGoliveCount').textContent = m ? `${m.length} characters` : '';
+  }
+  function rzEdited(){ rzCounts(); }
+  async function rzRoll(which){
+    const g = rzGame(); if (!g) return;
+    if ((!which || which === 'title') && (which === 'title' || !rzLocked.title)) rzRaw.title = rzPick(g.titles, g.id + ':title');
+    if ((!which || which === 'golive') && (which === 'golive' || !rzLocked.golive)) rzRaw.golive = rzPick(g.golives, g.id + ':golive');
+    $('rzTitle').textContent = rzRaw.title;   // so the go-live message uses the new title
+    rzRender(false);
+    try { await fetch('/api/randomizer', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(RZ) }); } catch (e) {}
+  }
+  function rzLock(k){
+    rzLocked[k] = !rzLocked[k];
+    $(k === 'title' ? 'rzLockTitle' : 'rzLockGolive').textContent = rzLocked[k] ? '🔒 Kept' : '🔓 Keep this one';
+    $(k === 'title' ? 'rzTitleBox' : 'rzGoliveBox').classList.toggle('locked', rzLocked[k]);
+  }
+  function rzCopy(which){
+    const t = rzRaw.title ? $('rzTitle').textContent.trim() : '', m = rzRaw.golive ? $('rzGolive').textContent.trim() : '';
+    const text = which === 'title' ? t : which === 'golive' ? m : [t, m].filter(Boolean).join('\n\n');
+    if (!text) return toast('Press 🎲 Randomize first');
+    const done = () => toast(which === 'both' ? 'Title and message copied' : which === 'title' ? 'Title copied' : 'Message copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => prompt('Copy:', text)); else prompt('Copy:', text);
+  }
+  function rzSwitch(id){
+    if (rzDirty && !confirm('You have unsaved changes to the lists. Switch games anyway?')) return;
+    rzDirty = false; rzGameId = id; rzLocked = { title: false, golive: false };
+    const g = rzGame();
+    rzRaw.title = (RZ.recent[g.id + ':title'] || [])[0] || ''; rzRaw.golive = (RZ.recent[g.id + ':golive'] || [])[0] || '';
+    rzRender(true);
+  }
+  async function rzPut(next, msg){
+    const r = await fetch('/api/randomizer', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) });
+    const d = await r.json().catch(() => ({ ok: false }));
+    if (!d.ok) { toast(d.error || 'Could not save — is ICB running?'); return false; }
+    RZ = d; rzDirty = false; if (msg) toast(msg); return true;
+  }
+  async function rzSave(){
+    const g = rzGame(); if (!g) return;
+    const lines = id => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
+    const next = JSON.parse(JSON.stringify(RZ));
+    const ng = next.games.find(x => x.id === g.id);
+    ng.titles = lines('rzTitles'); ng.golives = lines('rzGolives'); next.link = $('rzLink').value.trim();
+    if (await rzPut(next, `Saved — ${ng.titles.length} titles, ${ng.golives.length} go-live messages`)) rzRender(true);
+  }
+  async function rzAddGame(){
+    const name = $('rzNewGame').value.trim(); if (!name) return toast('Type the game name first');
+    const next = JSON.parse(JSON.stringify(RZ)); next.games.push({ name, titles: [], golives: [] });
+    if (await rzPut(next, `Added ${name} — now add its titles`)) { $('rzNewGame').value = ''; rzGameId = RZ.games[RZ.games.length - 1].id; rzRaw = { title: '', golive: '' }; rzRender(true); }
+  }
+  async function rzRenameGame(){
+    const g = rzGame(); const name = prompt('New name for ' + g.name + ':', g.name); if (!name || !name.trim()) return;
+    const next = JSON.parse(JSON.stringify(RZ)); next.games.find(x => x.id === g.id).name = name.trim();
+    if (await rzPut(next, 'Renamed')) rzRender(true);
+  }
+  async function rzDeleteGame(){
+    const g = rzGame();
+    if (RZ.games.length < 2) return toast('Keep at least one game');
+    if (!confirm(`Delete ${g.name} and all its titles and go-live messages?`)) return;
+    const next = JSON.parse(JSON.stringify(RZ)); next.games = next.games.filter(x => x.id !== g.id);
+    if (await rzPut(next, `${g.name} deleted`)) { rzGameId = RZ.games[0].id; rzRaw = { title: '', golive: '' }; rzRender(true); }
+  }
+  document.addEventListener('input', e => { if (e.target && (e.target.id === 'rzTitles' || e.target.id === 'rzGolives' || e.target.id === 'rzLink')) rzDirty = true; });
+  rzLoad();
   async function save(body){
     const res = await fetch('/api/hub', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const d = await res.json().catch(() => ({ ok:false }));

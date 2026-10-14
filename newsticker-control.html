@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>News Ticker — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --bad:#ff5c6c; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2c1b3f 0%, var(--bg) 60%) fixed; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:24px; }
+  h1{ margin:0; font-size:24px; } h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 18px; }
+  .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .spacer{ flex:1; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
+  .health.offline{ background:#4a1f26; color:var(--bad); }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 14px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:var(--accent); color:#1b0f2a; font-weight:700; }
+  .btn-alert{ background:#c93342; border-color:#ff9aa3; color:#fff; font-weight:700; }
+  .btn-sm{ padding:3px 9px; font-size:12px; border-radius:8px; }
+  input[type=text], input[type=number], select{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 11px; min-width:0; }
+  input[type=color]{ width:44px; height:34px; border:1px solid var(--line); border-radius:8px; background:#130d1b; padding:2px; cursor:pointer; }
+  input[type=range]{ accent-color:#ff8fd8; flex:1; }
+  .grid{ display:grid; grid-template-columns:minmax(440px,1.15fr) minmax(400px,1fr); gap:16px; align-items:start; }
+  @media (max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2{ margin:0 0 12px; font-size:16px; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .row label{ color:var(--dim); min-width:110px; }
+  .note{ color:var(--dim); font-size:12px; margin-top:6px; }
+  .url{ display:flex; gap:8px; align-items:center; background:#130d1b; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; font-family:Consolas, monospace; font-size:12px; color:var(--dim); margin-bottom:10px; }
+  .url code{ flex:1; color:var(--text); }
+  .switchrow{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+  .switch{ position:relative; width:52px; height:28px; flex:none; }
+  .switch input{ display:none; }
+  .switch span{ position:absolute; inset:0; border-radius:999px; background:#3b3148; transition:.2s; cursor:pointer; }
+  .switch span::after{ content:""; position:absolute; left:3px; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch input:checked + span{ background:var(--accent); }
+  .switch input:checked + span::after{ left:27px; }
+  .mrow{ display:grid; grid-template-columns:28px 1fr auto; gap:8px; align-items:center; margin-bottom:6px; }
+  .mrow .acts{ display:flex; gap:3px; }
+  .mrow.off input[type=text]{ opacity:.45; }
+  .preview{ width:100%; height:130px; border:1px solid var(--line); border-radius:12px; background:repeating-conic-gradient(#2a2238 0 25%, #221b2e 0 50%) 0 0/24px 24px; }
+  .alertbox{ border:1px solid #6a2b37; background:#2a1219; border-radius:12px; padding:12px; }
+  .alive{ color:#ffb3bd; font-weight:700; }
+  .val{ width:56px; color:var(--dim); font-size:12px; }
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>📰 <span>News Ticker</span></h1>
+      <div class="sub">A scrolling news bar along the bottom of your stream. Change it any time — it updates live.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="card">
+    <div class="url"><code>http://127.0.0.1:8790/newsticker.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+    <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer. Make it full-screen (the bar sits at the very bottom) or a thin strip across the bottom.</div>
+    <iframe class="preview" id="preview" src="/newsticker.html"></iframe>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Messages</h2>
+        <div id="msgs"></div>
+        <div class="row" style="margin-top:8px"><input type="text" id="newMsg" style="flex:1" maxlength="300" placeholder="Type a new message and press Add (emojis work 🦄)"><button onclick="addMsg()">+ Add</button></div>
+        <div class="row"><button class="btn-accent" onclick="saveMsgs()">Save messages</button></div>
+        <div class="note">One message at a time: each one scrolls all the way off the screen before the next ticked message comes in, over and over. Untick one to skip it without deleting it.</div>
+      </div>
+
+      <div class="card">
+        <h2>⚠️ Quick alert</h2>
+        <div class="alertbox">
+          <div class="row"><input type="text" id="alertText" style="flex:1" maxlength="300" placeholder="e.g. Party starts in 5 minutes! Meet at my house 🎉"></div>
+          <div class="row"><label>Show it for</label><select id="alertSec"><option value="30">30 seconds</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option><option value="900">15 minutes</option></select>
+            <input type="color" id="alertColor" value="#ff4655" title="Alert colour"></div>
+          <div class="row"><button class="btn-alert" onclick="sendAlert()">⚠️ Show alert now</button><button onclick="stopAlert()">Stop alert</button><span class="alive" id="alertLive"></span></div>
+          <div class="note">An alert takes over the whole bar (flashing, "⚠️ ALERT" label), then your normal messages come back by themselves.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Look</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the ticker on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showLabel"><span></span></label> Show the label on the left</div>
+        <div class="row"><label>Label</label><input type="text" id="label" maxlength="40" style="flex:1" placeholder="📰 NEWS"></div>
+        <input type="hidden" id="separator">
+        <div class="row"><label>Pause between</label><input type="range" id="gap" min="0" max="10" step="0.5"><span class="val" id="gapV"></span></div>
+        <div class="row"><label>Speed</label><input type="range" id="speed" min="20" max="400"><span class="val" id="speedV"></span></div>
+        <div class="row"><label>Text size</label><input type="range" id="font" min="16" max="80"><span class="val" id="fontV"></span></div>
+        <div class="row"><label>Bar see-through</label><input type="range" id="barOpacity" min="0" max="100"><span class="val" id="barOpacityV"></span></div>
+        <div class="row"><label>Colours</label>
+          <span class="note" style="margin:0">bar</span><input type="color" id="barColor">
+          <span class="note" style="margin:0">text</span><input type="color" id="textColor">
+          <span class="note" style="margin:0">label</span><input type="color" id="labelColor">
+          <span class="note" style="margin:0">label text</span><input type="color" id="labelText">
+          <span class="note" style="margin:0">accent</span><input type="color" id="accent"></div>
+        <div class="note">Changes save as you make them.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var S = null, msgs = [];
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function toast(t){ var e = $('toast'); e.textContent = t; e.className = 'toast show'; clearTimeout(e._t); e._t = setTimeout(function(){ e.className = 'toast'; }, 2200); }
+function post(b, msg){
+  return fetch('/api/newsticker', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(b) })
+    .then(function(r){ return r.json(); }).then(function(d){ if (!d.ok) throw new Error(d.error); if (msg) toast(msg); return d; })
+    .catch(function(e){ toast('⚠️ ' + e.message); });
+}
+function copyUrl(){ try { navigator.clipboard.writeText('http://127.0.0.1:8790/newsticker.html'); toast('Copied'); } catch (e) {} }
+
+function renderMsgs(){
+  var h = '';
+  msgs.forEach(function(m, i){
+    h += '<div class="mrow' + (m.on ? '' : ' off') + '"><input type="checkbox" ' + (m.on ? 'checked' : '') + ' onchange="msgs[' + i + '].on=this.checked;renderMsgs()" title="Show this message">' +
+      '<input type="text" value="' + esc(m.text) + '" maxlength="300" oninput="msgs[' + i + '].text=this.value">' +
+      '<span class="acts"><button class="btn-sm" onclick="mv(' + i + ',-1)">↑</button><button class="btn-sm" onclick="mv(' + i + ',1)">↓</button><button class="btn-sm" onclick="rm(' + i + ')">✕</button></span></div>';
+  });
+  $('msgs').innerHTML = h || '<div class="note">No messages yet — add one below.</div>';
+}
+function mv(i, d){ var j = i + d; if (j < 0 || j >= msgs.length) return; var t = msgs[i]; msgs[i] = msgs[j]; msgs[j] = t; renderMsgs(); }
+function rm(i){ msgs.splice(i, 1); renderMsgs(); }
+function addMsg(){ var t = $('newMsg').value.trim(); if (!t) return; msgs.push({ text: t, on: true }); $('newMsg').value = ''; renderMsgs(); saveMsgs(); }
+function saveMsgs(){ post({ messages: msgs }, 'Messages saved').then(function(d){ if (d) load(); }); }
+$('newMsg').addEventListener('keydown', function(e){ if (e.key === 'Enter') addMsg(); });
+
+function sendAlert(){ var t = $('alertText').value.trim(); if (!t) { toast('Type the alert first'); return; } post({ alert: { text: t, seconds: Number($('alertSec').value), color: $('alertColor').value } }, 'Alert is on stream ⚠️').then(load); }
+function stopAlert(){ post({ alert: null }, 'Alert stopped').then(load); }
+
+function slid(){ $('gapV').textContent = $('gap').value + 's'; $('speedV').textContent = $('speed').value; $('fontV').textContent = $('font').value + 'px'; $('barOpacityV').textContent = (100 - Number($('barOpacity').value)) + '%'; }
+var lookT = null;
+function lookSave(){ slid(); clearTimeout(lookT); lookT = setTimeout(function(){
+  post({ visible: $('visible').checked, showLabel: $('showLabel').checked, label: $('label').value, separator: $('separator').value,
+    speed: Number($('speed').value), gap: Number($('gap').value), font: Number($('font').value), barOpacity: Number($('barOpacity').value),
+    barColor: $('barColor').value, textColor: $('textColor').value, labelColor: $('labelColor').value, labelText: $('labelText').value, accent: $('accent').value }, 'Saved');
+}, 300); }
+['visible','showLabel','label','gap','speed','font','barOpacity','barColor','textColor','labelColor','labelText','accent'].forEach(function(id){
+  $(id).addEventListener(/^(label|separator)$/.test(id) ? 'change' : 'input', lookSave);
+});
+
+function load(){
+  return fetch('/api/newsticker/admin').then(function(r){ return r.json(); }).then(function(d){
+    S = d; $('health').textContent = 'ICB connected'; $('health').className = 'health';
+    if (!msgs.length || load.first !== false) { msgs = d.all.map(function(m){ return { id: m.id, text: m.text, on: m.on }; }); renderMsgs(); }
+    if (load.first !== false) {
+      $('visible').checked = d.visible; $('showLabel').checked = d.showLabel; $('label').value = d.label; $('separator').value = d.separator;
+      $('speed').value = d.speed; $('gap').value = d.gap === undefined ? 1 : d.gap; $('font').value = d.font; $('barOpacity').value = d.barOpacity;
+      $('barColor').value = d.barColor; $('textColor').value = d.textColor; $('labelColor').value = d.labelColor; $('labelText').value = d.labelText; $('accent').value = d.accent;
+      $('alertColor').value = d.alertRaw.color || '#ff4655'; slid();
+    }
+    load.first = false;
+    $('alertLive').textContent = d.alert ? '● on stream · ' + d.alert.leftSec + 's left' : '';
+  }).catch(function(){ $('health').textContent = 'ICB offline'; $('health').className = 'health offline'; });
+}
+load(); setInterval(load, 3000);
+</script>
+</body>
+</html>

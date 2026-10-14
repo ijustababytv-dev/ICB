@@ -1,44 +1,12 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-01T05:22:47.315Z",
+  "updatedAt": "2026-10-13T20:53:34.275Z",
   "requests": [
     {
-      "at": "2026-10-01T05:22:47.315Z",
-      "kind": "page:eldershark",
-      "url": "/eldershark.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.6.12",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-01T04:59:53.583Z",
-      "kind": "page:banshee-beetle",
-      "url": "/banshee-beetle.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.6.12",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-01T04:59:53.574Z",
-      "kind": "page:pumpkin-rockhopper",
-      "url": "/pumpkin-rockhopper.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.6.12",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-01T04:59:52.408Z",
-      "kind": "page:banshee-beetle",
-      "url": "/banshee-beetle.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.6.12",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-01T04:59:52.402Z",
-      "kind": "page:pumpkin-rockhopper",
-      "url": "/pumpkin-rockhopper.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.6.12",
+      "at": "2026-10-13T20:53:34.275Z",
+      "kind": "page:bean-burger",
+      "url": "/bean-burger.html",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.7.1",
       "referer": null,
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
     }

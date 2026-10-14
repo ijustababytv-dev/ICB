@@ -23,7 +23,7 @@
   .btn-accent{ background:linear-gradient(180deg,#ff9a3c,#e8701a); border-color:#ff9a3c; color:#1a0f05; font-weight:700; }
   .btn-danger{ border-color:#6b2a33; color:#ffb3bb; }
   .btn-small{ padding:4px 10px; font-size:12px; }
-  input[type=text]{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:8px 12px; }
+  input[type=text], input[type=search]{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:8px 12px; }
   .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
   .health.offline{ background:#4a1f26; color:var(--bad); }
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
@@ -62,6 +62,20 @@
   .note{ color:var(--dim); font-size:12px; margin-top:8px; }
   .warn{ color:#ffcc66; font-size:12px; margin:0 0 10px; }
   .fx-foot{ display:flex; gap:8px; margin-top:12px; justify-content:space-between; align-items:center; }
+  .motion{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 12px; font-size:13px; color:var(--dim); }
+  .motion button{ padding:6px 10px; font-size:13px; opacity:.6; }
+  .motion button.sel{ opacity:1; outline:2px solid var(--accent); }
+  .allcard code{ font-size:13px; }
+  .lib{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; max-height:560px; overflow:auto; padding-right:4px; }
+  .lib-tile{ background:#130d1b; border:2px solid var(--line); border-radius:12px; padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .lib-tile.used{ border-color:var(--accent); }
+  .lib-tile .pic{ height:90px; display:flex; align-items:center; justify-content:center; background:repeating-conic-gradient(#221a2e 0% 25%, #1a1424 0% 50%) 50% / 16px 16px; border-radius:8px; }
+  .lib-tile .pic img{ max-width:90%; max-height:84px; }
+  .lib-tile .fn{ font-size:11px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chips{ display:flex; flex-wrap:wrap; gap:4px; }
+  .chip{ font-size:11px; padding:3px 7px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--dim); cursor:pointer; }
+  .chip.on{ background:var(--accent); border-color:var(--accent); color:#1a0f05; font-weight:700; }
+  .thumb .lib-tag{ position:absolute; top:3px; left:3px; font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(0,0,0,.65); color:#ffd27a; }
   .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
   .toast.show{ opacity:1; }
 </style>
@@ -70,11 +84,33 @@
   <div class="topbar">
     <div>
       <h1>🍂 ICB <span>Decor</span> Dashboard</h1>
-      <div class="sub">Seasonal screen decorations — separate from your trackers. Each effect is its own Meld layer.</div>
+      <div class="sub">Seasonal screen decorations — separate from your trackers. Use the one "everything" layer below, or give an effect its own Meld layer.</div>
     </div>
     <div class="spacer"></div>
     <span class="health" id="health">connecting…</span>
     <button class="btn-danger" onclick="allOff()">Turn everything off</button>
+  </div>
+
+  <div class="card allcard">
+    <h2>🎬 One Meld layer for everything</h2>
+    <div class="url"><span>Meld link</span><code id="allLink"></code><button class="btn-small" onclick="copy(ORIGIN + '/decor/all.html')">Copy</button></div>
+    <div class="note">Add this link to Meld <b>once</b> as a full-screen browser layer. It shows every effect that's switched on. To change between leaves, ghosts or anything else, flip the switches below or press <b>▶ Show only this one</b> on the effect you want. (Each effect's own link still works too, if you'd rather have separate layers. Don't use both for the same effect or it shows twice.)</div>
+  </div>
+
+  <div class="card">
+    <h2>🖼️ Picture library</h2>
+    <div class="note" style="margin:0 0 10px">Every picture you've added, from every effect, in one place. Click an effect's name under a picture to send that picture into it (click again to take it out) — no need to upload the same picture twice. Highlighted pictures are in use somewhere.</div>
+    <div class="presets" style="margin-bottom:10px">
+      <input type="search" id="libSearch" placeholder="Search pictures…" oninput="renderLibrary()" style="flex:1;min-width:160px">
+      <select id="libShow" onchange="renderLibrary()" style="background:var(--panel2,#1b1430);color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px">
+        <option value="all">Show all</option><option value="used">Only in use</option><option value="unused">Only not in use</option>
+      </select>
+    </div>
+    <div class="lib" id="library"></div>
+    <div class="drop" style="margin-top:10px" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')"
+         ondrop="event.preventDefault(); this.classList.remove('hover'); uploadLibrary(event.dataTransfer.files)" onclick="this.nextElementSibling.click()">Drop pictures here to add them to the library (or click to pick files)</div>
+    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadLibrary(this.files); this.value=''">
+    <div class="note">New library pictures are saved in <code>ICB\assets\decor\misc\</code>. Pictures you drop on an effect card below still go into that effect's own folder, and show up here too.</div>
   </div>
 
   <div class="card">
@@ -92,10 +128,13 @@
   <div class="card" style="margin-top:16px;">
     <h2>Add a new effect</h2>
     <div class="presets">
-      <input type="text" id="newName" placeholder="e.g. Spooky ghosts" maxlength="40">
+      <input type="text" id="newName" placeholder="e.g. Snowflakes" maxlength="40">
+      <select id="newType" style="background:var(--panel2,#1b1430);color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px">
+        <option value="fall">🍂 Falls down</option><option value="float">👻 Floats up</option><option value="fly">🦇 Flies across</option>
+      </select>
       <button class="btn-accent" onclick="addEffect()">＋ Add effect</button>
     </div>
-    <div class="note">Every effect gets its own art folder and its own Meld link. Right now every effect falls down the screen like leaves — so it works for leaves, snow, candy corn, little ghosts, anything that drifts down.</div>
+    <div class="note">Every effect gets its own art folder and its own Meld link, and shows up on the "everything" layer. Pick how it moves: falls down (leaves, snow, candy corn), floats up (ghosts, bubbles, hearts) or flies across (bats, butterflies, clouds). You can change the motion any time.</div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -112,8 +151,10 @@
     drift: ['Wind', v => (v > 0.05 ? '→ ' : v < -0.05 ? '← ' : '') + Math.abs(v).toFixed(1)],
     sway: ['Flutter', v => v.toFixed(1)],
     spin: ['Twirl', v => v.toFixed(1)],
+    fade: ['Ghostly fade', v => Math.round(v * 100) + '%'],
   };
-  const STEPS = { amount: 1, speed: 0.1, size: 2, opacity: 0.05, drift: 0.1, sway: 0.1, spin: 0.1 };
+  const STEPS = { amount: 1, speed: 0.1, size: 2, opacity: 0.05, drift: 0.1, sway: 0.1, spin: 0.1, fade: 0.05 };
+  const MOTIONS = [['fall', '🍂 Falls down'], ['float', '👻 Floats up'], ['fly', '🦇 Flies across']];
 
   function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
@@ -136,11 +177,12 @@
   function render(s){
     state = s;
     renderPresets();
+    renderLibrary();
     if (dragging) return; // don't rebuild the cards under the mouse mid-drag
     const box = $('effects');
     box.innerHTML = s.effects.map(e => {
       const link = ORIGIN + '/decor/' + e.id + '.html';
-      const sliders = Object.keys(LABELS).map(k => {
+      const sliders = Object.keys(LABELS).filter(k => s.limits[k]).map(k => {
         const lim = s.limits[k];
         return `<label for="${e.id}-${k}">${LABELS[k][0]}</label>
           <input type="range" id="${e.id}-${k}" min="${lim[0]}" max="${lim[1]}" step="${STEPS[k]}" value="${e[k]}"
@@ -154,10 +196,17 @@
           <img src="${src}" alt=""><button class="rm" title="Remove" onclick="event.stopPropagation(); removeArt('${e.id}', ${esc(JSON.stringify(f))})">✕</button>
           <div class="tag">${esc(f)}</div></div>`;
       }).join('');
-      const usedCount = e.files.filter(f => !e.off.includes(f)).length;
-      const warn = !e.files.length
-        ? `<p class="warn">No art yet — it's showing simple placeholder leaves until you add your own images below.</p>`
-        : (!usedCount ? `<p class="warn">All art is unticked — it's showing placeholder leaves. Click an image to use it.</p>` : '');
+      const libByKey = {}; (s.library || []).forEach(x => libByKey[x.key] = x);
+      const borrowed = (e.extra || []).filter(k => libByKey[k] && k.indexOf(e.id + '/') !== 0);
+      const borrowedHtml = borrowed.map(k => `<div class="thumb on" title="${esc(libByKey[k].file)} (from the picture library) — click to take it out of this effect" onclick="toggleExtra('${e.id}', ${esc(JSON.stringify(k))})">
+          <span class="lib-tag">library</span><img src="${libByKey[k].url}" alt=""><div class="tag">${esc(libByKey[k].file)}</div></div>`).join('');
+      const usedCount = e.files.filter(f => !e.off.includes(f)).length + borrowed.length;
+      const warn = !e.files.length && !borrowed.length
+        ? `<p class="warn">No art yet — it's showing simple placeholder shapes until you add your own images below.</p>`
+        : (!usedCount && !borrowed.length ? `<p class="warn">All art is unticked — it's showing placeholder shapes. Click an image to use it.</p>` : '');
+      const motion = `<div class="motion">How it moves: ${MOTIONS.map(([t, label]) => `<button class="btn-small ${(e.type || 'fall') === t ? 'sel' : ''}" onclick="setType('${e.id}','${t}')">${label}</button>`).join('')}
+        <span style="flex:1"></span><button class="btn-small btn-accent" onclick="solo('${e.id}', ${esc(JSON.stringify(e.name))})" title="Turn this on and every other effect off">▶ Show only this one</button></div>`;
+      const windNote = (e.type === 'fly') ? `<div class="note" style="margin:-4px 0 10px">Flies across: <b>Wind</b> sets the direction (→ right, ← left, middle = both ways) and how fast they cross.</div>` : '';
       return `<div class="card" id="fx-${e.id}">
         <div class="fx-head">
           <div class="name">${esc(e.name)}</div>
@@ -165,20 +214,68 @@
           <label class="switch"><input type="checkbox" ${e.enabled ? 'checked' : ''} onchange="setOn('${e.id}', this.checked)"><span></span></label>
         </div>
         <div class="url"><span>Meld link</span><code>${esc(link)}</code><button class="btn-small" onclick="copy('${esc(link)}')">Copy</button></div>
+        ${motion}
         <div class="sliders">${sliders}</div>
+        ${windNote}
         ${warn}
-        <div class="art">${art}</div>
+        <div class="art">${art}${borrowedHtml}</div>
         <div class="drop" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')"
              ondrop="event.preventDefault(); this.classList.remove('hover'); upload('${e.id}', event.dataTransfer.files)"
              onclick="this.nextElementSibling.click()">Drop PNG art here, or click to pick files (transparent PNGs look best)</div>
         <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="upload('${e.id}', this.files); this.value=''">
         <div class="note">Art folder: <code>ICB\\assets\\decor\\${esc(e.id)}\\</code> — files you drop in there show up here too (refresh). Click an image to turn it on/off for this effect.</div>
         <div class="fx-foot">
-          <span class="note" style="margin:0">Art in use: ${usedCount} of ${e.files.length}</span>
+          <span class="note" style="margin:0">Art in use: ${usedCount}${borrowed.length ? ` (${borrowed.length} from the library)` : ''}</span>
           <button class="btn-small btn-danger" onclick="removeEffect('${e.id}', ${esc(JSON.stringify(e.name))})">Delete effect</button>
         </div>
       </div>`;
     }).join('');
+  }
+
+  // ---- picture library ----
+  function inEffect(e, item){
+    if (item.folder === e.id) return !e.off.includes(item.file);
+    return (e.extra || []).includes(item.key);
+  }
+  function renderLibrary(){
+    if (!state) return;
+    const lib = state.library || [], q = ($('libSearch').value || '').trim().toLowerCase(), show = $('libShow').value;
+    const rows = lib.filter(item => {
+      const used = state.effects.some(e => inEffect(e, item));
+      if (show === 'used' && !used) return false;
+      if (show === 'unused' && used) return false;
+      return !q || (item.file + ' ' + item.folder).toLowerCase().includes(q);
+    });
+    $('library').innerHTML = rows.length ? rows.map(item => {
+      const used = state.effects.some(e => inEffect(e, item));
+      const chips = state.effects.map(e => `<button class="chip ${inEffect(e, item) ? 'on' : ''}" onclick="libToggle('${e.id}', ${esc(JSON.stringify(item.key))})">${inEffect(e, item) ? '✓ ' : ''}${esc(e.name)}</button>`).join('');
+      return `<div class="lib-tile ${used ? 'used' : ''}">
+        <div class="pic"><img src="${item.url}" alt="" loading="lazy"></div>
+        <div class="fn" title="${esc(item.folder + '/' + item.file)}">${esc(item.file)} <span style="opacity:.6">· ${esc(item.folder)}</span></div>
+        <div class="chips">${chips}</div></div>`;
+    }).join('') : `<span class="note" style="margin:0">${lib.length ? 'No pictures match.' : 'No pictures yet — drop some below.'}</span>`;
+  }
+  async function libToggle(effectId, key){
+    const e = state.effects.find(x => x.id === effectId); if (!e) return;
+    const item = (state.library || []).find(x => x.key === key); if (!item) return;
+    if (item.folder === e.id) await toggleArt(e.id, item.file);   // its own folder: tick/untick
+    else await toggleExtra(e.id, key);
+  }
+  async function toggleExtra(effectId, key){
+    const e = state.effects.find(x => x.id === effectId); if (!e) return;
+    const extra = (e.extra || []).includes(key) ? e.extra.filter(k => k !== key) : (e.extra || []).concat([key]);
+    await api('/api/decor/effects/' + effectId, 'PATCH', { extra });
+  }
+  async function uploadLibrary(files){
+    const list = Array.from(files || []).filter(f => /^image\//.test(f.type));
+    if (!list.length) return toast('Pick PNG, JPG, WEBP or GIF images');
+    let done = 0;
+    for (const f of list) {
+      const dataUrl = await new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = fail; r.readAsDataURL(f); });
+      const d = await api('/api/decor/library', 'POST', { dataUrl, name: f.name });
+      if (d.ok) done++;
+    }
+    toast(`Added ${done} picture${done === 1 ? '' : 's'} to the library — now click an effect under it`);
   }
 
   function renderPresets(){
@@ -193,6 +290,8 @@
     sendSetting(id, key, v);
   }
   async function setOn(id, on){ await api('/api/decor/effects/' + id, 'PATCH', { enabled: on }); }
+  async function setType(id, type){ await api('/api/decor/effects/' + id, 'PATCH', { type }); }
+  async function solo(id, name){ const d = await api('/api/decor/effects/' + id + '/solo', 'POST'); if (d.ok) toast(`Showing only "${name}"`); }
   async function toggleArt(id, file){
     const e = state.effects.find(x => x.id === id);
     const off = e.off.includes(file) ? e.off.filter(f => f !== file) : e.off.concat([file]);
@@ -216,7 +315,7 @@
   async function addEffect(){
     const name = $('newName').value.trim();
     if (!name) return toast('Type a name first');
-    const d = await api('/api/decor/effects', 'POST', { name });
+    const d = await api('/api/decor/effects', 'POST', { name, type: $('newType').value });
     if (d.ok) { $('newName').value = ''; toast(`Added "${name}" — add its art and copy its Meld link`); }
   }
   async function removeEffect(id, name){
@@ -235,6 +334,7 @@
   function copy(text){ navigator.clipboard.writeText(text).then(() => toast('Link copied — paste it into a Meld browser layer'), () => prompt('Copy this link:', text)); }
 
   async function load(){ const d = await api('/api/decor/state'); if (d.ok) render(d); }
+  $('allLink').textContent = ORIGIN + '/decor/all.html';
   document.addEventListener('pointerup', () => { if (dragging) { dragging = false; load(); } });
   const events = new EventSource('/events?role=control');
   events.addEventListener('decor', e => render(JSON.parse(e.data)));

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Team Contest — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --bad:#ff5c6c; --gold:#ffd166; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2c1b3f 0%, var(--bg) 60%) fixed; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:24px; }
+  h1{ margin:0; font-size:24px; } h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 18px; }
+  .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .spacer{ flex:1; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
+  .health.offline{ background:#4a1f26; color:var(--bad); }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 14px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:var(--accent); color:#1b0f2a; font-weight:700; }
+  .btn-danger{ border-color:#6a2b37; color:#ffb3bd; }
+  .btn-sm{ padding:3px 9px; font-size:12px; border-radius:8px; }
+  input[type=text], input[type=number], select{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 11px; min-width:0; }
+  input[type=color]{ width:44px; height:34px; border:1px solid var(--line); border-radius:8px; background:#130d1b; padding:2px; cursor:pointer; }
+  .grid{ display:grid; grid-template-columns:minmax(400px,1fr) minmax(420px,1.15fr); gap:16px; align-items:start; }
+  @media (max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2{ margin:0 0 12px; font-size:16px; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .row label{ color:var(--dim); min-width:110px; }
+  .note{ color:var(--dim); font-size:12px; margin-top:6px; }
+  .url{ display:flex; gap:8px; align-items:center; background:#130d1b; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; font-family:Consolas, monospace; font-size:12px; color:var(--dim); margin-bottom:12px; }
+  .url code{ flex:1; color:var(--text); background:none; }
+  .switchrow{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+  .switch{ position:relative; width:52px; height:28px; flex:none; }
+  .switch input{ display:none; }
+  .switch span{ position:absolute; inset:0; border-radius:999px; background:#3b3148; transition:.2s; cursor:pointer; }
+  .switch span::after{ content:""; position:absolute; left:3px; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch input:checked + span{ background:var(--accent); }
+  .switch input:checked + span::after{ left:27px; }
+  code{ background:#130d1b; padding:1px 6px; border-radius:6px; }
+  .presets{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+  .preset{ display:flex; align-items:center; gap:6px; background:#181122; border:1px solid var(--line); border-radius:12px; padding:5px 6px 5px 10px; }
+  .preset.on{ border-color:var(--accent); background:#2e1c3a; }
+  .preset b{ cursor:pointer; }
+  .preset .x{ padding:0 7px; font-size:12px; border:none; background:none; color:var(--dim); }
+  .thumb{ width:100%; max-height:120px; object-fit:contain; background:#130d1b; border-radius:10px; margin-top:6px; display:none; }
+  .teamrow{ display:grid; grid-template-columns:70px 1fr 50px; gap:8px; align-items:center; margin-bottom:6px; }
+  .teamrow .lt{ font-weight:800; color:var(--dim); }
+  .tcol{ border:1px solid var(--line); border-left:6px solid var(--c); border-radius:12px; padding:10px; margin-bottom:10px; background:#181122; }
+  .tcol h3{ margin:0 0 6px; font-size:15px; display:flex; justify-content:space-between; }
+  .tcol h3 .tt{ color:var(--gold); font-variant-numeric:tabular-nums; }
+  .pl{ display:grid; grid-template-columns:1fr 54px auto auto; gap:6px; align-items:center; padding:3px 0; border-bottom:1px solid #2c2240; }
+  .pl:last-child{ border-bottom:none; }
+  .pl .pts{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; }
+  .pl .acts{ display:flex; gap:3px; }
+  .pl select{ padding:3px 6px; font-size:12px; border-radius:8px; }
+  .empty{ color:var(--dim); font-size:12px; }
+  .log{ max-height:300px; overflow:auto; font-size:13px; }
+  .log div{ display:flex; gap:8px; align-items:center; padding:4px 0; border-bottom:1px solid #2c2240; }
+  .log div span{ flex:1; }
+  .log .t{ color:var(--dim); font-size:11px; flex:none; width:60px; }
+  .log .undone span{ text-decoration:line-through; opacity:.5; }
+  .state{ font-size:13px; padding:4px 12px; border-radius:999px; font-weight:700; background:#3b2a3d; color:var(--dim); }
+  .state.on{ background:#1d3b2a; color:var(--good); }
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; max-width:420px; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🏆 <span>Team Contest</span></h1>
+      <div class="sub">Chat joins with <code>!team a</code>, then scores with <code>!cloth</code>, <code>!cloth +2</code>, <code>!cloth -1</code>.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="state" id="stateTag">…</span>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>On stream</h2>
+        <div class="url"><code id="ovUrl">http://127.0.0.1:8790/teams.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+        <div class="note" style="margin:-6px 0 10px">Add as a Meld browser layer, any size — the board scales to fit.</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the board on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="joinOpen"><span></span></label> Joining open (<code>!team a</code> works)</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="counting"><span></span></label> Scoring on (points count)</div>
+        <div class="row" style="margin-top:10px"><label>Board title</label><input type="text" id="title" style="flex:1" maxlength="120"></div>
+        <div class="row"><label>Names per team</label><input type="number" id="showPlayers" min="0" max="30" style="width:80px"><span class="note" style="margin:0">0 = totals only</span></div>
+      </div>
+
+      <div class="card">
+        <h2>What we're counting</h2>
+        <div class="row"><label>Chat command</label>!<input type="text" id="command" style="width:140px" maxlength="24" placeholder="cloth"></div>
+        <div class="row"><label>Also accept</label><input type="text" id="aliases" style="flex:1" placeholder="e.g. clothes, rag (optional)"></div>
+        <div class="row"><label>Name on board</label><input type="text" id="label" style="flex:1" maxlength="60" placeholder="Tattered Cloth"></div>
+        <div class="row"><label>Picture</label><select id="image" style="flex:1"></select></div>
+        <img class="thumb" id="thumb" alt="">
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showBanner"><span></span></label> Show the picture on the board (grand total goes in its box)</div>
+        <div class="row"><button class="btn-accent" onclick="saveItem()">Use this</button><button onclick="savePreset()">⭐ Save as quick pick</button></div>
+        <div class="note">Quick picks — click one to switch. Each item keeps its own points, so switching back brings them back.</div>
+        <div class="presets" id="presets"></div>
+      </div>
+
+      <div class="card">
+        <h2>Teams</h2>
+        <div class="row"><label>How many teams</label><select id="teamCount"></select></div>
+        <div id="teamRows"></div>
+        <div class="row"><button class="btn-accent" onclick="saveTeams()">Save teams</button></div>
+        <div class="note">Chat always types the letter (<code>!team a</code>); the board shows your name and color.</div>
+      </div>
+
+      <div class="card">
+        <h2>Test without chat</h2>
+        <div class="row"><input type="text" id="tName" placeholder="name" value="TestViewer" style="width:140px"><input type="text" id="tText" placeholder="!team a  or  !cloth +2" style="flex:1"><button onclick="sendTest()">Send</button></div>
+        <div class="note" id="tResult"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Teams &amp; points <span class="note" id="itemNote" style="font-weight:400"></span></h2>
+        <div id="board"></div>
+        <div class="row" style="margin-top:8px"><input type="text" id="addName" placeholder="add someone by hand" style="flex:1"><select id="addTeam"></select><button onclick="addPlayer()">Add</button></div>
+        <div class="note">People are locked to the team they join — use the dropdown to move someone. Points earned stay with the person.</div>
+      </div>
+
+      <div class="card">
+        <h2>Recent</h2>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card">
+        <h2>Start over</h2>
+        <div class="row">
+          <button class="btn-danger" onclick="resetPts('item')">Reset points (this item)</button>
+          <button class="btn-danger" onclick="resetPts('all')">Reset all points</button>
+          <button class="btn-danger" onclick="clearAll()">New contest (clear teams)</button>
+        </div>
+        <div class="note">Resetting points keeps everyone on their teams. "New contest" empties the teams too.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var S = null, filled = false;
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function toast(t){ var e = $('toast'); e.textContent = t; e.className = 'toast show'; clearTimeout(e._t); e._t = setTimeout(function(){ e.className = 'toast'; }, 2200); }
+function api(path, body){
+  return fetch(path, body === undefined ? {} : { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) })
+    .then(function(r){ return r.json(); }).then(function(d){ if (!d.ok) throw new Error(d.error || 'Failed'); return d; });
+}
+function act(path, body, msg){ return api(path, body).then(function(d){ if (msg) toast(msg); return load(); }).catch(function(e){ toast('⚠️ ' + e.message); }); }
+function copyUrl(){ try { navigator.clipboard.writeText($('ovUrl').textContent); toast('Copied'); } catch (e) {} }
+
+function fillForm(){
+  $('title').value = S.title; $('showPlayers').value = S.showPlayers;
+  $('command').value = S.item.command; $('aliases').value = S.item.aliases; $('label').value = S.item.label;
+  var opts = '<option value="">(no picture)</option>';
+  S.art.forEach(function(f){ opts += '<option' + (f === S.item.image ? ' selected' : '') + '>' + esc(f) + '</option>'; });
+  $('image').innerHTML = opts; showThumb();
+  var tc = ''; for (var n = 2; n <= 8; n++) tc += '<option' + (n === S.teamCount ? ' selected' : '') + '>' + n + '</option>';
+  $('teamCount').innerHTML = tc;
+  renderTeamRows();
+}
+function renderTeamRows(){
+  var n = Number($('teamCount').value), html = '';
+  for (var i = 0; i < n; i++) { var t = S.teams[i];
+    html += '<div class="teamrow"><span class="lt">!team ' + t.letter + '</span><input type="text" data-l="' + t.letter + '" class="tn" value="' + esc(t.name) + '" maxlength="40"><input type="color" data-l="' + t.letter + '" class="tc" value="' + t.color + '"></div>'; }
+  $('teamRows').innerHTML = html;
+}
+function showThumb(){ var f = $('image').value, im = $('thumb'); if (f) { im.src = '/assets/resources/' + encodeURIComponent(f); im.style.display = 'block'; } else im.style.display = 'none'; }
+
+function render(){
+  $('visible').checked = S.visible; $('joinOpen').checked = S.joinOpen; $('counting').checked = S.counting; $('showBanner').checked = S.showBanner;
+  var tag = $('stateTag');
+  tag.textContent = (S.joinOpen ? 'joining open' : 'joining closed') + ' · ' + (S.counting ? 'scoring on' : 'scoring paused');
+  tag.className = 'state' + (S.counting ? ' on' : '');
+  $('itemNote').textContent = '— counting !' + S.item.command + (S.item.label ? ' (' + S.item.label + ')' : '');
+  // presets
+  var ph = '';
+  S.presets.forEach(function(p, i){
+    ph += '<span class="preset' + (p.command === S.item.command ? ' on' : '') + '"><b onclick="usePreset(' + i + ')">!' + esc(p.command) + (p.label ? ' · ' + esc(p.label) : '') + '</b><button class="x" title="Remove quick pick" onclick="delPreset(' + i + ')">✕</button></span>';
+  });
+  $('presets').innerHTML = ph || '<span class="empty">No quick picks yet.</span>';
+  // team picker options
+  var teamOpts = S.board.map(function(t){ return '<option value="' + t.letter + '">' + esc(t.name) + ' (' + t.letter.toUpperCase() + ')</option>'; }).join('');
+  var keep = $('addTeam').value; $('addTeam').innerHTML = teamOpts; if (keep) $('addTeam').value = keep;
+  // board
+  var byTeam = {}; S.players.forEach(function(p){ (byTeam[p.team] = byTeam[p.team] || []).push(p); });
+  var html = '';
+  S.board.forEach(function(t){
+    var list = (byTeam[t.letter] || []).sort(function(a, b){ return b.points - a.points || a.name.localeCompare(b.name); });
+    html += '<div class="tcol" style="--c:' + esc(t.color) + '"><h3><span>' + (t.leading ? '👑 ' : '') + esc(t.name) + ' <span class="note">!team ' + t.letter + ' · ' + list.length + ' ' + (list.length === 1 ? 'person' : 'people') + '</span></span><span class="tt">' + t.total + '</span></h3>';
+    if (!list.length) html += '<div class="empty">Nobody yet.</div>';
+    list.forEach(function(p){ html += plRow(p, teamOpts); });
+    html += '</div>';
+  });
+  var stray = S.players.filter(function(p){ return !S.board.some(function(t){ return t.letter === p.team; }); });
+  if (stray.length) {
+    html += '<div class="tcol" style="--c:#666"><h3><span>On a team that\'s turned off <span class="note">(not counted)</span></span></h3>';
+    stray.forEach(function(p){ html += plRow(p, teamOpts); }); html += '</div>';
+  }
+  $('board').innerHTML = html;
+  var sels = document.querySelectorAll('#board select[data-k]');
+  for (var i = 0; i < sels.length; i++) sels[i].value = sels[i].getAttribute('data-t');
+  // log
+  var lh = '';
+  S.log.forEach(function(e){
+    var tm = new Date(e.at).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }), txt = '';
+    if (e.kind === 'points') txt = '<b>' + esc(e.name) + '</b> ' + (e.amount > 0 ? '+' : '') + e.amount + ' !' + esc(e.item) + ' → ' + e.total + (e.how === 'dashboard' ? ' <span class="note">(you)</span>' : '');
+    else if (e.kind === 'join') txt = '<b>' + esc(e.name) + '</b> joined ' + esc(teamName(e.team)) + (e.how === 'dashboard' ? ' <span class="note">(you)</span>' : '');
+    else if (e.kind === 'moved') txt = '<b>' + esc(e.name) + '</b> moved to ' + esc(teamName(e.team));
+    else if (e.kind === 'removed') txt = '<b>' + esc(e.name) + '</b> removed';
+    else if (e.kind === 'reset') txt = 'Points reset (' + esc(e.item) + ')';
+    else if (e.kind === 'cleared') txt = 'New contest started';
+    lh += '<div class="' + (e.undone ? 'undone' : '') + '"><span class="t">' + tm + '</span><span>' + txt + '</span>' + (e.kind === 'points' && !e.undone ? '<button class="btn-sm" onclick="undo(' + e.id + ')">Undo</button>' : '') + '</div>';
+  });
+  $('log').innerHTML = lh || '<span class="empty">Nothing yet.</span>';
+}
+function plRow(p, teamOpts){
+  var k = esc(p.key).replace(/'/g, '&#39;');
+  return '<div class="pl"><span>' + esc(p.name) + '</span><span class="pts">' + p.points + '</span>' +
+    '<span class="acts"><button class="btn-sm" onclick="pts(\'' + k + '\',-1)">−1</button><button class="btn-sm" onclick="pts(\'' + k + '\',1)">+1</button><button class="btn-sm" onclick="setPts(\'' + k + '\',' + p.points + ')">Set</button></span>' +
+    '<span class="acts"><select data-k="' + k + '" data-t="' + p.team + '" onchange="move(\'' + k + '\',this.value)">' + teamOpts + '</select><button class="btn-sm btn-danger" title="Remove" onclick="removeP(\'' + k + '\')">✕</button></span></div>';
+}
+function teamName(l){ for (var i = 0; i < S.teams.length; i++) if (S.teams[i].letter === l) return S.teams[i].name; return 'Team ' + String(l).toUpperCase(); }
+function nameOf(k){ for (var i = 0; i < S.players.length; i++) if (S.players[i].key === k) return S.players[i].name; return k; }
+
+function load(){
+  return api('/api/teams/admin').then(function(d){
+    S = d; $('health').textContent = 'ICB connected'; $('health').className = 'health';
+    if (!filled) { fillForm(); filled = true; }
+    var a = document.activeElement;
+    if (a && a.tagName === 'SELECT' && a.hasAttribute('data-k')) return; // don't close a dropdown she's using
+    render();
+  }).catch(function(){ $('health').textContent = 'ICB offline'; $('health').className = 'health offline'; });
+}
+
+['visible','joinOpen','counting','showBanner'].forEach(function(id){
+  $(id).addEventListener('change', function(){ var b = {}; b[id] = $(id).checked; act('/api/teams/settings', b, 'Saved'); });
+});
+$('title').addEventListener('change', function(){ act('/api/teams/settings', { title: $('title').value }, 'Title saved'); });
+$('showPlayers').addEventListener('change', function(){ act('/api/teams/settings', { showPlayers: Number($('showPlayers').value) }, 'Saved'); });
+$('image').addEventListener('change', showThumb);
+$('teamCount').addEventListener('change', renderTeamRows);
+
+function curItem(){ return { command: $('command').value, aliases: $('aliases').value, label: $('label').value, image: $('image').value || null }; }
+function saveItem(){
+  if (!$('command').value.replace(/[^a-z0-9_]/gi, '')) { toast('Type a chat command first'); return; }
+  act('/api/teams/settings', { item: curItem() }, 'Now counting !' + $('command').value.replace(/^!+/, '').toLowerCase()).then(function(){ filled = false; load(); });
+}
+function savePreset(){
+  var it = curItem(), list = S.presets.filter(function(p){ return p.command !== it.command.replace(/^!+/, '').toLowerCase(); });
+  list.push(it); act('/api/teams/settings', { presets: list, item: it }, 'Quick pick saved').then(function(){ filled = false; load(); });
+}
+function usePreset(i){ act('/api/teams/settings', { item: S.presets[i] }, 'Now counting !' + S.presets[i].command).then(function(){ filled = false; load(); }); }
+function delPreset(i){ var list = S.presets.slice(); list.splice(i, 1); act('/api/teams/settings', { presets: list }, 'Removed'); }
+function saveTeams(){
+  var rows = [], ns = document.querySelectorAll('.tn'), cs = document.querySelectorAll('.tc');
+  for (var i = 0; i < ns.length; i++) rows.push({ letter: ns[i].getAttribute('data-l'), name: ns[i].value, color: cs[i].value });
+  act('/api/teams/settings', { teamCount: Number($('teamCount').value), teams: rows }, 'Teams saved').then(function(){ filled = false; load(); });
+}
+function pts(k, n){ act('/api/teams/points', { key: k, amount: n }); }
+function setPts(k, cur){ var v = prompt('Set ' + nameOf(k) + '\'s points to:', cur); if (v === null || v === '' || isNaN(Number(v))) return; act('/api/teams/points', { key: k, set: Number(v) }, 'Set'); }
+function move(k, team){ act('/api/teams/player', { name: nameOf(k), team: team }, nameOf(k) + ' moved'); }
+function removeP(k){ if (!confirm('Take ' + nameOf(k) + ' off their team? Their points go too.')) return; act('/api/teams/player', { name: nameOf(k), team: '' }, 'Removed'); }
+function addPlayer(){ var n = $('addName').value.trim(); if (!n) return; act('/api/teams/player', { name: n, team: $('addTeam').value }, n + ' added').then(function(){ $('addName').value = ''; }); }
+function undo(id){ act('/api/teams/undo', { id: id }, 'Undone'); }
+function resetPts(scope){ if (!confirm(scope === 'all' ? 'Reset EVERYONE\'s points for every item? Teams stay.' : 'Reset everyone\'s !' + S.item.command + ' points to 0? Teams stay.')) return; act('/api/teams/reset', { scope: scope }, 'Points reset'); }
+function clearAll(){ if (!confirm('Start a new contest? Everyone comes off their team and all points are cleared.')) return; act('/api/teams/clear', {}, 'New contest'); }
+function sendTest(){ api('/api/teams/test', { name: $('tName').value, text: $('tText').value }).then(function(d){ $('tResult').textContent = d.result; load(); }).catch(function(e){ $('tResult').textContent = e.message; }); }
+$('tText').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendTest(); });
+
+load(); setInterval(load, 2000);
+</script>
+</body>
+</html>

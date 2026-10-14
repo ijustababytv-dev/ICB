@@ -1,12 +1,17 @@
 {
   "settings": {
     "enabled": true,
+    "whoGets": "everyone",
+    "subsAuto": false,
     "artFacesLeft": false,
-    "size": 210,
+    "size": 130,
     "speed": 0.3,
     "afkMinutes": 10,
     "bubbleSeconds": 7,
     "reminderEveryMinutes": 4,
+    "trickGap": 8,
+    "entrance": "drop",
+    "exitStyle": "walk",
     "namePosition": "above",
     "nameFont": "Baloo 2",
     "nameSize": 22,
@@ -16,470 +21,1697 @@
     "nameOutlineWidth": 3,
     "nameBackground": false,
     "nameBgColor": "#782896",
-    "showChat": false,
+    "showChat": true,
     "chatTextSize": 22,
     "reminders": [
       "Check out !discord",
-      "Remember to drink water! 💧",
-      "Check out our !ppa"
-    ]
+      "You Are LOVED!",
+      "Check out our !ppa",
+      "You Are Perfect Just The Way You Are!"
+    ],
+    "anims": {
+      "hop": {
+        "on": true,
+        "often": 5
+      },
+      "glide": {
+        "on": true,
+        "often": 3
+      },
+      "float": {
+        "on": true,
+        "often": 2
+      },
+      "skip": {
+        "on": true,
+        "often": 3
+      },
+      "trot": {
+        "on": true,
+        "often": 2
+      },
+      "waddle": {
+        "on": true,
+        "often": 2
+      },
+      "pause": {
+        "on": true,
+        "often": 3
+      },
+      "bighop": {
+        "on": true,
+        "often": 3
+      },
+      "spin": {
+        "on": false,
+        "often": 2
+      },
+      "sparkle": {
+        "on": true,
+        "often": 2
+      },
+      "turn": {
+        "on": true,
+        "often": 2
+      },
+      "flip": {
+        "on": false,
+        "often": 2
+      },
+      "twirljump": {
+        "on": false,
+        "often": 1
+      },
+      "bounce": {
+        "on": true,
+        "often": 2
+      },
+      "dance": {
+        "on": true,
+        "often": 2
+      },
+      "hearts": {
+        "on": true,
+        "often": 2
+      },
+      "zoomies": {
+        "on": true,
+        "often": 1
+      },
+      "rainbow": {
+        "on": true,
+        "often": 1
+      },
+      "grow": {
+        "on": true,
+        "often": 1
+      },
+      "nap": {
+        "on": false,
+        "often": 1
+      }
+    }
   },
   "people": {
     "testunicorn6": {
       "name": "TestUnicorn6",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T21:56:38.101Z"
+      "lastSeen": "2026-10-01T21:25:10.170Z",
+      "personal": null
     },
     "testunicorn7": {
       "name": "TestUnicorn7",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T22:11:10.953Z"
+      "lastSeen": "2026-10-01T21:25:19.323Z",
+      "personal": null
     },
     "testunicorn2": {
       "name": "TestUnicorn2",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T21:58:07.613Z"
+      "lastSeen": "2026-09-29T21:58:07.613Z",
+      "personal": null
     },
     "testunicorn8": {
       "name": "TestUnicorn8",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T21:58:08.651Z"
+      "lastSeen": "2026-09-29T21:58:08.651Z",
+      "personal": null
     },
     "testunicorn5": {
       "name": "TestUnicorn5",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T22:07:38.829Z"
+      "lastSeen": "2026-09-29T22:07:38.829Z",
+      "personal": null
     },
     "testunicorn1": {
       "name": "TestUnicorn1",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T22:38:07.800Z"
+      "lastSeen": "2026-10-01T21:25:16.710Z",
+      "personal": null
     },
     "astrid_hatter": {
       "name": "Astrid_Hatter",
       "allowed": null,
       "art": "6.png",
-      "lastSeen": "2026-09-30T02:22:28.615Z"
+      "lastSeen": "2026-10-12T00:52:27.559Z",
+      "personal": null
     },
     "frostytools": {
       "name": "FrostyTools",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:08:17.886Z"
+      "lastSeen": "2026-10-09T19:05:21.540Z",
+      "personal": null
     },
     "keathegreat": {
       "name": "keathegreat",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T23:04:37.696Z"
+      "lastSeen": "2026-09-29T23:04:37.696Z",
+      "personal": null
     },
     "bunnybliss_": {
       "name": "bunnybliss_",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T03:29:16.787Z"
+      "lastSeen": "2026-10-14T01:50:32.593Z",
+      "personal": null
     },
     "ijustababytv": {
       "name": "IJustABabyTv",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:29:57.312Z"
+      "lastSeen": "2026-10-14T01:37:27.889Z",
+      "personal": null
     },
     "kjdragon2018": {
       "name": "kjdragon2018",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T02:29:44.109Z"
+      "lastSeen": "2026-10-14T00:43:31.947Z",
+      "personal": null
     },
     "geckotryhard": {
       "name": "geckotryhard",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T03:07:28.584Z"
+      "lastSeen": "2026-10-14T00:23:08.242Z",
+      "personal": null
     },
     "haley_please_hush": {
       "name": "haley_please_hush",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T02:08:12.043Z"
+      "lastSeen": "2026-10-14T01:26:50.521Z",
+      "personal": null
     },
     "soundalerts": {
       "name": "SoundAlerts",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:04:32.030Z"
+      "lastSeen": "2026-10-09T04:27:29.410Z",
+      "personal": null
     },
     "sammiileigh": {
       "name": "sammiileigh",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T02:09:20.377Z"
+      "lastSeen": "2026-10-13T00:06:22.990Z",
+      "personal": null
     },
     "nbgaming2001": {
-      "name": "nbgaming2001",
+      "name": "NBGaming2001",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-29T23:49:39.436Z"
+      "lastSeen": "2026-10-02T20:18:09.675Z",
+      "personal": null
     },
     "voxdawnbringer": {
       "name": "VoxDawnbringer",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T03:30:51.556Z"
+      "lastSeen": "2026-10-14T01:23:32.204Z",
+      "personal": null
     },
     "3kiy": {
       "name": "3kiy",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-03T23:58:03.004Z",
+      "personal": null
     },
     "4kayslayz": {
       "name": "4KaySlayz",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T02:42:26.314Z"
+      "lastSeen": "2026-10-14T01:44:19.861Z",
+      "personal": null
     },
     "allybethv": {
       "name": "allybethv",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "airsoftfxtty": {
       "name": "airsoftfxtty",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "alyaviv": {
       "name": "alyaviv",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "memeseeku": {
       "name": "MeMeSeeKu",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "lilnuggett_t": {
       "name": "lilnuggett_t",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "kaylah42": {
       "name": "kaylah42",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "jbelle127": {
       "name": "jbelle127",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-04T00:41:30.365Z",
+      "personal": null
     },
     "itsmisscupcake": {
       "name": "ItsMissCupcake",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-14T00:10:05.702Z",
+      "personal": null
     },
     "isillies": {
       "name": "iSillies",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "honkhonks__": {
       "name": "honkhonks__",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "gerberdaisy88": {
       "name": "GerberDaisy88",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "emilyyb35": {
       "name": "emilyyb35",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "dylans__babygirl": {
       "name": "Dylans__Babygirl",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T01:42:33.970Z"
+      "lastSeen": "2026-10-14T00:55:10.184Z",
+      "personal": null
     },
     "doozzer666": {
       "name": "doozzer666",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "caitrionamossheart": {
       "name": "caitrionamossheart",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-06T03:56:18.063Z",
+      "personal": null
     },
     "barbiebubbles7": {
       "name": "barbiebubbles7",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "b6h97": {
       "name": "b6h97",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "ashleylynmagic": {
       "name": "AshleyLynMagic",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "armarosthecursed": {
       "name": "ArmarosTheCursed",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "angelic_phoeniix": {
       "name": "angelic_phoeniix",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "anasersia": {
       "name": "AnaSersia",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-01T22:15:22.393Z",
+      "personal": null
     },
     "llexv": {
       "name": "llexv",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "velvetgrin": {
       "name": "velvetgrin",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-06T03:31:16.337Z",
+      "personal": null
     },
     "thekidsrule": {
       "name": "thekidsrule",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "teextrasuga": {
       "name": "TeeXtraSuga",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "wulfmoonlight_goddess": {
       "name": "wulfmoonlight_goddess",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "wonwoo__2005": {
       "name": "wonwoo__2005",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-13T22:43:04.454Z",
+      "personal": null
     },
     "wonderlilyes": {
       "name": "wonderlilyes",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T01:01:37.885Z"
+      "lastSeen": "2026-10-14T00:04:35.202Z",
+      "personal": null
     },
     "wallflower_024": {
       "name": "wallflower_024",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-11T23:57:07.919Z",
+      "personal": null
     },
     "talvirhornshoal": {
       "name": "TalvirHornshoal",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-13T00:01:25.821Z",
+      "personal": null
     },
     "strikertk4416": {
       "name": "strikertk4416",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "silverstepz": {
       "name": "silverstepz",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "shiz1805": {
       "name": "shiz1805",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-03T22:44:38.787Z",
+      "personal": null
     },
     "silentsoulpr": {
       "name": "SilentSoulPR",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-06T01:15:07.480Z",
+      "personal": null
     },
     "savbxtch_": {
       "name": "savbxtch_",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "sarah_elizabethx90": {
       "name": "Sarah_Elizabethx90",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "sapphiramoonstar": {
       "name": "sapphiramoonstar",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": "2026-10-10T00:26:08.953Z",
+      "personal": null
     },
     "sammiesparkle": {
       "name": "SammieSparkle",
       "allowed": true,
       "art": null,
-      "lastSeen": "2026-09-30T01:38:28.091Z"
+      "lastSeen": "2026-10-14T01:13:58.785Z",
+      "personal": null
     },
     "radbanannas": {
       "name": "radbanannas",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "poisonivyrose": {
       "name": "poisonivyrose",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "nukpana_mikasasi": {
       "name": "Nukpana_Mikasasi",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "moontuii": {
       "name": "moontuii",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "mimi7710padilla": {
       "name": "Mimi7710padilla",
       "allowed": true,
-      "art": null,
-      "lastSeen": "2026-09-30T02:54:26.940Z"
+      "art": "5.png",
+      "lastSeen": "2026-10-14T01:53:08.161Z",
+      "personal": null
     },
     "mrsotterton171": {
       "name": "mrsotterton171",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "pinkhaze975": {
       "name": "pinkhaze975",
       "allowed": true,
       "art": null,
-      "lastSeen": null
+      "lastSeen": null,
+      "personal": null
     },
     "katalinahalia": {
       "name": "katalinahalia",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:24:13.433Z"
+      "lastSeen": "2026-10-12T22:55:14.297Z",
+      "personal": null
     },
     "leafycelestine": {
       "name": "LeafyCelestine",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T00:15:32.773Z"
+      "lastSeen": "2026-09-30T00:15:32.773Z",
+      "personal": null
     },
     "miskey31": {
       "name": "miskey31",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-29T23:40:49.961Z"
+      "lastSeen": "2026-09-29T23:40:49.961Z",
+      "personal": null
     },
     "elleedovee": {
       "name": "elleedovee",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T01:22:35.598Z"
+      "lastSeen": "2026-10-14T01:24:47.657Z",
+      "personal": null
     },
     "captain_sabine": {
       "name": "captain_sabine",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:31:11.819Z"
+      "lastSeen": "2026-10-07T04:45:40.626Z",
+      "personal": null
     },
     "liv_a98": {
       "name": "Liv_A98",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T00:50:37.993Z"
+      "lastSeen": "2026-10-04T23:11:38.647Z",
+      "personal": null
     },
     "tragicsunrise": {
       "name": "tragicsunrise",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T00:39:16.036Z"
+      "lastSeen": "2026-09-30T00:39:16.036Z",
+      "personal": null
     },
     "mizzylouise": {
       "name": "mizzylouise",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T01:38:53.479Z"
+      "lastSeen": "2026-10-10T21:52:32.523Z",
+      "personal": null
     },
     "mars23723": {
       "name": "mars23723",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T02:30:14.620Z"
+      "lastSeen": "2026-09-30T02:30:14.620Z",
+      "personal": null
     },
     "cabaysmom": {
       "name": "Cabaysmom",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:08:47.261Z"
+      "lastSeen": "2026-09-30T03:08:47.261Z",
+      "personal": null
     },
     "railgunxxc": {
       "name": "Railgunxxc",
       "allowed": null,
       "art": null,
-      "lastSeen": "2026-09-30T03:31:47.896Z"
+      "lastSeen": "2026-10-14T00:52:47.355Z",
+      "personal": null
+    },
+    "streamdatabase": {
+      "name": "StreamDatabase",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T19:53:24.387Z",
+      "personal": null
+    },
+    "i_just_a_layla": {
+      "name": "I_just_a_Layla",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T00:32:52.618Z",
+      "personal": null
+    },
+    "ebony_da_diva": {
+      "name": "ebony_da_diva",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T21:03:25.866Z",
+      "personal": null
+    },
+    "flgammermom84": {
+      "name": "flgammermom84",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:05:42.930Z",
+      "personal": null
+    },
+    "miss_dixee": {
+      "name": "miss_dixee",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-02T00:12:43.147Z",
+      "personal": null
+    },
+    "echoaurelia": {
+      "name": "EchoAurelia",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T23:25:53.311Z",
+      "personal": null
+    },
+    "valerie3a3grace": {
+      "name": "valerie3a3grace",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T00:50:36.116Z",
+      "personal": null
+    },
+    "mschasingdreams": {
+      "name": "MsChasingDreams",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T22:31:01.812Z",
+      "personal": null
+    },
+    "selfishineptituden0": {
+      "name": "selfishineptituden0",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-03T22:44:16.646Z",
+      "personal": null
+    },
+    "yudicj83": {
+      "name": "yudicj83",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T02:27:59.556Z",
+      "personal": null
+    },
+    "raindamocles": {
+      "name": "raindamocles",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-03T23:59:44.549Z",
+      "personal": null
+    },
+    "mamatreadway": {
+      "name": "mamatreadway",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T01:15:28.246Z",
+      "personal": null
+    },
+    "7pottss": {
+      "name": "7pottss",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T01:02:37.470Z",
+      "personal": null
+    },
+    "testplayer1": {
+      "name": "TestPlayer1",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T01:43:23.119Z",
+      "personal": null
+    },
+    "testplayer2": {
+      "name": "TestPlayer2",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T01:43:33.063Z",
+      "personal": null
+    },
+    "streamer": {
+      "name": "Streamer",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T01:48:04.981Z",
+      "personal": null
+    },
+    "tayl0ve": {
+      "name": "TAYL0VE",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-04T02:35:44.833Z",
+      "personal": null
+    },
+    "liumem": {
+      "name": "liUMEM",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:52:10.557Z",
+      "personal": null
+    },
+    "amante_della_luna": {
+      "name": "amante_della_luna",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:49:27.116Z",
+      "personal": null
+    },
+    "ironbutterfly11": {
+      "name": "ironbutterfly11",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:51:50.283Z",
+      "personal": null
+    },
+    "cloverlynnfields": {
+      "name": "cloverlynnfields",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:30:51.995Z",
+      "personal": null
+    },
+    "menollydragonsinger": {
+      "name": "MenollyDragonsinger",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:15:00.397Z",
+      "personal": null
+    },
+    "bells_2_0": {
+      "name": "Bells_2_0",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:15:34.866Z",
+      "personal": null
+    },
+    "stormyaudra": {
+      "name": "StormyAudra",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T00:21:18.027Z",
+      "personal": null
+    },
+    "catmomma1997": {
+      "name": "catmomma1997",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T22:43:26.431Z",
+      "personal": null
+    },
+    "unicornoreo218": {
+      "name": "unicornoreo218",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T00:25:00.192Z",
+      "personal": null
+    },
+    "achilleanforce": {
+      "name": "achilleanforce",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T21:00:59.079Z",
+      "personal": null
+    },
+    "enchantedrachel": {
+      "name": "EnchantedRachel",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:40:15.994Z",
+      "personal": null
+    },
+    "granny2shoes5011": {
+      "name": "granny2shoes5011",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T23:50:56.610Z",
+      "personal": null
+    },
+    "gwenethdarcy": {
+      "name": "GwenethDarcy",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T04:33:17.063Z",
+      "personal": null
+    },
+    "mzkatiekate": {
+      "name": "mzkatiekate",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T04:36:33.201Z",
+      "personal": null
+    },
+    "askingforafrien": {
+      "name": "askingforafrien",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T05:42:41.429Z",
+      "personal": null
+    },
+    "treechopper": {
+      "name": "TreeChopper",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T19:59:58.549Z",
+      "personal": null
+    },
+    "flowtreechopper": {
+      "name": "FlowTreeChopper",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-05T20:03:29.700Z",
+      "personal": null
+    },
+    "winddance_888": {
+      "name": "winddance_888",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T02:15:43.310Z",
+      "personal": null
+    },
+    "msspraynpray_": {
+      "name": "MsSprayNPray_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T00:17:02.873Z",
+      "personal": null
+    },
+    "freyaoreo": {
+      "name": "freyaoreo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T00:48:30.610Z",
+      "personal": null
+    },
+    "pamtay10": {
+      "name": "pamtay10",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T01:47:58.721Z",
+      "personal": null
+    },
+    "kuruptyg": {
+      "name": "KuruptYG",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T02:23:04.366Z",
+      "personal": null
+    },
+    "nes_berg": {
+      "name": "nes_berg",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T04:04:08.286Z",
+      "personal": null
+    },
+    "kirkd_": {
+      "name": "kirkd_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T04:04:14.375Z",
+      "personal": null
+    },
+    "silencio_0": {
+      "name": "Silencio_0",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T05:40:10.974Z",
+      "personal": null
+    },
+    "arabian_queen2": {
+      "name": "arabian_queen2",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T20:26:56.007Z",
+      "personal": null
+    },
+    "ladycamisade": {
+      "name": "LadyCamisade",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-06T23:14:26.768Z",
+      "personal": null
+    },
+    "purgelegend420": {
+      "name": "purgelegend420",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:00:11.011Z",
+      "personal": null
+    },
+    "bashfulashh": {
+      "name": "bashfulashh",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T01:51:48.807Z",
+      "personal": null
+    },
+    "amchiasson": {
+      "name": "amchiasson",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T04:56:55.154Z",
+      "personal": null
+    },
+    "paralock89": {
+      "name": "paralock89",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T04:01:18.489Z",
+      "personal": null
+    },
+    "megazeldafan": {
+      "name": "megazeldafan",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-07T04:59:01.846Z",
+      "personal": null
+    },
+    "ladymo": {
+      "name": "ladymo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T00:21:29.158Z",
+      "personal": null
+    },
+    "lexiiifer": {
+      "name": "Lexiiifer",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T22:09:24.836Z",
+      "personal": null
+    },
+    "razordomme": {
+      "name": "razordomme",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T01:00:17.071Z",
+      "personal": null
+    },
+    "laufeyatrey": {
+      "name": "LaufeyAtrey",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T00:26:57.581Z",
+      "personal": null
+    },
+    "jess9315": {
+      "name": "jess9315",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T19:29:37.670Z",
+      "personal": null
+    },
+    "kosmycpurge": {
+      "name": "kosmycpurge",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T19:42:40.403Z",
+      "personal": null
+    },
+    "stormyjess22": {
+      "name": "stormyjess22",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T20:49:12.739Z",
+      "personal": null
+    },
+    "stinadoll": {
+      "name": "stinadoll",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T20:29:30.293Z",
+      "personal": null
+    },
+    "layla_may_tumblehop": {
+      "name": "layla_may_tumblehop",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T20:48:39.086Z",
+      "personal": null
+    },
+    "color_thy_void": {
+      "name": "coloR_thy_void",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:56:19.050Z",
+      "personal": null
+    },
+    "jmiller1300": {
+      "name": "jmiller1300",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T20:50:38.752Z",
+      "personal": null
+    },
+    "xcylestx": {
+      "name": "xcylestx",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T21:58:01.558Z",
+      "personal": null
+    },
+    "alizavirus": {
+      "name": "alizavirus",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T21:58:01.665Z",
+      "personal": null
+    },
+    "honeybumble00": {
+      "name": "honeybumble00",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T21:58:07.310Z",
+      "personal": null
+    },
+    "thisguystinks17": {
+      "name": "ThisGuyStinks17",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T22:01:39.368Z",
+      "personal": null
+    },
+    "nettiebett": {
+      "name": "NettieBett",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T22:00:19.937Z",
+      "personal": null
+    },
+    "fujiwaratofushop_": {
+      "name": "FujiwaraTofuShop_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T22:02:45.591Z",
+      "personal": null
+    },
+    "bagunguss": {
+      "name": "bagunguss",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T22:46:49.783Z",
+      "personal": null
+    },
+    "deejayde_": {
+      "name": "deejayde_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:48:52.324Z",
+      "personal": null
+    },
+    "cozylattegg": {
+      "name": "CozyLatteGG",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:24:09.566Z",
+      "personal": null
+    },
+    "oliviascozydreams": {
+      "name": "oliviascozydreams",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:47:13.930Z",
+      "personal": null
+    },
+    "ellezmeraxix": {
+      "name": "ellezmeraxix",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:44:32.988Z",
+      "personal": null
+    },
+    "nimanooo": {
+      "name": "nimanooo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:47:23.576Z",
+      "personal": null
+    },
+    "itsbeevee": {
+      "name": "ItsBeeVee",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:44:39.847Z",
+      "personal": null
+    },
+    "misslilianavess": {
+      "name": "MissLilianaVess",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:44:41.392Z",
+      "personal": null
+    },
+    "pagesandpiixels": {
+      "name": "pagesandpiixels",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-08T23:44:42.085Z",
+      "personal": null
+    },
+    "yurigardens": {
+      "name": "yurigardens",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T23:57:41.404Z",
+      "personal": null
+    },
+    "someadj_kitty": {
+      "name": "someadj_kitty",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T01:44:11.804Z",
+      "personal": null
+    },
+    "minniefire": {
+      "name": "minniefire",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T00:28:18.683Z",
+      "personal": null
+    },
+    "avatar_ronii": {
+      "name": "avatar_ronii",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T00:54:53.172Z",
+      "personal": null
+    },
+    "wpolite": {
+      "name": "wpolite",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T04:32:54.784Z",
+      "personal": null
+    },
+    "itsher_ky": {
+      "name": "itsher_ky",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:34:28.176Z",
+      "personal": null
+    },
+    "katthegemini": {
+      "name": "KatTheGemini",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T00:51:29.403Z",
+      "personal": null
+    },
+    "anthraxza": {
+      "name": "Anthraxza",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:29:36.454Z",
+      "personal": null
+    },
+    "zhinane": {
+      "name": "Zhinane",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T19:52:44.634Z",
+      "personal": null
+    },
+    "miaursa": {
+      "name": "miaursa",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:06:47.747Z",
+      "personal": null
+    },
+    "spunmagick": {
+      "name": "spunmagick",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:06:30.972Z",
+      "personal": null
+    },
+    "littletwaddler": {
+      "name": "littletwaddler",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:01:16.675Z",
+      "personal": null
+    },
+    "ggyuboo": {
+      "name": "ggyuboo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:56:36.878Z",
+      "personal": null
+    },
+    "ayospazzy": {
+      "name": "AyoSpazzy",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T19:47:29.533Z",
+      "personal": null
+    },
+    "ecafyppah": {
+      "name": "ecafyppah",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T19:51:41.714Z",
+      "personal": null
+    },
+    "l3gionn69": {
+      "name": "l3gionn69",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:01:51.960Z",
+      "personal": null
+    },
+    "steelwings62": {
+      "name": "steelwings62",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:00:07.161Z",
+      "personal": null
+    },
+    "queencutiekay": {
+      "name": "QueenCutieKay",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:06:21.252Z",
+      "personal": null
+    },
+    "iamjohansson": {
+      "name": "iamjohansson",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T20:43:28.495Z",
+      "personal": null
+    },
+    "hippiwithnocolor": {
+      "name": "hippiwithnocolor",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:55:10.132Z",
+      "personal": null
+    },
+    "swampqween": {
+      "name": "swampqween",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T00:50:20.053Z",
+      "personal": null
+    },
+    "conjuredchaos": {
+      "name": "ConjuredChaos",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T23:17:54.841Z",
+      "personal": null
+    },
+    "inkedchaosgremlin": {
+      "name": "inkedchaosgremlin",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T23:36:08.126Z",
+      "personal": null
+    },
+    "north_strider": {
+      "name": "North_Strider",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T20:34:49.519Z",
+      "personal": null
+    },
+    "gniargnia": {
+      "name": "gniargnia",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-09T23:49:45.496Z",
+      "personal": null
+    },
+    "guinevereelina": {
+      "name": "GuinevereElina",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T00:31:17.140Z",
+      "personal": null
+    },
+    "shelleylynnburris7": {
+      "name": "shelleylynnburris7",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T00:25:47.230Z",
+      "personal": null
+    },
+    "pinnaclepyrenees": {
+      "name": "pinnaclepyrenees",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T00:48:40.289Z",
+      "personal": null
+    },
+    "alexisdrose1": {
+      "name": "alexisdrose1",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T20:51:09.934Z",
+      "personal": null
+    },
+    "laurix83": {
+      "name": "laurix83",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T23:05:19.774Z",
+      "personal": null
+    },
+    "pinkiebooooo": {
+      "name": "PinkieBooooo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T20:26:38.648Z",
+      "personal": null
+    },
+    "eleanorthefaire": {
+      "name": "eleanorthefaire",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T19:32:56.776Z",
+      "personal": null
+    },
+    "annabellkvarme": {
+      "name": "annabellkvarme",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T19:45:12.966Z",
+      "personal": null
+    },
+    "kissmysaz": {
+      "name": "kissmysaz",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T19:44:25.629Z",
+      "personal": null
+    },
+    "squoytle": {
+      "name": "squoytle",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T19:47:09.393Z",
+      "personal": null
+    },
+    "geekdanshurkey": {
+      "name": "geekdanshurkey",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T20:48:20.993Z",
+      "personal": null
+    },
+    "nelanna__": {
+      "name": "nelanna__",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T20:06:25.959Z",
+      "personal": null
+    },
+    "nova_xo_": {
+      "name": "nova_xo_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T21:01:06.616Z",
+      "personal": null
+    },
+    "abaddon795": {
+      "name": "abaddon795",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T20:59:17.862Z",
+      "personal": null
+    },
+    "classylassy0": {
+      "name": "ClassyLassy0",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T20:17:26.907Z",
+      "personal": null
+    },
+    "itzmidnightrose": {
+      "name": "ItzMidnightRose",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-10T21:08:32.513Z",
+      "personal": null
+    },
+    "beautiful_gore": {
+      "name": "beautiful_gore",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:53:29.150Z",
+      "personal": null
+    },
+    "lozjr": {
+      "name": "Lozjr",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:00:00.055Z",
+      "personal": null
+    },
+    "ghostieghoulie_": {
+      "name": "ghostieghoulie_",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:41:17.431Z",
+      "personal": null
+    },
+    "freyamistlight": {
+      "name": "FreyaMistlight",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:36:58.431Z",
+      "personal": null
+    },
+    "bethiebaby816": {
+      "name": "bethiebaby816",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T00:00:10.071Z",
+      "personal": null
+    },
+    "aureliadewlily": {
+      "name": "aureliadewlily",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T01:09:04.019Z",
+      "personal": null
+    },
+    "stormshadow2702": {
+      "name": "stormshadow2702",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T01:20:52.826Z",
+      "personal": null
+    },
+    "froggyswowttv": {
+      "name": "froggyswowttv",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T01:04:14.763Z",
+      "personal": null
+    },
+    "cutevulturemarie": {
+      "name": "CuteVultureMarie",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T20:27:10.948Z",
+      "personal": null
+    },
+    "misheyraen": {
+      "name": "misheyraen",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T19:56:05.953Z",
+      "personal": null
+    },
+    "maya2406s": {
+      "name": "maya2406s",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T20:52:46.487Z",
+      "personal": null
+    },
+    "tameryn": {
+      "name": "Tameryn",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T19:59:41.625Z",
+      "personal": null
+    },
+    "msneonangel": {
+      "name": "MsNeonAngel",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T02:07:56.810Z",
+      "personal": null
+    },
+    "flafoothe6th": {
+      "name": "FlafooThe6th",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T22:04:20.631Z",
+      "personal": null
+    },
+    "yomommagamez": {
+      "name": "YoMommaGamez",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T22:24:29.432Z",
+      "personal": null
+    },
+    "tsundere1026": {
+      "name": "tsundere1026",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T22:33:49.514Z",
+      "personal": null
+    },
+    "dontstarveafrica": {
+      "name": "dontstarveafrica",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:01:16.105Z",
+      "personal": null
+    },
+    "kitonaaa": {
+      "name": "Kitonaaa",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T23:53:42.726Z",
+      "personal": null
+    },
+    "xcocopa": {
+      "name": "xCocoPA",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:53:04.077Z",
+      "personal": null
+    },
+    "phoenixredfire": {
+      "name": "phoenixredfire",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:29:28.238Z",
+      "personal": null
+    },
+    "a1ien_1": {
+      "name": "a1ien_1",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:21:24.704Z",
+      "personal": null
+    },
+    "wickedwitch2024": {
+      "name": "wickedwitch2024",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:39:08.466Z",
+      "personal": null
+    },
+    "iamfinal18": {
+      "name": "iamfinal18",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:39:06.123Z",
+      "personal": null
+    },
+    "itsberrisun": {
+      "name": "ItsBerriSun",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:50:26.924Z",
+      "personal": null
+    },
+    "sankakutottv": {
+      "name": "sankakutottv",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-11T23:55:26.155Z",
+      "personal": null
+    },
+    "nullierei": {
+      "name": "NullieRei",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T00:20:17.028Z",
+      "personal": null
+    },
+    "snowellle32": {
+      "name": "Snowellle32",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T01:01:26.480Z",
+      "personal": null
+    },
+    "horrormovies_wolfman": {
+      "name": "HorrorMovies_Wolfman",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T02:02:26.576Z",
+      "personal": null
+    },
+    "r3adyorrn0t": {
+      "name": "r3adyorrn0t",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T02:30:24.934Z",
+      "personal": null
+    },
+    "imraccoon123": {
+      "name": "imraccoon123",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T03:46:11.359Z",
+      "personal": null
+    },
+    "miorbo": {
+      "name": "miorbo",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T05:22:31.416Z",
+      "personal": null
+    },
+    "cplant123": {
+      "name": "cplant123",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-12T06:25:37.525Z",
+      "personal": null
+    },
+    "onepunch_tv": {
+      "name": "Onepunch_tv",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T21:58:37.095Z",
+      "personal": null
+    },
+    "cozykib": {
+      "name": "cozykib",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T00:12:06.791Z",
+      "personal": null
+    },
+    "nightshifter71": {
+      "name": "nightshifter71",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T01:00:06.510Z"
+    },
+    "randall34134456": {
+      "name": "randall34134456",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-13T22:37:54.999Z"
+    },
+    "ace31173": {
+      "name": "ace31173",
+      "allowed": null,
+      "art": null,
+      "lastSeen": "2026-10-14T01:53:12.690Z"
     }
   }
 }

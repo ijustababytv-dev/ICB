@@ -260,7 +260,7 @@
       ],
       "direction": "gained",
       "mode": "countdown",
-      "startAt": 58,
+      "startAt": 93,
       "visible": true,
       "_note": "UPDATED 2026-09-21: starOnly REMOVED. Same bridge limitation as Sashimi (see icb-palia-log-bridge.md and Sashimi's note above) - Palia's raw game log carries no star/quality marker in any LogInventoryComponent line, so starOnly always failed once the bridge became the data source, freezing this countdown. UNLIKE Sashimi, this is not risk-free: this card's own original note says non-star Fish Stew HAS appeared in logs before (e.g. 'itemtype_c_stew_fish x15' with no star marker, likely a restock/resync rather than a real cook) - Baby explicitly chose to fix this anyway, accepting that a non-cook gained-event for this exact token could now decrement the countdown by 1 same as a real cook would, in exchange for the card working again. countEvents:true still means it drops by 1 per matching line regardless of stack size, so this risk is bounded to 'one wrong decrement per stray event', not a wholesale drain. Watch this one if it seems to undercount events that got cooked. Redone 2026-09-09 note below is otherwise unchanged/historical.",
       "_note_2026_09_09": "Redone 2026-09-09 to match the Sashimi redesign (2026-09-06). Baby: \"The fish stew tracker needs to work like the Sashimi tracker and instead of tracking the eldershark being used it should track the fish stew dish being cooked/received. I want it to count down 1 for each time I cook the dish.\" The OLD design watched raw 'Inventory lost: itemtype_fish_eldershark (1*)' - i.e. ANY star Eldershark leaving inventory for any reason, which is the exact bug that broke Sashimi: bulk fish sell-offs (x100/x30/x10 batches) drained the countdown to 0 long before any real cooking happened. Fixed by watching the real cooking-OUTPUT token instead, verified directly in Baby's own logs (app-20260909.log 02:00-02:07, twelve consecutive real cooks): 'Inventory gained: itemtype_c_stew_fish (1*) x3' - every real Fish Stew cook produces exactly 3 star-quality Fish Stew in one line, identical in shape to Sashimi's cook line. countEvents: true makes it count 1 per cook event regardless of the x3 stack size, per Baby's 'count down 1 for each time I cook the dish'. direction: gained watches the cooking output being received, so selling or eating Fish Stew ('Inventory lost: itemtype_c_stew_fish') never moves the counter. mode countdown + startAt 100 unchanged - server.js makes countdown cards always subtract on their direction-filtered event, so 'gained' still counts DOWN. starOnly: true kept (matches Sashimi; non-star Fish Stew does exist in the logs, e.g. 'itemtype_c_stew_fish x15' with no star marker). tokenOverlapOk REMOVED - that flag only existed because Fish Stew and old-Sashimi both watched the same raw Eldershark token. They no longer overlap at all: Sashimi watches itemtype_c_sashimi, Fish Stew watches itemtype_c_stew_fish, and the two countdowns now move completely independently.",
@@ -656,16 +656,17 @@
         "itemtype_c_beanburger"
       ],
       "direction": "gained",
-      "mode": "lifetime",
+      "mode": "countdown",
       "visible": true,
       "countEvents": true,
-      "_note": "Built 2026-09-15. Baby: \"I also need a Bean Burger counter. Make it to every dish I cook it counts as 1 bean burger prepared.\" Token 'itemtype_c_beanburger' confirmed two ways: Baby supplied it directly, and it's independently verified in her own live log that same session (app-20260915.log line 45): 'Inventory gained: itemtype_c_beanburger x1' - a real cook right as this was built. Checked 5 days of her other recent logs (app-20260910 through 20260913) and the token only ever appeared in 'Primary gained/lost' resync lines there (not real cook events) until this one - consistent with the house rule that Primary lines are periodic full-inventory snapshots, never counted as deltas. direction:'gained' so eating/selling a Bean Burger ('Inventory lost') never decrements the count - it only ever counts up, same never-resets spirit as Ramen Plush's Plushies count. countEvents:true per Baby's own framing ('every dish I cook... counts as 1') - counts one per real cook line regardless of stack size, same mechanic as Sashimi/Fish Stew/Ramen Cooked, even though the one observed real cook line was already qty 1 (future batched cooks, if any, still count as 1). mode 'lifetime' here just means 'never auto-resets' (not in LIFETIME_SOURCE, so it persists its own count rather than mirroring live.resources - same usage as Ramen Plush's Plushies count), with the existing per-card dashboard +/-/Reset controls available if a manual correction is ever needed. No starOnly filter - the one real cook line observed had no (1*) marker. Card art is Baby's own 'itemtype_c_beanburger.png' (2048x768, dropped directly into assets/resources mid-build) - a cozy purple-and-gold kitchen scene with the blank readout box baked into the art already. Value box re-measured directly from the artwork by dark+flat detection (interior color ~rgb(23,23,31), row/column projection to find the flat rectangle, then checked visually with a red-outline overlay) rather than reusing the house-standard zone, per the project's own 'value boxes are per-skin' rule.",
+      "_note": "UPDATED 2026-10-13: Baby asked for the Bean Burger counter to count DOWN from 50 (same mechanic as Celebration Cake: mode countdown, startAt 50, countEvents - each real cook line = -1; restarts at startAt on server restart; batch size changeable on the dashboard via set-start). Built 2026-09-15. Baby: \"I also need a Bean Burger counter. Make it to every dish I cook it counts as 1 bean burger prepared.\" Token 'itemtype_c_beanburger' confirmed two ways: Baby supplied it directly, and it's independently verified in her own live log that same session (app-20260915.log line 45): 'Inventory gained: itemtype_c_beanburger x1' - a real cook right as this was built. Checked 5 days of her other recent logs (app-20260910 through 20260913) and the token only ever appeared in 'Primary gained/lost' resync lines there (not real cook events) until this one - consistent with the house rule that Primary lines are periodic full-inventory snapshots, never counted as deltas. direction:'gained' so eating/selling a Bean Burger ('Inventory lost') never decrements the count - it only ever counts up, same never-resets spirit as Ramen Plush's Plushies count. countEvents:true per Baby's own framing ('every dish I cook... counts as 1') - counts one per real cook line regardless of stack size, same mechanic as Sashimi/Fish Stew/Ramen Cooked, even though the one observed real cook line was already qty 1 (future batched cooks, if any, still count as 1). mode 'lifetime' here just means 'never auto-resets' (not in LIFETIME_SOURCE, so it persists its own count rather than mirroring live.resources - same usage as Ramen Plush's Plushies count), with the existing per-card dashboard +/-/Reset controls available if a manual correction is ever needed. No starOnly filter - the one real cook line observed had no (1*) marker. Card art is Baby's own 'itemtype_c_beanburger.png' (2048x768, dropped directly into assets/resources mid-build) - a cozy purple-and-gold kitchen scene with the blank readout box baked into the art already. Value box re-measured directly from the artwork by dark+flat detection (interior color ~rgb(23,23,31), row/column projection to find the flat rectangle, then checked visually with a red-outline overlay) rather than reusing the house-standard zone, per the project's own 'value boxes are per-skin' rule.",
       "valueBox": {
         "left": 26.42,
         "top": 53.52,
         "width": 47.22,
         "height": 25.65
-      }
+      },
+      "startAt": 50
     },
     {
       "id": "celebration-cake",
@@ -801,7 +802,7 @@
           "valueBox": {
             "left": 23.54,
             "top": 66.54,
-            "width": 23.0,
+            "width": 23,
             "height": 19.4
           }
         },
@@ -853,6 +854,80 @@
             "top": 71.25,
             "width": 30.16,
             "height": 17.36
+          }
+        }
+      ]
+    },
+    {
+      "id": "tattered-cloth",
+      "name": "Tattered Cloth",
+      "image": "tattered_cloth.png",
+      "tokens": [
+        "itemtype_spooky_jaakcat_loot"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "lifetime",
+      "visible": true,
+      "_note": "Spiritfest 2026 material (inventory Tattered Cloth), NOT the pirate decor. Token verified in bridge logs 2026-09-30..10-04. Manual reset only.",
+      "valueBox": {
+        "left": 27.44,
+        "top": 48.7,
+        "width": 45.02,
+        "height": 30.34
+      }
+    },
+    {
+      "id": "shmole-spores",
+      "name": "Shmole Spores",
+      "image": "Shmole_Spores.png",
+      "tokens": [
+        "itemtype_material_spore_t1"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "lifetime",
+      "visible": true,
+      "_note": "Shmole Spore (itemtype_material_spore_t1), verified 15 real Inventory gained lines 2026-09-21..10-05. Elder Shmole Spore is spore_t2 - NOT counted. Manual reset only.",
+      "valueBox": {
+        "left": 30.4,
+        "top": 47.5,
+        "width": 44.9,
+        "height": 31
+      }
+    },
+    {
+      "id": "blue-crab",
+      "name": "Blue Crab vs Plushie",
+      "image": "BLUE_CRAB.png",
+      "direction": "gained",
+      "eventSource": "inventory",
+      "_note": "Built 2026-10-06, same pattern as pumpkin-rockhopper. Art BLUE_CRAB.png (1774x887), two boxes BLUE CRAB and BLUE CRAB PLUSHIE. Slots card: never auto-resets, manual Reset only, gains only, Inventory lines only. Crab token verified in real logs (91 'Inventory gained: itemtype_bug_az3_crab_blue' lines 2026-09-20..10-05). Plush token itemtype_decor_plush_crab01_blue confirmed on palia.gaming.tools (Blue Crab Plush) - NOT yet seen in her logs (she hasn't got one yet); same naming as King Crab Plush itemtype_decor_plush_crab01_king. King crab / other crabs NOT counted.",
+      "slots": [
+        {
+          "id": "crabs",
+          "label": "Blue Crab",
+          "tokens": [
+            "itemtype_bug_az3_crab_blue"
+          ],
+          "valueBox": {
+            "left": 9.3,
+            "top": 72.15,
+            "width": 32.13,
+            "height": 17.47
+          }
+        },
+        {
+          "id": "plushies",
+          "label": "Plushie",
+          "tokens": [
+            "itemtype_decor_plush_crab01_blue"
+          ],
+          "valueBox": {
+            "left": 58.91,
+            "top": 72.15,
+            "width": 32.13,
+            "height": 17.47
           }
         }
       ]

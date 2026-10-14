@@ -117,6 +117,55 @@ function writeJson(file, value) {
   fs.renameSync(temporary, file);
 }
 
+// ---------------------------------------------------------------------------
+// TITLE & GO-LIVE RANDOMIZER (Baby, 2026-10-03) - top of ICB Home. Lists of
+// stream titles and go-live messages per game; the page picks one of each at
+// random (avoiding the last few picks). Saved in data/randomizer.json.
+// ---------------------------------------------------------------------------
+const RANDOMIZER_DEFAULTS = {
+  games: [{
+    id: 'palia',
+    name: 'Palia',
+    titles: [
+      '🦄 Cozy Palia Vibes | Farming, Fishing & Good Company',
+      '🌸 Chill Palia Day in Kilima | Come Hang Out!',
+      '🎣 Fishing for Rare Catches in Palia | Chat & Chill',
+      '🐞 Bug Hunting Bonanza | Cozy Palia Stream',
+      '🍳 Cooking Up a Storm in Palia | Unicorn Giveaway Tonight!',
+      '🌙 Late Night Palia | Grinding with the Herd',
+      '🏡 Decorating My Palia Plot | Help Me Choose!',
+      '💖 Palia & Plushies | Chat Earns Fluffy Unicorns',
+    ],
+    golives: [
+      '✨ I\'m LIVE in Palia! {title} — come hang out 🦄 {link}',
+      '🦄 The herd is gathering! We\'re live now: {title} {link}',
+      '🌸 Grab a cozy drink and join me — live in Palia! {link}',
+      '💖 Going live! Chat to earn fluffy unicorns tonight 🦄 {title} {link}',
+      '🎣 Rods out, snacks ready — I\'m live! {title} {link}',
+    ],
+  }],
+  link: 'https://twitch.tv/ijustababytv',
+  recent: {},
+};
+function randomizerClean(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const strList = (list, max) => (Array.isArray(list) ? list : []).map(v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max)).filter(Boolean).slice(0, 400);
+  const games = [];
+  for (const g of (Array.isArray(src.games) ? src.games : []).slice(0, 30)) {
+    if (!g || typeof g !== 'object') continue;
+    const name = String(g.name || '').trim().slice(0, 40);
+    if (!name) continue;
+    let id = String(g.id || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'game';
+    while (games.some(x => x.id === id)) id += '-2';
+    games.push({ id, name, titles: strList(g.titles, 200), golives: strList(g.golives, 500) });
+  }
+  const recent = {};
+  if (src.recent && typeof src.recent === 'object') for (const [k, v] of Object.entries(src.recent).slice(0, 80)) recent[String(k).slice(0, 60)] = strList(v, 500).slice(0, 10);
+  const link = /^https?:\/\/\S+$/i.test(String(src.link || '').trim()) ? String(src.link).trim().slice(0, 200) : '';
+  return { games, link, recent };
+}
+const RANDOMIZER_FILE = path.join(DATA_DIR, 'randomizer.json');
+
 function mergeDefaults(defaults, value) {
   const output = clone(defaults);
   if (!value || typeof value !== 'object' || Array.isArray(value)) return output;
@@ -133,6 +182,7 @@ function mergeDefaults(defaults, value) {
 let settings = mergeDefaults(DEFAULT_SETTINGS, readJson(SETTINGS_FILE, DEFAULT_SETTINGS));
 let live = mergeDefaults(DEFAULT_LIVE, readJson(LIVE_FILE, DEFAULT_LIVE));
 let todos = normalizeTodos(readJson(TODOS_FILE, DEFAULT_TODOS));
+let randomizer = (() => { const saved = readJson(RANDOMIZER_FILE, null); const r = randomizerClean(saved || RANDOMIZER_DEFAULTS); return r.games.length ? r : randomizerClean(RANDOMIZER_DEFAULTS); })();
 let actions = loadActions();
 const startedAt = Date.now();
 const clients = new Set();
@@ -1208,6 +1258,17 @@ async function handleApi(req, res, url) {
 
   // Dashboard panel order (control.html only - never read by any Meld/overlay page). Saved
   // automatically every time Baby clicks a ▲/▼ button, separately from the "Save settings" button.
+  // Title & go-live randomizer (ICB Home, Baby 2026-10-03).
+  if (pathname === '/api/randomizer' && method === 'GET') return sendJson(res, 200, { ok: true, ...randomizer });
+  if (pathname === '/api/randomizer' && ['PUT', 'POST'].includes(method)) {
+    const body = await readBody(req);
+    const next = randomizerClean(body);
+    if (!next.games.length) return sendJson(res, 400, { ok: false, error: 'Keep at least one game.' });
+    randomizer = next;
+    writeJson(RANDOMIZER_FILE, randomizer);
+    return sendJson(res, 200, { ok: true, ...randomizer });
+  }
+
   if (pathname === '/api/layout' && ['PUT', 'POST', 'PATCH'].includes(method)) {
     const body = await readBody(req);
     // 2026-10-01: also carries the Tracker Command Center's card order
@@ -1402,6 +1463,14 @@ async function handleApi(req, res, url) {
   if (pathname === '/api/hub' || pathname.startsWith('/api/hub/')) return handleHubApi(req, res, pathname, method);
   if (pathname === '/api/connection-check' || pathname.startsWith('/api/connection-check/')) return handleHealthApi(req, res, pathname, method);
   if (pathname.startsWith('/api/walkers/')) return handleWalkersApi(req, res, pathname, method, url);
+  if (pathname.startsWith('/api/poll')) return handlePollApi(req, res, pathname, method);
+  if (pathname === '/api/teams' || pathname.startsWith('/api/teams/')) return handleTeamsApi(req, res, pathname, method);
+  if (pathname === '/api/eventtime') return handleEventTimeApi(req, res, pathname, method);
+  if (pathname === '/api/party' || pathname.startsWith('/api/party/')) return handlePartyApi(req, res, pathname, method);
+  if (pathname === '/api/steam' || pathname.startsWith('/api/steam/')) return handleSteamApi(req, res, pathname, method);
+  if (pathname === '/api/newsticker' || pathname.startsWith('/api/newsticker/')) return handleNewsApi(req, res, pathname, method);
+  if (pathname === '/api/sashimi' || pathname.startsWith('/api/sashimi/')) return handleSashiApi(req, res, pathname, method);
+  if (pathname === '/api/desktop' || pathname.startsWith('/api/desktop/')) return handleDeskApi(req, res, pathname, method);
 
   // ---------------- Stream Giveaway ----------------
   if (pathname === '/api/giveaway/state' && method === 'GET') {
@@ -1561,6 +1630,10 @@ async function handleApi(req, res, url) {
     // Chat Unicorns: every chat message (sender + text + emote pictures).
     if (kind === 'chat' && body.data && typeof body.data.sender === 'string') {
       try { walkerChat(body.data.sender, walkerParts(body.data), false); } catch (_error) {}
+      try { pollChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { teamsChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { sashiChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { partyChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
     }
     return sendJson(res, 200, { ok: true });
   }
@@ -3042,7 +3115,10 @@ const DECOR_FILE = path.join(DATA_DIR, 'decor.json');
 const DECOR_ART_DIR = path.join(APP_DIR, 'assets', 'decor');
 const DECOR_OVERLAY_PAGE = path.join(APP_DIR, 'decor-overlay.html');
 const DECOR_IMAGE_EXT = /\.(png|jpe?g|webp|gif)$/i;
-const DECOR_TYPES = ['fall'];
+// Motion: 'fall' = drift down (leaves), 'float' = rise up (ghosts), 'fly' = drift across.
+const DECOR_TYPES = ['fall', 'float', 'fly'];
+// /decor/all.html shows every effect that's on, so no effect may be called "all".
+const DECOR_RESERVED_IDS = ['all'];
 // min, max, default for every slider on the dashboard.
 const DECOR_LIMITS = {
   amount: [1, 200, 40],     // how many on screen at once
@@ -3052,14 +3128,16 @@ const DECOR_LIMITS = {
   drift: [-3, 3, 0.4],      // wind: negative blows left, positive right
   sway: [0, 2, 1],          // side-to-side flutter
   spin: [0, 2, 1],          // how much they twirl
+  fade: [0, 1, 0],          // ghostly fade: pieces pulse between solid and faint
 };
 
 function decorDefaults() {
   return { rev: 1, effects: [decorNewEffect('leaves', 'Falling leaves')], presets: [] };
 }
 
-function decorNewEffect(id, name) {
-  const e = { id, name, type: 'fall', enabled: false, off: [] };
+function decorNewEffect(id, name, type) {
+  // extra = pictures borrowed from the picture library (other folders), as "folder/file".
+  const e = { id, name, type: DECOR_TYPES.includes(type) ? type : 'fall', enabled: false, off: [], extra: [] };
   for (const [k, lim] of Object.entries(DECOR_LIMITS)) e[k] = lim[2];
   return e;
 }
@@ -3074,13 +3152,38 @@ function decorClamp(key, value, fallback) {
 function decorCleanEffect(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const id = tradeupSlug(raw.id || raw.name || '');
-  if (!id || id === 'item') return null;
+  if (!id || id === 'item' || DECOR_RESERVED_IDS.includes(id)) return null;
   const e = decorNewEffect(id, cleanString(raw.name) || id);
   e.type = DECOR_TYPES.includes(raw.type) ? raw.type : 'fall';
   e.enabled = raw.enabled === true;
   e.off = Array.isArray(raw.off) ? raw.off.map(f => path.basename(String(f))).filter(f => DECOR_IMAGE_EXT.test(f)).slice(0, 500) : [];
+  e.extra = decorCleanExtra(raw.extra);
   for (const k of Object.keys(DECOR_LIMITS)) e[k] = decorClamp(k, raw[k], e[k]);
   return e;
+}
+
+// Picture library keys look like "folder/file.png" (a folder inside assets/decor).
+function decorCleanExtra(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const item of list) {
+    const parts = String(item || '').split('/');
+    if (parts.length !== 2) continue;
+    const folder = tradeupSlug(parts[0]), file = path.basename(parts[1]);
+    if (!folder || folder !== parts[0] || folder === 'item' || file !== parts[1] || !DECOR_IMAGE_EXT.test(file)) continue;
+    const key = `${folder}/${file}`;
+    if (!out.includes(key)) out.push(key);
+  }
+  return out.slice(0, 300);
+}
+
+// Every picture in every folder under assets/decor (the "picture library").
+function decorLibrary() {
+  let folders = [];
+  try { folders = fs.readdirSync(DECOR_ART_DIR, { withFileTypes: true }).filter(d => d.isDirectory() && !d.name.startsWith('_') && tradeupSlug(d.name) === d.name).map(d => d.name).sort(); } catch (_error) { folders = []; }
+  const out = [];
+  for (const folder of folders) for (const file of decorFiles(folder)) out.push({ key: `${folder}/${file}`, folder, file, url: `/decor-art/${folder}/${encodeURIComponent(file)}` });
+  return out;
 }
 
 function loadDecor() {
@@ -3103,13 +3206,19 @@ function decorFiles(id) {
 }
 
 function decorPublicState() {
+  const library = decorLibrary();
+  const byKey = new Map(library.map(x => [x.key, x]));
   return {
     ok: true,
     rev: decor.rev,
     limits: DECOR_LIMITS,
+    library,
     effects: decor.effects.map(e => {
       const files = decorFiles(e.id);
-      return { ...e, files, images: files.filter(f => !e.off.includes(f)).map(f => `/decor-art/${e.id}/${encodeURIComponent(f)}`) };
+      const own = files.filter(f => !e.off.includes(f)).map(f => `/decor-art/${e.id}/${encodeURIComponent(f)}`);
+      // Borrowed from other folders via the picture library (skip ones that were moved/removed).
+      const borrowed = (e.extra || []).filter(k => byKey.has(k) && !k.startsWith(`${e.id}/`)).map(k => byKey.get(k).url);
+      return { ...e, files, images: own.concat(borrowed) };
     }),
     presets: decor.presets.map(p => ({ id: p.id, name: p.name, savedAt: p.savedAt })),
   };
@@ -3154,8 +3263,9 @@ async function handleDecorApi(req, res, pathname, method) {
       if (!name) return sendJson(res, 400, { ok: false, error: 'Give the effect a name.' });
       let id = tradeupSlug(name), n = 2;
       if (id === 'item') id = 'effect';
-      while (decorFind(id)) id = `${tradeupSlug(name)}-${n++}`;
-      const e = decorNewEffect(id, name);
+      const base = id;
+      while (decorFind(id) || DECOR_RESERVED_IDS.includes(id)) id = `${base}-${n++}`;
+      const e = decorNewEffect(id, name, body.type);
       decor.effects.push(e);
       fs.mkdirSync(path.join(DECOR_ART_DIR, id), { recursive: true });
       saveDecor();
@@ -3168,15 +3278,27 @@ async function handleDecorApi(req, res, pathname, method) {
       return sendJson(res, 200, { ok: true });
     }
 
-    let m = /^\/api\/decor\/effects\/([a-z0-9-]+)$/.exec(pathname);
+    // "Switch to this one": turn this effect on and every other effect off.
+    let m = /^\/api\/decor\/effects\/([a-z0-9-]+)\/solo$/.exec(pathname);
+    if (m && method === 'POST') {
+      const e = decorFind(m[1]);
+      if (!e) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
+      for (const other of decor.effects) other.enabled = other.id === e.id;
+      saveDecor();
+      return sendJson(res, 200, { ok: true });
+    }
+
+    m = /^\/api\/decor\/effects\/([a-z0-9-]+)$/.exec(pathname);
     if (m && (method === 'PATCH' || method === 'POST')) {
       const e = decorFind(m[1]);
       if (!e) return sendJson(res, 404, { ok: false, error: 'No such effect.' });
       const body = await readBody(req);
       if (typeof body.name === 'string' && cleanString(body.name)) e.name = cleanString(body.name).slice(0, 40);
       if (typeof body.enabled === 'boolean') e.enabled = body.enabled;
+      if (DECOR_TYPES.includes(body.type)) e.type = body.type;
       for (const k of Object.keys(DECOR_LIMITS)) if (body[k] !== undefined) e[k] = decorClamp(k, body[k], e[k]);
       if (Array.isArray(body.off)) e.off = body.off.map(f => path.basename(String(f))).filter(f => DECOR_IMAGE_EXT.test(f)).slice(0, 500);
+      if (Array.isArray(body.extra)) e.extra = decorCleanExtra(body.extra);
       saveDecor();
       return sendJson(res, 200, { ok: true, effect: e });
     }
@@ -3186,6 +3308,24 @@ async function handleDecorApi(req, res, pathname, method) {
       decor.effects.splice(i, 1); // its art folder is left alone on disk
       saveDecor();
       return sendJson(res, 200, { ok: true });
+    }
+
+    // Upload into the picture library (assets/decor/misc): { dataUrl, name }
+    if (pathname === '/api/decor/library' && method === 'POST') {
+      const body = await readBody(req);
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(body.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Image must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 8 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Image is too large (max 8MB).' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(String(body.name || 'art').replace(/\.[a-z0-9]+$/i, ''));
+      const dir = path.join(DECOR_ART_DIR, 'misc');
+      fs.mkdirSync(dir, { recursive: true });
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(dir, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(dir, filename), buffer);
+      saveDecor();
+      return sendJson(res, 200, { ok: true, key: `misc/${filename}` });
     }
 
     // Upload art: { dataUrl, name }
@@ -3391,6 +3531,14 @@ const HUB_BUILTIN = [
   { id: 'decor', icon: '🍂', name: 'Decor Overlays', url: '/decor-control.html', desc: 'Falling leaves and other seasonal screen decor' },
   { id: 'timer', icon: '⏱️', name: 'Stream Timer', url: '/timer-control.html', desc: 'Starting soon / BRB countdowns' },
   { id: 'worldclock', icon: '🌍', name: 'World Time Bar', url: '/worldclock-control.html', desc: 'Time zone clocks overlay' },
+  { id: 'poll', icon: '🗳️', name: 'Badge Vote', url: '/poll-control.html', desc: 'Let chat vote on badges with !vote - images, live results, winner reveal' },
+  { id: 'newsticker', icon: '📰', name: 'News Ticker', url: '/newsticker-control.html', desc: 'Scrolling news bar along the bottom of stream - messages, alert, colours, speed' },
+  { id: 'steam', icon: '🏅', name: 'Steam Achievements', url: '/steam-control.html', desc: 'Aniimo achievement pop-ups + progress on stream, read from Steam' },
+  { id: 'party', icon: '🎉', name: 'Party Sign-ups', url: '/party-control.html', desc: 'Chat signs up for overprep roles with !tomato PaliaName - events, roles, spots, waitlist' },
+  { id: 'desktop', icon: '🖥️', name: 'Desktop Widgets', url: '/desktop-control.html', desc: 'Put any widget on your desktop over your game - move, size, show/hide from here' },
+  { id: 'sashimi', icon: '📅', name: 'Event Sign-Up', url: '/sashimi-signin-control.html', desc: 'Sesh-style event sign-ups from chat - time in world time zones, countdown, roles with their own !commands' },
+  { id: 'eventtime', icon: '🕒', name: 'Event Time Converter', url: '/eventtime-control.html', desc: 'Type when an event starts - shows that time + day in PDT, MDT, CDT, EDT, GMT+1, GMT+2' },
+  { id: 'teams', icon: '🏆', name: 'Team Contest', url: '/teams-control.html', desc: 'Grinding-party teams: chat joins with !team a, scores with !cloth +2 - live board' },
   { id: 'walkers', icon: '💬', name: 'Chat Unicorns', url: '/walkers-control.html', desc: 'Chatters\' unicorns hopping along the bottom - who gets one, reminders' },
 ];
 const HUB_DEFAULT_STARTUP = ['trackers']; // what the .bat opened before the hub existed
@@ -3479,14 +3627,28 @@ async function handleHubApi(req, res, pathname, method) {
 // ---------------------------------------------------------------------------
 const WALKERS_FILE = path.join(DATA_DIR, 'walkers.json');
 const WALKERS_ART_DIR = path.join(APP_DIR, 'assets', 'decor', 'unicorn');
+// Subscriber-only pictures (Baby, 2026-10-01): never in the random pool;
+// only subscribers can have them. Person art "subs:<file>" points here.
+const WALKERS_SUB_ART_DIR = path.join(APP_DIR, 'assets', 'decor', 'unicorn-subs');
+try { fs.mkdirSync(WALKERS_SUB_ART_DIR, { recursive: true }); } catch (_error) {}
+// Personal pictures (Baby, 2026-10-03): one person's own picture of their
+// choice, uploaded from their row on the dashboard. Never used for anyone
+// else, never random. Person art "personal:<file>"; person.personal remembers it.
+const WALKERS_PERSONAL_DIR = path.join(APP_DIR, 'assets', 'decor', 'unicorn-personal');
+try { fs.mkdirSync(WALKERS_PERSONAL_DIR, { recursive: true }); } catch (_error) {}
 const WALKERS_DEFAULT_SETTINGS = {
   enabled: true,
+  whoGets: 'everyone',  // 'everyone' (Baby, 2026-10-01) | 'subs' (the original rule)
+  subsAuto: true,       // subscribers with no picked picture get a random subscriber-only one
   artFacesLeft: false,  // set true if the unicorn pictures face LEFT (so they never walk backwards)
   size: 140,            // unicorn height in px
   speed: 1,             // walking speed multiplier
   afkMinutes: 10,       // walk off after this long without chatting
   bubbleSeconds: 7,     // how long a chat bubble stays up
   reminderEveryMinutes: 4,
+  trickGap: 8,          // average seconds between tricks
+  entrance: 'drop',
+  exitStyle: 'walk',
   // Names + chat look (Baby, 2026-09-29): name above the head, no bubble.
   namePosition: 'above',     // 'above' | 'below' | 'hidden'
   nameFont: 'Baloo 2',
@@ -3505,7 +3667,50 @@ const WALKERS_DEFAULT_SETTINGS = {
     'Type !socials to find us everywhere!',
   ],
 };
-const WALKERS_LIMITS = { size: [50, 300], speed: [0.3, 3], afkMinutes: [1, 120], bubbleSeconds: [2, 20], reminderEveryMinutes: [0, 60], nameSize: [10, 72], nameOutlineWidth: [0, 8], chatTextSize: [12, 44] };
+const WALKERS_LIMITS = { trickGap: [2, 30], size: [50, 300], speed: [0.3, 3], afkMinutes: [1, 120], bubbleSeconds: [2, 20], reminderEveryMinutes: [0, 60], nameSize: [10, 72], nameOutlineWidth: [0, 8], chatTextSize: [12, 44] };
+// Animations (Baby, 2026-10-01): every movement style and trick can be
+// switched on/off and given a "how often" (1-10) on the dashboard.
+// kind 'move' = how they get around (each unicorn switches between the ones
+// that are on every so often); kind 'trick' = random things they do.
+const WALKERS_ANIMS = [
+  { id: 'hop',       kind: 'move',  label: 'Hop',          desc: 'Bounces along the ground', on: true, often: 5 },
+  { id: 'glide',     kind: 'move',  label: 'Glide',        desc: 'Slides smoothly, leaning forward, no bouncing', on: true, often: 3 },
+  { id: 'float',     kind: 'move',  label: 'Float',        desc: 'Hovers above the ground, drifting up and down', on: true, often: 2 },
+  { id: 'skip',      kind: 'move',  label: 'Skip',         desc: 'Two little hops then a big one, over and over', on: true, often: 3 },
+  { id: 'trot',      kind: 'move',  label: 'Trot',         desc: 'Quick little steps, a bit faster', on: true, often: 2 },
+  { id: 'waddle',    kind: 'move',  label: 'Waddle',       desc: 'Rocks side to side with small, slow steps', on: true, often: 2 },
+  { id: 'pause',     kind: 'trick', label: 'Stop & look',  desc: 'Stops for a moment', on: true, often: 3 },
+  { id: 'bighop',    kind: 'trick', label: 'Big hop',      desc: 'One big jump', on: true, often: 3 },
+  { id: 'spin',      kind: 'trick', label: 'Spin',         desc: 'Spins around on the spot', on: true, often: 2 },
+  { id: 'sparkle',   kind: 'trick', label: 'Sparkles',     desc: 'A burst of sparkles, hearts and stars', on: true, often: 2 },
+  { id: 'turn',      kind: 'trick', label: 'Turn around',  desc: 'Changes its mind and goes the other way', on: true, often: 2 },
+  { id: 'flip',      kind: 'trick', label: 'Backflip',     desc: 'Jumps and flips all the way over', on: true, often: 2 },
+  { id: 'twirljump', kind: 'trick', label: 'Twirl jump',   desc: 'Leaps up and twirls twice in the air', on: true, often: 1 },
+  { id: 'bounce',    kind: 'trick', label: 'Bouncy',       desc: 'Three quick bounces in place', on: true, often: 2 },
+  { id: 'dance',     kind: 'trick', label: 'Dance',        desc: 'Wiggles and wobbles to the music', on: true, often: 2 },
+  { id: 'hearts',    kind: 'trick', label: 'Hearts',       desc: 'Little hearts float up from it', on: true, often: 2 },
+  { id: 'zoomies',   kind: 'trick', label: 'Zoomies',      desc: 'Sprints super fast for a moment', on: true, often: 1 },
+  { id: 'rainbow',   kind: 'trick', label: 'Rainbow dash', desc: 'Runs fast leaving a rainbow trail', on: true, often: 1 },
+  { id: 'grow',      kind: 'trick', label: 'Puff up',      desc: 'Grows big, then pops back to normal', on: true, often: 1 },
+  { id: 'nap',       kind: 'trick', label: 'Little nap',   desc: 'Sits still for a few seconds with a Zzz', on: false, often: 1 },
+];
+const WALKERS_ENTRANCES = { drop: 'Drop in from above', pop: 'Pop in (grows out of nothing)', floatdown: 'Float down slowly', slide: 'Walk in from the side' };
+const WALKERS_EXITS = { walk: 'Sleepy Zzz, then walk off', floataway: 'Sleepy Zzz, then float up and away', poof: 'Sleepy Zzz, then vanish in sparkles' };
+function walkerCleanAnims(src, prev) {
+  const out = {};
+  for (const a of WALKERS_ANIMS) {
+    const old = (prev && prev[a.id]) || { on: a.on, often: a.often };
+    const inc = (src && src[a.id]) || {};
+    const often = Number(inc.often);
+    out[a.id] = {
+      on: typeof inc.on === 'boolean' ? inc.on : old.on !== false,
+      often: Number.isFinite(often) ? Math.min(10, Math.max(1, Math.round(often))) : Math.min(10, Math.max(1, Number(old.often) || a.often)),
+    };
+  }
+  return out;
+}
+let walkerTry = { id: null, at: 0 };   // "▶ Try" on the dashboard: every unicorn does it now
+
 const WALKERS_FONTS = ['Baloo 2', 'Comic Sans MS', 'Arial', 'Arial Black', 'Trebuchet MS', 'Segoe UI', 'Verdana', 'Georgia', 'Impact', 'Courier New', 'Times New Roman'];
 const WALKERS_COLOR = /^#[0-9a-f]{6}$/i;
 // Checks the look settings (shared by load + the settings route).
@@ -3513,7 +3718,8 @@ function walkerCleanLook(s, src) {
   if (['above', 'below', 'hidden'].includes(src.namePosition)) s.namePosition = src.namePosition;
   if (WALKERS_FONTS.includes(src.nameFont)) s.nameFont = src.nameFont;
   for (const k of ['nameColor', 'nameOutlineColor', 'nameBgColor']) if (WALKERS_COLOR.test(String(src[k] || ''))) s[k] = String(src[k]).toLowerCase();
-  for (const k of ['nameBold', 'nameBackground', 'showChat']) if (typeof src[k] === 'boolean') s[k] = src[k];
+  for (const k of ['nameBold', 'nameBackground', 'showChat', 'subsAuto']) if (typeof src[k] === 'boolean') s[k] = src[k];
+  if (['everyone', 'subs'].includes(src.whoGets)) s.whoGets = src.whoGets;
   return s;
 }
 
@@ -3523,20 +3729,24 @@ function loadWalkers() {
   s.enabled = s.enabled !== false;
   s.artFacesLeft = s.artFacesLeft === true;
   const look = walkerCleanLook({ ...WALKERS_DEFAULT_SETTINGS }, s);
-  for (const k of ['namePosition', 'nameFont', 'nameColor', 'nameOutlineColor', 'nameBgColor', 'nameBold', 'nameBackground', 'showChat']) s[k] = look[k];
+  for (const k of ['namePosition', 'nameFont', 'nameColor', 'nameOutlineColor', 'nameBgColor', 'nameBold', 'nameBackground', 'showChat', 'subsAuto', 'whoGets']) s[k] = look[k];
   for (const [k, [lo, hi]] of Object.entries(WALKERS_LIMITS)) {
     const n = Number(s[k]);
     s[k] = Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : WALKERS_DEFAULT_SETTINGS[k];
   }
   s.reminders = (Array.isArray(s.reminders) ? s.reminders : []).map(r => cleanString(r).slice(0, 140)).filter(Boolean).slice(0, 30);
+  s.anims = walkerCleanAnims(s.anims, null);
+  if (!WALKERS_ENTRANCES[s.entrance]) s.entrance = 'drop';
+  if (!WALKERS_EXITS[s.exitStyle]) s.exitStyle = 'walk';
   const people = {};
   for (const [key, p] of Object.entries(raw.people || {})) {
     if (!p || !p.name) continue;
     people[key.toLowerCase()] = {
       name: cleanString(p.name).slice(0, 40),
       allowed: p.allowed === true ? true : (p.allowed === false ? false : null), // null = automatic (subs)
-      art: p.art ? path.basename(String(p.art)) : null,
+      art: walkerCleanArtRef(p.art),
       lastSeen: p.lastSeen || null,
+      personal: p.personal && DECOR_IMAGE_EXT.test(path.basename(String(p.personal))) ? path.basename(String(p.personal)) : null,
     };
   }
   return { settings: s, people };
@@ -3553,6 +3763,24 @@ function walkerArt() {
   try { return fs.readdirSync(WALKERS_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b)); }
   catch (_error) { return []; }
 }
+function walkerSubArt() {
+  try { return fs.readdirSync(WALKERS_SUB_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b)); }
+  catch (_error) { return []; }
+}
+// A person's picked picture: "file.png" (everyone's pool) or "subs:file.png" (subscriber-only).
+function walkerCleanArtRef(ref) {
+  if (!ref) return null;
+  const str = String(ref);
+  if (str.startsWith('subs:')) { const f = path.basename(str.slice(5)); return DECOR_IMAGE_EXT.test(f) ? `subs:${f}` : null; }
+  if (str.startsWith('personal:')) { const f = path.basename(str.slice(9)); return DECOR_IMAGE_EXT.test(f) ? `personal:${f}` : null; }
+  const f = path.basename(str);
+  return DECOR_IMAGE_EXT.test(f) ? f : null;
+}
+function walkerArtUrl(ref) {
+  if (ref.startsWith('personal:')) return `/decor-art/unicorn-personal/${encodeURIComponent(ref.slice(9))}`;
+  return ref.startsWith('subs:') ? `/decor-art/unicorn-subs/${encodeURIComponent(ref.slice(5))}` : `/decor-art/unicorn/${encodeURIComponent(ref)}`;
+}
+function walkerHash(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return Math.abs(h); }
 
 function walkerIsSub(name) {
   const key = findEntrantKey(name);
@@ -3563,8 +3791,8 @@ function walkerIsSub(name) {
 function walkerAllowed(name) {
   if (!name || isBlocked(name)) return false;
   const p = walkers.people[name.toLowerCase()];
-  if (p && p.allowed !== null) return p.allowed;
-  return walkerIsSub(name);
+  if (p && p.allowed !== null && p.allowed !== undefined) return p.allowed;
+  return walkers.settings.whoGets === 'subs' ? walkerIsSub(name) : true;
 }
 
 // Keep only what the bubble needs: text and emote pictures.
@@ -3595,9 +3823,19 @@ function walkerChat(name, parts, force) {
 }
 
 function walkerOverlayState(since) {
-  const art = walkerArt();
+  const art = walkerArt(), subArt = walkerSubArt();
   const pick = {};
-  for (const [key, p] of Object.entries(walkers.people)) if (p.art && art.includes(p.art)) pick[key] = `/decor-art/unicorn/${encodeURIComponent(p.art)}`;
+  for (const [key, p] of Object.entries(walkers.people)) {
+    const ref = p.art;
+    if (ref && ref.startsWith('personal:')) {
+      if (p.personal === ref.slice(9) && fs.existsSync(path.join(WALKERS_PERSONAL_DIR, p.personal))) { pick[key] = walkerArtUrl(ref); continue; }
+    }
+    if (ref && !ref.startsWith('subs:') && !ref.startsWith('personal:') && art.includes(ref)) { pick[key] = walkerArtUrl(ref); continue; }
+    // Subscriber-only pictures go to subscribers only - never the random pool.
+    if (!walkerIsSub(p.name)) continue;
+    if (ref && ref.startsWith('subs:') && subArt.includes(ref.slice(5))) pick[key] = walkerArtUrl(ref);
+    else if (!ref && walkers.settings.subsAuto && subArt.length) pick[key] = walkerArtUrl(`subs:${subArt[walkerHash(key) % subArt.length]}`);
+  }
   return {
     ok: true,
     settings: walkers.settings,
@@ -3606,6 +3844,7 @@ function walkerOverlayState(since) {
     seq: walkerSeq,
     events: walkerEvents.filter(e => e.seq > since),
     clearAt: walkers.clearAt || 0,
+    tryAnim: walkerTry,
   };
 }
 
@@ -3616,9 +3855,1355 @@ function walkerAdminState() {
   for (const e of Object.values(giveaway.entrants || {})) if (e && e.username && !names.has(e.username.toLowerCase())) names.set(e.username.toLowerCase(), e.username);
   const people = [...names.entries()].filter(([, n]) => !isBlocked(n)).map(([key, name]) => {
     const p = walkers.people[key] || {};
-    return { name, isSub: walkerIsSub(name), override: p.allowed === undefined ? null : p.allowed, allowed: walkerAllowed(name), art: p.art || null, lastSeen: p.lastSeen || null };
+    return { name, isSub: walkerIsSub(name), override: p.allowed === undefined ? null : p.allowed, allowed: walkerAllowed(name), art: p.art || null, personal: p.personal || null, lastSeen: p.lastSeen || null };
   }).sort((a, b) => (b.allowed - a.allowed) || String(b.lastSeen || '').localeCompare(String(a.lastSeen || '')) || a.name.localeCompare(b.name));
-  return { ok: true, settings: walkers.settings, art, people, fonts: WALKERS_FONTS };
+  return { ok: true, settings: walkers.settings, art, subArt: walkerSubArt(), people, fonts: WALKERS_FONTS, anims: WALKERS_ANIMS, entrances: WALKERS_ENTRANCES, exits: WALKERS_EXITS };
+}
+
+// ---------------------------------------------------------------------------
+// BADGE VOTE (Baby, 2026-10-03) - post badge pictures, chat votes with
+// "!vote 2" (several numbers allowed: "!vote 1 3"), "!unvote 2" takes one back.
+// Each person can vote for several badges, once each. Subscribers' votes count
+// double. Results can be shown or hidden on stream from the dashboard.
+//   - Overlay:   /poll.html      - Dashboard: /poll-control.html
+//   - Art:       assets/poll/    - Saved in data/poll.json
+// ---------------------------------------------------------------------------
+const POLL_FILE = path.join(DATA_DIR, 'poll.json');
+const POLL_ART_DIR = path.join(APP_DIR, 'assets', 'poll');
+try { fs.mkdirSync(POLL_ART_DIR, { recursive: true }); } catch (_error) {}
+function pollDefaults() {
+  return { title: 'Vote for the badges you want to earn!', options: [], open: false, showResults: false, endsAt: null,
+    subWeight: 2, revealed: false, votes: {}, seq: 1 };
+}
+function pollLoad() {
+  const raw = readJson(POLL_FILE, null) || {};
+  const p = { ...pollDefaults(), ...raw };
+  p.options = (Array.isArray(p.options) ? p.options : []).filter(o => o && o.id).map(o => ({ id: String(o.id).slice(0, 20), label: cleanString(o.label).slice(0, 60), image: o.image ? path.basename(String(o.image)) : null }));
+  p.votes = p.votes && typeof p.votes === 'object' ? p.votes : {};
+  p.subWeight = [1, 2, 3].includes(Number(p.subWeight)) ? Number(p.subWeight) : 2;
+  return p;
+}
+let poll = pollLoad();
+function pollSave() { writeJson(POLL_FILE, poll); broadcast('poll', pollPublic()); }
+function pollIsOpen() { return poll.open && (!poll.endsAt || Date.now() < poll.endsAt); }
+function pollResults() {
+  const rows = poll.options.map((o, i) => ({ id: o.id, number: i + 1, label: o.label, image: o.image ? `/assets/poll/${encodeURIComponent(o.image)}` : null, points: 0, voters: 0, subVoters: 0 }));
+  const byId = new Map(rows.map(r => [r.id, r]));
+  for (const v of Object.values(poll.votes)) {
+    for (const id of v.picks || []) {
+      const r = byId.get(id); if (!r) continue;
+      r.voters += 1; if (v.sub) r.subVoters += 1;
+      r.points += v.sub ? poll.subWeight : 1;
+    }
+  }
+  const total = rows.reduce((a, r) => a + r.points, 0);
+  const max = rows.reduce((a, r) => Math.max(a, r.points), 0);
+  for (const r of rows) { r.percent = total ? Math.round(r.points / total * 100) : 0; r.leading = max > 0 && r.points === max; }
+  return { rows, total, people: Object.keys(poll.votes).length };
+}
+function pollPublic() {
+  const res = pollResults();
+  return { ok: true, title: poll.title, open: pollIsOpen(), openFlag: poll.open, endsAt: poll.endsAt, now: Date.now(), showResults: poll.showResults, revealed: poll.revealed,
+    subWeight: poll.subWeight, ...res };
+}
+function pollChat(name, parts) {
+  if (!pollIsOpen()) return false;
+  name = cleanString(name).replace(/^@/, '').slice(0, 40);
+  if (!name || isBlocked(name)) return false;
+  const text = (parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ').trim();
+  const m = /^!(un)?vote\b(.*)$/i.exec(text);
+  if (!m) return false;
+  const nums = (m[2].match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= poll.options.length).slice(0, 20);
+  if (!nums.length) return false;
+  const key = name.toLowerCase();
+  const v = poll.votes[key] || (poll.votes[key] = { name, picks: [], sub: false, at: 0 });
+  v.name = name; v.sub = walkerIsSub(name); v.at = Date.now();
+  for (const n of nums) {
+    const id = poll.options[n - 1].id;
+    if (m[1]) v.picks = v.picks.filter(x => x !== id);
+    else if (!v.picks.includes(id)) v.picks.push(id);
+  }
+  if (!v.picks.length) delete poll.votes[key];
+  pollSave();
+  return true;
+}
+async function handlePollApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/poll' && method === 'GET') return sendJson(res, 200, pollPublic());
+    if (pathname === '/api/poll/admin' && method === 'GET') {
+      const voters = Object.values(poll.votes).map(v => ({ name: v.name, sub: v.sub, picks: v.picks.map(id => poll.options.findIndex(o => o.id === id) + 1).filter(n => n > 0) })).sort((a, b) => a.name.localeCompare(b.name));
+      const art = (() => { try { return fs.readdirSync(POLL_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort(); } catch (_e) { return []; } })();
+      return sendJson(res, 200, { ...pollPublic(), options: poll.options, voters, art });
+    }
+    const body = ['POST', 'PUT', 'PATCH'].includes(method) ? await readBody(req) : {};
+    if (pathname === '/api/poll/settings' && method !== 'GET') {
+      if (typeof body.title === 'string') poll.title = cleanString(body.title).slice(0, 120);
+      if (typeof body.showResults === 'boolean') poll.showResults = body.showResults;
+      if ([1, 2, 3].includes(Number(body.subWeight))) poll.subWeight = Number(body.subWeight);
+      pollSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Badges: { options: [{id?, label, image}] } replaces the list (order = vote numbers).
+    if (pathname === '/api/poll/options' && method !== 'GET') {
+      if (!Array.isArray(body.options)) return sendJson(res, 400, { ok: false, error: 'options must be a list.' });
+      const next = [];
+      for (const o of body.options.slice(0, 30)) {
+        if (!o) continue;
+        const image = o.image ? path.basename(String(o.image)) : null;
+        const id = (o.id && /^[a-z0-9]{1,20}$/i.test(String(o.id))) ? String(o.id) : `b${poll.seq++}`;
+        next.push({ id, label: cleanString(o.label).slice(0, 60), image: image && fs.existsSync(path.join(POLL_ART_DIR, image)) ? image : null });
+      }
+      poll.options = next;
+      const ids = new Set(next.map(o => o.id));
+      for (const [k, v] of Object.entries(poll.votes)) { v.picks = (v.picks || []).filter(id => ids.has(id)); if (!v.picks.length) delete poll.votes[k]; }
+      pollSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Upload a badge picture: { dataUrl, name } -> adds a new badge with it.
+    if (pathname === '/api/poll/image' && method === 'POST') {
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(body.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Image must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 8 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Image is too large (max 8MB).' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(String(body.name || 'badge').replace(/\.[a-z0-9]+$/i, ''));
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(POLL_ART_DIR, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(POLL_ART_DIR, filename), buffer);
+      if (body.addBadge !== false && poll.options.length < 30) {
+        const label = cleanString(body.label || String(body.name || '').replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ')).slice(0, 60);
+        poll.options.push({ id: `b${poll.seq++}`, label, image: filename });
+      }
+      pollSave(); return sendJson(res, 200, { ok: true, file: filename });
+    }
+    // Open voting: { minutes } (0 or missing = no timer). Close: stops counting.
+    if (pathname === '/api/poll/open' && method === 'POST') {
+      if (!poll.options.length) return sendJson(res, 400, { ok: false, error: 'Add at least one badge first.' });
+      const minutes = Number(body.minutes);
+      poll.open = true; poll.revealed = false;
+      poll.endsAt = Number.isFinite(minutes) && minutes > 0 ? Date.now() + Math.min(240, minutes) * 60000 : null;
+      pollSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/poll/close' && method === 'POST') { poll.open = false; poll.endsAt = null; pollSave(); return sendJson(res, 200, { ok: true }); }
+    if (pathname === '/api/poll/reveal' && method === 'POST') { poll.revealed = body.revealed !== false; if (poll.revealed) { poll.open = false; poll.endsAt = null; poll.showResults = true; } pollSave(); return sendJson(res, 200, { ok: true }); }
+    if (pathname === '/api/poll/reset' && method === 'POST') { poll.votes = {}; poll.revealed = false; pollSave(); return sendJson(res, 200, { ok: true }); }
+    // Test vote from the dashboard: { name, text }
+    if (pathname === '/api/poll/test' && method === 'POST') {
+      const ok = pollChat(cleanString(body.name) || 'TestViewer', [{ t: 'text', v: cleanString(body.text) || '!vote 1' }]);
+      return sendJson(res, 200, { ok: true, counted: ok });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown poll route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Poll request failed.' });
+  }
+}
+// The timer runs out even if nobody votes: tell the overlay/dashboard once.
+setInterval(() => { if (poll.open && poll.endsAt && Date.now() >= poll.endsAt) { poll.open = false; poll.endsAt = null; pollSave(); } }, 1000);
+
+// ---------------------------------------------------------------------------
+// TEAM CONTEST (Baby, 2026-10-05) - grinding-party contest on stream.
+// Chat joins with "!team a" (b, c, d... up to the number of teams set on the
+// dashboard). Once on a team they're LOCKED - only Baby can move them.
+// She picks ONE thing to count (e.g. command "cloth"); then "!cloth" = +1,
+// "!cloth +2" = +2, "!cloth -1" = -1 (never below 0, no upper limit).
+// Points are saved per item, so switching back to an old item brings its
+// points back. Team totals = sum of their players.
+//   - Overlay:   /teams.html      - Dashboard: /teams-control.html
+//   - Saved in data/teams.json
+// ---------------------------------------------------------------------------
+const TEAMS_FILE = path.join(DATA_DIR, 'teams.json');
+const TEAM_LETTERS = 'abcdefgh';
+const TEAM_COLORS = ['#ff6fb5', '#5ec8ff', '#7ee081', '#ffd166', '#b77cff', '#ff9f5a', '#4ee6c8', '#ff5c6c'];
+function teamsDefaults() {
+  return {
+    title: 'Grinding Party Contest!',
+    teamCount: 2,
+    teams: TEAM_LETTERS.split('').map((l, i) => ({ letter: l, name: `Team ${l.toUpperCase()}`, color: TEAM_COLORS[i] })),
+    item: { command: 'cloth', aliases: '', label: 'Tattered Cloth', image: null },
+    presets: [
+      { command: 'cloth', aliases: '', label: 'Tattered Cloth', image: 'tattered_cloth.png' },
+      { command: 'spore', aliases: 'spores', label: 'Shmole Spores', image: 'Shmole_Spores.png' },
+      { command: 'plushie', aliases: 'plush', label: 'Plushies', image: null },
+    ],
+    joinOpen: true, counting: true, showPlayers: 8, showBanner: true, visible: true,
+    players: {}, log: [], seq: 1,
+  };
+}
+function teamsCleanCmd(v) { return cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24); }
+function teamsCleanItem(o) {
+  o = o || {};
+  const image = o.image ? path.basename(String(o.image)) : null;
+  return {
+    command: teamsCleanCmd(o.command) || 'point',
+    aliases: String(o.aliases || '').split(/[\s,]+/).map(teamsCleanCmd).filter(Boolean).slice(0, 6).join(', '),
+    label: cleanString(o.label).slice(0, 60),
+    image: image && DECOR_IMAGE_EXT.test(image) ? image : null,
+  };
+}
+function teamsLoad() {
+  const raw = readJson(TEAMS_FILE, null) || {};
+  const d = teamsDefaults();
+  const t = { ...d, ...raw };
+  t.teamCount = Math.max(2, Math.min(8, Math.round(Number(t.teamCount) || 2)));
+  t.teams = d.teams.map((def, i) => {
+    const r = (Array.isArray(raw.teams) ? raw.teams : []).find(x => x && x.letter === def.letter) || {};
+    return { letter: def.letter, name: cleanString(r.name).slice(0, 40) || def.name, color: /^#[0-9a-f]{6}$/i.test(String(r.color || '')) ? r.color : def.color };
+  });
+  t.item = teamsCleanItem(t.item);
+  t.presets = (Array.isArray(t.presets) ? t.presets : []).slice(0, 30).map(teamsCleanItem);
+  t.players = t.players && typeof t.players === 'object' ? t.players : {};
+  for (const p of Object.values(t.players)) { if (!p.points || typeof p.points !== 'object') p.points = {}; }
+  t.log = Array.isArray(t.log) ? t.log.slice(-200) : [];
+  t.showPlayers = Math.max(0, Math.min(30, Math.round(Number(t.showPlayers)) || 0));
+  return t;
+}
+let teams = teamsLoad();
+function teamsSave() { writeJson(TEAMS_FILE, teams); broadcast('teams', teamsPublic()); }
+function teamsActive() { return teams.teams.slice(0, teams.teamCount); }
+function teamsBoard() {
+  const cmd = teams.item.command;
+  const board = teamsActive().map(tm => ({ letter: tm.letter, name: tm.name, color: tm.color, total: 0, players: [] }));
+  const byLetter = new Map(board.map(b => [b.letter, b]));
+  for (const p of Object.values(teams.players)) {
+    const b = byLetter.get(p.team); if (!b) continue;
+    const pts = Number(p.points[cmd]) || 0;
+    b.players.push({ name: p.name, points: pts, joined: p.joined || 0 });
+    b.total += pts;
+  }
+  for (const b of board) b.players.sort((x, y) => (y.points - x.points) || (x.joined - y.joined));
+  const max = board.reduce((a, b) => Math.max(a, b.total), 0);
+  for (const b of board) b.leading = max > 0 && b.total === max;
+  return board;
+}
+function teamsPublic() {
+  const item = teams.item;
+  // If the picture is one of her tracker cards, reuse that card's number box so
+  // the grand total sits right in the art's empty box.
+  let valueBox = null;
+  try { const c = item.image && (resourceTrackers.cards || []).find(x => x && x.image === item.image && x.valueBox); if (c) valueBox = c.valueBox; } catch (_e) {}
+  return { ok: true, title: teams.title, teamCount: teams.teamCount, item: { ...item, imageUrl: item.image ? `/assets/resources/${encodeURIComponent(item.image)}` : null, valueBox },
+    joinOpen: teams.joinOpen, counting: teams.counting, showPlayers: teams.showPlayers, showBanner: teams.showBanner, visible: teams.visible,
+    board: teamsBoard(), recent: teams.log.slice(-12), now: Date.now() };
+}
+function teamsLog(entry) { entry.id = teams.seq++; entry.at = Date.now(); teams.log.push(entry); if (teams.log.length > 200) teams.log = teams.log.slice(-200); }
+// Returns a short result string (for the dashboard's test box) or '' if ignored.
+function teamsChat(name, parts) {
+  name = cleanString(name).replace(/^@/, '').slice(0, 40);
+  if (!name || isBlocked(name)) return '';
+  const text = (parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ').trim();
+  if (text[0] !== '!') return '';
+  const key = name.toLowerCase();
+  let m = /^!team\s+([a-h])\b/i.exec(text);
+  if (m) {
+    const letter = m[1].toLowerCase();
+    if (TEAM_LETTERS.indexOf(letter) >= teams.teamCount) return `${name}: there is no team ${letter.toUpperCase()}`;
+    const existing = teams.players[key];
+    if (existing && existing.team) return `${name} is already on ${teamsName(existing.team)} (locked)`;
+    if (!teams.joinOpen) return `${name}: joining is closed`;
+    teams.players[key] = { name, team: letter, points: (existing && existing.points) || {}, joined: Date.now() };
+    teamsLog({ kind: 'join', name, team: letter });
+    teamsSave();
+    return `${name} joined ${teamsName(letter)}`;
+  }
+  const cmds = [teams.item.command].concat(teams.item.aliases ? teams.item.aliases.split(/,\s*/) : []).filter(Boolean);
+  m = /^!([a-z0-9_]+)(?:\s+([+-]?)\s*(\d{1,6}))?(?:\s|$)/i.exec(text);
+  if (!m || cmds.indexOf(m[1].toLowerCase()) < 0) return '';
+  if (!teams.counting) return `${name}: counting is paused`;
+  const p = teams.players[key];
+  if (!p || !p.team || TEAM_LETTERS.indexOf(p.team) >= teams.teamCount) return `${name} isn't on a team yet`;
+  let amount = m[3] ? Number(m[3]) : 1;
+  if (m[2] === '-') amount = -amount;
+  if (!amount) return '';
+  return teamsAdd(key, amount, 'chat');
+}
+function teamsName(letter) { const t = teams.teams.find(x => x.letter === letter); return t ? t.name : `Team ${String(letter).toUpperCase()}`; }
+function teamsAdd(key, amount, how) {
+  const p = teams.players[key]; if (!p) return '';
+  const cmd = teams.item.command;
+  const before = Number(p.points[cmd]) || 0;
+  const after = Math.max(0, before + amount);
+  const applied = after - before;
+  if (!applied) return `${p.name} is already at 0`;
+  p.points[cmd] = after;
+  teamsLog({ kind: 'points', name: p.name, key, team: p.team, item: cmd, amount: applied, total: after, how });
+  teamsSave();
+  return `${p.name} ${applied > 0 ? '+' : ''}${applied} → ${after}`;
+}
+// ---------------------------------------------------------------------------
+// EVENT TIME CONVERTER (Baby, 2026-10-06) - she types when an event happens
+// (in her own time zone) and the overlay shows that same moment in each zone
+// with its day, e.g. "PDT  Sat, Oct 10  5:00 PM". The server turns her wall
+// time into one exact moment (epoch ms); the overlay formats it per zone with
+// Intl, so daylight-saving changes (PDT -> PST) are handled automatically.
+//   - Overlay:   /eventtime.html      - Dashboard: /eventtime-control.html
+//   - Saved in data/eventtime.json
+// ---------------------------------------------------------------------------
+const EVENTTIME_FILE = path.join(DATA_DIR, 'eventtime.json');
+function eventTimeDefaults() {
+  return {
+    title: 'Next Event', subtitle: '', date: '', time: '', sourceTz: 'America/Chicago', at: null,
+    visible: true, showCountdown: true, layout: 'row',
+    zones: [
+      { label: '', tz: 'America/Los_Angeles', visible: true },
+      { label: '', tz: 'America/Denver', visible: true },
+      { label: '', tz: 'America/Chicago', visible: true },
+      { label: '', tz: 'America/New_York', visible: true },
+      { label: 'GMT +1', tz: 'Etc/GMT-1', visible: true },
+      { label: 'GMT +2', tz: 'Etc/GMT-2', visible: true },
+    ],
+  };
+}
+function etValidTz(tz) { try { new Intl.DateTimeFormat('en-US', { timeZone: String(tz) }); return true; } catch (_e) { return false; } }
+// Offset (ms) of a zone at a given instant: wall-clock-as-UTC minus the instant.
+function etOffset(ms, tz) {
+  const parts = {};
+  for (const p of new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(ms))) parts[p.type] = p.value;
+  return Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute, +parts.second) - Math.floor(ms / 1000) * 1000;
+}
+// "2026-10-10" + "19:00" in America/Chicago -> exact epoch ms (or null).
+function etToEpoch(date, time, tz) {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date || '')); const t = /^(\d{1,2}):(\d{2})$/.exec(String(time || ''));
+  if (!d || !t || !etValidTz(tz)) return null;
+  const guess = Date.UTC(+d[1], +d[2] - 1, +d[3], +t[1], +t[2]);
+  let ms = guess - etOffset(guess, tz);
+  ms = guess - etOffset(ms, tz); // second pass settles DST edges
+  return ms;
+}
+function eventTimeLoad() {
+  const raw = readJson(EVENTTIME_FILE, null) || {};
+  const e = { ...eventTimeDefaults(), ...raw };
+  e.zones = (Array.isArray(e.zones) ? e.zones : eventTimeDefaults().zones).slice(0, 12)
+    .filter(z => z && etValidTz(z.tz)).map(z => ({ label: cleanString(z.label).slice(0, 30), tz: String(z.tz), visible: z.visible !== false }));
+  if (!etValidTz(e.sourceTz)) e.sourceTz = 'America/Chicago';
+  return e;
+}
+let eventTime = eventTimeLoad();
+function eventTimeSave() { writeJson(EVENTTIME_FILE, eventTime); broadcast('eventtime', { ...eventTime, ok: true, now: Date.now() }); }
+async function handleEventTimeApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/eventtime' && method === 'GET') return sendJson(res, 200, { ok: true, ...eventTime, now: Date.now() });
+    if (pathname === '/api/eventtime' && method === 'POST') {
+      const b = await readBody(req);
+      if (typeof b.title === 'string') eventTime.title = cleanString(b.title).slice(0, 80);
+      if (typeof b.subtitle === 'string') eventTime.subtitle = cleanString(b.subtitle).slice(0, 120);
+      if (typeof b.visible === 'boolean') eventTime.visible = b.visible;
+      if (typeof b.showCountdown === 'boolean') eventTime.showCountdown = b.showCountdown;
+      if (b.layout === 'row' || b.layout === 'column') eventTime.layout = b.layout;
+      if (typeof b.sourceTz === 'string' && etValidTz(b.sourceTz)) eventTime.sourceTz = b.sourceTz;
+      if (typeof b.date === 'string') eventTime.date = b.date.slice(0, 10);
+      if (typeof b.time === 'string') eventTime.time = b.time.slice(0, 5);
+      if (Array.isArray(b.zones)) {
+        const z = b.zones.slice(0, 12).filter(x => x && etValidTz(x.tz)).map(x => ({ label: cleanString(x.label).slice(0, 30), tz: String(x.tz), visible: x.visible !== false }));
+        if (z.length) eventTime.zones = z;
+      }
+      eventTime.at = etToEpoch(eventTime.date, eventTime.time, eventTime.sourceTz);
+      if ((b.date || b.time) && eventTime.at === null) return sendJson(res, 400, { ok: false, error: 'Pick a date and a time.' });
+      eventTimeSave();
+      return sendJson(res, 200, { ok: true, ...eventTime, now: Date.now() });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown event time route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Event time request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PARTY SIGN-UPS (Baby, 2026-10-06) - chat signs up for overprep roles at
+// her Palia parties: "!tomato BabyPalia" puts their Palia name in the Tomato
+// role. Roles only (no plain join). One sign-up per person: a different role
+// command swaps them, "!leave" drops them. Each role has a spot limit she sets;
+// once full, extra people go on that role's waitlist and move up when a spot
+// opens. Several events can be saved; ONE is live (chat + overlay use it).
+//   - Overlay:   /party.html      - Dashboard: /party-control.html
+//   - Saved in data/parties.json
+// ---------------------------------------------------------------------------
+const PARTY_FILE = path.join(DATA_DIR, 'parties.json');
+function partyCmd(v) { return cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24); }
+const PARTY_RESERVED = new Set(['leave', 'team', 'vote', 'unvote', 'here', 'checkin', 'signin', 'party', 'show']);
+const PARTY_CHECKIN_CMDS = new Set(['here', 'checkin', 'signin']);
+function partyNewEvent(seq) {
+  return { id: `e${seq}`, title: 'Overprep Party', when: '', subtitle: '', open: true,
+    roles: [
+      { id: 'r1', command: 'tomato', label: 'Tomato', emoji: '🍅', spots: 2, group: 'Overprep', bring: '' },
+      { id: 'r2', command: 'rice', label: 'Rice', emoji: '🍚', spots: 2, group: 'Overprep', bring: '' },
+    ], signups: [], rseq: 3 };
+}
+function partyCleanRole(r, ev) {
+  const id = r && /^r\d{1,5}$/.test(String(r.id || '')) ? String(r.id) : `r${ev.rseq++}`;
+  return { id, command: partyCmd(r && r.command), label: cleanString(r && r.label).slice(0, 40), emoji: cleanString(r && r.emoji).slice(0, 8),
+    spots: Math.max(1, Math.min(50, Math.round(Number(r && r.spots)) || 1)),
+    // 2026-10-07: any kind of role, grouped into sections on the board (Overprep, Cooking,
+    // Helpers...), plus what that role must bring - shown on stream under the role.
+    group: cleanString(r && r.group).slice(0, 30),
+    bring: cleanString(r && r.bring).slice(0, 200) };
+}
+function partyLoad() {
+  const raw = readJson(PARTY_FILE, null);
+  if (!raw || !Array.isArray(raw.events) || !raw.events.length) {
+    return { seq: 2, liveId: 'e1', visible: true, showTwitch: false, names: {}, events: [partyNewEvent(1)], slots: ['e1', null, null, null, null, null, null] };
+  }
+  raw.names = raw.names && typeof raw.names === 'object' ? raw.names : {};
+  for (const ev of raw.events) { ev.signups = Array.isArray(ev.signups) ? ev.signups : []; ev.roles = Array.isArray(ev.roles) ? ev.roles : []; ev.rseq = ev.rseq || 100; }
+  if (!raw.events.some(e => e.id === raw.liveId)) raw.liveId = raw.events[0].id;
+  // 2026-10-07: up to 7 boards live at once. slots[i] = event id shown on Board i+1 (null = empty).
+  // Older saves had one liveId - it becomes Board 1.
+  const ids = new Set(raw.events.map(e => e.id));
+  raw.slots = Array.isArray(raw.slots) ? raw.slots.slice(0, PARTY_SLOTS).map(x => (x && ids.has(x) ? x : null)) : [raw.liveId];
+  while (raw.slots.length < PARTY_SLOTS) raw.slots.push(null);
+  return { visible: true, showTwitch: false, seq: 100, ...raw };
+}
+const PARTY_SLOTS = 7;
+// Her own art per party (2026-10-07): pictures live in assets/party/ (upload on the dashboard or drop files in).
+const PARTY_ART_DIR = path.join(APP_DIR, 'assets', 'party');
+try { fs.mkdirSync(PARTY_ART_DIR, { recursive: true }); } catch (_error) {}
+const partyArtUrl = f => (f ? `/assets/party/${encodeURIComponent(f)}` : null);
+function partyArtFile(v) { const f = v ? path.basename(String(v)) : null; return f && DECOR_IMAGE_EXT.test(f) && fs.existsSync(path.join(PARTY_ART_DIR, f)) ? f : null; }
+let parties = partyLoad();
+// One-time import (2026-10-07): if data/party-seed.json exists, its events are ADDED (existing events
+// and sign-ups are never touched) and put on the boards it names, then the file is renamed so it
+// never imports twice. Lets Claude set up Baby's weekly parties while ICB is running.
+(function partyImportSeed() {
+  const file = path.join(DATA_DIR, 'party-seed.json');
+  if (!fs.existsSync(file)) return;
+  try {
+    const seed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    for (const se of (Array.isArray(seed.events) ? seed.events : []).slice(0, 20)) {
+      const ev = partyNewEvent(parties.seq++);
+      ev.title = cleanString(se.title).slice(0, 80) || ev.title;
+      ev.when = cleanString(se.when).slice(0, 80);
+      ev.subtitle = cleanString(se.subtitle).slice(0, 140);
+      ev.open = se.open !== false;
+      ev.roles = (Array.isArray(se.roles) ? se.roles : []).slice(0, 20).map(r => partyCleanRole({ ...r, id: undefined }, ev)).filter(r => r.command && !PARTY_RESERVED.has(r.command));
+      for (const r of ev.roles) if (!r.label) r.label = r.command;
+      parties.events.push(ev);
+      const n = Math.round(Number(se.board));
+      if (n >= 1 && n <= PARTY_SLOTS && !(se.boardIfEmpty && parties.slots[n - 1])) { parties.slots = parties.slots.map(x => (x === ev.id ? null : x)); parties.slots[n - 1] = ev.id; }
+    }
+    writeJson(PARTY_FILE, parties);
+    fs.renameSync(file, path.join(DATA_DIR, `party-seed.imported-${Date.now()}.json`));
+    console.log('[party] imported party-seed.json');
+  } catch (error) { console.log('[party] party-seed.json not imported:', error.message); }
+})();
+// Board 1's event (kept for older callers) and every live board.
+function partyLive() { return parties.events.find(e => e.id === parties.slots[0]) || parties.events.find(e => e.id === parties.liveId) || parties.events[0]; }
+function partyLiveBoards() {
+  const out = [];
+  parties.slots.forEach((id, i) => { const ev = id && parties.events.find(e => e.id === id); if (ev && !out.some(o => o.ev === ev)) out.push({ slot: i + 1, ev }); });
+  return out;
+}
+// How many live boards use each role command - shared ones get the board number added (e.g. !tomato3).
+function partySharedCmds() {
+  const count = {};
+  // Only boards with sign-ups OPEN compete for a command, so closed nights don't force numbers.
+  for (const { ev } of partyLiveBoards()) if (ev.open) for (const c of new Set(ev.roles.map(r => r.command).filter(Boolean))) count[c] = (count[c] || 0) + 1;
+  return count;
+}
+// SPOTLIGHT board (2026-10-07): one extra Meld layer (/party.html?board=spot) that rotates through
+// every live board; a viewer can type "!party 3" to pull Board 3 up for spotHoldSec so they can sign up.
+let partySpot = { slot: null, until: 0, by: '' };
+function partySpotRequest(n, by) {
+  if (!(n >= 1 && n <= PARTY_SLOTS) || !parties.slots[n - 1]) return false;
+  partySpot = { slot: n, until: Date.now() + (parties.spotHoldSec || 60) * 1000, by: by || '' };
+  return true;
+}
+function partySpotSlot() {
+  const live = partyLiveBoards().map(b => b.slot);
+  if (!live.length) return null;
+  if (partySpot.slot && Date.now() < partySpot.until && live.includes(partySpot.slot)) return partySpot.slot;
+  const step = Math.max(5, parties.spotRotateSec || 20) * 1000;
+  return live[Math.floor(Date.now() / step) % live.length];
+}
+function partySpotInfo() {
+  const held = partySpot.slot && Date.now() < partySpot.until;
+  return { slot: partySpotSlot(), held: !!held, by: held ? partySpot.by : '', leftSec: held ? Math.ceil((partySpot.until - Date.now()) / 1000) : 0,
+    rotateSec: parties.spotRotateSec || 20, holdSec: parties.spotHoldSec || 60, chat: parties.spotChat !== false,
+    boards: partyLiveBoards().map(b => ({ slot: b.slot, title: b.ev.title })) };
+}
+function partySlotOf(evId) { const i = parties.slots.indexOf(evId); return i >= 0 ? i + 1 : null; }
+// Who is in a role vs waiting: first `spots` sign-ups (by time) are in.
+function partyView(ev) {
+  const roles = ev.roles.map(r => {
+    const list = ev.signups.filter(s => s.role === r.id).sort((a, b) => a.at - b.at);
+    const pv = s => ({ twitch: s.twitch, palia: s.palia, in: !!s.checkedIn });
+    return { ...r, collapsed: !!(ev.collapsed && ev.collapsed[r.id]), people: list.slice(0, r.spots).map(pv), waitlist: list.slice(r.spots).map(pv) };
+  });
+  const filled = roles.reduce((a, r) => a + r.people.length, 0);
+  const spots = roles.reduce((a, r) => a + r.spots, 0);
+  const checkedIn = ev.signups.filter(s => s.checkedIn).length;
+  // The exact command chat should type on this board (board number added when another live board shares it).
+  const slot = partySlotOf(ev.id), shared = partySharedCmds();
+  for (const r of roles) r.cmdShown = slot && ev.open && shared[r.command] > 1 ? r.command + slot : r.command;
+  return { id: ev.id, title: ev.title, when: ev.when, subtitle: ev.subtitle, open: ev.open, roles, filled, spots, checkedIn,
+    startAt: Number(ev.startAt) || null, warnMin: Number(ev.warnMin) || 10, slot,
+    art: { bg: partyArtUrl(ev.bgImage), title: partyArtUrl(ev.titleImage), fit: ev.bgFit === 'contain' ? 'contain' : 'cover',
+      panel: ev.panel === undefined ? 86 : Number(ev.panel), roleCards: ev.roleCards === undefined ? 40 : Number(ev.roleCards), border: ev.border !== false,
+      bgFile: ev.bgImage || null, titleFile: ev.titleImage || null } };
+}
+function partyPublic(slot) {
+  const n = Math.max(1, Math.min(PARTY_SLOTS, Number(slot) || 1));
+  const id = parties.slots[n - 1], ev = id && parties.events.find(e => e.id === id);
+  return { ok: true, visible: parties.visible, showTwitch: parties.showTwitch, board: n, empty: !ev, event: ev ? partyView(ev) : null, now: Date.now() };
+}
+function partySave() { writeJson(PARTY_FILE, parties); broadcast('party', partyPublic()); }
+// Meld sends chat text HTML-encoded (an apostrophe arrives as &#39;) - turn it back into plain text.
+function partyDecode(t) {
+  return String(t || '').replace(/&#(\d{1,6});/g, (_m, n) => String.fromCodePoint(Math.min(0x10FFFF, Number(n))))
+    .replace(/&#x([0-9a-f]{1,6});/gi, (_m, n) => String.fromCodePoint(Math.min(0x10FFFF, parseInt(n, 16))))
+    .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+}
+function partyChat(name, parts) {
+  // NOTE: no isBlocked() here on purpose - the giveaway block list includes Baby herself
+  // (IJustABabyTv), and she signs up for roles at her own parties (2026-10-07).
+  name = cleanString(name).replace(/^@/, '').slice(0, 40);
+  if (!name) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim();
+  const m = /^!([a-z0-9_]+)\b\s*(.*)$/i.exec(text);
+  if (!m) return '';
+  const key = name.toLowerCase(); const cmd = m[1].toLowerCase();
+  const boards = partyLiveBoards();
+  // Sign in when they arrive: "!here" (or !checkin / !signin) - on every live board they're signed up for.
+  if (PARTY_CHECKIN_CMDS.has(cmd)) {
+    const mine = boards.map(b => b.ev.signups.find(x => x.key === key)).filter(Boolean);
+    if (!mine.length) return `${name} isn't signed up for a role`;
+    const fresh = mine.filter(x => !x.checkedIn);
+    if (!fresh.length) return `${mine[0].palia} is already signed in`;
+    for (const x of fresh) x.checkedIn = Date.now();
+    partySave(); return `${fresh[0].palia} signed in ✅` + (fresh.length > 1 ? ` (${fresh.length} parties)` : '');
+  }
+  // "!party 3" (or !party3 / !show 3) puts Board 3 on the Spotlight layer for a while.
+  const pm = /^(?:party|show)([1-7])?$/.exec(cmd);
+  if (pm) {
+    if (parties.spotChat === false) return '';
+    const n = Number(pm[1] || (/^\s*([1-7])\b/.exec(m[2]) || [])[1]);
+    if (!n) return '';
+    return partySpotRequest(n, name) ? `Spotlight → Board ${n}` : `Board ${n} isn't live`;
+  }
+  // "!leave" drops them from every live board; "!leave3" only from Board 3.
+  const lv = /^leave([1-7])?$/.exec(cmd);
+  if (lv) {
+    let removed = 0;
+    for (const b of boards) {
+      if (lv[1] && b.slot !== Number(lv[1])) continue;
+      const before = b.ev.signups.length; b.ev.signups = b.ev.signups.filter(x => x.key !== key); removed += before - b.ev.signups.length;
+    }
+    if (!removed) return `${name} wasn't signed up`;
+    partySave(); return `${name} left` + (removed > 1 ? ` ${removed} parties` : '');
+  }
+  // Which board? An exact command on a board whose command isn't shared, or "<command><board#>" (e.g. !tomato3).
+  // A plain shared command (e.g. !tomato on two boards) goes to the lowest-numbered board that has it.
+  let ev = null, role = null;
+  // Prefer a board with sign-ups open; fall back to any board (so a closed board still says "closed").
+  for (const b of boards.filter(x => x.ev.open).concat(boards.filter(x => !x.ev.open))) { const r = b.ev.roles.find(x => x.command && x.command === cmd); if (r) { ev = b.ev; role = r; break; } }
+  if (!role) {
+    const sm = /^([a-z0-9_]+?)([1-7])$/.exec(cmd);
+    if (sm) { const b = boards.find(x => x.slot === Number(sm[2])); const r = b && b.ev.roles.find(x => x.command === sm[1]); if (r) { ev = b.ev; role = r; } }
+  }
+  if (!role) return '';
+  if (!ev.open) return `${name}: sign-ups are closed`;
+  let palia = cleanString(m[2]).replace(/[<>]/g, '').replace(/^\[|\]$/g, '').trim().slice(0, 32);
+  if (!palia) palia = partyDecode(parties.names[key] || '') || name;
+  parties.names[key] = palia;
+  const existing = ev.signups.find(s => s.key === key);
+  if (existing && existing.role === role.id) { existing.palia = palia; partySave(); return `${name} updated name to ${palia} (${role.label})`; }
+  ev.signups = ev.signups.filter(s => s.key !== key);
+  ev.signups.push({ key, twitch: name, palia, role: role.id, at: Date.now(), checkedIn: existing ? existing.checkedIn || null : null });
+  partySave();
+  const pos = ev.signups.filter(s => s.role === role.id).length;
+  return pos > role.spots ? `${palia} is on the ${role.label} waitlist (#${pos - role.spots})` : `${palia} signed up for ${role.label}`;
+}
+async function handlePartyApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/party' && method === 'GET') {
+      const q = new URL(req.url, 'http://x').searchParams;
+      const bq = String(q.get('board') || q.get('slot') || '');
+      if (bq === 'spot' || bq === 'spotlight') {
+        const sl = partySpotSlot();
+        return sendJson(res, 200, { ...(sl ? partyPublic(sl) : { ok: true, visible: parties.visible, showTwitch: parties.showTwitch, empty: true, event: null, now: Date.now() }), spot: partySpotInfo() });
+      }
+      let slot = Number(bq) || 1;
+      if (q.get('event')) { const sl = partySlotOf(String(q.get('event'))); if (sl) slot = sl; }
+      return sendJson(res, 200, partyPublic(slot));
+    }
+    if (pathname === '/api/party/admin' && method === 'GET') {
+      const art = (() => { try { return fs.readdirSync(PARTY_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((x, y) => x.localeCompare(y)); } catch (_e) { return []; } })();
+      return sendJson(res, 200, { ...partyPublic(), art, liveId: parties.slots[0] || null, slots: parties.slots, spot: partySpotInfo(),
+        events: parties.events.map(e => ({ id: e.id, title: e.title, when: e.when, count: e.signups.length, slot: partySlotOf(e.id) })),
+        full: parties.events.map(e => ({ ...partyView(e), signups: e.signups.slice().sort((a, b) => a.at - b.at) })) });
+    }
+    const b = ['POST', 'PUT', 'PATCH'].includes(method) ? await readBody(req) : {};
+    const findEv = id => parties.events.find(e => e.id === String(id || '')) || null;
+    if (pathname === '/api/party/settings' && method === 'POST') {
+      if (typeof b.visible === 'boolean') parties.visible = b.visible;
+      if (typeof b.showTwitch === 'boolean') parties.showTwitch = b.showTwitch;
+      if (b.liveId && findEv(b.liveId)) { parties.liveId = String(b.liveId); parties.slots[0] = String(b.liveId); }
+      // Put an event on a board: { board: 1-7, eventId | null }. An event sits on one board at a time.
+      if (b.board !== undefined) {
+        const n = Math.round(Number(b.board));
+        if (!(n >= 1 && n <= PARTY_SLOTS)) return sendJson(res, 400, { ok: false, error: 'Board must be 1-7.' });
+        const id = b.eventId && findEv(b.eventId) ? String(b.eventId) : null;
+        if (id) parties.slots = parties.slots.map(x => (x === id ? null : x));
+        parties.slots[n - 1] = id;
+        if (n === 1 && id) parties.liveId = id;
+      }
+      if (b.spotRotateSec !== undefined) parties.spotRotateSec = Math.max(5, Math.min(300, Math.round(Number(b.spotRotateSec)) || 20));
+      if (b.spotHoldSec !== undefined) parties.spotHoldSec = Math.max(10, Math.min(600, Math.round(Number(b.spotHoldSec)) || 60));
+      if (typeof b.spotChat === 'boolean') parties.spotChat = b.spotChat;
+      if (b.spotShow !== undefined) partySpotRequest(Number(b.spotShow), 'dashboard');
+      partySave(); return sendJson(res, 200, { ok: true });
+    }
+    // Create a new event: { copyFrom? } copies title/roles (not sign-ups).
+    if (pathname === '/api/party/event/new' && method === 'POST') {
+      const ev = partyNewEvent(parties.seq++);
+      const src = findEv(b.copyFrom);
+      if (src) { ev.title = src.title; ev.subtitle = src.subtitle; ev.roles = JSON.parse(JSON.stringify(src.roles)); ev.rseq = src.rseq;
+        for (const k of ['bgImage', 'titleImage', 'bgFit', 'panel', 'roleCards', 'border']) if (src[k] !== undefined) ev[k] = src[k]; }
+      parties.events.push(ev);
+      if (b.makeLive) { const free = parties.slots.indexOf(null); if (free >= 0) parties.slots[free] = ev.id; }
+      partySave(); return sendJson(res, 200, { ok: true, id: ev.id });
+    }
+    if (pathname === '/api/party/event' && method === 'POST') {
+      const ev = findEv(b.id); if (!ev) return sendJson(res, 404, { ok: false, error: 'Event not found.' });
+      if (b.delete) {
+        if (parties.events.length <= 1) return sendJson(res, 400, { ok: false, error: 'Keep at least one event.' });
+        parties.events = parties.events.filter(e => e !== ev);
+        parties.slots = parties.slots.map(x => (x === ev.id ? null : x));
+        if (parties.liveId === ev.id) parties.liveId = parties.slots.find(Boolean) || parties.events[0].id;
+        partySave(); return sendJson(res, 200, { ok: true });
+      }
+      if (typeof b.title === 'string') ev.title = cleanString(b.title).slice(0, 80);
+      if (typeof b.when === 'string') ev.when = cleanString(b.when).slice(0, 80);
+      if (typeof b.subtitle === 'string') ev.subtitle = cleanString(b.subtitle).slice(0, 140);
+      if (typeof b.open === 'boolean') ev.open = b.open;
+      // Party countdown: startAt = exact moment (ms) the party starts, null = no countdown.
+      // Names not signed in turn yellow `warnMin` minutes before, red once it starts.
+      if (b.startAt !== undefined) ev.startAt = b.startAt === null ? null : (Number(b.startAt) > 0 ? Math.round(Number(b.startAt)) : null);
+      if (b.warnMin !== undefined) ev.warnMin = Math.max(1, Math.min(120, Math.round(Number(b.warnMin)) || 10));
+      if (b.resetCheckins) for (const x of ev.signups) x.checkedIn = null;
+      // Art: background picture, title banner picture, fit, panel darkness % (0 = see-through), role card darkness %, border.
+      if (b.bgImage !== undefined) ev.bgImage = partyArtFile(b.bgImage);
+      if (b.titleImage !== undefined) ev.titleImage = partyArtFile(b.titleImage);
+      if (b.bgFit === 'cover' || b.bgFit === 'contain') ev.bgFit = b.bgFit;
+      if (b.panel !== undefined) ev.panel = Math.max(0, Math.min(100, Math.round(Number(b.panel)) || 0));
+      if (b.roleCards !== undefined) ev.roleCards = Math.max(0, Math.min(100, Math.round(Number(b.roleCards)) || 0));
+      if (typeof b.border === 'boolean') ev.border = b.border;
+      if (b.artToAll) { for (const o of parties.events) for (const k of ['bgImage', 'titleImage', 'bgFit', 'panel', 'roleCards', 'border']) o[k] = ev[k]; }
+      if (Array.isArray(b.roles)) {
+        const roles = b.roles.slice(0, 20).map(r => partyCleanRole(r, ev)).filter(r => r.command && !PARTY_RESERVED.has(r.command));
+        const seen = new Set(); const dup = roles.find(r => { if (seen.has(r.command)) return true; seen.add(r.command); return false; });
+        if (dup) return sendJson(res, 400, { ok: false, error: `Two roles use !${dup.command}.` });
+        for (const r of roles) if (!r.label) r.label = r.command;
+        ev.roles = roles;
+        const ids = new Set(roles.map(r => r.id));
+        ev.signups = ev.signups.filter(s => ids.has(s.role));
+      }
+      if (b.clearSignups) ev.signups = [];
+      partySave(); return sendJson(res, 200, { ok: true });
+    }
+    // Her edits to one person: { id (event), key, role?, palia?, remove? } or add { id, twitch, palia, role }.
+    if (pathname === '/api/party/signup' && method === 'POST') {
+      const ev = findEv(b.id); if (!ev) return sendJson(res, 404, { ok: false, error: 'Event not found.' });
+      const key = cleanString(b.key || b.twitch).replace(/^@/, '').toLowerCase().slice(0, 40);
+      if (!key) return sendJson(res, 400, { ok: false, error: 'Name needed.' });
+      let s = ev.signups.find(x => x.key === key);
+      if (b.remove) { ev.signups = ev.signups.filter(x => x.key !== key); partySave(); return sendJson(res, 200, { ok: true }); }
+      const role = b.role ? ev.roles.find(r => r.id === b.role) : null;
+      if (!s) {
+        if (!role) return sendJson(res, 400, { ok: false, error: 'Pick a role.' });
+        const twitch = cleanString(b.twitch).replace(/^@/, '').slice(0, 40);
+        s = { key, twitch, palia: cleanString(b.palia).slice(0, 32) || twitch, role: role.id, at: Date.now() };
+        ev.signups.push(s);
+      } else {
+        if (role && role.id !== s.role) { s.role = role.id; s.at = Date.now(); }
+        if (typeof b.palia === 'string' && cleanString(b.palia)) s.palia = cleanString(b.palia).slice(0, 32);
+        if (b.top) s.at = Math.min(...ev.signups.map(x => x.at)) - 1; // move to the front of the role (off the waitlist)
+        if (typeof b.checkedIn === 'boolean') s.checkedIn = b.checkedIn ? Date.now() : null;
+      }
+      partySave(); return sendJson(res, 200, { ok: true });
+    }
+    // Fold / unfold role panels on stream (2026-10-07): { id: eventId, roleId, collapsed? } toggles one;
+    // { id, all: true|false } folds or opens every role. Clicking a role header on the Meld board calls this too.
+    if (pathname === '/api/party/collapse' && method === 'POST') {
+      const ev = findEv(b.id); if (!ev) return sendJson(res, 404, { ok: false, error: 'Event not found.' });
+      ev.collapsed = ev.collapsed && typeof ev.collapsed === 'object' ? ev.collapsed : {};
+      if (typeof b.all === 'boolean') { ev.collapsed = {}; if (b.all) for (const r of ev.roles) ev.collapsed[r.id] = true; }
+      else {
+        const r = ev.roles.find(x => x.id === String(b.roleId || '')); if (!r) return sendJson(res, 404, { ok: false, error: 'Role not found.' });
+        const want = typeof b.collapsed === 'boolean' ? b.collapsed : !ev.collapsed[r.id];
+        if (want) ev.collapsed[r.id] = true; else delete ev.collapsed[r.id];
+      }
+      partySave(); return sendJson(res, 200, { ok: true });
+    }
+    // Upload a picture for party boards: { dataUrl, name } -> assets/party/<name>.png
+    if (pathname === '/api/party/image' && method === 'POST') {
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(b.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 9 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large (max 8MB) - the dashboard shrinks big pictures automatically.' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(String(b.name || 'party-art').replace(/\.[a-z0-9]+$/i, '')) || 'party-art';
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(PARTY_ART_DIR, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(PARTY_ART_DIR, filename), buffer);
+      return sendJson(res, 200, { ok: true, file: filename });
+    }
+    if (pathname === '/api/party/test' && method === 'POST') {
+      const r = partyChat(cleanString(b.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.text) }]);
+      return sendJson(res, 200, { ok: true, result: r || 'ignored (not a sign-up command on any live board)' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown party route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Party request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// STEAM ACHIEVEMENTS (Baby, 2026-10-07) - Aniimo writes no gameplay events to
+// its logs, so ICB reads her Steam achievements through Steam's official Web
+// API instead (allowed; no game memory/network touching). Polls every N sec;
+// a newly unlocked achievement becomes an on-stream pop-up. Needs her own free
+// Steam Web API key + SteamID, and "Game details" set to Public on Steam.
+//   - Overlays: /steam.html?view=popup | ?view=progress | ?view=both
+//   - Dashboard: /steam-control.html     - Saved in data/steam.json
+//   The API key never leaves the server (overlays never see it).
+// ---------------------------------------------------------------------------
+const STEAM_FILE = path.join(DATA_DIR, 'steam.json');
+const STEAM_API = process.env.ICB_STEAM_API_BASE || 'https://api.steampowered.com';
+function steamDefaults() {
+  return { apiKey: '', steamId: '', appId: 4126040, gameName: 'Aniimo', enabled: true, pollSec: 60, popupSec: 9, showRarity: true,
+    progressTitle: 'Aniimo Achievements', pinnedStats: [], cardImage: null, cardBox: null, known: null, schema: {}, statDefs: {}, stats: {}, rarity: {},
+    popups: [], seq: 1, lastPoll: null, lastOk: null, lastError: '', schemaAt: 0 };
+}
+function steamLoad() { const raw = readJson(STEAM_FILE, null) || {}; return { ...steamDefaults(), ...raw }; }
+let steam = steamLoad();
+function steamSave() { writeJson(STEAM_FILE, steam); broadcast('steam', steamPublic()); }
+function steamGet(pathAndQuery) {
+  const mod = STEAM_API.startsWith('https') ? require('https') : http;
+  return new Promise((resolve, reject) => {
+    const req = mod.get(STEAM_API + pathAndQuery, { timeout: 15000, headers: { 'User-Agent': 'ICB-Clean' } }, (res) => {
+      let data = ''; res.setEncoding('utf8');
+      res.on('data', c => { data += c; if (data.length > 5e6) req.destroy(new Error('Steam reply too large')); });
+      res.on('end', () => {
+        let json = null; try { json = JSON.parse(data); } catch (_e) {}
+        if (json && json.playerstats) return resolve(json); // e.g. 403 "Profile is not public" comes with a JSON reason
+        if (res.statusCode === 403 || res.statusCode === 401) return reject(new Error('Steam rejected the API key (check it was copied fully).'));
+        if (res.statusCode >= 400 && !(json && json.playerstats)) return reject(new Error(`Steam answered ${res.statusCode}.`));
+        if (!json) return reject(new Error('Steam sent something unreadable.'));
+        resolve(json);
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('Steam took too long to answer.')));
+    req.on('error', reject);
+  });
+}
+const steamQ = (o) => '?' + Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+// Accepts a 17-digit SteamID64, a profile URL (/profiles/<id> or /id/<vanity>), or a bare vanity name.
+async function steamResolveId(input) {
+  const s = cleanString(input).trim();
+  let m = /(\d{17})/.exec(s); if (m) return m[1];
+  m = /steamcommunity\.com\/id\/([^\/?#\s]+)/i.exec(s);
+  const vanity = m ? m[1] : (/^[A-Za-z0-9_-]{2,32}$/.test(s) ? s : '');
+  if (!vanity) throw new Error('That doesn\'t look like a Steam profile link or ID.');
+  if (!steam.apiKey) throw new Error('Add the API key first.');
+  const r = await steamGet('/ISteamUser/ResolveVanityURL/v1/' + steamQ({ key: steam.apiKey, vanityurl: vanity }));
+  if (r && r.response && r.response.success === 1 && r.response.steamid) return r.response.steamid;
+  throw new Error('Steam couldn\'t find that profile name.');
+}
+async function steamLoadSchema(force) {
+  if (!force && Object.keys(steam.schema).length && Date.now() - steam.schemaAt < 12 * 3600e3) return;
+  const r = await steamGet('/ISteamUserStats/GetSchemaForGame/v2/' + steamQ({ key: steam.apiKey, appid: steam.appId, l: 'english' }));
+  const g = (r && r.game) || {};
+  const ach = (g.availableGameStats && g.availableGameStats.achievements) || [];
+  const st = (g.availableGameStats && g.availableGameStats.stats) || [];
+  if (g.gameName) steam.gameName = String(g.gameName).slice(0, 80);
+  steam.schema = {};
+  for (const a of ach) steam.schema[a.name] = { name: String(a.displayName || a.name).slice(0, 120), desc: String(a.description || '').slice(0, 300), icon: a.icon || '', iconGray: a.icongray || '', hidden: !!a.hidden };
+  steam.statDefs = {};
+  for (const s of st) steam.statDefs[s.name] = String(s.displayName || s.name).slice(0, 80);
+  steam.schemaAt = Date.now();
+  try {
+    const p = await steamGet('/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/' + steamQ({ gameid: steam.appId }));
+    const list = (p && p.achievementpercentages && p.achievementpercentages.achievements) || [];
+    steam.rarity = {}; for (const a of list) steam.rarity[a.name] = Math.round(Number(a.percent) * 10) / 10;
+  } catch (_e) { /* rarity is a nice-to-have */ }
+}
+let steamBusy = false;
+async function steamPoll(force) {
+  if (steamBusy) return { ok: false, error: 'Already checking.' };
+  if (!steam.apiKey || !steam.steamId) return { ok: false, error: 'Add your API key and Steam profile first.' };
+  steamBusy = true; steam.lastPoll = Date.now();
+  try {
+    await steamLoadSchema(force);
+    const r = await steamGet('/ISteamUserStats/GetPlayerAchievements/v1/' + steamQ({ key: steam.apiKey, steamid: steam.steamId, appid: steam.appId }));
+    const ps = r && r.playerstats;
+    if (!ps || ps.success === false) {
+      const why = String((ps && ps.error) || 'no data');
+      throw new Error(/not public/i.test(why) ? 'Your Steam "Game details" are private - set them to Public (see step 3).' : /requested app has no stats/i.test(why) ? 'Steam says this game has no achievements for that account yet.' : `Steam: ${why}`);
+    }
+    const now = {};
+    for (const a of ps.achievements || []) if (a.achieved) now[a.apiname] = Number(a.unlocktime) || Math.floor(Date.now() / 1000);
+    if (steam.known && typeof steam.known === 'object') {
+      for (const [api, t] of Object.entries(now)) if (!(api in steam.known)) {
+        steam.popups.push({ id: steam.seq++, apiname: api, unlocktime: t, at: Date.now() });
+        logActivity({ type: 'steam_achievement', game: steam.gameName, name: (steam.schema[api] || {}).name || api });
+      }
+      if (steam.popups.length > 40) steam.popups = steam.popups.slice(-40);
+    }
+    steam.known = now; // first successful check = baseline, no pop-up flood
+    try {
+      const s = await steamGet('/ISteamUserStats/GetUserStatsForGame/v2/' + steamQ({ key: steam.apiKey, steamid: steam.steamId, appid: steam.appId }));
+      const list = (s && s.playerstats && s.playerstats.stats) || [];
+      steam.stats = {}; for (const x of list) steam.stats[x.name] = Number(x.value) || 0;
+    } catch (_e) { /* many games publish no stats - fine */ }
+    steam.lastOk = Date.now(); steam.lastError = '';
+    steamSave();
+    return { ok: true };
+  } catch (error) {
+    steam.lastError = error.message || 'Steam check failed.'; steamSave();
+    return { ok: false, error: steam.lastError };
+  } finally { steamBusy = false; }
+}
+function steamAch(api) {
+  const s = steam.schema[api] || {};
+  return { apiname: api, name: s.name || api, desc: s.desc || '', icon: s.icon || '', rarity: steam.rarity[api] === undefined ? null : steam.rarity[api] };
+}
+function steamPublic() {
+  const total = Object.keys(steam.schema).length;
+  const known = steam.known || {};
+  const recent = Object.entries(known).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([api, t]) => ({ ...steamAch(api), unlocktime: t }));
+  const stats = (steam.pinnedStats || []).filter(p => p && p.name in steam.stats).map(p => ({ name: p.name, label: p.label || steam.statDefs[p.name] || p.name, value: steam.stats[p.name] }));
+  return { ok: true, configured: !!(steam.apiKey && steam.steamId), connected: !!steam.lastOk && !steam.lastError, gameName: steam.gameName, title: steam.progressTitle,
+    total, unlocked: Object.keys(known).length, recent, stats, popupSec: steam.popupSec, showRarity: steam.showRarity,
+    popups: steam.popups.slice(-10).map(p => ({ id: p.id, at: p.at, test: !!p.test, ...steamAch(p.apiname) })),
+    card: steam.cardImage ? { url: `/assets/resources/${encodeURIComponent(steam.cardImage)}`, box: steam.cardBox || { left: 25, top: 60, width: 50, height: 25 } } : null, now: Date.now() };
+}
+setInterval(() => { if (steam.enabled && steam.apiKey && steam.steamId && (!steam.lastPoll || Date.now() - steam.lastPoll >= Math.max(30, steam.pollSec) * 1000)) steamPoll(false).catch(() => {}); }, 5000);
+async function handleSteamApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/steam' && method === 'GET') return sendJson(res, 200, steamPublic());
+    if (pathname === '/api/steam/admin' && method === 'GET') {
+      const known = steam.known || {};
+      const achievements = Object.keys(steam.schema).map(api => ({ ...steamAch(api), unlocked: api in known, unlocktime: known[api] || null, hidden: steam.schema[api].hidden }))
+        .sort((a, b) => (b.unlocked - a.unlocked) || ((b.unlocktime || 0) - (a.unlocktime || 0)) || ((b.rarity || 0) - (a.rarity || 0)));
+      const stats = Object.keys(steam.stats).map(n => ({ name: n, label: steam.statDefs[n] || n, value: steam.stats[n], pinned: (steam.pinnedStats || []).some(p => p.name === n) }));
+      const art = (() => { try { return fs.readdirSync(RESOURCE_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, c) => a.localeCompare(c)); } catch (_e) { return []; } })();
+      return sendJson(res, 200, { ...steamPublic(), art, cardImage: steam.cardImage, cardBox: steam.cardBox, keySet: !!steam.apiKey, keyHint: steam.apiKey ? '••••' + steam.apiKey.slice(-4) : '', steamId: steam.steamId, appId: steam.appId,
+        enabled: steam.enabled, pollSec: steam.pollSec, lastPoll: steam.lastPoll, lastOk: steam.lastOk, lastError: steam.lastError, achievements, statList: stats, pinnedStats: steam.pinnedStats });
+    }
+    const b = ['POST', 'PUT', 'PATCH'].includes(method) ? await readBody(req) : {};
+    if (pathname === '/api/steam/settings' && method === 'POST') {
+      if (typeof b.apiKey === 'string' && b.apiKey.trim()) {
+        const k = b.apiKey.trim();
+        if (!/^[A-F0-9]{32}$/i.test(k)) return sendJson(res, 400, { ok: false, error: 'A Steam API key is 32 letters/numbers - check it was copied fully.' });
+        steam.apiKey = k.toUpperCase(); steam.schemaAt = 0;
+      }
+      if (typeof b.steamId === 'string' && b.steamId.trim()) {
+        const id = await steamResolveId(b.steamId);
+        if (id !== steam.steamId) { steam.steamId = id; steam.known = null; steam.popups = []; }
+      }
+      if (b.appId !== undefined && /^\d{1,10}$/.test(String(b.appId)) && Number(b.appId) !== steam.appId) { steam.appId = Number(b.appId); steam.schema = {}; steam.schemaAt = 0; steam.known = null; steam.popups = []; steam.stats = {}; }
+      if (typeof b.enabled === 'boolean') steam.enabled = b.enabled;
+      if (typeof b.showRarity === 'boolean') steam.showRarity = b.showRarity;
+      if (b.pollSec !== undefined) steam.pollSec = Math.max(30, Math.min(600, Math.round(Number(b.pollSec)) || 60));
+      if (b.popupSec !== undefined) steam.popupSec = Math.max(3, Math.min(30, Math.round(Number(b.popupSec)) || 9));
+      if (typeof b.progressTitle === 'string') steam.progressTitle = cleanString(b.progressTitle).slice(0, 80);
+      // Her own art card for the progress count (like the Palia tracker cards).
+      if (b.cardImage !== undefined) { const f = b.cardImage ? path.basename(String(b.cardImage)) : null; steam.cardImage = f && DECOR_IMAGE_EXT.test(f) && fs.existsSync(path.join(RESOURCE_ART_DIR, f)) ? f : null; }
+      if (b.cardBox && typeof b.cardBox === 'object') { const n = k => Math.max(0, Math.min(100, Number(b.cardBox[k]) || 0)); steam.cardBox = { left: n('left'), top: n('top'), width: n('width') || 50, height: n('height') || 25 }; }
+      if (Array.isArray(b.pinnedStats)) steam.pinnedStats = b.pinnedStats.slice(0, 6).filter(p => p && typeof p.name === 'string').map(p => ({ name: p.name.slice(0, 80), label: cleanString(p.label).slice(0, 40) }));
+      steamSave();
+      return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/steam/check' && method === 'POST') { const r = await steamPoll(true); return sendJson(res, r.ok ? 200 : 400, r); }
+    if (pathname === '/api/steam/test-popup' && method === 'POST') {
+      const api = steam.schema[b.apiname] ? b.apiname : Object.keys(steam.schema)[0];
+      if (!api) return sendJson(res, 400, { ok: false, error: 'Connect to Steam first so ICB knows the achievement list.' });
+      steam.popups.push({ id: steam.seq++, apiname: api, at: Date.now(), test: true }); steamSave();
+      return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/steam/forget' && method === 'POST') { steam.apiKey = ''; steam.known = null; steam.popups = []; steam.lastOk = null; steam.lastError = ''; steamSave(); return sendJson(res, 200, { ok: true }); }
+    return sendJson(res, 404, { ok: false, error: 'Unknown steam route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Steam request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// NEWS TICKER (Baby, 2026-10-08) - a full-width bar along the bottom of the
+// stream that scrolls her messages one after another, forever. Separate from
+// the older framed "Ticker Banner" (/ticker.html). She edits everything on the
+// dashboard: messages (add / reorder / turn off), a label pill ("📰 NEWS"),
+// colours, speed, size, and a one-off ALERT that takes over the bar for a while.
+//   - Overlay:   /newsticker.html      - Dashboard: /newsticker-control.html
+//   - Saved in data/newsticker.json
+// ---------------------------------------------------------------------------
+const NEWS_FILE = path.join(DATA_DIR, 'newsticker.json');
+function newsDefaults() {
+  return { visible: true, label: '📰 NEWS', showLabel: true, separator: '✦', speed: 110, gap: 1,
+    barColor: '#1c0e28', barOpacity: 88, textColor: '#ffffff', labelColor: '#ff8fd8', labelText: '#1b0f2a', accent: '#b77cff', font: 34,
+    messages: [{ id: 'm1', text: 'Welcome to ijustababyTv! 🦄', on: true }], seq: 2,
+    alert: { text: '', until: 0, color: '#ff4655' } };
+}
+const newsHex = v => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : null);
+function newsLoad() { const raw = readJson(NEWS_FILE, null) || {}; const d = newsDefaults(); return { ...d, ...raw, alert: { ...d.alert, ...(raw.alert || {}) } }; }
+let news = newsLoad();
+function newsPublic() {
+  const alertOn = !!(news.alert.text && Date.now() < news.alert.until);
+  return { ok: true, visible: news.visible, label: news.label, showLabel: news.showLabel, separator: news.separator, speed: news.speed, gap: news.gap === undefined ? 1 : news.gap,
+    barColor: news.barColor, barOpacity: news.barOpacity, textColor: news.textColor, labelColor: news.labelColor, labelText: news.labelText, accent: news.accent, font: news.font,
+    messages: news.messages.filter(m => m.on && m.text).map(m => m.text),
+    alert: alertOn ? { text: news.alert.text, color: news.alert.color, leftSec: Math.ceil((news.alert.until - Date.now()) / 1000) } : null, now: Date.now() };
+}
+function newsSave() { writeJson(NEWS_FILE, news); broadcast('newsticker', newsPublic()); }
+async function handleNewsApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/newsticker' && method === 'GET') return sendJson(res, 200, newsPublic());
+    if (pathname === '/api/newsticker/admin' && method === 'GET') return sendJson(res, 200, { ...newsPublic(), all: news.messages, alertRaw: news.alert });
+    if (pathname === '/api/newsticker' && method === 'POST') {
+      const b = await readBody(req);
+      if (typeof b.visible === 'boolean') news.visible = b.visible;
+      if (typeof b.showLabel === 'boolean') news.showLabel = b.showLabel;
+      if (typeof b.label === 'string') news.label = cleanString(b.label).slice(0, 40);
+      if (typeof b.separator === 'string') news.separator = cleanString(b.separator).slice(0, 8);
+      if (b.speed !== undefined) news.speed = Math.max(20, Math.min(600, Math.round(Number(b.speed)) || 110));
+      // Seconds the bar stays empty after a message has fully left the screen (2026-10-09: one message at a time).
+      if (b.gap !== undefined) news.gap = Math.max(0, Math.min(30, Math.round(Number(b.gap) * 10) / 10 || 0));
+      if (b.font !== undefined) news.font = Math.max(14, Math.min(90, Math.round(Number(b.font)) || 34));
+      if (b.barOpacity !== undefined) news.barOpacity = Math.max(0, Math.min(100, Math.round(Number(b.barOpacity)) || 0));
+      for (const k of ['barColor', 'textColor', 'labelColor', 'labelText', 'accent']) if (b[k] !== undefined && newsHex(b[k])) news[k] = b[k];
+      if (Array.isArray(b.messages)) {
+        news.messages = b.messages.slice(0, 40).map(m => ({ id: m && /^m\d{1,6}$/.test(String(m.id || '')) ? String(m.id) : `m${news.seq++}`,
+          text: cleanString(m && m.text).slice(0, 300), on: !(m && m.on === false) })).filter(m => m.text);
+      }
+      // Alert: { alert: { text, seconds, color } } shows instead of the messages; { alert: null } stops it.
+      if (b.alert === null) news.alert.until = 0;
+      else if (b.alert && typeof b.alert === 'object') {
+        const t = cleanString(b.alert.text).slice(0, 300);
+        if (t) { news.alert.text = t; news.alert.until = Date.now() + Math.max(5, Math.min(3600, Math.round(Number(b.alert.seconds)) || 60)) * 1000; }
+        if (newsHex(b.alert.color)) news.alert.color = b.alert.color;
+      }
+      newsSave(); return sendJson(res, 200, { ok: true, ...newsPublic() });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown news ticker route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'News ticker request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// STREAM EVENT SIGN-UP (was "Sashimi Sign-Up"; Baby 2026-10-09 -> 2026-10-12 "like Sesh, but for stream").
+// Each saved event has: name, description, a start time (date + time in her zone) shown converted
+// into the world time zones she ticks, a live countdown, and OPTIONAL roles - each role has its
+// own chat command (e.g. "!fish Moon Pie"), an optional number of spots and a waitlist past that.
+//   - No roles on an event: chat signs up with "!" + Palia name (e.g. "!Moon Pie"), like before.
+//   - With roles: "!<role command> PaliaName" (or just "!<role command>" = remembered / Twitch name).
+//     Switching role = typing another role's command. One sign-up per Twitch account per event.
+//   - "!leave" takes their own name off (even when sign-ups are closed).
+//   - Each event has a GAME (Palia, Aniimo...). ICB remembers every viewer's in-game name per game
+//     (sashi.names[gameKey][twitch]) the first time they sign up, so next time "!<role command>"
+//     or "!signup" alone is enough.
+// She sets up roles herself on the dashboard (never pre-fill or guess roles for her).
+//   - Overlay:   /sashimi-signin.html      - Dashboard: /sashimi-signin-control.html  (names kept so Meld links still work)
+//   - Saved in data/sashimi-signin.json (several saved events, one live)
+// No isBlocked() on purpose: Baby can sign herself up too.
+// ---------------------------------------------------------------------------
+const SASHI_FILE = path.join(DATA_DIR, 'sashimi-signin.json');
+const SASHI_BUILTIN_IGNORE = ['here', 'checkin', 'signin', 'leave', 'party', 'show', 'team', 'vote', 'unvote', 'lurk', 'unlurk', 'discord', 'socials',
+  'so', 'shoutout', 'hug', 'commands', 'uptime', 'followage', 'raid', 'giveaway', 'enter', 'join', 'help', 'points', 'unicorns', 'jar', 'sashimi', 'sr', 'song', 'time', 'signup'];
+const SASHI_RESERVED = new Set(['leave', 'here', 'checkin', 'signin', 'party', 'show', 'team', 'vote', 'unvote', 'signup']);
+const sashiGameKey = g => (cleanString(g).toLowerCase().replace(/[^a-z0-9]+/g, '') || 'palia').slice(0, 30);
+// World clocks she can tick on the dashboard (shared by all events).
+const SASHI_ZONE_PRESETS = [
+  { label: 'Hawaii', tz: 'Pacific/Honolulu' }, { label: 'Alaska', tz: 'America/Anchorage' }, { label: 'Pacific', tz: 'America/Los_Angeles' },
+  { label: 'Arizona', tz: 'America/Phoenix' }, { label: 'Mountain', tz: 'America/Denver' }, { label: 'Central', tz: 'America/Chicago' },
+  { label: 'Eastern', tz: 'America/New_York' }, { label: 'Brazil', tz: 'America/Sao_Paulo' }, { label: 'UK', tz: 'Europe/London' },
+  { label: 'Central Europe', tz: 'Europe/Berlin' }, { label: 'Eastern Europe', tz: 'Europe/Athens' }, { label: 'India', tz: 'Asia/Kolkata' },
+  { label: 'Philippines', tz: 'Asia/Manila' }, { label: 'Japan', tz: 'Asia/Tokyo' }, { label: 'Sydney', tz: 'Australia/Sydney' }, { label: 'New Zealand', tz: 'Pacific/Auckland' }];
+const SASHI_ZONE_DEFAULT_ON = ['America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York', 'Europe/London', 'Europe/Berlin', 'Australia/Sydney'];
+function sashiDefaults() {
+  return { visible: true, open: true, live: 'e1', seq: 2, font: 26, cols: 2, title: '🍣 Sashimi Sign-Up', max: 0, ignore: '',
+    accent: '#ff8fd8', panelColor: '#1c0e28', panelOpacity: 85, showZones: true, showCountdown: true, names: {}, rseq: 1,
+    zones: SASHI_ZONE_PRESETS.map(z => ({ ...z, on: SASHI_ZONE_DEFAULT_ON.includes(z.tz) })),
+    events: [{ id: 'e1', name: 'Friday Sashimi', guests: [] }] };
+}
+function sashiFixEvent(ev) {
+  ev.guests = Array.isArray(ev.guests) ? ev.guests : [];
+  ev.roles = Array.isArray(ev.roles) ? ev.roles : [];
+  ev.desc = typeof ev.desc === 'string' ? ev.desc : '';
+  ev.date = typeof ev.date === 'string' ? ev.date : ''; ev.time = typeof ev.time === 'string' ? ev.time : '';
+  ev.tz = etValidTz(ev.tz) ? ev.tz : 'America/Chicago';
+  ev.game = cleanString(ev.game).slice(0, 30) || 'Palia';
+  for (const g of ev.guests) if (typeof g.role !== 'string' || !ev.roles.some(r => r.id === g.role)) g.role = '';
+  return ev;
+}
+function sashiLoad() {
+  const raw = readJson(SASHI_FILE, null) || {}; const s = { ...sashiDefaults(), ...raw };
+  if (!Array.isArray(s.events) || !s.events.length) s.events = sashiDefaults().events;
+  if (s.title === '🍣 Sashimi Sign-In') s.title = '🍣 Sashimi Sign-Up';
+  if (!Array.isArray(s.zones) || !s.zones.length) s.zones = sashiDefaults().zones;
+  s.zones = s.zones.filter(z => z && etValidTz(z.tz));
+  s.names = s.names && typeof s.names === 'object' ? s.names : {};
+  // 2026-10-12: names are kept per game. Older saves had one flat {twitch: name} list - that was Palia.
+  if (Object.keys(s.names).some(k => typeof s.names[k] === 'string')) {
+    const flat = s.names; s.names = { palia: {} };
+    for (const k of Object.keys(flat)) if (typeof flat[k] === 'string') s.names.palia[k] = flat[k]; else s.names[k] = flat[k];
+  }
+  s.events.forEach(sashiFixEvent);
+  return s;
+}
+let sashi = sashiLoad();
+const sashiEv = id => sashi.events.find(e => e.id === (id || sashi.live)) || null;
+const sashiRenumber = ev => { ev.guests.forEach((g, i) => { g.n = i + 1; }); };
+const sashiEpoch = ev => (ev && ev.date && ev.time ? etToEpoch(ev.date, ev.time, ev.tz) : null);
+function sashiPublic() {
+  const ev = sashiEv();
+  return { ok: true, visible: sashi.visible, open: sashi.open, title: sashi.title, font: sashi.font, cols: sashi.cols, max: sashi.max,
+    accent: sashi.accent, panelColor: sashi.panelColor, panelOpacity: sashi.panelOpacity, showZones: sashi.showZones, showCountdown: sashi.showCountdown,
+    zones: sashi.zones.filter(z => z.on).map(z => ({ label: z.label, tz: z.tz })),
+    event: ev ? { id: ev.id, name: ev.name, game: ev.game, desc: ev.desc, date: ev.date, time: ev.time, tz: ev.tz, start: sashiEpoch(ev),
+      roles: ev.roles.map(r => ({ id: r.id, label: r.label, cmd: r.cmd, spots: r.spots || 0, color: r.color || '' })),
+      guests: ev.guests.map(g => ({ n: g.n, name: g.name, twitch: g.twitch || '', at: g.at || 0, role: g.role || '' })) } : null,
+    total: ev ? ev.guests.length : 0, now: Date.now() };
+}
+function sashiSave() { writeJson(SASHI_FILE, sashi); broadcast('sashimi', sashiPublic()); }
+const sashiCleanName = x => cleanString(x).replace(/^\s*\d+[.)\-:]\s+/, '').replace(/[<>]/g, '').trim().slice(0, 40);
+const sashiCleanCmd = v => cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24);
+function sashiAddNames(ev, names, role) {
+  role = ev.roles.some(r => r.id === role) ? role : '';
+  for (const raw of names) {
+    const name = sashiCleanName(raw);
+    if (!name || ev.guests.some(g => g.name.toLowerCase() === name.toLowerCase()) || ev.guests.length >= 200) continue;
+    ev.guests.push({ n: 0, name, twitch: '', at: Date.now(), role });
+  }
+  sashiRenumber(ev);
+}
+// Every command word some other feature uses right now, so "!tomato" is never mistaken for a Palia name.
+function sashiIgnored() {
+  const set = new Set(SASHI_BUILTIN_IGNORE);
+  for (const w of String(sashi.ignore || '').split(/[\s,]+/)) { const c = w.toLowerCase().replace(/^!+/, ''); if (c) set.add(c); }
+  try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) { set.add(r.command); for (let i = 1; i <= 7; i++) set.add(r.command + i); } } catch (_e) {}
+  try { [teams.item.command].concat(teams.item.aliases ? teams.item.aliases.split(/,\s*/) : []).forEach(c => { if (c) set.add(String(c).toLowerCase()); }); } catch (_e) {}
+  return set;
+}
+// Party-board role commands that are live right now (to warn her about clashes).
+function sashiPartyCmds() { const set = new Set(); try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) set.add(r.command); } catch (_e) {} return set; }
+function sashiNames(ev) { const k = sashiGameKey(ev.game); return sashi.names[k] || (sashi.names[k] = {}); }
+// Remember their in-game name for this event's game (also for names she fixes on the dashboard).
+function sashiRemember(ev, twitch, name) { if (twitch && name) sashiNames(ev)[String(twitch).toLowerCase()] = name; }
+// A Palia name typed in chat: up to 3 words / 32 characters, no @ or links.
+function sashiChatName(v) {
+  const name = String(v || '').replace(/^\[|\]$/g, '').replace(/[<>]/g, '').trim();
+  if (name.length < 2 || name.length > 32 || !/[a-z]/i.test(name) || name.split(' ').length > 3 || /@|https?:|www\./i.test(name)) return '';
+  return name;
+}
+function sashiChat(sender, parts) {
+  const twitch = cleanString(sender).replace(/^@/, '').slice(0, 40);
+  if (!twitch) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ');
+  const ev = sashiEv(); if (!ev) return '';
+  const key = twitch.toLowerCase();
+  // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
+  // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
+  if (/^!leave$/i.test(text)) {
+    const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+    if (!mine) return '';
+    ev.guests = ev.guests.filter(g => g !== mine); sashiRenumber(ev); sashiSave();
+    return `${mine.name} left`;
+  }
+  const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+  // ----- events WITH roles: "!<role command> [Palia name]" -----
+  if (ev.roles.length) {
+    const m = /^!([a-z0-9_]+)(?: (.+))?$/i.exec(text);
+    if (!m) return '';
+    const role = ev.roles.find(r => r.cmd === m[1].toLowerCase());
+    if (!role) return '';
+    if (!sashi.open) return `${twitch}: sign-ups are closed`;
+    let name = m[2] ? sashiChatName(m[2]) : '';
+    if (m[2] && !name) return '';
+    if (!name) name = (mine && mine.name) || sashiNames(ev)[key] || twitch;
+    const taken = ev.guests.find(g => g.name.toLowerCase() === name.toLowerCase() && g !== mine);
+    if (taken) return `${name} is already signed up`;
+    sashiRemember(ev, twitch, name);
+    if (mine) {
+      const moved = mine.role !== role.id;
+      mine.name = name;
+      if (moved) { mine.role = role.id; mine.at = Date.now(); ev.guests = ev.guests.filter(g => g !== mine).concat([mine]); sashiRenumber(ev); }
+      sashiSave(); return moved ? `${name} switched to ${role.label}` : `${name} updated`;
+    }
+    if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: role.id });
+    sashiSave();
+    const pos = ev.guests.filter(g => g.role === role.id).length;
+    return role.spots && pos > role.spots ? `${name} is on the ${role.label} waitlist (#${pos - role.spots})` : `${name} signed up for ${role.label}`;
+  }
+  // ----- events WITHOUT roles: "!Palia Name" (2026-10-10 / -11 rules) -----
+  if (!sashi.open) return '';
+  // "!signup" alone = use the name we remember for this game (from their first sign-up).
+  if (/^!signup$/i.test(text)) {
+    const known = sashiNames(ev)[key];
+    if (!known) return `${twitch}: type ! + your ${ev.game} name the first time`;
+    if (mine) return '';
+    if (ev.guests.some(g => g.name.toLowerCase() === known.toLowerCase())) return `${known} is already signed up`;
+    if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name: known, twitch, at: Date.now(), role: '' });
+    sashiSave(); return `${known} signed up (#${ev.guests.length})`;
+  }
+  const m = /^!([^\s!][^!]{0,31})$/.exec(text);
+  if (!m) return '';
+  const name = sashiChatName(m[1]);
+  if (!name) return '';
+  const low = name.toLowerCase(), first = low.split(' ')[0];
+  // The first word decides whether it's another command ("!vote 2", "!tomato Kitsuu", "!hug Bob").
+  const ign = sashiIgnored();
+  if (ign.has(first) || ign.has(low) || /^(leave|party|show|here)\d*$/.test(first)) return '';
+  const taken = ev.guests.find(g => g.name.toLowerCase() === low);
+  if (taken) return taken.twitch.toLowerCase() === key ? '' : `${name} is already signed up`;
+  sashiRemember(ev, twitch, name);
+  if (mine) { mine.name = name; sashiSave(); return `${twitch} changed their name to ${name} (#${mine.n})`; }
+  if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
+  ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: '' });
+  sashiSave(); return `${name} signed up (#${ev.guests.length})`;
+}
+async function handleSashiApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/sashimi' && method === 'GET') return sendJson(res, 200, sashiPublic());
+    if (pathname === '/api/sashimi/admin' && method === 'GET') {
+      const ev = sashiEv(), pc = sashiPartyCmds();
+      return sendJson(res, 200, { ...sashiPublic(), live: sashi.live, ignore: sashi.ignore, builtinIgnore: SASHI_BUILTIN_IGNORE, allZones: sashi.zones,
+        clashes: ev ? ev.roles.filter(r => pc.has(r.cmd)).map(r => r.cmd) : [],
+        remembered: ev ? Object.entries(sashi.names[sashiGameKey(ev.game)] || {}).map(([twitch, name]) => ({ twitch, name })) : [],
+        games: Array.from(new Set(sashi.events.map(e => e.game).concat(['Palia', 'Aniimo']))),
+        events: sashi.events.map(e => ({ id: e.id, name: e.name, count: e.guests.length })) });
+    }
+    if (pathname === '/api/sashimi' && method === 'POST') {
+      const b = await readBody(req);
+      for (const k of ['visible', 'open', 'showZones', 'showCountdown']) if (typeof b[k] === 'boolean') sashi[k] = b[k];
+      if (typeof b.title === 'string') sashi.title = cleanString(b.title).slice(0, 60);
+      if (typeof b.ignore === 'string') sashi.ignore = cleanString(b.ignore).slice(0, 500);
+      if (b.font !== undefined) sashi.font = Math.max(12, Math.min(70, Math.round(Number(b.font)) || 26));
+      if (b.cols !== undefined) sashi.cols = Math.max(1, Math.min(4, Math.round(Number(b.cols)) || 2));
+      if (b.max !== undefined) sashi.max = Math.max(0, Math.min(200, Math.round(Number(b.max)) || 0));
+      if (b.panelOpacity !== undefined) sashi.panelOpacity = Math.max(0, Math.min(100, Math.round(Number(b.panelOpacity)) || 0));
+      for (const k of ['accent', 'panelColor']) if (b[k] !== undefined && newsHex(b[k])) sashi[k] = b[k];
+      // World clocks: [{tz, on, label}] - tick/untick, rename, or add another IANA zone.
+      if (Array.isArray(b.zones)) {
+        sashi.zones = b.zones.slice(0, 24).filter(z => z && etValidTz(z.tz)).map(z => ({ tz: String(z.tz), label: cleanString(z.label).slice(0, 24) || String(z.tz).split('/').pop().replace(/_/g, ' '), on: !!z.on }));
+      }
+      if (b.newEvent) { const id = `e${sashi.seq++}`; sashi.events.push(sashiFixEvent({ id, name: cleanString(b.newEvent).slice(0, 60) || 'Event', guests: [] })); sashi.live = id; }
+      if (b.copyEvent) { // duplicate an event's details + roles (empty list) - handy for weekly repeats
+        const src = sashiEv(String(b.copyEvent));
+        if (src) { const id = `e${sashi.seq++}`; sashi.events.push(sashiFixEvent({ id, name: (src.name + ' (copy)').slice(0, 60), desc: src.desc, date: src.date, time: src.time, tz: src.tz, roles: JSON.parse(JSON.stringify(src.roles)), guests: [] })); sashi.live = id; }
+      }
+      if (b.live && sashiEv(String(b.live))) sashi.live = String(b.live);
+      const ev = sashiEv(b.event ? String(b.event) : null);
+      if (ev) {
+        if (typeof b.name === 'string' && cleanString(b.name)) ev.name = cleanString(b.name).slice(0, 60);
+        if (typeof b.game === 'string' && cleanString(b.game)) ev.game = cleanString(b.game).slice(0, 30);
+        if (typeof b.desc === 'string') ev.desc = String(b.desc).replace(/[<>]/g, '').slice(0, 400);
+        if (typeof b.date === 'string') ev.date = /^\d{4}-\d{2}-\d{2}$/.test(b.date) ? b.date : '';
+        if (typeof b.time === 'string') ev.time = /^\d{1,2}:\d{2}$/.test(b.time) ? b.time : '';
+        if (typeof b.tz === 'string' && etValidTz(b.tz)) ev.tz = b.tz;
+        // Roles (her own): full list [{id?, label, cmd, spots, color}] replaces the event's roles.
+        if (Array.isArray(b.roles)) {
+          const used = new Set(), out = [];
+          for (const r of b.roles.slice(0, 12)) {
+            const cmd = sashiCleanCmd(r && r.cmd), label = cleanString(r && r.label).slice(0, 40);
+            if (!cmd || !label || used.has(cmd) || SASHI_RESERVED.has(cmd)) continue;
+            used.add(cmd);
+            const old = r.id && ev.roles.find(x => x.id === String(r.id));
+            out.push({ id: old ? old.id : `r${sashi.rseq++}`, label, cmd, spots: Math.max(0, Math.min(200, Math.round(Number(r.spots)) || 0)), color: newsHex(r.color) || '' });
+          }
+          ev.roles = out; sashiFixEvent(ev);
+        }
+        if (Array.isArray(b.add)) sashiAddNames(ev, b.add, b.addRole);
+        if (b.remove !== undefined) { ev.guests = ev.guests.filter(g => g.n !== Number(b.remove)); sashiRenumber(ev); }
+        if (b.move && b.move.n) { const i = ev.guests.findIndex(g => g.n === Number(b.move.n)), j = i + (Number(b.move.dir) < 0 ? -1 : 1);
+          if (i >= 0 && j >= 0 && j < ev.guests.length) { const t = ev.guests[i]; ev.guests[i] = ev.guests[j]; ev.guests[j] = t; sashiRenumber(ev); } }
+        if (b.rename && b.rename.n) { const g = ev.guests.find(x => x.n === Number(b.rename.n)); const nn = sashiCleanName(b.rename.name); if (g && nn) { g.name = nn; sashiRemember(ev, g.twitch, nn); } }
+        if (b.setRole && b.setRole.n) { const g = ev.guests.find(x => x.n === Number(b.setRole.n)); if (g) g.role = ev.roles.some(r => r.id === b.setRole.role) ? b.setRole.role : ''; }
+        if (b.clear) ev.guests = [];
+      }
+      if (b.forget && b.forget.game && b.forget.twitch) { const m = sashi.names[sashiGameKey(b.forget.game)]; if (m) delete m[String(b.forget.twitch).toLowerCase()]; }
+      if (b.deleteEvent && sashi.events.length > 1) {
+        sashi.events = sashi.events.filter(e => e.id !== String(b.deleteEvent));
+        if (!sashiEv()) sashi.live = sashi.events[0].id;
+      }
+      sashiSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/sashimi/test' && method === 'POST') {
+      const b = await readBody(req);
+      return sendJson(res, 200, { ok: true, reply: sashiChat(cleanString(b.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.text) }]) || 'ignored' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown sashimi route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Event sign-up request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DESKTOP WIDGETS (Baby, 2026-10-11). Her own "widget displayer": a small Electron app
+// (desktop-widgets/, started with start-desktop-widgets.bat) puts any widget URL in a
+// see-through, always-on-top window on her desktop - over her game (Borderless Windowed).
+// Everything is controlled from the dashboard /desktop-control.html:
+//   add / remove widgets, position + size (numbers, arrows, corner presets or dragging on
+//   the screen map), opacity, zoom, show/hide, and MOVE MODE (unlock to drag the real
+//   windows with the mouse; locked = clicks pass through to the game). Ctrl+Alt+M toggles it.
+// The app polls GET /api/desktop every second and reports its screens + any drag back.
+//   - Saved in data/desktop-widgets.json
+// ---------------------------------------------------------------------------
+const DESK_FILE = path.join(DATA_DIR, 'desktop-widgets.json');
+function deskLoad() {
+  const raw = readJson(DESK_FILE, null) || {};
+  return { move: false, hideAll: false, seq: 1, widgets: [], ...raw, widgets: Array.isArray(raw.widgets) ? raw.widgets : [] };
+}
+let desk = deskLoad();
+let deskApp = { seen: 0, displays: [], version: '', cams: [] };   // cams: camera names the webcam widget can see
+const deskNum = (v, lo, hi, d) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : d; };
+function deskCleanUrl(u) {
+  u = cleanString(u).slice(0, 600);
+  if (/^\/[^\s]*$/.test(u)) u = 'http://127.0.0.1:8790' + u;          // "/party.html" -> full ICB link
+  return /^https?:\/\/[^\s]+$/i.test(u) ? u : '';
+}
+function deskApply(w, b) {
+  if (typeof b.name === 'string' && cleanString(b.name)) w.name = cleanString(b.name).slice(0, 40);
+  if (typeof b.url === 'string') { const u = deskCleanUrl(b.url); if (u) w.url = u; }
+  if (b.x !== undefined) w.x = deskNum(b.x, -20000, 20000, w.x);
+  if (b.y !== undefined) w.y = deskNum(b.y, -20000, 20000, w.y);
+  if (b.w !== undefined) w.w = deskNum(b.w, 60, 8000, w.w);
+  if (b.h !== undefined) w.h = deskNum(b.h, 40, 8000, w.h);
+  if (b.opacity !== undefined) w.opacity = deskNum(b.opacity, 10, 100, w.opacity);
+  if (b.zoom !== undefined) w.zoom = deskNum(b.zoom, 25, 300, w.zoom);
+  if (typeof b.on === 'boolean') w.on = b.on;
+  if (typeof b.locked === 'boolean') w.locked = b.locked;     // stays click-through even in move mode
+  if (b.reload) w.reloadAt = Date.now();
+}
+function deskPublic() {
+  return { ok: true, move: desk.move, hideAll: desk.hideAll, widgets: desk.widgets,
+    app: { online: Date.now() - deskApp.seen < 6000, seen: deskApp.seen, displays: deskApp.displays, version: deskApp.version, cams: deskApp.cams, camStatus: deskApp.camStatus || '', camAt: deskApp.camAt || 0 }, now: Date.now() };
+}
+function deskSave() { writeJson(DESK_FILE, desk); broadcast('desktop', deskPublic()); }
+async function handleDeskApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/desktop' && method === 'GET') {
+      if (/[?&]app=1/.test(req.url)) deskApp.seen = Date.now();
+      return sendJson(res, 200, deskPublic());
+    }
+    if (pathname === '/api/desktop' && method === 'POST') {
+      const b = await readBody(req);
+      if (typeof b.move === 'boolean') desk.move = b.move;
+      if (b.toggleMove) desk.move = !desk.move;
+      if (typeof b.hideAll === 'boolean') desk.hideAll = b.hideAll;
+      if (b.add) {
+        const url = deskCleanUrl(b.add.url);
+        if (!url) return sendJson(res, 400, { ok: false, error: 'That link does not look right - it should start with http:// or /' });
+        const d = (deskApp.displays.find(x => x.primary) || deskApp.displays[0] || { x: 0, y: 0, w: 1920, h: 1080 });
+        const w = { id: `w${desk.seq++}`, name: 'Widget', url, x: d.x + 100 + desk.widgets.length * 30, y: d.y + 100 + desk.widgets.length * 30, w: 600, h: 400, opacity: 100, zoom: 100, on: true, locked: false };
+        deskApply(w, { ...b.add, url: undefined });
+        desk.widgets.push(w);
+      }
+      if (b.update && b.update.id) { const w = desk.widgets.find(x => x.id === String(b.update.id)); if (w) deskApply(w, b.update); }
+      if (b.remove) desk.widgets = desk.widgets.filter(x => x.id !== String(b.remove));
+      if (b.order && Array.isArray(b.order)) { const m = new Map(desk.widgets.map(w => [w.id, w])); desk.widgets = b.order.map(id => m.get(id)).filter(Boolean).concat(desk.widgets.filter(w => !b.order.includes(w.id))); }
+      deskSave(); return sendJson(res, 200, deskPublic());
+    }
+    // From the desktop app: its screens (heartbeat) and where she dragged a widget to.
+    if (pathname === '/api/desktop/app' && method === 'POST') {
+      const b = await readBody(req);
+      deskApp.seen = Date.now();
+      if (typeof b.version === 'string') deskApp.version = cleanString(b.version).slice(0, 20);
+      if (Array.isArray(b.displays)) deskApp.displays = b.displays.slice(0, 8).map((d, i) => ({ id: String(d.id || i), x: deskNum(d.x, -20000, 20000, 0), y: deskNum(d.y, -20000, 20000, 0),
+        w: deskNum(d.w, 100, 20000, 1920), h: deskNum(d.h, 100, 20000, 1080), primary: !!d.primary, scale: Number(d.scale) || 1 }));
+      if (b.bounds && b.bounds.id) {
+        const w = desk.widgets.find(x => x.id === String(b.bounds.id));
+        if (w) { deskApply(w, { x: b.bounds.x, y: b.bounds.y, w: b.bounds.w, h: b.bounds.h }); writeJson(DESK_FILE, desk); }
+      }
+      if (b.toggleMove) { desk.move = !desk.move; writeJson(DESK_FILE, desk); }
+      return sendJson(res, 200, deskPublic());
+    }
+    // From webcam.html: the camera names it found (so the dashboard can offer a list).
+    if (pathname === '/api/desktop/cams' && method === 'POST') {
+      const b = await readBody(req);
+      if (Array.isArray(b.cams)) deskApp.cams = b.cams.slice(0, 12).map(c => cleanString(c).slice(0, 80)).filter(Boolean);
+      if (typeof b.status === 'string') { deskApp.camStatus = cleanString(b.status).slice(0, 300); deskApp.camAt = Date.now(); }
+      return sendJson(res, 200, { ok: true });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown desktop route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Desktop widgets request failed.' });
+  }
+}
+
+async function handleTeamsApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/teams' && method === 'GET') return sendJson(res, 200, teamsPublic());
+    if (pathname === '/api/teams/admin' && method === 'GET') {
+      const art = (() => { try { return fs.readdirSync(RESOURCE_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b)); } catch (_e) { return []; } })();
+      const players = Object.entries(teams.players).map(([key, p]) => ({ key, name: p.name, team: p.team, points: Number(p.points[teams.item.command]) || 0 })).sort((a, b) => a.name.localeCompare(b.name));
+      return sendJson(res, 200, { ...teamsPublic(), teams: teams.teams, presets: teams.presets, players, log: teams.log.slice(-60).reverse(), art });
+    }
+    const body = ['POST', 'PUT', 'PATCH'].includes(method) ? await readBody(req) : {};
+    if (pathname === '/api/teams/settings' && method === 'POST') {
+      if (typeof body.title === 'string') teams.title = cleanString(body.title).slice(0, 120);
+      if (body.teamCount !== undefined) teams.teamCount = Math.max(2, Math.min(8, Math.round(Number(body.teamCount)) || 2));
+      for (const k of ['joinOpen', 'counting', 'showBanner', 'visible']) if (typeof body[k] === 'boolean') teams[k] = body[k];
+      if (body.showPlayers !== undefined) teams.showPlayers = Math.max(0, Math.min(30, Math.round(Number(body.showPlayers)) || 0));
+      if (Array.isArray(body.teams)) {
+        for (const r of body.teams) {
+          const t = r && teams.teams.find(x => x.letter === r.letter); if (!t) continue;
+          if (typeof r.name === 'string') t.name = cleanString(r.name).slice(0, 40) || `Team ${t.letter.toUpperCase()}`;
+          if (/^#[0-9a-f]{6}$/i.test(String(r.color || ''))) t.color = r.color;
+        }
+      }
+      if (body.item) teams.item = teamsCleanItem(body.item);
+      if (Array.isArray(body.presets)) teams.presets = body.presets.slice(0, 30).map(teamsCleanItem);
+      teamsSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Baby's fixes: { key, amount } adds/removes points for the current item.
+    if (pathname === '/api/teams/points' && method === 'POST') {
+      const key = cleanString(body.key).toLowerCase();
+      if (!teams.players[key]) return sendJson(res, 404, { ok: false, error: 'Player not found.' });
+      const amount = Math.round(Number(body.amount) || 0);
+      if (body.set !== undefined) { const cur = Number(teams.players[key].points[teams.item.command]) || 0; return sendJson(res, 200, { ok: true, result: teamsAdd(key, Math.max(0, Math.round(Number(body.set) || 0)) - cur, 'dashboard') }); }
+      return sendJson(res, 200, { ok: true, result: teamsAdd(key, amount, 'dashboard') });
+    }
+    // Add someone by hand / move them: { name, team }  (team '' = remove).
+    if (pathname === '/api/teams/player' && method === 'POST') {
+      const name = cleanString(body.name).replace(/^@/, '').slice(0, 40);
+      if (!name) return sendJson(res, 400, { ok: false, error: 'Name needed.' });
+      const key = name.toLowerCase();
+      const team = String(body.team || '').toLowerCase();
+      if (!team) { if (teams.players[key]) { teamsLog({ kind: 'removed', name: teams.players[key].name }); delete teams.players[key]; } teamsSave(); return sendJson(res, 200, { ok: true }); }
+      if (TEAM_LETTERS.indexOf(team) < 0 || team.length !== 1) return sendJson(res, 400, { ok: false, error: 'Unknown team.' });
+      const p = teams.players[key];
+      if (p) { p.team = team; teamsLog({ kind: 'moved', name: p.name, team }); }
+      else { teams.players[key] = { name, team, points: {}, joined: Date.now() }; teamsLog({ kind: 'join', name, team, how: 'dashboard' }); }
+      teamsSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Undo one scoring line from the log: { id }
+    if (pathname === '/api/teams/undo' && method === 'POST') {
+      const e = teams.log.find(x => x.id === Number(body.id) && x.kind === 'points' && !x.undone);
+      if (!e) return sendJson(res, 404, { ok: false, error: 'Nothing to undo there.' });
+      const p = teams.players[e.key];
+      if (p) p.points[e.item] = Math.max(0, (Number(p.points[e.item]) || 0) - e.amount);
+      e.undone = true; teamsSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Reset points: { scope: 'item' (current item only) | 'all' }. Teams stay.
+    if (pathname === '/api/teams/reset' && method === 'POST') {
+      for (const p of Object.values(teams.players)) { if (body.scope === 'all') p.points = {}; else delete p.points[teams.item.command]; }
+      teamsLog({ kind: 'reset', item: body.scope === 'all' ? 'everything' : teams.item.command });
+      teamsSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Clear teams: everyone off their team (and their points), new contest.
+    if (pathname === '/api/teams/clear' && method === 'POST') {
+      teams.players = {}; teams.log = []; teamsLog({ kind: 'cleared' });
+      teamsSave(); return sendJson(res, 200, { ok: true });
+    }
+    // Test from the dashboard: { name, text }
+    if (pathname === '/api/teams/test' && method === 'POST') {
+      const result = teamsChat(cleanString(body.name) || 'TestViewer', [{ t: 'text', v: cleanString(body.text) }]);
+      return sendJson(res, 200, { ok: true, result: result || 'ignored (not a contest command)' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown teams route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Teams request failed.' });
+  }
 }
 
 async function handleWalkersApi(req, res, pathname, method, url) {
@@ -3641,6 +5226,9 @@ async function handleWalkersApi(req, res, pathname, method, url) {
         if (Number.isFinite(n)) s[k] = Math.min(hi, Math.max(lo, n));
       }
       if (Array.isArray(body.reminders)) s.reminders = body.reminders.map(r => cleanString(r).slice(0, 140)).filter(Boolean).slice(0, 30);
+      if (body.anims && typeof body.anims === 'object') s.anims = walkerCleanAnims(body.anims, s.anims);
+      if (WALKERS_ENTRANCES[body.entrance]) s.entrance = body.entrance;
+      if (WALKERS_EXITS[body.exitStyle]) s.exitStyle = body.exitStyle;
       saveWalkers();
       return sendJson(res, 200, walkerAdminState());
     }
@@ -3654,18 +5242,98 @@ async function handleWalkersApi(req, res, pathname, method, url) {
       const p = walkers.people[key] || (walkers.people[key] = { name, allowed: null, art: null, lastSeen: null });
       if (body.allowed === true || body.allowed === false || body.allowed === null) p.allowed = body.allowed;
       if (body.art === null || body.art === '') p.art = null;
-      else if (typeof body.art === 'string' && walkerArt().includes(path.basename(body.art))) p.art = path.basename(body.art);
+      else if (typeof body.art === 'string') {
+        const ref = walkerCleanArtRef(body.art);
+        if (ref && ref.startsWith('personal:')) {
+          if (!p.personal || p.personal !== ref.slice(9)) return sendJson(res, 400, { ok: false, error: 'Upload their own picture first.' });
+          p.art = ref;
+        } else if (ref && ref.startsWith('subs:')) {
+          if (!walkerSubArt().includes(ref.slice(5))) return sendJson(res, 400, { ok: false, error: 'No such subscriber picture.' });
+          if (!walkerIsSub(name)) return sendJson(res, 400, { ok: false, error: `${name} isn't a subscriber, so they can't have a subscriber-only picture.` });
+          p.art = ref;
+        } else if (ref && walkerArt().includes(ref)) p.art = ref;
+      }
       saveWalkers();
       return sendJson(res, 200, walkerAdminState());
     }
 
     // Test button: a pretend chatter says something (shows even if not ticked).
+    // { id }: every unicorn on screen does that animation right now (preview).
+    if (pathname === '/api/walkers/try' && method === 'POST') {
+      const body = await readBody(req);
+      const id = String(body.id || '');
+      if (!WALKERS_ANIMS.some(a => a.id === id) && !WALKERS_ENTRANCES[id.replace(/^enter:/, '')] && !WALKERS_EXITS[id.replace(/^exit:/, '')]) return sendJson(res, 400, { ok: false, error: 'Unknown animation.' });
+      walkerTry = { id, at: Date.now() };
+      return sendJson(res, 200, { ok: true });
+    }
+
     if (pathname === '/api/walkers/test' && method === 'POST') {
       const body = await readBody(req);
       const name = cleanString(body.name) || `TestUnicorn${1 + Math.floor(Math.random() * 9)}`;
       const text = cleanString(body.text).slice(0, 300) || 'Hi everyone! 🦄';
       walkerChat(name, [{ t: 'text', v: text }], true);
       return sendJson(res, 200, { ok: true, name });
+    }
+
+    // One person's own picture: { name, dataUrl } - saved just for them and picked for them.
+    if (pathname === '/api/walkers/person-art' && method === 'POST') {
+      const body = await readBody(req);
+      const name = cleanString(body.name).replace(/^@/, '').slice(0, 40);
+      if (!name) return sendJson(res, 400, { ok: false, error: 'Missing name.' });
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(body.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Image must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 8 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Image is too large (max 8MB).' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(name);
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(WALKERS_PERSONAL_DIR, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(WALKERS_PERSONAL_DIR, filename), buffer);
+      const key = name.toLowerCase();
+      const p = walkers.people[key] || (walkers.people[key] = { name, allowed: null, art: null, lastSeen: null });
+      // Their old personal picture is kept in the folder, just no longer used.
+      p.personal = filename;
+      p.art = `personal:${filename}`;
+      saveWalkers();
+      return sendJson(res, 200, walkerAdminState());
+    }
+
+    // Add a picture: { dataUrl, name, pool: 'all' | 'subs' }
+    if (pathname === '/api/walkers/art' && method === 'POST') {
+      const body = await readBody(req);
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(body.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Image must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 8 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Image is too large (max 8MB).' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = tradeupSlug(String(body.name || 'unicorn').replace(/\.[a-z0-9]+$/i, ''));
+      const dir = body.pool === 'subs' ? WALKERS_SUB_ART_DIR : WALKERS_ART_DIR;
+      fs.mkdirSync(dir, { recursive: true });
+      let filename = `${base}.${ext}`, n = 2;
+      while (fs.existsSync(path.join(dir, filename))) filename = `${base}-${n++}.${ext}`;
+      fs.writeFileSync(path.join(dir, filename), buffer);
+      return sendJson(res, 200, walkerAdminState());
+    }
+
+    // Move a picture between everyone's pool and subscriber-only: { file, to: 'subs' | 'all' }
+    if (pathname === '/api/walkers/art/move' && method === 'POST') {
+      const body = await readBody(req);
+      const file = path.basename(String(body.file || ''));
+      const toSubs = body.to === 'subs';
+      const fromDir = toSubs ? WALKERS_ART_DIR : WALKERS_SUB_ART_DIR, toDir = toSubs ? WALKERS_SUB_ART_DIR : WALKERS_ART_DIR;
+      if (!DECOR_IMAGE_EXT.test(file) || !fs.existsSync(path.join(fromDir, file))) return sendJson(res, 404, { ok: false, error: 'No such picture.' });
+      let target = file, n = 2;
+      const stem = file.replace(/\.[^.]+$/, ''), ext = path.extname(file);
+      while (fs.existsSync(path.join(toDir, target))) target = `${stem}-${n++}${ext}`;
+      fs.mkdirSync(toDir, { recursive: true });
+      fs.renameSync(path.join(fromDir, file), path.join(toDir, target));
+      // Keep anyone who had this picture picked on it (non-subs lose a sub-only pick and go back to random).
+      for (const p of Object.values(walkers.people)) {
+        if (toSubs && p.art === file) p.art = walkerIsSub(p.name) ? `subs:${target}` : null;
+        if (!toSubs && p.art === `subs:${file}`) p.art = target;
+      }
+      saveWalkers();
+      return sendJson(res, 200, walkerAdminState());
     }
 
     // Send every unicorn off screen right now.

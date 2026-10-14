@@ -1,0 +1,28 @@
+{
+  "visible": true,
+  "label": "📰 NEWS",
+  "showLabel": true,
+  "separator": "✦",
+  "speed": 62,
+  "gap": 1,
+  "barColor": "#1c0e28",
+  "barOpacity": 88,
+  "textColor": "#ffffff",
+  "labelColor": "#ff8fd8",
+  "labelText": "#1b0f2a",
+  "accent": "#b77cff",
+  "font": 37,
+  "messages": [
+    {
+      "id": "m4",
+      "text": "Check in with !here then your number",
+      "on": true
+    }
+  ],
+  "seq": 5,
+  "alert": {
+    "text": "",
+    "until": 0,
+    "color": "#ff4655"
+  }
+}

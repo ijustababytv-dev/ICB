@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "countdown": {
-    "heading": "YOU'RE INVITED!",
-    "subheading": "Bean Burgers!!",
-    "targetAt": "2026-09-30T00:00:00.000Z",
+    "heading": "CHARGERS IT'S TIME",
+    "subheading": "Host: ijustababyTv",
+    "targetAt": "2026-10-14T00:00:00.000Z",
     "timezone": "America/Chicago",
     "status": "running"
   },
@@ -56,7 +56,7 @@
   "stream": {
     "title": "",
     "category": "Palia",
-    "goLiveMessage": "UNICORN_GOAL:614:10:1000:0"
+    "goLiveMessage": "UNICORN_GOAL:685:10:1000:0"
   },
   "ticker": {
     "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
@@ -65,10 +65,10 @@
   },
   "layout": {
     "panelOrder": [
+      "resources",
       "todo-daily",
       "todo-weekly",
       "ticker",
-      "resources",
       "tradeup",
       "run",
       "trackers",
@@ -76,7 +76,43 @@
       "runtime",
       "weekly",
       "log"
-    ]
+    ],
+    "trackerOrder": [
+      "bean-burger",
+      "sashimi",
+      "amber-echo",
+      "essence",
+      "sweet-leaf",
+      "gold-ore",
+      "palium-ore",
+      "platinum-ore",
+      "jadium",
+      "flint",
+      "clay",
+      "coral",
+      "emerald-moss",
+      "dragons-beard-peat",
+      "apples",
+      "meat",
+      "fish-stew",
+      "ramen-plush",
+      "golden-glory-bee",
+      "queen-ushindi-collection",
+      "long-tracker",
+      "ore-vs-kitsuu",
+      "celebration-cake",
+      "giant-goldfish",
+      "eldershark",
+      "inyrevn-mermaid",
+      "veggie-chili",
+      "highland-shark",
+      "pumpkin-rockhopper",
+      "banshee-beetle",
+      "tattered-cloth",
+      "shmole-spores",
+      "blue-crab"
+    ],
+    "trackerHidden": []
   },
-  "updatedAt": "2026-09-30T23:49:18.586Z"
+  "updatedAt": "2026-10-13T21:34:45.937Z"
 }

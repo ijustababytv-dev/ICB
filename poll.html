@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Badge Vote</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #stage { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; }
+  #wrap { position: absolute; left: 60px; right: 60px; top: 40px; bottom: 40px; display: flex; flex-direction: column; align-items: center; transition: opacity .4s; }
+  #wrap.hidden { opacity: 0; }
+  .title { font-size: 58px; font-weight: 900; text-align: center; line-height: 1.1; padding: 14px 40px; border-radius: 28px;
+    background: linear-gradient(90deg, rgba(120,40,150,.88), rgba(220,80,170,.88)); border: 4px solid rgba(255,255,255,.85);
+    text-shadow: 0 3px 0 #3a1446; box-shadow: 0 8px 0 rgba(58,20,70,.45); max-width: 1700px; }
+  .status { margin-top: 14px; font-size: 30px; font-weight: 800; padding: 6px 24px; border-radius: 999px; background: rgba(20,10,30,.75); border: 3px solid rgba(255,255,255,.6); text-shadow: 0 2px 0 #000; }
+  .status b { color: #ffe66d; }
+  .grid { flex: 1; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 28px; margin-top: 16px; }
+  .card { position: relative; width: var(--cw, 300px); background: rgba(25,12,38,.85); border: 4px solid rgba(255,255,255,.8); border-radius: 26px;
+    padding: 18px 16px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 8px 0 rgba(0,0,0,.35); transition: transform .5s, opacity .5s, border-color .4s; }
+  .card.leading { border-color: #ffe66d; }
+  .num { position: absolute; top: -26px; left: -18px; width: 74px; height: 74px; border-radius: 50%; background: linear-gradient(180deg,#ff8fd8,#b77cff);
+    border: 4px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 900; text-shadow: 0 3px 0 #3a1446; box-shadow: 0 5px 0 rgba(0,0,0,.35); }
+  .pic { width: 100%; height: var(--ph, 200px); display: flex; align-items: center; justify-content: center; }
+  .pic img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+  .label { font-size: 28px; font-weight: 800; text-align: center; line-height: 1.1; min-height: 31px; text-shadow: 0 2px 0 #3a1446; }
+  .cmd { font-size: 24px; font-weight: 800; color: #ffe66d; text-shadow: 0 2px 0 #000; }
+  .bar { width: 100%; height: 26px; border-radius: 999px; background: rgba(255,255,255,.18); overflow: hidden; border: 2px solid rgba(255,255,255,.5); }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#7ee081,#5ec8ff); transition: width .6s ease; }
+  .card.leading .bar i { background: linear-gradient(90deg,#ffe66d,#ffb347); }
+  .count { font-size: 24px; font-weight: 800; }
+  .results-off .bar, .results-off .count { display: none; }
+  .revealed .card { opacity: .35; transform: scale(.86); }
+  .revealed .card.winner { opacity: 1; transform: scale(1.07); border-color: #ffe66d; z-index: 2; box-shadow: 0 0 40px rgba(255,230,109,.8), 0 8px 0 rgba(0,0,0,.35); }
+  .crown { position: absolute; top: -70px; left: 50%; transform: translateX(-50%); font-size: 70px; display: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,.5)); }
+  .revealed .card.winner .crown { display: block; animation: bob 1.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,-10px); } }
+  .footer { margin-top: 16px; font-size: 30px; font-weight: 800; padding: 8px 28px; border-radius: 999px; background: rgba(20,10,30,.75); border: 3px solid rgba(255,255,255,.6); text-shadow: 0 2px 0 #000; }
+  .confetti { position: absolute; top: -40px; font-size: 34px; animation: fall linear forwards; pointer-events: none; }
+  @keyframes fall { to { transform: translateY(1160px) rotate(540deg); } }
+</style>
+</head>
+<body>
+<div id="stage"><div id="wrap" class="hidden">
+  <div class="title" id="title"></div>
+  <div class="status" id="status"></div>
+  <div class="grid" id="grid"></div>
+  <div class="footer" id="footer"></div>
+</div></div>
+<script>
+// ICB Badge Vote overlay (Baby, 2026-10-03). Meld layer, full screen:
+//   http://127.0.0.1:8790/poll.html
+// Plain ES5 (Meld rule). Polls /api/poll every second.
+(function(){
+  var stage = document.getElementById('stage');
+  function fit(){ var sx = window.innerWidth / 1920, sy = window.innerHeight / 1080; stage.style.transform = 'scale(' + Math.min(sx, sy) + ')'; }
+  window.addEventListener('resize', fit); fit();
+  var $ = function(id){ return document.getElementById(id); };
+  var lastKey = '', lastRevealed = false, clockSkew = 0, state = null;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function layout(n){
+    // Fit up to ~10 badges on one 1920x1080 screen.
+    var perRow = n <= 3 ? n : n <= 4 ? 4 : n <= 6 ? 3 : n <= 8 ? 4 : 5;
+    var rows = Math.ceil(n / perRow);
+    var cw = Math.min(380, Math.floor((1800 - (perRow - 1) * 28) / perRow));
+    var ph = Math.max(90, Math.min(240, Math.floor((680 - rows * 190) / rows)));
+    $('grid').style.setProperty('--cw', cw + 'px');
+    $('grid').style.setProperty('--ph', ph + 'px');
+  }
+
+  function build(d){
+    layout(d.rows.length);
+    var html = '';
+    for (var i = 0; i < d.rows.length; i++) {
+      var r = d.rows[i];
+      html += '<div class="card" id="c-' + r.id + '"><div class="crown">👑</div><div class="num">' + r.number + '</div>' +
+        '<div class="pic">' + (r.image ? '<img src="' + esc(r.image) + '" alt="">' : '') + '</div>' +
+        '<div class="label">' + esc(r.label) + '</div><div class="cmd">!vote ' + r.number + '</div>' +
+        '<div class="bar"><i></i></div><div class="count"></div></div>';
+    }
+    $('grid').innerHTML = html;
+  }
+
+  function confetti(){
+    var bits = ['🎉', '✨', '🦄', '💖', '⭐', '🌈'];
+    for (var i = 0; i < 40; i++) (function(i){
+      setTimeout(function(){
+        var c = document.createElement('div'); c.className = 'confetti';
+        c.appendChild(document.createTextNode(bits[Math.floor(Math.random() * bits.length)]));
+        c.style.left = Math.round(Math.random() * 1880) + 'px';
+        c.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+        stage.appendChild(c);
+        setTimeout(function(){ if (c.parentNode) c.parentNode.removeChild(c); }, 5000);
+      }, i * 60);
+    })(i);
+  }
+
+  function render(d){
+    state = d;
+    var show = d.rows.length && (d.open || d.showResults || d.revealed || d.openFlag);
+    $('wrap').className = show ? '' : 'hidden';
+    if (!d.rows.length) return;
+    var key = d.rows.map(function(r){ return r.id + ':' + r.label + ':' + r.image; }).join('|');
+    if (key !== lastKey) { lastKey = key; build(d); }
+    $('title').textContent = d.title || 'Vote!';
+    $('grid').className = 'grid' + (d.showResults || d.revealed ? '' : ' results-off') + (d.revealed ? ' revealed' : '');
+    var max = 0, i, r;
+    for (i = 0; i < d.rows.length; i++) max = Math.max(max, d.rows[i].points);
+    var winners = [];
+    for (i = 0; i < d.rows.length; i++) {
+      r = d.rows[i];
+      var el = $('c-' + r.id); if (!el) continue;
+      var win = d.revealed && max > 0 && r.points === max;
+      if (win) winners.push(r.label || ('Badge ' + r.number));
+      el.className = 'card' + ((d.showResults || d.revealed) && r.leading ? ' leading' : '') + (win ? ' winner' : '');
+      el.querySelector('.bar i').style.width = (max ? Math.round(r.points / max * 100) : 0) + '%';
+      el.querySelector('.count').textContent = r.points + (r.points === 1 ? ' vote' : ' votes') + (d.total ? ' · ' + r.percent + '%' : '');
+    }
+    if (d.revealed && !lastRevealed) confetti();
+    lastRevealed = d.revealed;
+    updateStatus();
+    $('footer').innerHTML = d.revealed
+      ? '🎉 Thank you for voting! 🎉'
+      : 'Type <b style="color:#ffe66d">!vote</b> and a number — vote for as many as you like! ' + (d.subWeight > 1 ? '⭐ Subs count ' + (d.subWeight === 2 ? 'double' : 'triple') + '!' : '');
+  }
+
+  function updateStatus(){
+    var d = state; if (!d) return;
+    var txt;
+    if (d.revealed) {
+      var max = 0, names = [];
+      for (var i = 0; i < d.rows.length; i++) max = Math.max(max, d.rows[i].points);
+      for (var j = 0; j < d.rows.length; j++) if (max > 0 && d.rows[j].points === max) names.push(d.rows[j].label || ('Badge ' + d.rows[j].number));
+      txt = max ? '👑 The winner' + (names.length > 1 ? 's are' : ' is') + ': <b>' + esc(names.join(' & ')) + '</b>' : 'No votes yet!';
+    } else if (d.open) {
+      if (d.endsAt) {
+        var left = Math.max(0, Math.round((d.endsAt - (new Date().getTime() + clockSkew)) / 1000));
+        txt = 'Voting is OPEN — <b>' + Math.floor(left / 60) + ':' + ('0' + (left % 60)).slice(-2) + '</b> left';
+      } else txt = 'Voting is <b>OPEN</b>!';
+      txt += ' · ' + d.people + (d.people === 1 ? ' voter' : ' voters');
+    } else txt = 'Voting is closed';
+    $('status').innerHTML = txt;
+  }
+  setInterval(updateStatus, 250);
+
+  function poll(){
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/poll?_=' + new Date().getTime(), true);
+    x.onreadystatechange = function(){
+      if (x.readyState !== 4 || x.status !== 200) return;
+      try { var d = JSON.parse(x.responseText); if (d && d.ok) { clockSkew = (d.now || 0) - new Date().getTime(); render(d); } } catch (e) {}
+    };
+    x.send();
+  }
+  poll(); setInterval(poll, 1000);
+})();
+</script>
+</body>
+</html>

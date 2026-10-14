@@ -36,6 +36,10 @@
   .zzz.show { opacity: 1; animation: zzz 2s ease-in-out infinite; }
   @keyframes zzz { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-10px) rotate(8deg); } }
   .spark { position: absolute; font-size: 22px; pointer-events: none; animation: spark 1.1s ease-out forwards; }
+  .heart { position: absolute; font-size: 24px; pointer-events: none; animation: heart 1.8s ease-out forwards; }
+  @keyframes heart { 0% { opacity: 0; transform: translate(0,0) scale(.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), -150px) scale(1.15); } }
+  .trail { position: absolute; width: 26px; height: 26px; border-radius: 50%; pointer-events: none; animation: trail .9s linear forwards; }
+  @keyframes trail { from { opacity: .85; transform: scale(1); } to { opacity: 0; transform: scale(.3); } }
   @keyframes spark { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--dx), -70px) scale(.4); } }
 </style>
 </head>
@@ -66,7 +70,8 @@
   }
   window.addEventListener('resize', fit); fit();
 
-  var settings = { enabled: true, size: 140, speed: 1, afkMinutes: 10, bubbleSeconds: 7, reminderEveryMinutes: 4, reminders: [] };
+  var settings = { enabled: true, size: 140, speed: 1, afkMinutes: 10, bubbleSeconds: 7, reminderEveryMinutes: 4, reminders: [], anims: {}, trickGap: 8, entrance: 'drop', exitStyle: 'walk' };
+  var lastTryAt = -1;
   var art = [], pick = {};
   var walkers = {};           // lowercase name -> walker
   var lastSeq = -1, lastClear = 0, lastReminder = Date.now();
@@ -114,10 +119,11 @@
       key: key, name: name, el: el, body: body, img: img, plate: plate, zzz: zzz, bubble: null, bubbleUntil: 0,
       x: best, dir: Math.random() < 0.5 ? 1 : -1, speed: rand(0.8, 1.25), dropStart: now(),
       phase: rand(0, 6.28), hop: 0, spin: 0, lastMsg: now(), leaving: false, entering: false,
-      action: null, actionUntil: 0, nextActionAt: now() + rand(3000, 9000), artSrc: img.src, floaty: isFloaty(img.src)
+      action: null, actionUntil: 0, nextActionAt: now() + rand(3000, 9000), artSrc: img.src, floaty: isFloaty(img.src),
+      style: pickStyle(null), nextStyleAt: now() + rand(8000, 20000), enterStyle: settings.entrance || 'drop'
     };
     walkers[key] = w;
-    setTimeout(function(){ sparkle(w); }, 450);
+    startEntrance(w, w.enterStyle);
     return w;
   }
 
@@ -165,26 +171,96 @@
     }
   }
 
-  // ---- random things they do (add new ones here) ------------------------
-  var ACTIONS = [
-    { id: 'pause',  weight: 3, ms: [1500, 4000] },                    // stop and look around
-    { id: 'hop',    weight: 3, ms: [700, 700] },                      // one big hop
-    { id: 'spin',   weight: 2, ms: [900, 900] },                      // happy twirl
-    { id: 'trot',   weight: 2, ms: [2000, 4000] },                    // quick trot
-    { id: 'turn',   weight: 2, ms: [300, 300] },                      // change its mind, turn around
-    { id: 'sparkle',weight: 1, ms: [800, 800] }                       // sparkles
-  ];
-  function pickAction(){
-    var total = 0, i; for (i = 0; i < ACTIONS.length; i++) total += ACTIONS[i].weight;
-    var r = Math.random() * total;
-    for (i = 0; i < ACTIONS.length; i++) { r -= ACTIONS[i].weight; if (r <= 0) return ACTIONS[i]; }
-    return ACTIONS[0];
+  function hearts(w){
+    for (var i = 0; i < 5; i++) (function(i){
+      setTimeout(function(){
+        if (!w.el.parentNode) return;
+        var h = document.createElement('div'); h.className = 'heart';
+        h.appendChild(document.createTextNode(['💖', '💗', '💕', '💜'][Math.floor(Math.random() * 4)]));
+        h.style.left = (settings.size * 0.5 + rand(-25, 25)) + 'px'; h.style.bottom = (settings.size * 0.8) + 'px';
+        h.style.setProperty('--dx', rand(-50, 50) + 'px');
+        w.el.appendChild(h);
+        setTimeout(function(){ if (h.parentNode) h.parentNode.removeChild(h); }, 1900);
+      }, i * 220);
+    })(i);
   }
-  function startAction(w, t){
-    var a = pickAction();
+  var RAINBOW = ['#ff5f6d', '#ffb347', '#ffe66d', '#7ee081', '#5ec8ff', '#b388ff'];
+  function trailDot(w, y){
+    var d = document.createElement('div'); d.className = 'trail';
+    w.trailI = ((w.trailI || 0) + 1) % RAINBOW.length;
+    d.style.background = RAINBOW[w.trailI];
+    d.style.left = (w.x - 13 - w.dir * settings.size * 0.45) + 'px'; d.style.top = (y + settings.size * 0.55) + 'px';
+    stage.appendChild(d);
+    setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 950);
+  }
+
+  // ---- animation switches from the dashboard (settings.anims) ------------
+  function animOn(id){ var a = settings.anims && settings.anims[id]; return a ? a.on !== false : true; }
+  function animOften(id){ var a = settings.anims && settings.anims[id]; return a ? Math.max(1, Number(a.often) || 1) : 1; }
+  var MOVES = ['hop', 'glide', 'float', 'skip', 'trot', 'waddle'];
+  // How it gets around: a weighted pick from the movement styles that are on.
+  function pickStyle(current){
+    var pool = [], total = 0, i;
+    for (i = 0; i < MOVES.length; i++) if (animOn(MOVES[i])) { pool.push(MOVES[i]); total += animOften(MOVES[i]); }
+    if (!pool.length) return 'glide';   // everything off: just slide along calmly
+    if (pool.length > 1 && current) total -= 0; // (keeps weights simple)
+    var r = Math.random() * total;
+    for (i = 0; i < pool.length; i++) { r -= animOften(pool[i]); if (r <= 0) return pool[i]; }
+    return pool[0];
+  }
+
+  // ---- random tricks (add new ones here + a branch in frame()) ----------
+  var ACTIONS = [
+    { id: 'pause',     ms: [1500, 4000] },
+    { id: 'bighop',    ms: [700, 700] },
+    { id: 'spin',      ms: [900, 900] },
+    { id: 'sparkle',   ms: [800, 800] },
+    { id: 'turn',      ms: [300, 300] },
+    { id: 'flip',      ms: [900, 900] },
+    { id: 'twirljump', ms: [1100, 1100] },
+    { id: 'bounce',    ms: [1100, 1100] },
+    { id: 'dance',     ms: [2200, 3200] },
+    { id: 'hearts',    ms: [1200, 1200] },
+    { id: 'zoomies',   ms: [1500, 2500] },
+    { id: 'rainbow',   ms: [2000, 3000] },
+    { id: 'grow',      ms: [1000, 1000] },
+    { id: 'nap',       ms: [4000, 6000] }
+  ];
+  function actionById(id){ for (var i = 0; i < ACTIONS.length; i++) if (ACTIONS[i].id === id) return ACTIONS[i]; return null; }
+  function pickAction(){
+    var total = 0, i;
+    for (i = 0; i < ACTIONS.length; i++) if (animOn(ACTIONS[i].id)) total += animOften(ACTIONS[i].id);
+    if (!total) return null;             // every trick switched off
+    var r = Math.random() * total;
+    for (i = 0; i < ACTIONS.length; i++) { if (!animOn(ACTIONS[i].id)) continue; r -= animOften(ACTIONS[i].id); if (r <= 0) return ACTIONS[i]; }
+    return null;
+  }
+  function startAction(w, t, forced){
+    var a = forced || pickAction();
+    if (!a) { w.nextActionAt = t + nextGap(); return; }
     w.action = a.id; w.actionStart = t; w.actionUntil = t + rand(a.ms[0], a.ms[1]);
     if (a.id === 'turn') w.dir = -w.dir;
     if (a.id === 'sparkle') sparkle(w);
+    if (a.id === 'hearts') hearts(w);
+    if (a.id === 'nap') w.zzz.className = 'zzz show';
+  }
+  function nextGap(){ var g = (settings.trickGap || 8) * 1000; return rand(g * 0.5, g * 1.5); }
+
+  // ---- arriving and leaving ----------------------------------------------
+  function startEntrance(w, style){
+    var t = now();
+    w.dropStart = 0; w.popStart = 0; w.floatDownStart = 0;
+    if (style === 'pop') { w.popStart = t; setTimeout(function(){ sparkle(w); }, 250); }
+    else if (style === 'floatdown') { w.floatDownStart = t; }
+    else if (style === 'slide') { w.x = w.x < W / 2 ? -settings.size : W + settings.size; w.dir = w.x < 0 ? 1 : -1; w.entering = true; }
+    else { w.dropStart = t; setTimeout(function(){ sparkle(w); }, 450); }
+  }
+  function startExit(w){
+    w.leaving = true; w.action = null; w.exitStart = now();
+    w.exitStyle = settings.exitStyle || 'walk';
+    w.dir = w.x < W / 2 ? -1 : 1;
+    w.zzz.className = 'zzz show';
+    if (w.exitStyle === 'poof') setTimeout(function(){ sparkle(w); }, 1200);
   }
 
   // Height taken up by a name shown ABOVE the head (bubbles and Zzz sit above it).
@@ -256,25 +332,36 @@
       var w = walkers[key];
 
       // Sleepy after afkMinutes: Zzz, face the nearest edge, walk off.
-      if (!w.leaving && t - w.lastMsg > afkMs) {
-        w.leaving = true; w.action = null;
-        w.dir = w.x < W / 2 ? -1 : 1;
-        w.zzz.className = 'zzz show';
-      }
+      if (!w.leaving && t - w.lastMsg > afkMs) startExit(w);
 
-      var moving = true, speedMul = 1, lift = 0, rot = 0;
+      // Switch movement style now and then (or right away if it was turned off).
+      if (!w.floaty && (t > w.nextStyleAt || !animOn(w.style))) { w.style = pickStyle(w.style); w.nextStyleAt = t + rand(8000, 20000); }
+      var style = w.floaty ? 'float' : w.style;
+
+      var moving = true, speedMul = 1, lift = 0, rot = 0, scale = 1, wiggleX = 0;
       if (w.entering) {
         if (w.x > MIN_X + 40 && w.x < MAX_X - 40) w.entering = false;
       } else if (!w.leaving) {
         if (!w.action && t > w.nextActionAt) startAction(w, t);
         if (w.action) {
           var p = Math.min(1, (t - w.actionStart) / Math.max(1, w.actionUntil - w.actionStart));
-          if (w.action === 'pause') moving = false;
-          else if (w.action === 'hop') lift = Math.sin(p * Math.PI) * size * 0.55;
-          else if (w.action === 'spin') { moving = false; rot = p * 360; }
-          else if (w.action === 'trot') speedMul = 2.2;
-          else if (w.action === 'sparkle') moving = false;
-          if (t >= w.actionUntil) { w.action = null; w.nextActionAt = t + rand(4000, 12000); }
+          var A = w.action;
+          if (A === 'pause' || A === 'sparkle' || A === 'hearts') moving = false;
+          else if (A === 'bighop' || A === 'hop') lift = Math.sin(p * Math.PI) * size * 0.55;
+          else if (A === 'spin') { moving = false; rot = p * 360; }
+          else if (A === 'flip') { lift = Math.sin(p * Math.PI) * size * 0.75; rot = -p * 360; }
+          else if (A === 'twirljump') { moving = false; lift = Math.sin(p * Math.PI) * size * 0.65; rot = p * 720; }
+          else if (A === 'bounce') { moving = false; lift = Math.abs(Math.sin(p * Math.PI * 3)) * size * 0.3; }
+          else if (A === 'dance') { moving = false; rot = Math.sin(p * Math.PI * 10) * 14; wiggleX = Math.sin(p * Math.PI * 5) * size * 0.08; lift = Math.abs(Math.sin(p * Math.PI * 10)) * size * 0.06; }
+          else if (A === 'zoomies') speedMul = 3.6;
+          else if (A === 'rainbow') { speedMul = 2.4; if (!w.lastTrail || t - w.lastTrail > 45) { w.lastTrail = t; w.wantTrail = true; } }
+          else if (A === 'grow') { moving = false; scale = 1 + 0.4 * Math.sin(p * Math.PI); }
+          else if (A === 'nap') moving = false;
+          else if (A === 'trot') speedMul = 2.2;
+          if (t >= w.actionUntil) {
+            if (A === 'nap' && !w.leaving) w.zzz.className = 'zzz';
+            w.action = null; w.nextActionAt = t + nextGap();
+          }
         }
       }
       if (w.leaving) speedMul = 0.8;
@@ -282,7 +369,25 @@
         var dp = (t - w.dropStart) / 600;
         if (dp >= 1) w.dropStart = 0; else { lift = Math.max(lift, (1 - dp) * (1 - dp) * size * 2.2); moving = false; }
       }
+      if (w.popStart) {                   // arriving: grow out of nothing with a little overshoot
+        var pp = (t - w.popStart) / 500;
+        if (pp >= 1) w.popStart = 0; else { scale *= pp < 0.7 ? pp / 0.7 * 1.15 : 1.15 - (pp - 0.7) / 0.3 * 0.15; moving = false; }
+      }
+      if (w.floatDownStart) {             // arriving: drift down slowly, swaying
+        var fp = (t - w.floatDownStart) / 2200;
+        if (fp >= 1) w.floatDownStart = 0; else { lift = Math.max(lift, (1 - fp) * size * 3.5); rot = Math.sin(fp * Math.PI * 4) * 10; moving = false; }
+      }
+      var exitFade = 1;
+      if (w.leaving && w.exitStyle && w.exitStyle !== 'walk') {
+        var ep = (t - w.exitStart) / 1000;
+        moving = false;
+        if (w.exitStyle === 'floataway') { if (ep > 1) { lift = (ep - 1) * (ep - 1) * size * 1.6; rot = Math.sin(ep * 3) * 8; exitFade = Math.max(0, 1 - (ep - 1) / 2.5); } }
+        else if (w.exitStyle === 'poof') { if (ep > 1.2) { scale *= Math.max(0, 1 - (ep - 1.2) / 0.35); exitFade = scale; } }
+        if (exitFade <= 0.01) { removeWalker(w); continue; }
+      }
 
+      var styleMul = style === 'glide' ? 1.15 : style === 'trot' ? 1.7 : style === 'waddle' ? 0.65 : style === 'skip' ? 1.2 : style === 'float' ? 0.9 : 1;
+      if (w.action !== 'zoomies' && w.action !== 'rainbow') speedMul *= styleMul;
       if (moving) {
         w.x += w.dir * 1.4 * w.speed * settings.speed * speedMul * dt;
         w.phase += 0.22 * settings.speed * speedMul * dt;
@@ -292,8 +397,17 @@
           if (w.x < MIN_X) { w.x = MIN_X; w.dir = 1; }
         }
       }
-      var bob = moving ? Math.abs(Math.sin(w.phase)) * size * 0.12 : 0, tilt = 0;
-      if (w.floaty) {                     // hover above the ground, drifting gently up and down
+      var bob = 0, tilt = 0, squashOk = false;
+      if (style === 'hop') { bob = moving ? Math.abs(Math.sin(w.phase)) * size * 0.12 : 0; squashOk = true; }
+      else if (style === 'glide') { bob = 0; tilt = moving ? 5 : 0; }
+      else if (style === 'trot') { bob = moving ? Math.abs(Math.sin(w.phase * 1.3)) * size * 0.05 : 0; squashOk = true; }
+      else if (style === 'waddle') { bob = moving ? Math.abs(Math.sin(w.phase)) * size * 0.03 : 0; tilt = moving ? Math.sin(w.phase) * 9 : 0; }
+      else if (style === 'skip') {
+        // two small hops, then a big one
+        var beat = Math.floor(w.phase / Math.PI) % 3;
+        bob = moving ? Math.abs(Math.sin(w.phase)) * size * (beat === 2 ? 0.3 : 0.1) : 0; tilt = moving ? 4 : 0; squashOk = true;
+      }
+      if (style === 'float') {            // hover above the ground, drifting gently up and down
         w.floatPhase = (w.floatPhase || rand(0, 6.28)) + 0.035 * dt;
         bob = size * 0.28 + Math.sin(w.floatPhase) * size * 0.09;
         tilt = Math.sin(w.floatPhase * 0.7) * 6 * (moving ? 1 : 0.5);
@@ -306,8 +420,11 @@
       var bw = size * 1.15, bh = size;
       w.body.style.width = bw + 'px'; w.body.style.height = bh + 'px';
       w.el.style.width = bw + 'px'; w.el.style.height = bh + 'px';
-      w.el.style.transform = 'translate(' + (w.x - bw / 2).toFixed(1) + 'px,' + (GROUND - bh - bob - lift).toFixed(1) + 'px)';
-      var squash = !w.floaty && moving && bob < size * 0.02 ? ' scaleY(0.94)' : '';
+      w.el.style.transform = 'translate(' + (w.x - bw / 2 + wiggleX).toFixed(1) + 'px,' + (GROUND - bh - bob - lift).toFixed(1) + 'px)';
+      if (w.wantTrail) { w.wantTrail = false; trailDot(w, GROUND - bh - bob - lift); }
+      var squash = squashOk && moving && bob < size * 0.02 ? ' scaleY(0.94)' : '';
+      if (scale !== 1) squash += ' scale(' + scale.toFixed(3) + ')';
+      w.el.style.opacity = exitFade < 1 ? exitFade.toFixed(2) : '';
       if (tilt && !rot) rot = tilt;
       var faceLeft = (w.dir < 0) !== !!settings.artFacesLeft; // mirror only when the art faces the other way
       w.body.style.transform = 'scaleX(' + (faceLeft ? -1 : 1) + ')' + (rot ? ' rotate(' + (faceLeft ? -rot : rot) + 'deg)' : '') + squash;
@@ -350,6 +467,20 @@
     if (settings.showChat !== false) say(w, ev.parts || [], false);
   }
 
+  // "▶ Try" on the dashboard: every unicorn on screen does it right now.
+  function tryAnim(id){
+    var t = now();
+    for (var k in walkers) {
+      if (!walkers.hasOwnProperty(k)) continue;
+      var w = walkers[k]; if (w.leaving) continue;
+      if (MOVES.indexOf(id) >= 0) { if (!w.floaty) { w.style = id; w.nextStyleAt = t + 15000; } }
+      else if (id.indexOf('enter:') === 0) { w.x = Math.max(MIN_X + 100, Math.min(MAX_X - 100, w.x)); w.entering = false; startEntrance(w, id.slice(6)); }
+      else if (id.indexOf('exit:') === 0) { (function(w2, style){ var keep = settings.exitStyle; settings.exitStyle = style; startExit(w2); settings.exitStyle = keep;
+          setTimeout(function(){ if (walkers[w2.key] !== w2) { /* gone: bring it back */ var nw = makeWalker(w2.name); nw.lastMsg = now(); } else { w2.leaving = false; w2.zzz.className = 'zzz'; w2.el.style.opacity = ''; w2.lastMsg = now(); w2.entering = w2.x < MIN_X || w2.x > MAX_X; w2.dir = w2.x < W / 2 ? 1 : -1; } }, 4500); })(w, id.slice(5)); }
+      else { var a = actionById(id); if (a) { w.action = null; startAction(w, t, a); } }
+    }
+  }
+
   function applyArt(){
     for (var key in walkers) {
       if (!walkers.hasOwnProperty(key)) continue;
@@ -369,6 +500,10 @@
         settings = d.settings; art = d.art || []; pick = d.pick || {};
         applyLook();
         applyArt();
+        if (d.tryAnim) {
+          if (lastTryAt < 0) lastTryAt = d.tryAnim.at || 0;          // don't replay an old preview on load
+          else if (d.tryAnim.at && d.tryAnim.at !== lastTryAt) { lastTryAt = d.tryAnim.at; tryAnim(d.tryAnim.id); }
+        }
         if (lastSeq < 0) { lastSeq = d.seq; lastClear = d.clearAt; return; } // don't replay old chat on load
         if (d.clearAt !== lastClear) { lastClear = d.clearAt; for (var k in walkers) if (walkers.hasOwnProperty(k)) walkers[k].lastMsg = 0; }
         if (!settings.enabled) { for (var k3 in walkers) if (walkers.hasOwnProperty(k3)) walkers[k3].lastMsg = 0; }
@@ -379,7 +514,7 @@
   }
   poll(); setInterval(poll, 1000);
 
-  window.__walkers = { state: function(){ var o = []; for (var k in walkers) if (walkers.hasOwnProperty(k)) { var w = walkers[k]; o.push({ name: w.name, x: Math.round(w.x), dir: w.dir, leaving: w.leaving, action: w.action, bubble: !!w.bubble, flip: w.body.style.transform }); } return o; } };
+  window.__walkers = { state: function(){ var o = []; for (var k in walkers) if (walkers.hasOwnProperty(k)) { var w = walkers[k]; o.push({ name: w.name, x: Math.round(w.x), dir: w.dir, leaving: w.leaving, action: w.action, style: w.floaty ? 'float' : w.style, floaty: !!w.floaty, bubble: !!w.bubble, flip: w.body.style.transform }); } return o; } };
 })();
 </script>
 </body>

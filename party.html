@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Party Sign-ups</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #box { position: absolute; left: 0; top: 0; width: 1500px; transform-origin: 0 0; padding: 14px; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; transition: opacity .4s; box-sizing: border-box; }
+  #box.hidden { opacity: 0; }
+  .card { background: rgba(28,14,40,.86); border: 4px solid rgba(255,255,255,.85); border-radius: 26px; padding: 14px 18px 16px; box-shadow: 0 8px 0 rgba(58,20,70,.45); }
+  .title.img { background: none; padding: 0; text-shadow: none; }
+  .title.img img { display: block; max-width: 1300px; max-height: 170px; margin: 0 auto; }
+  .title { text-align: center; font-size: 44px; font-weight: 900; line-height: 1.1; padding: 6px 28px; margin: 0 auto 4px; border-radius: 18px; display: table;
+    background: linear-gradient(90deg, rgba(120,40,150,.95), rgba(220,80,170,.95)); text-shadow: 0 3px 0 #3a1446; }
+  .when { text-align: center; font-size: 26px; font-weight: 900; color: #ffe66d; text-shadow: 0 2px 0 #000; }
+  .subtitle { text-align: center; font-size: 21px; font-weight: 800; color: #ffd6f2; }
+  .status { text-align: center; font-size: 19px; font-weight: 800; margin: 4px 0 10px; opacity: .9; }
+  .status.closed { color: #ff9a9a; }
+  .roles { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .grp { width: 100%; text-align: center; margin: 8px 0 0; }
+  .grp span { display: inline-block; font-size: 22px; font-weight: 900; color: #ffd6f2; padding: 2px 18px; border-radius: 999px; background: rgba(255,143,216,.18); border: 2px solid rgba(255,143,216,.45); text-shadow: 0 2px 0 #3a1446; }
+  .bring { margin-top: 6px; font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff3c4; background: rgba(255,230,109,.12); border: 1px solid rgba(255,230,109,.35); border-radius: 10px; padding: 4px 8px; }
+  .bring b { color: #ffe66d; }
+  /* Long roles (more than 10 spots) get a double-width card with names in two columns. */
+  .role.wide { width: 556px; }
+  .role.wide ul { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 4px 6px; }
+  .role.wide li + li { margin-top: 0; }
+  /* Folded role: header only. Click the header (or use the dashboard) to fold / open. */
+  .rh { cursor: pointer; }
+  .rh .fold { font-size: 16px; margin-left: 6px; opacity: .7; }
+  .role.folded .bring, .role.folded ul, .role.folded .wait { display: none; }
+  .role.folded { padding-bottom: 8px; }
+  .role { width: 270px; margin: 6px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.35); border-radius: 18px; padding: 8px 10px 10px; box-sizing: border-box; }
+  .role.full { border-color: #7ee081; }
+  .rh { display: flex; align-items: center; }
+  .rh .em { font-size: 34px; margin-right: 8px; }
+  .rh .nm { flex: 1; min-width: 0; }
+  .rh .lab { font-size: 24px; font-weight: 900; line-height: 1.05; overflow-wrap: break-word; }
+  .rh .cmd { font-size: 17px; font-weight: 800; color: #ffe66d; }
+  .rh .ct { font-size: 22px; font-weight: 900; background: rgba(0,0,0,.35); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  .role.full .ct { background: #2f6b3a; }
+  ul { list-style: none; margin: 8px 0 0; padding: 0; }
+  li { font-size: 21px; font-weight: 800; background: rgba(255,255,255,.1); border-radius: 10px; padding: 3px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  li + li { margin-top: 4px; }
+  li small { font-size: 14px; opacity: .65; margin-left: 6px; }
+  li.open { background: none; border: 2px dashed rgba(255,255,255,.3); color: rgba(255,255,255,.55); font-size: 18px; padding: 1px 8px; }
+  li.new { animation: pop .8s; }
+  /* sign-in colours (2026-10-07): blue = signed in, yellow = party soon & not here, red = party started & not here */
+  li.in { background: rgba(70,150,255,.55); border: 2px solid #7fc0ff; padding: 1px 8px; }
+  li.in:before { content: "✔ "; color: #d6ecff; }
+  li.soon { background: rgba(255,205,50,.55); border: 2px solid #ffe66d; color: #2a1d00; text-shadow: none; padding: 1px 8px; }
+  li.late { background: rgba(255,70,85,.6); border: 2px solid #ff9aa3; padding: 1px 8px; }
+  .cdown { text-align: center; font-size: 30px; font-weight: 900; margin: 4px auto 2px; padding: 2px 22px; border-radius: 999px; display: table; background: rgba(0,0,0,.35); text-shadow: 0 2px 0 #000; }
+  .cdown.soon { color: #ffe66d; } .cdown.late { color: #ff9aa3; } .cdown.go { color: #9dff9d; }
+  .spot { text-align: center; font-size: 19px; font-weight: 900; margin: 0 auto 6px; padding: 3px 16px; border-radius: 999px; display: table; background: linear-gradient(90deg, rgba(90,200,255,.35), rgba(183,124,255,.35)); border: 2px solid rgba(160,220,255,.6); }
+  .spot b { color: #ffe66d; }
+  .legend { text-align: center; font-size: 16px; font-weight: 800; opacity: .9; margin-bottom: 4px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -1px; margin: 0 4px 0 10px; }
+  @keyframes pop { 0% { background: rgba(255,230,109,.8); } 100% { background: rgba(255,255,255,.1); } }
+  .wait { margin-top: 6px; font-size: 16px; font-weight: 800; color: #ffcf8a; }
+  .footer { text-align: center; margin-top: 10px; font-size: 22px; font-weight: 800; }
+  .footer b { color: #ffe66d; }
+</style>
+</head>
+<body>
+<div id="box" class="hidden"><div class="card" id="card">
+  <div class="spot" id="spot" style="display:none"></div>
+  <div class="title" id="title"></div>
+  <div class="when" id="when"></div>
+  <div class="subtitle" id="subtitle"></div>
+  <div class="cdown" id="cdown" style="display:none"></div>
+  <div class="status" id="status"></div>
+  <div class="legend" id="legend" style="display:none"><i style="background:#4696ff"></i>signed in<i style="background:#ffcd32"></i><span id="lgWarn">10</span> min left, not here<i style="background:#ff4655"></i>party started, not here</div>
+  <div class="roles" id="roles"></div>
+  <div class="footer" id="footer"></div>
+</div></div>
+<script>
+// ICB Party Sign-ups overlay (Baby, 2026-10-06). Meld layers (any size - scales to fit):
+//   http://127.0.0.1:8790/party.html?board=1 ... ?board=7   one layer per party board
+//   http://127.0.0.1:8790/party.html?board=spot             Spotlight: rotates through live boards,
+//                                                          viewers type "!party 3" to show Board 3
+// Plain ES5 (Meld rule). Polls /api/party every 1.5 s.
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var BOARD = (/[?&](?:board|slot)=(\w+)/.exec(location.search) || [])[1] || '1';
+  var box = $('box'), lastKey = '', seen = {}, first = true, skew = 0, lastD = null;
+  // phase of the party countdown: '' (none / far off), 'soon' (within warnMin), 'late' (started)
+  function phaseOf(ev){
+    if (!ev || !ev.startAt) return '';
+    var left = ev.startAt - (new Date().getTime() + skew);
+    return left <= 0 ? 'late' : (left <= ev.warnMin * 60000 ? 'soon' : '');
+  }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function tick(){
+    if (!lastD || !lastD.event) return;
+    var ev = lastD.event, el = $('cdown');
+    if (!ev.startAt) { el.style.display = 'none'; $('legend').style.display = 'none'; return; }
+    el.style.display = ''; $('legend').style.display = ''; $('lgWarn').textContent = ev.warnMin;
+    var left = Math.round((ev.startAt - (new Date().getTime() + skew)) / 1000), ph = phaseOf(ev);
+    if (left > 0) {
+      var h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), sec = left % 60;
+      el.textContent = '⏰ Party starts in ' + (h ? h + ':' + pad(m) : m) + ':' + pad(sec);
+      el.className = 'cdown' + (ph === 'soon' ? ' soon' : '');
+    } else { el.textContent = '🎉 Party time! Type !here to sign in'; el.className = 'cdown go'; }
+    if (ph !== lastPhase) { lastPhase = ph; lastKey = ''; render(lastD); }
+  }
+  var lastPhase = '';
+  setInterval(tick, 1000);
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+  function fit(){
+    box.style.transform = 'none';
+    var w = window.innerWidth || document.documentElement.clientWidth || 1500;
+    var h = window.innerHeight || document.documentElement.clientHeight || 800;
+    var bw = box.offsetWidth || 1, bh = box.offsetHeight || 1;
+    var s = Math.min(w / bw, h / bh); if (!(s > 0)) s = 1;
+    box.style.transform = 'scale(' + s + ')'; box.style.webkitTransform = 'scale(' + s + ')';
+    box.style.left = Math.max(0, (w - bw * s) / 2) + 'px';
+  }
+  window.addEventListener('resize', fit);
+
+  function render(d){
+    var ev = d.event; lastD = d;
+    // Spotlight banner (board=spot only)
+    var sp = $('spot');
+    if (d.spot && d.spot.boards && d.spot.boards.length) {
+      sp.style.display = '';
+      sp.innerHTML = '📣 ' + (d.spot.held ? 'Showing Board <b>' + d.spot.slot + '</b>' + (d.spot.by && d.spot.by !== 'dashboard' ? ' for ' + esc(d.spot.by) : '') : 'Board <b>' + d.spot.slot + '</b> of ' + d.spot.boards.length + ' parties') +
+        (d.spot.chat ? ' · type <b>!party #</b> to show a party (' + d.spot.boards.map(function(x){ return x.slot; }).join(', ') + ')' : '');
+    } else sp.style.display = 'none';
+    if (d.empty || !ev) { box.className = 'hidden'; lastKey = ''; return; }
+    box.className = d.visible ? '' : 'hidden';
+    var phase = phaseOf(ev); lastPhase = phase;
+    var key = JSON.stringify([ev, d.showTwitch, phase]);
+    if (key === lastKey) { fit(); return; }
+    lastKey = key;
+    // Her own art (set per party on the dashboard)
+    var art = ev.art || {}, card = $('card'), pa = Math.max(0, Math.min(100, art.panel === undefined ? 86 : art.panel)) / 100;
+    if (art.bg) {
+      card.style.background = 'linear-gradient(rgba(28,14,40,' + pa + '),rgba(28,14,40,' + pa + ')), url("' + art.bg + '") center / ' + (art.fit || 'cover') + ' no-repeat';
+    } else card.style.background = 'rgba(28,14,40,' + pa + ')';
+    card.style.border = art.border === false ? 'none' : ''; card.style.boxShadow = art.border === false ? 'none' : '';
+    var rc = Math.max(0, Math.min(100, art.roleCards === undefined ? 40 : art.roleCards)) / 100;
+    if (art.title) { $('title').className = 'title img'; $('title').innerHTML = '<img src="' + esc(art.title) + '" alt="' + esc(ev.title || '') + '" onload="this.parentNode && window.dispatchEvent(new Event(\'resize\'))">'; }
+    else { $('title').className = 'title'; $('title').textContent = ev.title || 'Party Sign-ups'; }
+    $('when').textContent = ev.when || ''; $('when').style.display = ev.when ? '' : 'none';
+    $('subtitle').textContent = ev.subtitle || ''; $('subtitle').style.display = ev.subtitle ? '' : 'none';
+    var st = $('status');
+    st.className = 'status' + (ev.open ? '' : ' closed');
+    st.textContent = (ev.open ? (ev.filled + ' / ' + ev.spots + ' spots filled') : '🔒 Sign-ups are closed · ' + ev.filled + ' / ' + ev.spots + ' filled') +
+      (ev.filled ? ' · ✔ ' + ev.checkedIn + ' signed in' : '');
+    var html = '', i, j, nowSeen = {}, example = '';
+    // Roles are grouped into sections (Overprep, Cooking, Helpers...) in the order sections first appear.
+    var order = [], byGroup = {}, anyGroup = false;
+    for (i = 0; i < ev.roles.length; i++) {
+      var g = ev.roles[i].group || '';
+      if (g) anyGroup = true;
+      if (!byGroup.hasOwnProperty(g)) { byGroup[g] = []; order.push(g); }
+      byGroup[g].push(ev.roles[i]);
+    }
+    var list = [];
+    for (i = 0; i < order.length; i++) { list.push({ head: order[i] }); for (j = 0; j < byGroup[order[i]].length; j++) list.push(byGroup[order[i]][j]); }
+    for (i = 0; i < list.length; i++) {
+      // Section headings only help when there are 2+ sections; one section for everything = no heading.
+      if (list[i].head !== undefined) { if (anyGroup && order.length > 1) html += '<div class="grp"><span>' + esc(list[i].head || 'Other') + '</span></div>'; continue; }
+      var r = list[i], full = r.people.length >= r.spots;
+      var cmdShown = r.cmdShown || r.command;
+      if (!example) example = cmdShown;
+      html += '<div class="role' + (full ? ' full' : '') + (r.spots > 10 ? ' wide' : '') + (r.collapsed ? ' folded' : '') + '"><div class="rh" data-role="' + esc(r.id) + '">' + (r.emoji ? '<span class="em">' + esc(r.emoji) + '</span>' : '') +
+        '<div class="nm"><div class="lab">' + esc(r.label) + '</div><div class="cmd">!' + esc(cmdShown) + '</div></div>' +
+        '<span class="ct">' + r.people.length + '/' + r.spots + '</span><span class="fold">' + (r.collapsed ? '▸' : '▾') + '</span></div>' +
+        (r.bring ? '<div class="bring">🧺 <b>Bring:</b> ' + esc(r.bring) + '</div>' : '') + '<ul>';
+      for (j = 0; j < r.people.length; j++) {
+        var p = r.people[j], k = r.id + ':' + p.twitch.toLowerCase() + ':' + p.palia;
+        nowSeen[k] = 1;
+        var cls = (p['in'] ? 'in' : (phase === 'late' ? 'late' : phase === 'soon' ? 'soon' : '')) + (!first && !seen[k] ? ' new' : '');
+        html += '<li' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(p.palia) + (d.showTwitch && p.twitch.toLowerCase() !== p.palia.toLowerCase() ? '<small>@' + esc(p.twitch) + '</small>' : '') + '</li>';
+      }
+      for (j = r.people.length; j < r.spots; j++) html += '<li class="open">open spot</li>';
+      html += '</ul>' + (r.waitlist.length ? '<div class="wait">⏳ ' + r.waitlist.length + ' on waitlist</div>' : '') + '</div>';
+    }
+    $('roles').innerHTML = html || '<div class="status">No roles set up yet</div>';
+    var rcs = $('roles').querySelectorAll('.role');
+    for (var q = 0; q < rcs.length; q++) rcs[q].style.background = 'rgba(20,10,30,' + rc + ')';
+    seen = nowSeen; first = false;
+    $('footer').innerHTML = ev.open && example
+      ? 'Sign up: type <b>!' + esc(example) + ' YourPaliaName</b> (any role) · <b>!leave</b> to drop out · at the party? <b>!here</b>'
+      : (ev.filled ? 'At the party? Type <b>!here</b> to sign in' : '');
+    fit();
+  }
+
+  // Click a role's header on the board to fold / open it (saved, so the dashboard and other boards agree).
+  $('roles').addEventListener('click', function(e){
+    var t = e.target; while (t && t !== this && !(t.getAttribute && t.getAttribute('data-role'))) t = t.parentNode;
+    if (!t || t === this || !lastD || !lastD.event) return;
+    var role = t.parentNode; role.className = /folded/.test(role.className) ? role.className.replace(' folded', '') : role.className + ' folded'; fit();
+    var x = new XMLHttpRequest(); x.open('POST', '/api/party/collapse', true); x.setRequestHeader('Content-Type', 'application/json');
+    x.send(JSON.stringify({ id: lastD.event.id, roleId: t.getAttribute('data-role') }));
+  });
+  function poll(){
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/party?board=' + encodeURIComponent(BOARD) + '&_=' + new Date().getTime(), true);
+    x.onreadystatechange = function(){
+      if (x.readyState !== 4 || x.status !== 200) return;
+      try { var d = JSON.parse(x.responseText); if (d && d.ok) { skew = (d.now || 0) - new Date().getTime(); render(d); tick(); } } catch (e) {}
+    };
+    x.send();
+  }
+  poll(); setInterval(poll, 1500);
+})();
+</script>
+</body>
+</html>

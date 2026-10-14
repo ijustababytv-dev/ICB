@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Event Time Converter — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --bad:#ff5c6c; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2c1b3f 0%, var(--bg) 60%) fixed; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:24px; }
+  h1{ margin:0; font-size:24px; } h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 18px; }
+  .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .spacer{ flex:1; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
+  .health.offline{ background:#4a1f26; color:var(--bad); }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 14px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:var(--accent); color:#1b0f2a; font-weight:700; }
+  .btn-sm{ padding:3px 9px; font-size:12px; border-radius:8px; }
+  input[type=text], input[type=date], input[type=time], select{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 11px; min-width:0; color-scheme:dark; }
+  .grid{ display:grid; grid-template-columns:minmax(420px,1fr) minmax(420px,1fr); gap:16px; align-items:start; }
+  @media (max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2{ margin:0 0 12px; font-size:16px; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .row label{ color:var(--dim); min-width:110px; }
+  .note{ color:var(--dim); font-size:12px; margin-top:6px; }
+  .url{ display:flex; gap:8px; align-items:center; background:#130d1b; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; font-family:Consolas, monospace; font-size:12px; color:var(--dim); margin-bottom:12px; }
+  .url code{ flex:1; color:var(--text); }
+  .switchrow{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+  .switch{ position:relative; width:52px; height:28px; flex:none; }
+  .switch input{ display:none; }
+  .switch span{ position:absolute; inset:0; border-radius:999px; background:#3b3148; transition:.2s; cursor:pointer; }
+  .switch span::after{ content:""; position:absolute; left:3px; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch input:checked + span{ background:var(--accent); }
+  .switch input:checked + span::after{ left:27px; }
+  .zrow{ display:grid; grid-template-columns:28px 120px 1fr auto; gap:8px; align-items:center; margin-bottom:6px; }
+  .zrow .acts{ display:flex; gap:3px; }
+  .big{ font-size:18px; padding:9px 14px; }
+  .quick button{ font-size:12px; padding:4px 10px; }
+  .preview{ width:100%; height:240px; border:1px solid var(--line); border-radius:12px; background:repeating-conic-gradient(#2a2238 0 25%, #221b2e 0 50%) 0 0/24px 24px; }
+  .conv{ font-size:13px; }
+  .conv div{ display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #2c2240; }
+  .conv b{ color:var(--accent); }
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--panel2); border:1px solid var(--accent2); padding:10px 16px; border-radius:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🕒 <span>Event Time Converter</span></h1>
+      <div class="sub">Type when the event starts in <b>your</b> time — the overlay shows that time and day for everyone.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>The event</h2>
+        <div class="row"><label>Event name</label><input type="text" id="title" style="flex:1" maxlength="80" placeholder="Grinding Party!"></div>
+        <div class="row"><label>Subtitle</label><input type="text" id="subtitle" style="flex:1" maxlength="120" placeholder="optional, e.g. Meet at the Fairgrounds"></div>
+        <div class="row"><label>Date</label><input type="date" id="date" class="big"><span class="quick"><button onclick="setDay(0)">Today</button> <button onclick="setDay(1)">Tomorrow</button></span></div>
+        <div class="row"><label>Time</label><input type="time" id="time" class="big" step="300"></div>
+        <div class="row"><label>That's my time in</label><select id="sourceTz" style="flex:1"></select></div>
+        <div class="row" style="margin-top:12px"><button class="btn-accent" onclick="save()">Show on stream</button></div>
+        <div class="conv" id="conv"></div>
+      </div>
+
+      <div class="card">
+        <h2>On stream</h2>
+        <div class="url"><code>http://127.0.0.1:8790/eventtime.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showCountdown"><span></span></label> Show "Starts in…" countdown</div>
+        <div class="row"><label>Layout</label><select id="layout"><option value="row">Side by side (bar)</option><option value="column">Stacked (list)</option></select></div>
+        <iframe class="preview" id="preview" src="/eventtime.html"></iframe>
+        <div class="note">Live preview. Your own time zone is outlined in gold.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Time zones shown</h2>
+        <div id="zones"></div>
+        <div class="row" style="margin-top:8px"><button onclick="addZone()">+ Add a zone</button><button class="btn-accent" onclick="saveZones()">Save zones</button></div>
+        <div class="note">Leave the name blank to show it automatically (PDT, MDT, CDT, EDT…) — it switches to PST, MST, CST, EST by itself when daylight saving ends.<br>
+          "GMT +1" and "GMT +2" are fixed and never change. For the UK or Europe with their own clock changes, pick <b>London</b> or <b>Paris/Berlin</b> instead.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var TZS = [
+  ['America/Los_Angeles','Pacific (Los Angeles)'], ['America/Denver','Mountain (Denver)'], ['America/Phoenix','Arizona (no DST)'],
+  ['America/Chicago','Central (Chicago)'], ['America/New_York','Eastern (New York)'], ['America/Halifax','Atlantic (Halifax)'],
+  ['America/Anchorage','Alaska'], ['Pacific/Honolulu','Hawaii'], ['America/Sao_Paulo','Brazil (São Paulo)'],
+  ['Etc/GMT','GMT +0 (fixed)'], ['Etc/GMT-1','GMT +1 (fixed)'], ['Etc/GMT-2','GMT +2 (fixed)'], ['Etc/GMT-3','GMT +3 (fixed)'],
+  ['Europe/London','UK (London)'], ['Europe/Paris','Central Europe (Paris/Berlin)'], ['Europe/Athens','Eastern Europe (Athens)'],
+  ['Asia/Kolkata','India'], ['Asia/Manila','Philippines'], ['Asia/Tokyo','Japan'], ['Australia/Sydney','Australia (Sydney)'], ['Pacific/Auckland','New Zealand'] ];
+var S = null, zones = [];
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function toast(t){ var e = $('toast'); e.textContent = t; e.className = 'toast show'; clearTimeout(e._t); e._t = setTimeout(function(){ e.className = 'toast'; }, 2200); }
+function copyUrl(){ try { navigator.clipboard.writeText('http://127.0.0.1:8790/eventtime.html'); toast('Copied'); } catch (e) {} }
+function tzOptions(sel){ var h = '', found = false; TZS.forEach(function(t){ if (t[0] === sel) found = true; h += '<option value="' + t[0] + '"' + (t[0] === sel ? ' selected' : '') + '>' + esc(t[1]) + '</option>'; }); if (!found && sel) h = '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>' + h; return h; }
+function post(body, msg){
+  return fetch('/api/eventtime', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) })
+    .then(function(r){ return r.json(); }).then(function(d){ if (!d.ok) throw new Error(d.error); S = d; renderConv(); if (msg) toast(msg); refreshPreview(); return d; })
+    .catch(function(e){ toast('⚠️ ' + e.message); });
+}
+function refreshPreview(){ /* overlay polls by itself */ }
+function abbr(ms, tz){ try { var p = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' }).formatToParts(new Date(ms)); for (var i = 0; i < p.length; i++) if (p[i].type === 'timeZoneName') return p[i].value; } catch (e) {} return tz; }
+function renderConv(){
+  if (!S || !S.at) { $('conv').innerHTML = '<div class="note">Pick a date and time, then press Show on stream.</div>'; return; }
+  var h = '';
+  S.zones.forEach(function(z){ if (!z.visible) return;
+    var t = new Intl.DateTimeFormat('en-US', { timeZone: z.tz, weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }).format(new Date(S.at));
+    h += '<div><b>' + esc(z.label || abbr(S.at, z.tz)) + '</b><span>' + esc(t) + '</span></div>'; });
+  $('conv').innerHTML = '<div class="note" style="border:none">What chat will see:</div>' + h;
+}
+function renderZones(){
+  var h = '';
+  zones.forEach(function(z, i){
+    h += '<div class="zrow"><input type="checkbox" ' + (z.visible ? 'checked' : '') + ' onchange="zones[' + i + '].visible=this.checked" title="Show">' +
+      '<input type="text" value="' + esc(z.label) + '" placeholder="auto" maxlength="30" oninput="zones[' + i + '].label=this.value">' +
+      '<select onchange="zones[' + i + '].tz=this.value">' + tzOptions(z.tz) + '</select>' +
+      '<span class="acts"><button class="btn-sm" onclick="mv(' + i + ',-1)">↑</button><button class="btn-sm" onclick="mv(' + i + ',1)">↓</button><button class="btn-sm" onclick="rm(' + i + ')">✕</button></span></div>';
+  });
+  $('zones').innerHTML = h;
+}
+function mv(i, d){ var j = i + d; if (j < 0 || j >= zones.length) return; var t = zones[i]; zones[i] = zones[j]; zones[j] = t; renderZones(); }
+function rm(i){ zones.splice(i, 1); renderZones(); }
+function addZone(){ if (zones.length >= 12) return; zones.push({ label:'', tz:'Europe/London', visible:true }); renderZones(); }
+function saveZones(){ post({ zones: zones }, 'Zones saved'); }
+function pad(n){ return ('0' + n).slice(-2); }
+function setDay(add){
+  var tz = $('sourceTz').value, now = new Date(Date.now() + add * 86400000);
+  var p = {}; new Intl.DateTimeFormat('en-US', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(now).forEach(function(x){ p[x.type] = x.value; });
+  $('date').value = p.year + '-' + p.month + '-' + p.day;
+}
+function save(){
+  if (!$('date').value || !$('time').value) { toast('Pick a date and a time'); return; }
+  post({ title: $('title').value, subtitle: $('subtitle').value, date: $('date').value, time: $('time').value, sourceTz: $('sourceTz').value, visible: true }, 'On stream!').then(function(){ $('visible').checked = true; });
+}
+['visible','showCountdown'].forEach(function(id){ $(id).addEventListener('change', function(){ var b = {}; b[id] = $(id).checked; post(b, 'Saved'); }); });
+$('layout').addEventListener('change', function(){ post({ layout: $('layout').value }, 'Saved'); });
+$('title').addEventListener('change', function(){ post({ title: $('title').value }, 'Saved'); });
+$('subtitle').addEventListener('change', function(){ post({ subtitle: $('subtitle').value }, 'Saved'); });
+
+fetch('/api/eventtime').then(function(r){ return r.json(); }).then(function(d){
+  S = d; $('health').textContent = 'ICB connected';
+  $('title').value = d.title || ''; $('subtitle').value = d.subtitle || ''; $('date').value = d.date || ''; $('time').value = d.time || '';
+  $('sourceTz').innerHTML = tzOptions(d.sourceTz); $('visible').checked = d.visible; $('showCountdown').checked = d.showCountdown; $('layout').value = d.layout;
+  zones = d.zones.map(function(z){ return { label: z.label, tz: z.tz, visible: z.visible }; });
+  renderZones(); renderConv();
+}).catch(function(){ $('health').textContent = 'ICB offline'; $('health').className = 'health offline'; });
+</script>
+</body>
+</html>

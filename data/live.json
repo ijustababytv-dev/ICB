@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "resources": {
-    "amber": 0,
-    "essence": 0,
+    "amber": 12631,
+    "essence": 140,
     "sweetLeaf": 0
   },
   "session": {
@@ -10,15 +10,16 @@
   },
   "reader": {
     "state": "offline",
-    "file": "C:\\Users\\mrsch\\AppData\\Local\\PaliaAssistant\\logs\\app-bridge-20261001.log",
-    "fileModifiedAt": "2026-10-01T05:08:54.510Z",
+    "file": "C:\\Users\\mrsch\\AppData\\Local\\PaliaAssistant\\logs\\app-bridge-20261013.log",
+    "fileModifiedAt": "2026-10-14T00:47:05.259Z",
     "lastEvent": {
-      "at": "2026-10-01T05:04:27.272Z",
-      "source": "manual-correction",
-      "resource": "sweetLeaf",
-      "value": 0
+      "at": "2026-10-06T03:18:22.844Z",
+      "line": "2026-10-06 03:18:19.094 -05:00 [INF] Inventory gained: itemtype_currency_echo_amber x5",
+      "resource": "amber",
+      "amount": 5,
+      "token": "itemtype_currency_echo_amber"
     },
-    "lastUpdateAt": "2026-10-01T05:04:27.272Z"
+    "lastUpdateAt": "2026-10-06T03:18:22.844Z"
   },
   "reconciliation": {
     "required": false,
@@ -31,7 +32,7 @@
     "reconciledAt": "2026-08-14T18:20:17.896Z",
     "reconciledBy": "operator"
   },
-  "updatedAt": "2026-10-01T05:18:55.326Z",
+  "updatedAt": "2026-10-14T00:57:06.264Z",
   "migration": {
     "source": "C:\\Users\\mrsch\\Documents\\ChatGPT\\ICB\\data\\palia.json",
     "sourceLastUpdateAt": "2026-08-12T18:56:40.839Z",

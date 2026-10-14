@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "weekStart": "2026-09-28T04:00:00.000Z",
+  "weekStart": "2026-10-12T04:00:00.000Z",
   "progress": {
     "friends-cook": {
       "count": 0,
@@ -27,15 +27,15 @@
       "done": false
     },
     "forage-30": {
-      "count": 30,
+      "count": 0,
       "done": false
     },
     "trees-10": {
-      "count": 10,
+      "count": 0,
       "done": false
     },
     "magic-trees-10": {
-      "count": 10,
+      "count": 0,
       "done": false
     },
     "furniture-common-5": {
@@ -63,7 +63,7 @@
       "done": false
     },
     "hunt-30": {
-      "count": 2,
+      "count": 0,
       "done": false
     },
     "hunt-magical-5": {
@@ -71,11 +71,11 @@
       "done": false
     },
     "mine-20": {
-      "count": 20,
+      "count": 0,
       "done": false
     },
     "mine-silver-gold-10": {
-      "count": 10,
+      "count": 0,
       "done": false
     },
     "hometour-visit-15": {
@@ -88,7 +88,7 @@
     }
   },
   "previous": {
-    "weekStart": "2026-09-21T04:00:00.000Z",
+    "weekStart": "2026-10-05T04:00:00.000Z",
     "progress": [
       {
         "id": "friends-cook",
@@ -152,7 +152,7 @@
       },
       {
         "id": "crops-30",
-        "count": 32,
+        "count": 0,
         "done": false
       },
       {
@@ -167,7 +167,7 @@
       },
       {
         "id": "hunt-30",
-        "count": 30,
+        "count": 0,
         "done": false
       },
       {
@@ -182,7 +182,7 @@
       },
       {
         "id": "mine-silver-gold-10",
-        "count": 11,
+        "count": 4,
         "done": false
       },
       {
@@ -197,6 +197,6 @@
       }
     ]
   },
-  "lastResetAt": "2026-09-28T04:00:16.678Z",
-  "updatedAt": "2026-10-01T04:59:31.316Z"
+  "lastResetAt": "2026-10-12T04:00:42.937Z",
+  "updatedAt": "2026-10-14T00:10:21.995Z"
 }

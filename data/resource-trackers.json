@@ -18,41 +18,43 @@
     "sashimi": 100,
     "ramen-plush": 0,
     "golden-glory-bee": 0,
-    "fish-stew": 0,
+    "fish-stew": 93,
     "bean-burger": 0,
-    "celebration-cake": 0,
+    "celebration-cake": 50,
     "giant-goldfish": 0,
     "eldershark": 0,
     "inyrevn-mermaid": 0,
     "veggie-chili": 0,
-    "highland-shark": 0
+    "highland-shark": 0,
+    "tattered-cloth": 5,
+    "shmole-spores": 15
   },
   "secondaryCounts": {
     "ramen-plush": 0
   },
   "slotCounts": {
     "queen-ushindi-collection": {
-      "ash-wood": 0,
-      "stone": 0,
-      "whitestone": 0,
-      "silk-thread": 0,
-      "jadium-ore": 0
+      "ash-wood": 36,
+      "stone": 271,
+      "whitestone": 36,
+      "silk-thread": 155,
+      "jadium-ore": 181
     },
     "long-tracker": {
-      "ash-wood": 0,
-      "amber-echo": 0,
-      "jadium-ore": 0,
-      "gold-ore": 0,
-      "iron-ore": 0,
-      "bugs": 0
+      "ash-wood": 36,
+      "amber-echo": 12631,
+      "jadium-ore": 181,
+      "gold-ore": 31,
+      "iron-ore": 166,
+      "bugs": 1315
     },
     "ore-vs-kitsuu": {
-      "jadium-ore": 0,
-      "gold-ore": 0,
-      "iron-ore": 0,
+      "jadium-ore": 181,
+      "gold-ore": 31,
+      "iron-ore": 166,
       "copper-ore": 0,
       "silver-ore": 0,
-      "palium-ore": 0,
+      "palium-ore": 32,
       "platinum-ore": 0,
       "cave-kitsuu": 0,
       "obsidian-kitsuu": 0,
@@ -60,15 +62,37 @@
       "rainbow-kitsuu": 0
     },
     "pumpkin-rockhopper": {
-      "frogs": 0,
+      "frogs": 322,
       "plushies": 0
     },
     "banshee-beetle": {
-      "beetles": 0,
-      "plushies": 0
+      "beetles": 138,
+      "plushies": 2
+    },
+    "blue-crab": {
+      "crabs": 495,
+      "plushies": 1
     }
   },
-  "previous": {},
+  "previous": {
+    "sweet-leaf": 0,
+    "gold-ore": 31,
+    "palium-ore": 32,
+    "platinum-ore": 0,
+    "jadium": 181,
+    "flint": 0,
+    "clay": 0,
+    "coral": 0,
+    "emerald-moss": 0,
+    "dragons-beard-peat": 0,
+    "apples": 0,
+    "meat": 609,
+    "golden-glory-bee": 49,
+    "giant-goldfish": 0,
+    "eldershark": 0,
+    "inyrevn-mermaid": 0,
+    "highland-shark": 0
+  },
   "visible": {
     "amber-echo": true,
     "essence": true,
@@ -99,9 +123,12 @@
     "veggie-chili": true,
     "highland-shark": true,
     "pumpkin-rockhopper": true,
-    "banshee-beetle": true
+    "banshee-beetle": true,
+    "tattered-cloth": true,
+    "shmole-spores": true,
+    "blue-crab": true
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
-  "lastResetAt": "2026-09-17T21:22:09.592Z",
-  "updatedAt": "2026-10-01T05:04:09.864Z"
+  "lastResetAt": "2026-10-11T18:51:41.644Z",
+  "updatedAt": "2026-10-14T00:47:05.260Z"
 }

@@ -1,0 +1,295 @@
+{
+  "visible": true,
+  "open": true,
+  "live": "e6",
+  "seq": 7,
+  "font": 26,
+  "cols": 2,
+  "title": "Bean Burgers",
+  "max": 0,
+  "ignore": "spawn",
+  "accent": "#ff8fd8",
+  "panelColor": "#1c0e28",
+  "panelOpacity": 85,
+  "showZones": true,
+  "showCountdown": true,
+  "names": {
+    "palia": {
+      "freyaoreo": "freyaoreo",
+      "haley_please_hush": "Haleyplzhush",
+      "catmomma1997": "catmomma1997",
+      "granny2shoes5011": "granny2shoes5011",
+      "wonderlilyes": "Nova Hazelwood",
+      "nightshifter71": "nightshifter71",
+      "razordomme": "RazorDom",
+      "itsmisscupcake": "MissCupcake",
+      "dylans__babygirl": "Dylans__Babygirl",
+      "geckotryhard": "geckotryhard",
+      "froggyswowttv": "froggyswowttv",
+      "4kayslayz": "4KaySlayz"
+    }
+  },
+  "rseq": 9,
+  "zones": [
+    {
+      "tz": "Pacific/Honolulu",
+      "label": "Hawaii",
+      "on": false
+    },
+    {
+      "tz": "America/Anchorage",
+      "label": "Alaska",
+      "on": false
+    },
+    {
+      "tz": "America/Los_Angeles",
+      "label": "Pacific",
+      "on": false
+    },
+    {
+      "tz": "America/Phoenix",
+      "label": "Arizona",
+      "on": false
+    },
+    {
+      "tz": "America/Denver",
+      "label": "Mountain",
+      "on": false
+    },
+    {
+      "tz": "America/Chicago",
+      "label": "Central",
+      "on": false
+    },
+    {
+      "tz": "America/New_York",
+      "label": "Eastern",
+      "on": false
+    },
+    {
+      "tz": "America/Sao_Paulo",
+      "label": "Brazil",
+      "on": false
+    },
+    {
+      "tz": "Europe/London",
+      "label": "UK",
+      "on": true
+    },
+    {
+      "tz": "Europe/Berlin",
+      "label": "Central Europe",
+      "on": false
+    },
+    {
+      "tz": "Europe/Athens",
+      "label": "Eastern Europe",
+      "on": false
+    },
+    {
+      "tz": "Asia/Kolkata",
+      "label": "India",
+      "on": false
+    },
+    {
+      "tz": "Asia/Manila",
+      "label": "Philippines",
+      "on": false
+    },
+    {
+      "tz": "Asia/Tokyo",
+      "label": "Japan",
+      "on": false
+    },
+    {
+      "tz": "Australia/Sydney",
+      "label": "Sydney",
+      "on": true
+    },
+    {
+      "tz": "Pacific/Auckland",
+      "label": "New Zealand",
+      "on": false
+    }
+  ],
+  "events": [
+    {
+      "id": "e2",
+      "name": "Saturday Sashimi ACT I",
+      "guests": [],
+      "roles": [],
+      "desc": "",
+      "date": "",
+      "time": "",
+      "tz": "America/Chicago",
+      "game": "Palia"
+    },
+    {
+      "id": "e5",
+      "name": "BOOSTED FLOW TREE MONDAY'S",
+      "guests": [],
+      "roles": [
+        {
+          "id": "r1",
+          "label": "CHARGER",
+          "cmd": "charge",
+          "spots": 10,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r2",
+          "label": "PICKUP",
+          "cmd": "pickup",
+          "spots": 30,
+          "color": "#230d91"
+        }
+      ],
+      "desc": "Pickup people have your focus food & a piece of flow wood in all other inventory slots before coming to event!",
+      "date": "2026-10-12",
+      "time": "18:00",
+      "tz": "America/Chicago",
+      "game": "Palia"
+    },
+    {
+      "id": "e6",
+      "name": "x50 Bean Burgers",
+      "guests": [
+        {
+          "n": 1,
+          "name": "freyaoreo",
+          "twitch": "freyaoreo",
+          "at": 1791925662321,
+          "role": "r6"
+        },
+        {
+          "n": 2,
+          "name": "Haleyplzhush",
+          "twitch": "haley_please_hush",
+          "at": 1791925665442,
+          "role": "r4"
+        },
+        {
+          "n": 3,
+          "name": "catmomma1997",
+          "twitch": "catmomma1997",
+          "at": 1791925700749,
+          "role": "r7"
+        },
+        {
+          "n": 4,
+          "name": "granny2shoes5011",
+          "twitch": "granny2shoes5011",
+          "at": 1791925982853,
+          "role": "r4"
+        },
+        {
+          "n": 5,
+          "name": "nightshifter71",
+          "twitch": "nightshifter71",
+          "at": 1791927573089,
+          "role": "r5"
+        },
+        {
+          "n": 6,
+          "name": "RazorDom",
+          "twitch": "razordomme",
+          "at": 1791927576024,
+          "role": "r3"
+        },
+        {
+          "n": 7,
+          "name": "MissCupcake",
+          "twitch": "ItsMissCupcake",
+          "at": 1791927953322,
+          "role": "r5"
+        },
+        {
+          "n": 8,
+          "name": "Nova Hazelwood",
+          "twitch": "wonderlilyes",
+          "at": 1791927961963,
+          "role": "r5"
+        },
+        {
+          "n": 9,
+          "name": "Dylans__Babygirl",
+          "twitch": "Dylans__Babygirl",
+          "at": 1791933360087,
+          "role": "r8"
+        },
+        {
+          "n": 10,
+          "name": "geckotryhard",
+          "twitch": "geckotryhard",
+          "at": 1791933390454,
+          "role": "r8"
+        },
+        {
+          "n": 11,
+          "name": "froggyswowttv",
+          "twitch": "froggyswowttv",
+          "at": 1791933402885,
+          "role": "r8"
+        },
+        {
+          "n": 12,
+          "name": "4KaySlayz",
+          "twitch": "4KaySlayz",
+          "at": 1791934614496,
+          "role": "r8"
+        }
+      ],
+      "roles": [
+        {
+          "id": "r3",
+          "label": "Garlic",
+          "cmd": "g",
+          "spots": 1,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r4",
+          "label": "Onion",
+          "cmd": "o",
+          "spots": 2,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r5",
+          "label": "Tomato",
+          "cmd": "t",
+          "spots": 2,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r6",
+          "label": "Patty-Free Role",
+          "cmd": "patty",
+          "spots": 1,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r7",
+          "label": "Burger Sauce-Free Role",
+          "cmd": "sauce",
+          "spots": 1,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r8",
+          "label": "OverPrep-Garlic, Onion, or Tomato",
+          "cmd": "op",
+          "spots": 15,
+          "color": "#ff8fd8"
+        }
+      ],
+      "desc": "",
+      "date": "2026-10-13",
+      "time": "19:00",
+      "tz": "America/Chicago",
+      "game": "Palia"
+    }
+  ],
+  "showBy": true,
+  "hereColor": "#58d68d"
+}

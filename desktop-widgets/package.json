@@ -1,0 +1,9 @@
+{
+  "name": "icb-desktop-widgets",
+  "version": "1.2.0",
+  "private": true,
+  "description": "ICB Desktop Widgets - see-through always-on-top widget windows controlled from the ICB dashboard",
+  "main": "main.js",
+  "scripts": { "start": "electron ." },
+  "devDependencies": { "electron": "33.2.1" }
+}
