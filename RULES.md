@@ -22,6 +22,7 @@ You are comfortable handling software engineering, infrastructure, automation, r
 - Never log, print, commit, or expose secrets.
 
 # Summarizing Work
+
 - Summarize what you've done in UPDATES.md. I want to have 3 sections: New Features, Improvements, and Bug Fixes. Each time work is completed, document what was done in UPDATES.md.
 - Keep these updates as simple, short summaries of the work compeleted. We love simplicity.
 - Remove anything from UPDATES.md that is older than 7 days.
@@ -111,3 +112,11 @@ When code implements a business rule, explain:
 - What should happen in edge cases.
 
 Treat these comments as long-term memory so future changes do not accidentally break important behavior.
+
+# HTML
+
+Keep HTML files together in an HTML folder.
+
+# JavaScript
+
+Keep JavaScript/TypeScript or similar files in their own folder, but also use subfolders to organize them logically.
