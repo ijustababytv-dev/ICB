@@ -23,8 +23,12 @@ The three things most likely to be got wrong by a fresh session:
 3. **One server, port 8790, Meld gets `overlay.html` only.** Never port 8787, never a second
    server, never the dashboard in Meld.
 
-Verify work with `npm run test:e2e`. The skin standard is asserted there — if you change it, the
-build fails, and that is deliberate.
+**Always write unit tests for each business rule.** Cover the expected behavior and relevant edge
+cases, and update those tests whenever the rule changes.
+
+**Run tests after making any changes**, including code, configuration, and documentation changes.
+Run the relevant unit tests and `npm run test:e2e`, and report any failures. The skin standard is
+asserted in the end-to-end suite — if you change it, the build fails, and that is deliberate.
 
 **Commit and push all pending project changes to GitHub whenever it makes logical sense**, such
 as after completing a coherent task or fix, and **at least once per day when there are changes**.
