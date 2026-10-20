@@ -1,0 +1,99 @@
+{
+  "_note": "Catches read from Baby's in-game screenshots, 2026-10-18 (all 27 panels). Rarity fixes from the card background colours.",
+  "caught": {
+    "jonesy": [
+      "Base",
+      "Gold",
+      "Cheat Master"
+    ],
+    "adventure": [
+      "Base",
+      "Gold",
+      "Cheat Master"
+    ],
+    "bush": [
+      "Base",
+      "Loot Hacker",
+      "Bounty Hunter"
+    ],
+    "sonic": [
+      "Base",
+      "Gold",
+      "Cheat Master"
+    ],
+    "tails": [
+      "Base",
+      "Cheat Master",
+      "Loot Hacker"
+    ],
+    "shadow": [
+      "Base",
+      "Bounty Hunter"
+    ],
+    "8-bit": [
+      "Base",
+      "Gold",
+      "Cheat Master"
+    ],
+    "jackrabbit": [
+      "Base"
+    ],
+    "crown": [
+      "Base"
+    ],
+    "mega-man": [
+      "Base"
+    ],
+    "overshield": [
+      "Base",
+      "Gold"
+    ],
+    "x-ray": [
+      "Base"
+    ],
+    "onigiri": [
+      "Base",
+      "Gold"
+    ],
+    "storm-scout": [
+      "Base",
+      "Cheat Master"
+    ],
+    "blinky": [
+      "Base"
+    ],
+    "birthday": [
+      "Base",
+      "Bounty Hunter"
+    ],
+    "crash-bandicoot": [
+      "Base"
+    ],
+    "pond": [
+      "Base"
+    ],
+    "morgana": [
+      "Base",
+      "Loot Hacker"
+    ],
+    "vampire": [
+      "Loot Hacker"
+    ],
+    "the-deer": [
+      "Base",
+      "Trick or Treat"
+    ],
+    "dumpster-dive": [
+      "Base",
+      "Gold",
+      "Cheat Master"
+    ],
+    "honey": [
+      "Base"
+    ]
+  },
+  "rarity": {
+    "overshield": "Rare",
+    "birthday": "Rare"
+  }
+}

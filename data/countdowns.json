@@ -1,0 +1,43 @@
+{
+  "list": [
+    {
+      "id": "main",
+      "name": "Main countdown",
+      "heading": "TATTERED CLOTH CONTEST",
+      "subheading": "GRAB A SNACK 🌸",
+      "endText": "✨ WE'RE LIVE! ✨",
+      "endSub": "",
+      "icon": "✨",
+      "theme": "spooky",
+      "font": "Creepster",
+      "accent1": "#ff8a2a",
+      "accent2": "#8b5cf6",
+      "textColor": "#fff3e0",
+      "plate": "#120a1f",
+      "plateAlpha": 100,
+      "scale": 400,
+      "x": 52,
+      "y": 50,
+      "showHours": "auto",
+      "showLabels": true,
+      "showBadge": true,
+      "showSub": true,
+      "pulseDot": true,
+      "floaty": true,
+      "flowBorder": true,
+      "labelH": "HOURS",
+      "labelM": "MINUTES",
+      "labelS": "SECONDS",
+      "celebrate": true,
+      "hideAfter": 0,
+      "idleShow": "zeros",
+      "lastMinutes": 24,
+      "lastTime": "18:00",
+      "lastTz": "America/Chicago",
+      "status": "running",
+      "endsAt": 1792537200000,
+      "leftMs": 0,
+      "doneAt": 1792454400000
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Bean Burger Sign-Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #wrap { position: absolute; left: 0; top: 0; transform-origin: 0 0; padding: 10px; }
+  #panel { width: 620px; border-radius: 22px; border: 3px solid #ff8fd8; padding: 16px 18px 12px; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; box-shadow: 0 8px 26px rgba(0,0,0,.45); transition: opacity .4s; }
+  #panel.hidden { opacity: 0; }
+  #head { overflow: hidden; margin-bottom: 4px; }
+  #title { float: left; font-weight: 900; font-size: 1.25em; text-shadow: 0 2px 0 rgba(0,0,0,.5); }
+  #count { float: right; font-weight: 900; font-size: 1.1em; padding: 2px 14px; border-radius: 999px; color: #1b0f2a; margin-top: 3px; }
+  #ev { font-weight: 700; opacity: .85; font-size: .8em; margin-bottom: 8px; }
+  #list { }
+  .g { display: inline-block; vertical-align: top; box-sizing: border-box; padding: 3px 4px; }
+  .gi { border-radius: 12px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.12); padding: 4px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; transition: background .4s, border-color .4s; }
+  .gi .n { display: inline-block; min-width: 1.6em; text-align: center; border-radius: 8px; margin-right: 8px; padding: 0 5px; font-weight: 900; color: #1b0f2a; }
+  .gi .by { font-size: .62em; opacity: .85; margin-left: 6px; font-weight: 700; }
+  .gi.here .chk { float: right; margin-left: 6px; }
+  .gi.pop { animation: pop .9s ease-out; }
+  @keyframes pop { 0% { transform: scale(1); } 30% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  #foot { margin-top: 8px; text-align: center; font-weight: 800; font-size: .78em; opacity: .9; }
+  #foot b { padding: 0 8px; border-radius: 8px; color: #1b0f2a; }
+  .empty { opacity: .7; text-align: center; padding: 10px; }
+  #evname { font-weight: 900; font-size: 1.05em; margin-top: 2px; }
+  #desc { opacity: .85; font-size: .72em; font-weight: 700; margin: 2px 0 6px; white-space: pre-wrap; }
+  #when { margin: 6px 0 4px; overflow: hidden; }
+  #when .main { float: left; font-weight: 900; font-size: .9em; }
+  #when .cd { float: right; font-weight: 900; font-size: .8em; padding: 1px 12px; border-radius: 999px; color: #1b0f2a; }
+  #zones { margin: 2px -3px 8px; }
+  .z { display: inline-block; margin: 3px; padding: 2px 9px; border-radius: 10px; background: rgba(255,255,255,.1); font-size: .66em; font-weight: 800; white-space: nowrap; }
+  .z b { opacity: .75; font-weight: 700; margin-right: 5px; }
+  .role { margin-top: 6px; }
+  .rh { font-weight: 900; font-size: .82em; padding: 2px 10px; border-radius: 10px; margin: 0 0 3px; overflow: hidden; }
+  .rh .cmd { float: right; font-size: .85em; opacity: .9; }
+  .wl { font-size: .62em; font-weight: 900; opacity: .8; margin: 4px 4px 0; text-transform: uppercase; letter-spacing: 1px; }
+  .gi.wait { opacity: .6; border-style: dashed; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="panel" class="hidden">
+  <div id="head"><div id="title"></div><div id="count"></div></div>
+  <div id="evname"></div>
+  <div id="desc"></div>
+  <div id="when"><span class="main" id="wmain"></span><span class="cd" id="cd"></span></div>
+  <div id="zones"></div>
+  <div id="list"></div>
+  <div id="foot"></div>
+</div></div>
+<script>
+// ICB Bean Burger Sign-Up overlay (copy of the Poke Bowl Sign-up overlay, 2026-10-20). Meld layer:
+//   http://127.0.0.1:8790/beanburger-signup.html
+// Plain ES5 (Meld rule). Polls /api/beanburger-signup every 2 s; the countdown ticks every second.
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var seen = {}, first = true, lastKey = '', D = null, skew = 0;
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+  function hexA(hex, a){ var n = parseInt(String(hex).slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; }
+  function fit(){
+    var W = window.innerWidth, H = window.innerHeight, w = $('wrap');
+    if (!W || !H) return;                      // Meld can report 0x0 while loading
+    var s = Math.min(1, W / w.offsetWidth, H / w.offsetHeight);
+    w.style.transform = 'scale(' + s + ')'; w.style.webkitTransform = 'scale(' + s + ')';
+  }
+  function fmt(ms, tz, opts){ try { opts.timeZone = tz; return new Date(ms).toLocaleString('en-US', opts); } catch (e) { return ''; } }
+  function abbr(ms, tz){
+    try { var p = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' }).formatToParts(new Date(ms));
+      for (var i = 0; i < p.length; i++) if (p[i].type === 'timeZoneName') return p[i].value; } catch (e) {}
+    return '';
+  }
+  function tick(){
+    if (!D || !D.event || !D.event.start || !D.showCountdown) { $('cd').style.display = 'none'; return; }
+    var left = D.event.start - (new Date().getTime() + skew), t;
+    if (left > 0) {
+      var s = Math.floor(left / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+      t = 'Starts in ' + (d ? d + 'd ' + h + 'h' : h ? h + 'h ' + (m < 10 ? '0' : '') + m + 'm' : m + 'm ' + (sec < 10 ? '0' : '') + sec + 's');
+    } else t = left > -3 * 3600000 ? 'Happening now!' : 'Ended';
+    $('cd').textContent = t; $('cd').style.display = '';
+  }
+  function guestHtml(g, wPct, ac, wait){
+    var id = D.event.id + ':' + g.name.toLowerCase(), pop = !seen[id] && !first;
+    seen.__now[id] = 1;
+    return '<div class="g" style="width:' + wPct + '"><div class="gi' + (pop ? ' pop' : '') + (wait ? ' wait' : '') + '" style="' + (pop ? 'border-color:' + ac : '') + '">' +
+      '<span class="n" style="background:' + ac + '">' + g.pos + '</span>' + esc(g.name) + '</div></div>';
+  }
+  function render(d){
+    D = d; skew = d.now ? d.now - new Date().getTime() : 0;
+    var p = $('panel'), ev = d.event, ac = d.accent || '#ff8fd8';
+    p.className = d.visible ? '' : 'hidden';
+    p.style.fontSize = d.font + 'px'; p.style.borderColor = ac;
+    p.style.background = hexA(d.panelColor || '#1c0e28', (d.panelOpacity === undefined ? 85 : d.panelOpacity) / 100);
+    p.style.width = Math.round(d.font * (d.cols > 1 ? 11 * d.cols : 16)) + 'px';
+    $('title').textContent = d.title || '';
+    $('count').textContent = d.max ? d.total + ' / ' + d.max : d.total + ' signed up'; $('count').style.background = ac;
+    $('evname').textContent = ev ? ev.name : '';
+    $('desc').textContent = ev && ev.desc ? ev.desc : ''; $('desc').style.display = ev && ev.desc ? '' : 'none';
+    // When: her own time big, then the world clocks.
+    if (ev && ev.start) {
+      $('wmain').textContent = '🕒 ' + fmt(ev.start, ev.tz, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + fmt(ev.start, ev.tz, { hour: 'numeric', minute: '2-digit' }) + ' ' + abbr(ev.start, ev.tz);
+      $('when').style.display = '';
+      $('cd').style.background = ac;
+      var homeDay = fmt(ev.start, ev.tz, { weekday: 'short' }), zh = '';
+      if (d.showZones) for (var i = 0; i < d.zones.length; i++) {
+        var z = d.zones[i], day = fmt(ev.start, z.tz, { weekday: 'short' });
+        zh += '<span class="z"><b>' + esc(z.label) + '</b>' + (day !== homeDay ? day + ' ' : '') + fmt(ev.start, z.tz, { hour: 'numeric', minute: '2-digit' }) + ' ' + esc(abbr(ev.start, z.tz)) + '</span>';
+      }
+      $('zones').innerHTML = zh; $('zones').style.display = zh ? '' : 'none';
+    } else { $('when').style.display = 'none'; $('zones').style.display = 'none'; }
+    tick();
+    var roles = ev ? ev.roles : [], full = d.max && d.total >= d.max;
+    var b = function(t){ return '<b style="background:' + ac + '">' + esc(t) + '</b>'; };
+    if (!d.open) $('foot').innerHTML = 'Sign-ups are closed';
+    else if (full) $('foot').innerHTML = 'This event is full!';
+    else if (roles.length) $('foot').innerHTML = 'Sign up: ' + roles.map(function(r){ return b('!' + r.cmd); }).join(' ') + ' + your ' + esc(ev.game || 'game') + ' name · ' + b('!leave') + ' to drop out';
+    else $('foot').innerHTML = 'Type ' + b('!Your' + String(ev && ev.game || 'Palia').replace(/\s+/g, '') + 'Name') + ' to sign up · ' + b('!leave') + ' to drop out';
+    var key = JSON.stringify([ev && ev.guests, ev && ev.roles, ev && ev.id, d.cols, ac]);
+    if (key !== lastKey) {
+      lastKey = key; seen.__now = {};
+      var h = '', gs = ev ? ev.guests : [], wPct = (100 / (d.cols || 1)).toFixed(3) + '%', i2, g;
+      if (roles.length) {
+        var groups = roles.concat(gs.some(function(x){ return !x.role; }) ? [{ id: '', label: 'Other', cmd: '', spots: 0 }] : []);
+        for (var r = 0; r < groups.length; r++) {
+          var R = groups[r], col = R.color || ac, mine = gs.filter(function(x){ return x.role === R.id; }), main = '', wait = '';
+          for (i2 = 0; i2 < mine.length; i2++) {
+            g = { name: mine[i2].name, pos: i2 + 1 };
+            if (R.spots && i2 >= R.spots) { g.pos = i2 - R.spots + 1; wait += guestHtml(g, wPct, col, true); } else main += guestHtml(g, wPct, col, false);
+          }
+          var filled = Math.min(mine.length, R.spots || mine.length);
+          h += '<div class="role"><div class="rh" style="background:' + hexA(col, .3) + ';border-left:5px solid ' + col + '">' + esc(R.label) +
+            ' <span style="opacity:.8">(' + filled + (R.spots ? '/' + R.spots : '') + ')</span>' + (R.cmd ? '<span class="cmd">!' + esc(R.cmd) + '</span>' : '') + '</div>' +
+            '<div style="margin:0 -4px">' + (main || '<div class="empty" style="padding:3px;font-size:.7em">Open</div>') + '</div>' +
+            (wait ? '<div class="wl">Waitlist</div><div style="margin:0 -4px">' + wait + '</div>' : '') + '</div>';
+        }
+      } else {
+        for (i2 = 0; i2 < gs.length; i2++) h += guestHtml({ name: gs[i2].name, pos: gs[i2].n }, wPct, ac, false);
+        h = h ? '<div style="margin:0 -4px">' + h + '</div>' : '';
+      }
+      seen = seen.__now;
+      $('list').innerHTML = h || '<div class="empty">No one yet - be the first!</div>';
+      first = false;
+    }
+    fit();
+  }
+  function poll(){
+    var r = new XMLHttpRequest();
+    r.open('GET', '/api/beanburger-signup?_=' + new Date().getTime(), true);
+    r.onreadystatechange = function(){
+      if (r.readyState !== 4 || r.status !== 200) return;
+      try { var d = JSON.parse(r.responseText); if (d && d.ok) render(d); } catch (e) {}
+    };
+    r.send();
+  }
+  window.onresize = fit;
+  poll(); setInterval(poll, 2000); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

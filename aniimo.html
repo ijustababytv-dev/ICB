@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Aniimo Dex</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #wrap { position: absolute; left: 0; top: 0; transform-origin: 0 0; padding: 10px; width: 540px; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; }
+  .box { border-radius: 20px; border: 3px solid #7dd3fc; padding: 14px 16px; box-shadow: 0 8px 26px rgba(0,0,0,.45); margin-bottom: 10px; transition: opacity .4s; }
+  .hidden { display: none; }
+  #head { overflow: hidden; }
+  #title { float: left; font-weight: 900; font-size: 26px; text-shadow: 0 2px 0 rgba(0,0,0,.5); }
+  #pct { float: right; font-weight: 900; font-size: 26px; padding: 0 14px; border-radius: 999px; color: #0b1220; }
+  .bar { height: 14px; background: rgba(0,0,0,.45); border-radius: 99px; overflow: hidden; margin: 8px 0 6px; }
+  .bar span { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1s; }
+  #sub { font-size: 15px; font-weight: 800; opacity: .9; }
+  #els { margin: 8px -3px 0; }
+  .el { display: inline-block; width: 31.3%; margin: 3px 1%; font-size: 13px; font-weight: 800; vertical-align: top; }
+  .el .b { height: 6px; background: rgba(0,0,0,.45); border-radius: 9px; overflow: hidden; margin-top: 2px; }
+  .el .b i { display: block; height: 100%; }
+  #recent { margin-top: 8px; font-size: 13px; font-weight: 700; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #pop { text-align: center; }
+  .pimg { width: 110px; height: 110px; object-fit: contain; display: block; margin: 0 auto 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+  .limg { float: left; width: 84px; height: 84px; object-fit: contain; margin: 0 12px 4px 0; filter: drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+  .look-clear { clear: both; }
+  #pop .t1 { font-size: 15px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+  #pop .t2 { font-size: 30px; font-weight: 900; line-height: 1.1; margin: 2px 0; text-shadow: 0 2px 0 rgba(0,0,0,.5); }
+  #pop .t3 { font-size: 18px; font-weight: 800; }
+  #pop.show { animation: popin .6s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes popin { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  #look .lh { font-size: 14px; font-weight: 800; opacity: .85; }
+  #look .ln { font-size: 26px; font-weight: 900; margin: 2px 0 6px; }
+  .chip { display: inline-block; margin: 3px; padding: 2px 10px; border-radius: 10px; font-size: 14px; font-weight: 800; background: rgba(255,255,255,.12); }
+  .chip.have { opacity: .5; text-decoration: line-through; }
+  .chip.got { opacity: .8; padding-left: 4px; }
+  .chip.got img { width: 24px; height: 24px; object-fit: contain; vertical-align: middle; margin-right: 5px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="panel" class="box hidden">
+    <div id="head"><div id="title"></div><div id="pct"></div></div>
+    <div class="bar"><span id="bar"></span></div>
+    <div id="sub"></div>
+    <div id="els"></div>
+    <div id="recent"></div>
+  </div>
+  <div id="pop" class="box hidden"></div>
+  <div id="look" class="box hidden"></div>
+</div>
+<script>
+// ICB Aniimo Dex overlay (Baby, 2026-10-14). Meld layer: http://127.0.0.1:8790/aniimo.html
+// Parts can be split into separate Meld layers: ?part=panel  ?part=popup  ?part=lookup  (default: all)
+// Plain ES5 (Meld rule). Polls /api/aniimo every second.
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var part = (/[?&]part=(\w+)/.exec(location.search) || [])[1] || 'all';
+  var EL = { Fire: '#ff7a45', Water: '#4aa8ff', Grass: '#5fd068', Electric: '#ffd84a', Ice: '#8fe3ff', Rock: '#c49a6c', Wind: '#a8f0d0', Dark: '#a77bff', Holy: '#fff2a8' };
+  var lastPop = 0, lastLook = 0;
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+  function hexA(hex, a){ var n = parseInt(String(hex).slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; }
+  function elColor(e){ return EL[String(e || '').split('/')[0].replace(/\s/g, '')] || '#7dd3fc'; }
+  function fit(){
+    var W = window.innerWidth, H = window.innerHeight, w = $('wrap');
+    if (!W || !H) return;                      // Meld can report 0x0 while loading
+    var s = Math.min(1, W / w.offsetWidth, H / Math.max(1, w.offsetHeight));
+    w.style.transform = 'scale(' + s + ')'; w.style.webkitTransform = 'scale(' + s + ')';
+  }
+  function style(el, d, border){
+    el.style.borderColor = border || d.accent;
+    el.style.background = hexA(d.panelColor || '#101522', (d.panelOpacity === undefined ? 88 : d.panelOpacity) / 100);
+  }
+  function render(d){
+    var st = d.stats, ac = d.accent || '#7dd3fc';
+    // ---- progress panel ----
+    var showPanel = d.visible && (part === 'all' || part === 'panel');
+    $('panel').className = 'box' + (showPanel ? '' : ' hidden');
+    if (showPanel) {
+      style($('panel'), d);
+      $('title').textContent = d.title || '';
+      $('pct').textContent = st.pct + '%'; $('pct').style.background = ac;
+      $('bar').style.width = st.pct + '%'; $('bar').style.background = 'linear-gradient(90deg,' + ac + ',#86efac)';
+      $('sub').textContent = st.done + ' / ' + st.total + ' forms · ' + st.basic + ' / ' + st.species + ' caught · ' + st.full + ' complete';
+      var h = '';
+      if (d.showElements) for (var e in st.elements) if (EL[e]) {
+        var o = st.elements[e], p = o.total ? Math.round(o.done / o.total * 100) : 0;
+        h += '<div class="el"><span style="color:' + EL[e] + '">' + esc(e) + '</span> ' + p + '%<div class="b"><i style="width:' + p + '%;background:' + EL[e] + '"></i></div></div>';
+      }
+      $('els').innerHTML = h; $('els').style.display = h ? '' : 'none';
+      $('recent').innerHTML = d.recent.length ? 'Latest: ' + d.recent.slice(0, 3).map(function(r){ return '<b>' + esc(r.name) + '</b> ' + esc(r.variant); }).join(' · ') : '';
+    }
+    // ---- new catch pop-up ----
+    var p2 = d.popup, showPop = d.visible && p2 && (part === 'all' || part === 'popup');
+    if (showPop) {
+      var col = p2.complete ? '#ffd166' : elColor(p2.element);
+      style($('pop'), d, col);
+      $('pop').innerHTML = ((p2.formImg || p2.img) ? '<img class="pimg" src="' + esc(p2.formImg || p2.img) + '" alt="">' : '') + '<div class="t1" style="color:' + col + '">' + (p2.complete ? '🏆 Complete!' : '✨ New catch!') + '</div><div class="t2">' + esc(p2.name) + '</div>' +
+        '<div class="t3">' + esc(p2.variant) + ' · ' + p2.have + '/' + p2.of + '</div>';
+      $('pop').className = 'box' + (p2.at !== lastPop ? ' show' : '');
+      lastPop = p2.at;
+    } else $('pop').className = 'box hidden';
+    // ---- chat look-up ----
+    var L = d.lookup, showLook = d.visible && L && (part === 'all' || part === 'lookup');
+    if (showLook) {
+      var lh = L.by ? esc(L.by) + ' asked' : '';
+      if (L.kind === 'need') {
+        style($('look'), d, elColor(L.element));
+        $('look').innerHTML = (L.img ? '<img class="limg" src="' + esc(L.img) + '" alt="">' : '') + '<div class="lh">' + lh + ' · No. ' + esc(L.number) + ' · ' + esc(L.element) + '</div><div class="ln">' + esc(L.name) + ' — ' + (L.need.length ? 'needs ' + L.need.length : 'all done! 🏆') + '</div>' +
+          L.need.map(function(v){ return '<span class="chip" style="background:' + hexA(elColor(L.element), .3) + '">' + esc(v) + '</span>'; }).join('') +
+          L.have.map(function(v){ var fi = (L.formImgs || {})[v]; return fi ? '<span class="chip got"><img src="' + esc(fi) + '" alt="">' + esc(v) + '</span>' : '<span class="chip have">' + esc(v) + '</span>'; }).join('') + '<div class="look-clear"></div>';
+      } else if (L.kind === 'dex') {
+        style($('look'), d);
+        $('look').innerHTML = '<div class="lh">' + lh + '</div><div class="ln">' + esc(d.title) + ': ' + st.pct + '%</div><div style="font-size:18px;font-weight:800">' + st.done + ' / ' + st.total + ' forms · ' + st.basic + ' / ' + st.species + ' Aniimo caught · ' + st.full + ' complete</div>';
+      } else {
+        style($('look'), d, '#ff6b81');
+        $('look').innerHTML = '<div class="lh">' + lh + '</div><div class="ln" style="font-size:20px">No Aniimo called "' + esc(L.q) + '"</div>';
+      }
+      $('look').className = 'box' + (L.at !== lastLook ? ' show' : '');
+      lastLook = L.at;
+    } else $('look').className = 'box hidden';
+    fit();
+  }
+  function poll(){
+    var r = new XMLHttpRequest();
+    r.open('GET', '/api/aniimo?_=' + new Date().getTime(), true);
+    r.onreadystatechange = function(){
+      if (r.readyState !== 4 || r.status !== 200) return;
+      try { var d = JSON.parse(r.responseText); if (d && d.ok) render(d); } catch (e) {}
+    };
+    r.send();
+  }
+  window.onresize = fit;
+  poll(); setInterval(poll, 1000);
+})();
+</script>
+</body>
+</html>

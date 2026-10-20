@@ -1,0 +1,645 @@
+{
+  "season": "Chapter 7 Season 4",
+  "sprites": [
+    {
+      "id": "jonesy",
+      "name": "Jonesy",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat",
+        "Quack"
+      ],
+      "image": ""
+    },
+    {
+      "id": "bush",
+      "name": "Bush",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat",
+        "Quack"
+      ],
+      "image": ""
+    },
+    {
+      "id": "adventure",
+      "name": "Adventure",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat",
+        "Quack"
+      ],
+      "image": ""
+    },
+    {
+      "id": "8-bit",
+      "name": "8-Bit",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "storm-scout",
+      "name": "Storm Scout",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "mega-man",
+      "name": "Mega Man",
+      "rarity": "Rare",
+      "variants": [
+        "Base"
+      ],
+      "image": ""
+    },
+    {
+      "id": "onigiri",
+      "name": "Onigiri",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "sonic",
+      "name": "Sonic",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "tails",
+      "name": "Tails",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "overshield",
+      "name": "Overshield",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "pond",
+      "name": "Pond",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "morgana",
+      "name": "Morgana",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "dumpster-dive",
+      "name": "Dumpster Dive",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "birthday",
+      "name": "Birthday",
+      "rarity": "Rare",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "rarity": "Epic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "jackrabbit",
+      "name": "Jackrabbit",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "killswitch",
+      "name": "Killswitch",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "x-ray",
+      "name": "X-Ray",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "blinky",
+      "name": "Blinky",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "crash-bandicoot",
+      "name": "Crash Bandicoot",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "vampire",
+      "name": "Vampire",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "the-deer",
+      "name": "The Deer",
+      "rarity": "Legendary",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "crown",
+      "name": "Crown",
+      "rarity": "Mythic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    },
+    {
+      "id": "klombo",
+      "name": "Klombo",
+      "rarity": "Mythic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat",
+        "Quack"
+      ],
+      "image": ""
+    },
+    {
+      "id": "spooky-dash",
+      "name": "Spooky Dash",
+      "rarity": "Mythic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat",
+        "Quack"
+      ],
+      "image": ""
+    },
+    {
+      "id": "one-wish-willow",
+      "name": "One Wish Willow",
+      "rarity": "Mythic",
+      "variants": [
+        "Base",
+        "Gold",
+        "Cheat Master",
+        "Loot Hacker",
+        "Bounty Hunter",
+        "Trick or Treat"
+      ],
+      "image": ""
+    }
+  ],
+  "caught": {
+    "jonesy|Base": 1792303418826,
+    "jonesy|Gold": 1792303418826,
+    "jonesy|Cheat Master": 1792303418826,
+    "adventure|Base": 1792303418826,
+    "adventure|Gold": 1792303418833,
+    "adventure|Cheat Master": 1792303418833,
+    "bush|Base": 1792303418833,
+    "bush|Loot Hacker": 1792303418833,
+    "bush|Bounty Hunter": 1792303418833,
+    "sonic|Base": 1792303418833,
+    "sonic|Gold": 1792303418833,
+    "sonic|Cheat Master": 1792303418833,
+    "tails|Base": 1792303418833,
+    "tails|Cheat Master": 1792303418833,
+    "tails|Loot Hacker": 1792303418833,
+    "shadow|Base": 1792303418833,
+    "8-bit|Base": 1792303418833,
+    "8-bit|Gold": 1792303418833,
+    "8-bit|Cheat Master": 1792303418833,
+    "jackrabbit|Base": 1792303418833,
+    "crown|Base": 1792303418833,
+    "mega-man|Base": 1792303418833,
+    "overshield|Base": 1792303418833,
+    "overshield|Gold": 1792303418833,
+    "x-ray|Base": 1792303418833,
+    "onigiri|Base": 1792303418833,
+    "onigiri|Gold": 1792303418833,
+    "storm-scout|Base": 1792303418833,
+    "storm-scout|Cheat Master": 1792303418833,
+    "blinky|Base": 1792303418833,
+    "birthday|Base": 1792303418833,
+    "birthday|Bounty Hunter": 1792303418833,
+    "crash-bandicoot|Base": 1792303418833,
+    "pond|Base": 1792303418833,
+    "morgana|Base": 1792303418833,
+    "morgana|Loot Hacker": 1792303418833,
+    "vampire|Loot Hacker": 1792303418833,
+    "the-deer|Base": 1792303418833,
+    "the-deer|Trick or Treat": 1792303418833,
+    "dumpster-dive|Base": 1792303418833,
+    "dumpster-dive|Gold": 1792303418833,
+    "dumpster-dive|Cheat Master": 1792303418833,
+    "honey|Base": 1792303418833,
+    "shadow|Bounty Hunter": 1792303453615,
+    "spooky-dash|Trick or Treat": 1792352686863,
+    "onigiri|Loot Hacker": 1792365021741,
+    "overshield|Trick or Treat": 1792365069265,
+    "spooky-dash|Base": 1792366265662,
+    "sonic|Loot Hacker": 1792367603118,
+    "dumpster-dive|Loot Hacker": 1792367616487,
+    "one-wish-willow|Base": 1792368841051,
+    "birthday|Cheat Master": 1792369007924,
+    "klombo|Base": 1792369536434,
+    "onigiri|Trick or Treat": 1792369602009,
+    "vampire|Gold": 1792369684453,
+    "spooky-dash|Cheat Master": 1792369702122,
+    "one-wish-willow|Trick or Treat": 1792370883149,
+    "x-ray|Trick or Treat": 1792371682056,
+    "x-ray|Gold": 1792374081315,
+    "jackrabbit|Bounty Hunter": 1792375429868,
+    "bush|Cheat Master": 1792375557123,
+    "shadow|Loot Hacker": 1792376207524,
+    "honey|Bounty Hunter": 1792376358659,
+    "killswitch|Loot Hacker": 1792376619770,
+    "tails|Gold": 1792462711750,
+    "onigiri|Cheat Master": 1792463067533,
+    "killswitch|Bounty Hunter": 1792464800526
+  },
+  "recent": [
+    {
+      "id": "killswitch",
+      "name": "Killswitch",
+      "variant": "Bounty Hunter",
+      "at": 1792464800526
+    },
+    {
+      "id": "onigiri",
+      "name": "Onigiri",
+      "variant": "Cheat Master",
+      "at": 1792463067533
+    },
+    {
+      "id": "tails",
+      "name": "Tails",
+      "variant": "Gold",
+      "at": 1792462711750
+    },
+    {
+      "id": "killswitch",
+      "name": "Killswitch",
+      "variant": "Loot Hacker",
+      "at": 1792376619770
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "variant": "Bounty Hunter",
+      "at": 1792376358659
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "variant": "Loot Hacker",
+      "at": 1792376207524
+    },
+    {
+      "id": "bush",
+      "name": "Bush",
+      "variant": "Cheat Master",
+      "at": 1792375557123
+    },
+    {
+      "id": "jackrabbit",
+      "name": "Jackrabbit",
+      "variant": "Bounty Hunter",
+      "at": 1792375429868
+    },
+    {
+      "id": "x-ray",
+      "name": "X-Ray",
+      "variant": "Gold",
+      "at": 1792374081315
+    },
+    {
+      "id": "x-ray",
+      "name": "X-Ray",
+      "variant": "Trick or Treat",
+      "at": 1792371682056
+    },
+    {
+      "id": "one-wish-willow",
+      "name": "One Wish Willow",
+      "variant": "Trick or Treat",
+      "at": 1792370883149
+    },
+    {
+      "id": "spooky-dash",
+      "name": "Spooky Dash",
+      "variant": "Cheat Master",
+      "at": 1792369702122
+    },
+    {
+      "id": "vampire",
+      "name": "Vampire",
+      "variant": "Gold",
+      "at": 1792369684453
+    },
+    {
+      "id": "onigiri",
+      "name": "Onigiri",
+      "variant": "Trick or Treat",
+      "at": 1792369602009
+    },
+    {
+      "id": "klombo",
+      "name": "Klombo",
+      "variant": "Base",
+      "at": 1792369536434
+    },
+    {
+      "id": "birthday",
+      "name": "Birthday",
+      "variant": "Cheat Master",
+      "at": 1792369007924
+    },
+    {
+      "id": "one-wish-willow",
+      "name": "One Wish Willow",
+      "variant": "Base",
+      "at": 1792368841051
+    },
+    {
+      "id": "dumpster-dive",
+      "name": "Dumpster Dive",
+      "variant": "Loot Hacker",
+      "at": 1792367616487
+    },
+    {
+      "id": "sonic",
+      "name": "Sonic",
+      "variant": "Loot Hacker",
+      "at": 1792367603118
+    },
+    {
+      "id": "spooky-dash",
+      "name": "Spooky Dash",
+      "variant": "Base",
+      "at": 1792366265662
+    },
+    {
+      "id": "overshield",
+      "name": "Overshield",
+      "variant": "Trick or Treat",
+      "at": 1792365069265
+    },
+    {
+      "id": "onigiri",
+      "name": "Onigiri",
+      "variant": "Loot Hacker",
+      "at": 1792365021741
+    },
+    {
+      "id": "spooky-dash",
+      "name": "Spooky Dash",
+      "variant": "Trick or Treat",
+      "at": 1792352686863
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "variant": "Bounty Hunter",
+      "at": 1792303453616
+    }
+  ],
+  "popupSec": 8,
+  "jar": {
+    "listen": true,
+    "visible": true,
+    "allowed": "IJustABabyTv",
+    "needPrefix": false,
+    "dashPlays": true,
+    "removeComplete": true,
+    "jarHolds": "stickers",
+    "leaveCaught": true,
+    "mode": "floor",
+    "floorL": 18,
+    "floorR": 100,
+    "floorH": 13.5,
+    "floorB": 0,
+    "toySize": 160,
+    "bookStyle": "propped",
+    "bookTheme": "spooky",
+    "pbX": 1,
+    "pbW": 33,
+    "pbB": 1.5,
+    "pbTilt": -3,
+    "pbLean": 10,
+    "pbAuto": 0,
+    "baseBook": 165,
+    "baseToy": 125,
+    "baseCelebrate": true,
+    "bookOpen": false,
+    "catchOpens": true,
+    "avoidBook": false,
+    "mixSeed": 4,
+    "jarX": 84.5,
+    "jarY": 56,
+    "jarW": 15,
+    "bookX": 22,
+    "bookY": 50,
+    "bookW": 44,
+    "bookSec": 23,
+    "title": "Sprite Sticker Book",
+    "jarImage": "",
+    "inL": 10,
+    "inT": 22,
+    "inW": 80,
+    "inH": 64,
+    "spriteSize": 115,
+    "epoch": 2
+  }
+}

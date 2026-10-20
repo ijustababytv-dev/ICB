@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>ICB Party Sign-ups</title>
+<title>ICB Cake Sign-Ups</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
@@ -142,7 +142,7 @@
     card.style.border = art.border === false ? 'none' : ''; card.style.boxShadow = art.border === false ? 'none' : '';
     var rc = Math.max(0, Math.min(100, art.roleCards === undefined ? 40 : art.roleCards)) / 100;
     if (art.title) { $('title').className = 'title img'; $('title').innerHTML = '<img src="' + esc(art.title) + '" alt="' + esc(ev.title || '') + '" onload="this.parentNode && window.dispatchEvent(new Event(\'resize\'))">'; }
-    else { $('title').className = 'title'; $('title').textContent = ev.title || 'Party Sign-ups'; }
+    else { $('title').className = 'title'; $('title').textContent = ev.title || 'Cake Sign-Ups'; }
     $('when').textContent = ev.when || ''; $('when').style.display = ev.when ? '' : 'none';
     $('subtitle').textContent = ev.subtitle || ''; $('subtitle').style.display = ev.subtitle ? '' : 'none';
     var st = $('status');

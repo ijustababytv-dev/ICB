@@ -1,0 +1,357 @@
+{
+ "_comment": "Fortnite Chapter 7 Season 4 sprites (seeded 2026-10-18 from community lists: spritecatch.com, gamingroute.com). 27 sprites / 162 variants. Only read the first time - after that the list lives in data/sprites.json and Baby edits it on the dashboard.",
+ "season": "Chapter 7 Season 4",
+ "sprites": [
+  {
+   "id": "jonesy",
+   "name": "Jonesy",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat",
+    "Quack"
+   ]
+  },
+  {
+   "id": "bush",
+   "name": "Bush",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat",
+    "Quack"
+   ]
+  },
+  {
+   "id": "adventure",
+   "name": "Adventure",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat",
+    "Quack"
+   ]
+  },
+  {
+   "id": "8-bit",
+   "name": "8-Bit",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "storm-scout",
+   "name": "Storm Scout",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "mega-man",
+   "name": "Mega Man",
+   "rarity": "Rare",
+   "variants": [
+    "Base"
+   ]
+  },
+  {
+   "id": "onigiri",
+   "name": "Onigiri",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "sonic",
+   "name": "Sonic",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "tails",
+   "name": "Tails",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "shadow",
+   "name": "Shadow",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "overshield",
+   "name": "Overshield",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "pond",
+   "name": "Pond",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "morgana",
+   "name": "Morgana",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "dumpster-dive",
+   "name": "Dumpster Dive",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "birthday",
+   "name": "Birthday",
+   "rarity": "Rare",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "honey",
+   "name": "Honey",
+   "rarity": "Epic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "jackrabbit",
+   "name": "Jackrabbit",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "killswitch",
+   "name": "Killswitch",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "x-ray",
+   "name": "X-Ray",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "blinky",
+   "name": "Blinky",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "crash-bandicoot",
+   "name": "Crash Bandicoot",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "vampire",
+   "name": "Vampire",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "the-deer",
+   "name": "The Deer",
+   "rarity": "Legendary",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "crown",
+   "name": "Crown",
+   "rarity": "Mythic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  },
+  {
+   "id": "klombo",
+   "name": "Klombo",
+   "rarity": "Mythic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat",
+    "Quack"
+   ]
+  },
+  {
+   "id": "spooky-dash",
+   "name": "Spooky Dash",
+   "rarity": "Mythic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat",
+    "Quack"
+   ]
+  },
+  {
+   "id": "one-wish-willow",
+   "name": "One Wish Willow",
+   "rarity": "Mythic",
+   "variants": [
+    "Base",
+    "Gold",
+    "Cheat Master",
+    "Loot Hacker",
+    "Bounty Hunter",
+    "Trick or Treat"
+   ]
+  }
+ ]
+}

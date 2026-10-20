@@ -7,51 +7,52 @@
     "gold-ore": 0,
     "palium-ore": 0,
     "platinum-ore": 0,
-    "jadium": 0,
+    "jadium": 2,
     "flint": 0,
     "clay": 0,
     "coral": 0,
     "emerald-moss": 0,
     "dragons-beard-peat": 0,
     "apples": 0,
-    "meat": 0,
-    "sashimi": 100,
+    "meat": 57,
+    "sashimi": 91,
     "ramen-plush": 0,
     "golden-glory-bee": 0,
     "fish-stew": 93,
-    "bean-burger": 0,
+    "bean-burger": 50,
     "celebration-cake": 50,
     "giant-goldfish": 0,
     "eldershark": 0,
     "inyrevn-mermaid": 0,
     "veggie-chili": 0,
     "highland-shark": 0,
-    "tattered-cloth": 5,
-    "shmole-spores": 15
+    "tattered-cloth": 7,
+    "shmole-spores": 15,
+    "poke-bowl": 50
   },
   "secondaryCounts": {
     "ramen-plush": 0
   },
   "slotCounts": {
     "queen-ushindi-collection": {
-      "ash-wood": 36,
-      "stone": 271,
-      "whitestone": 36,
+      "ash-wood": 46,
+      "stone": 287,
+      "whitestone": 37,
       "silk-thread": 155,
-      "jadium-ore": 181
+      "jadium-ore": 183
     },
     "long-tracker": {
-      "ash-wood": 36,
-      "amber-echo": 12631,
-      "jadium-ore": 181,
+      "ash-wood": 46,
+      "amber-echo": 13231,
+      "jadium-ore": 183,
       "gold-ore": 31,
-      "iron-ore": 166,
+      "iron-ore": 178,
       "bugs": 1315
     },
     "ore-vs-kitsuu": {
-      "jadium-ore": 181,
+      "jadium-ore": 183,
       "gold-ore": 31,
-      "iron-ore": 166,
+      "iron-ore": 178,
       "copper-ore": 0,
       "silver-ore": 0,
       "palium-ore": 32,
@@ -116,6 +117,7 @@
     "long-tracker": true,
     "ore-vs-kitsuu": true,
     "bean-burger": true,
+    "poke-bowl": true,
     "celebration-cake": true,
     "giant-goldfish": true,
     "eldershark": true,
@@ -130,5 +132,5 @@
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
   "lastResetAt": "2026-10-11T18:51:41.644Z",
-  "updatedAt": "2026-10-14T00:47:05.260Z"
+  "updatedAt": "2026-10-20T19:17:09.297Z"
 }

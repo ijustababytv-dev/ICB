@@ -8,7 +8,7 @@ const path = require('path');
 const http = require('http');
 
 const ICB = process.env.ICB_URL || 'http://127.0.0.1:8790';
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 if (process.env.ICB_FAKE_CAM) { app.commandLine.appendSwitch('use-fake-device-for-media-stream'); app.commandLine.appendSwitch('use-fake-ui-for-media-stream'); }
 const wins = new Map();          // widget id -> { win, url, lastLocal, reloadAt, state }
 let state = { move: false, hideAll: false, widgets: [] };
@@ -99,10 +99,11 @@ function apply() {
     const op = (w.opacity || 100) / 100; if (Math.abs(win.getOpacity() - op) > 0.001) win.setOpacity(op);
     applyZoom(rec, w, false);
     const edit = editInfo(w);
-    if (rec.edit !== edit.on || rec.name !== edit.name) {
-      rec.edit = edit.on; rec.name = edit.name;
-      win.setIgnoreMouseEvents(!edit.on, { forward: true });
-      win.setFocusable(edit.on);
+    const click = !!(edit.on || w.clickable);   // "Clickable" widgets (v1.3.0) take clicks/typing even when locked
+    if (rec.edit !== edit.on || rec.name !== edit.name || rec.click !== click) {
+      rec.edit = edit.on; rec.name = edit.name; rec.click = click;
+      win.setIgnoreMouseEvents(!click, { forward: true });
+      win.setFocusable(click);
       win.webContents.send('edit', edit);
     }
     if (!win.isVisible()) win.showInactive();

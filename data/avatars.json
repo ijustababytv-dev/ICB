@@ -1,0 +1,33 @@
+{
+  "visible": true,
+  "maxAvatars": 29,
+  "size": 100,
+  "speed": 100,
+  "bubbles": "commands",
+  "bubbleSec": 7,
+  "showNames": true,
+  "textSize": 100,
+  "bottom": 2,
+  "leftEdge": 5,
+  "rightEdge": 95,
+  "idleMin": 0,
+  "ignore": "Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Sery_Bot, MixItUpBot",
+  "sayCmds": "say, avatar, ghost",
+  "pickCmd": true,
+  "colors": "#38bdf8, #c084fc, #34d399, #fbbf24, #f43f5e, #22d3ee",
+  "onlyCmdShow": false,
+  "subOn": true,
+  "subMsg": "Subscribed! 🎉",
+  "followOn": true,
+  "followMsg": "Followed! ⭐",
+  "raidOn": true,
+  "raidMsg": "Raided with {n}! 🚀",
+  "bitsOn": true,
+  "bitsMsg": "Cheered {n} bits! 💎",
+  "bounceAllOnSub": true,
+  "disabled": [],
+  "assign": {
+    "ijustababytv": "honey"
+  },
+  "epoch": 1
+}

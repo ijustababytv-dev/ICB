@@ -75,7 +75,7 @@
       "name": "sammiileigh",
       "team": "b",
       "points": {
-        "cloth": 1
+        "cloth": 2
       },
       "joined": 1791253776876
     },
@@ -110,6 +110,42 @@
         "cloth": 6
       },
       "joined": 1791253822200
+    },
+    "itsmisscupcake": {
+      "name": "ItsMissCupcake",
+      "team": "a",
+      "points": {},
+      "joined": 1792444831846
+    },
+    "haley_please_hush": {
+      "name": "haley_please_hush",
+      "team": "b",
+      "points": {},
+      "joined": 1792445147917
+    },
+    "wonderlilyes": {
+      "name": "wonderlilyes",
+      "team": "b",
+      "points": {},
+      "joined": 1792446440480
+    },
+    "geckotryhard": {
+      "name": "geckotryhard",
+      "team": "b",
+      "points": {},
+      "joined": 1792450242317
+    },
+    "jax_juniper": {
+      "name": "jax_juniper",
+      "team": "a",
+      "points": {},
+      "joined": 1792450562080
+    },
+    "missjocey": {
+      "name": "MissJocey",
+      "team": "a",
+      "points": {},
+      "joined": 1792450880023
     }
   },
   "log": [
@@ -504,7 +540,61 @@
       "how": "chat",
       "id": 36,
       "at": 1791256695254
+    },
+    {
+      "kind": "join",
+      "name": "ItsMissCupcake",
+      "team": "a",
+      "id": 37,
+      "at": 1792444831846
+    },
+    {
+      "kind": "join",
+      "name": "haley_please_hush",
+      "team": "b",
+      "id": 38,
+      "at": 1792445147917
+    },
+    {
+      "kind": "join",
+      "name": "wonderlilyes",
+      "team": "b",
+      "id": 39,
+      "at": 1792446440480
+    },
+    {
+      "kind": "join",
+      "name": "geckotryhard",
+      "team": "b",
+      "id": 40,
+      "at": 1792450242317
+    },
+    {
+      "kind": "join",
+      "name": "jax_juniper",
+      "team": "a",
+      "id": 41,
+      "at": 1792450562080
+    },
+    {
+      "kind": "join",
+      "name": "MissJocey",
+      "team": "a",
+      "id": 42,
+      "at": 1792450880023
+    },
+    {
+      "kind": "points",
+      "name": "sammiileigh",
+      "key": "sammiileigh",
+      "team": "b",
+      "item": "cloth",
+      "amount": 1,
+      "total": 2,
+      "how": "chat",
+      "id": 43,
+      "at": 1792455851471
     }
   ],
-  "seq": 37
+  "seq": 44
 }

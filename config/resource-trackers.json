@@ -239,7 +239,7 @@
       ],
       "direction": "gained",
       "mode": "countdown",
-      "startAt": 100,
+      "startAt": 91,
       "visible": true,
       "_note": "UPDATED 2026-09-21: starOnly REMOVED. Since the Palia log bridge went live (see icb-palia-log-bridge.md), this card stopped counting anything - diagnosed by reading the raw game log directly: Palia's own LogInventoryComponent lines only ever carry 'Amount=N ItemType=X', no star/quality marker at all, in any line, for any item (checked broadly, not just this token). The bridge can never produce the '(1*)' marker starOnly requires, so the filter always failed and the countdown froze at startAt. Safe to remove because this card's own original note already established every real Sashimi cook is star-quality anyway ('every real Sashimi cook produces exactly 3 star Sashimi in one line') - starOnly was never excluding any real event for this token, so dropping it changes nothing about which events count, only unfreezes it. Redone 2026-09-06 note below is otherwise unchanged/historical.",
       "_note_2026_09_06": "Redone 2026-09-06. Baby reported the countdown \"did not track the Eldershark\" the day before - diagnosed by reading the real log directly (app-20260905.log): the OLD design watched raw 'itemtype_fish_eldershark (1*) lost' lines, but that day's log also had large unrelated Eldershark sell-off/consumption events (x100, x10, x5 batches) that had nothing to do with cooking Sashimi specifically - by the time she actually cooked Sashimi, the pool had long since floored at 0, so it looked broken. Root cause: the tracker was watching the wrong signal (any Eldershark leaving inventory) instead of the actual Sashimi-cooking output. Fixed by switching to the real, directly-verified cooking-output token instead: 'Inventory gained: itemtype_c_sashimi (1*) x3' (verified in app-20260905.log, 19:01 - every real Sashimi cook produces exactly 3 star Sashimi in one line). Now counts down using the same 'count events, not quantity' mechanic as Ramen Plush's 'Ramen Cooked' secondary count (Baby's own words: 'I want it to countdown the way that the Ramen tracker counts up... 1 Sashimi for each 3 I get when I cook a dish... if I cook 1 dish only 1 counts') - server.js's countEvents flag (previously secondary-count-only) was extended to primary countdown cards for this. startAt is 100 per Baby's explicit confirmation ('if we cook 100 then it starts at 100') - 100 cook events = up to 300 actual Sashimi before it hits 0, matching how she thinks about the pool (in cooks, not raw fish or raw dish count). starOnly stays true (only 1-star Sashimi count, same as before). No more token overlap with Fish Stew (which still watches raw itemtype_fish_eldershark) since Sashimi now watches the cooked-output token instead.",
@@ -667,6 +667,26 @@
         "height": 25.65
       },
       "startAt": 50
+    },
+    {
+      "id": "poke-bowl",
+      "name": "Poke Bowl",
+      "image": "poke_bowl.png",
+      "tokens": [
+        "itemtype_c_poke"
+      ],
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 50,
+      "visible": true,
+      "countEvents": true,
+      "valueBox": {
+        "left": 29.3,
+        "top": 58,
+        "width": 50.9,
+        "height": 29.5
+      },
+      "_note": "Built 2026-10-16. Baby: \"create a poke bowl tracker for palia\" -> counts DOWN from a batch (she chose it; started at 50 like Bean Burger/Celebration Cake, change live via set-start). Token 'itemtype_c_poke' verified in her real logs (Palia Assistant app-2026-08..09 logs: 413 lines incl. 'Inventory gained: itemtype_c_poke (1*) x30' storage moves and Primary resync dumps; raw game form DA_ItemType_C_Poke via the bridge). No real single-cook line was seen in the window checked, so countEvents (1 per cook line) like the other dishes; the bridge's own-gain filter skips storage moves. Art: her own assets/resources/poke_bowl.png (2048x768); valueBox measured on the art's inner dark panel and checked with an overlay."
     },
     {
       "id": "celebration-cake",

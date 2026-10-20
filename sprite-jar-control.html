@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sprite Jar — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --bg:#121218; --panel:#1d1d25; --panel2:#262631; --line:#34343f; --text:#f4f2fb; --dim:#9b98ad; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --gold:#ffc93c; }
+  *{ box-sizing:border-box; } html{ background:var(--bg); }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2a1d3d 0%, var(--bg) 60%) fixed; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:22px; }
+  h1{ margin:0; font-size:24px; } h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 16px; }
+  .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; } .spacer{ flex:1; }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:7px 13px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:var(--accent); color:#1b0f2a; font-weight:700; }
+  .btn-danger{ border-color:#6a2b37; color:#ffb3bd; } .btn-sm{ padding:3px 9px; font-size:12px; border-radius:8px; }
+  input[type=text], select, textarea{ font:inherit; background:#121219; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 11px; }
+  textarea{ width:100%; resize:vertical; min-height:54px; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); } .health.offline{ background:#4a1f26; color:#ff5c6c; }
+  .cols{ display:grid; grid-template-columns:repeat(auto-fit, minmax(380px, 1fr)); gap:14px; align-items:start; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px; }
+  .card h2{ margin:0 0 10px; font-size:16px; }
+  .note{ color:var(--dim); font-size:12px; }
+  .row{ display:flex; align-items:center; gap:10px; margin:8px 0; flex-wrap:wrap; }
+  .row label{ min-width:130px; color:var(--dim); } .row label.sw{ min-width:0; }
+  .row input[type=range]{ flex:1; accent-color:var(--accent); min-width:140px; }
+  .row .val{ width:54px; text-align:right; font-weight:700; color:var(--gold); }
+  .row input[type=text]{ flex:1; min-width:160px; }
+  .sw{ position:relative; width:46px; height:26px; flex:none; display:inline-block; }
+  .sw input{ opacity:0; width:0; height:0; }
+  .sw span{ position:absolute; inset:0; background:#3a3a46; border-radius:99px; cursor:pointer; transition:.2s; }
+  .sw span:before{ content:''; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .sw input:checked + span{ background:var(--good); } .sw input:checked + span:before{ transform:translateX(20px); }
+  .prev{ position:relative; width:100%; padding-top:56.25%; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+    background:repeating-conic-gradient(#22222b 0% 25%, #1a1a21 0% 50%) 50% / 28px 28px; }
+  .prev iframe{ position:absolute; left:0; top:0; width:1920px; height:1080px; border:0; transform-origin:0 0; pointer-events:none; }
+  code{ background:#121219; border:1px solid var(--line); border-radius:6px; padding:1px 6px; color:#ffd1f0; }
+  .cmds div{ margin:4px 0; }
+  .url{ display:flex; gap:8px; } .url input{ flex:1; }
+  .jarpic{ width:70px; height:100px; object-fit:contain; background:#121219; border-radius:10px; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>🫙 Sprite <span>Jar</span> & Sticker Book</h1><div class="sub">Type <code>!jonesy gold</code> in chat and Jonesy hops up and floats into its spot in the sticker book. It's ticked on your sprites dashboard too.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/sprites-control.html"><button>🎮 Sprites</button></a>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="cols">
+<div>
+  <div class="card">
+    <h2>Preview</h2>
+    <div class="prev" id="prev"><iframe id="pf" src="/sprite-jar.html"></iframe></div>
+    <div class="row">
+      <button class="btn-accent" onclick="playTest()">▶ Play a test</button>
+      <button onclick="api('/api/sprites/jar',{showBook:true})">📖 Show the book</button>
+      <button onclick="api('/api/sprites/jar',{shuffle:true})">🎲 Mix up the toys</button>
+      <span class="spacer"></span>
+      <label class="sw"><input type="checkbox" data-k="visible"><span></span></label><span>Show on stream</span>
+    </div>
+    <div class="note">Add as a full-screen Browser layer in Meld (1920×1080):</div>
+    <div class="url" style="margin-top:6px"><input type="text" id="url" readonly><button onclick="copyUrl()">Copy</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Catch from here</h2>
+    <div class="row"><input type="text" id="cmd" placeholder="jonesy gold" onkeydown="if(event.key==='Enter')catchIt()"><button class="btn-accent" onclick="catchIt()">Catch it</button></div>
+    <div class="note">Same as typing it in chat. It really marks it caught.</div>
+    <div class="row" style="margin-top:12px"><select id="tS" onchange="fillVars()"></select><select id="tV"></select><button onclick="playTest()">Play animation only</button></div>
+    <div class="note">Plays the show without ticking anything — for practice.</div>
+  </div>
+
+  <div class="card">
+    <h2>Chat</h2>
+    <div class="row"><label>Listen to chat</label><label class="sw"><input type="checkbox" data-k="listen"><span></span></label></div>
+    <div class="row"><label>Who can catch</label></div>
+    <textarea data-k="allowed" placeholder="IJustABabyTv, YourMod1, YourMod2"></textarea>
+    <div class="note">You plus your mods' names, separated by commas. Meld doesn't tell ICB who is a mod, so list them here. Nobody else can trigger it.</div>
+    <div class="row"><label>Only with !catch in front</label><label class="sw"><input type="checkbox" data-k="needPrefix"><span></span></label></div>
+    <div class="note">Turn on if sprite names clash with other commands (like !crown or !honey).</div>
+    <div class="row"><label>Ticking a circle on the sprites dashboard plays it too</label><label class="sw"><input type="checkbox" data-k="dashPlays"><span></span></label></div>
+    <div class="cmds note" style="margin-top:10px">
+      <div><code>!jonesy gold</code> <code>!jonesy</code> (= Base) <code>!one wish willow cheat</code> <code>!crash bandicoot hacker</code></div>
+      <div><code>!catch jonesy gold</code> always works. Small typos are OK (<code>!jonsey</code>).</div>
+      <div><code>!undo</code> peels off the last sticker added from chat · <code>!book</code> opens the book · <code>!page</code> / <code>!page back</code> / <code>!page jonesy</code> turns pages · <code>!mix</code> mixes up the toys</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Where the sprites are</h2>
+    <div class="row"><label>Show them</label><select data-k="mode" id="modeSel"><option value="floor">Scattered on the floor like toys</option><option value="jar">In the glass jar</option></select></div>
+    <div class="row"><label>Show</label><select data-k="jarHolds"><option value="stickers">Every sticker I have art for</option><option value="sprites">One of each sprite</option></select></div>
+    <div class="note">Sprites without sticker art yet show once, with their normal picture.</div>
+    <div class="row"><label>Caught stickers disappear</label><label class="sw"><input type="checkbox" data-k="leaveCaught"><span></span></label></div>
+    <div class="note">On: they go away as you fill the book. Off: everything stays, and caught ones glow gold.</div>
+    <div class="row"><label>Take out finished sprites</label><label class="sw"><input type="checkbox" data-k="removeComplete"><span></span></label></div>
+    <div class="note">For sprites shown once: gone when every sticker is collected.</div>
+
+    <div id="floorBox" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+      <div class="note" style="margin-bottom:4px"><b style="color:var(--text)">Floor</b> — the strip along the bottom of the screen where the toys lie around.</div>
+      <div class="row"><label>Left edge</label><input type="range" min="0" max="90" step="0.5" data-k="floorL"><span class="val" data-v="floorL" data-u="%"></span></div>
+      <div class="row"><label>Right edge</label><input type="range" min="10" max="100" step="0.5" data-k="floorR"><span class="val" data-v="floorR" data-u="%"></span></div>
+      <div class="row"><label>Floor depth</label><input type="range" min="3" max="60" step="0.5" data-k="floorH"><span class="val" data-v="floorH" data-u="%"></span></div>
+      <div class="row"><label>Lift from bottom</label><input type="range" min="0" max="60" step="0.5" data-k="floorB"><span class="val" data-v="floorB" data-u="%"></span></div>
+      <div class="row"><label>Keep toys out from under the book</label><label class="sw"><input type="checkbox" data-k="avoidBook"><span></span></label></div>
+      <div class="note">Off: toys go all the way to the left edge and the book sits on top of them when it's open.</div>
+      <div class="row"><label>Toy size</label><input type="range" min="30" max="300" step="5" data-k="toySize"><span class="val" data-v="toySize" data-u="%"></span></div>
+      <div class="note">Every toy keeps its own spot, and a few are tipped over. Now and then one wiggles.</div>
+    </div>
+
+    <div id="jarBox" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="row"><img class="jarpic" id="jarPic" alt=""><div style="flex:1">
+      <div class="note" id="jarNote">Using your unicorn jar (JAR_BACK + JAR_FRONT).</div>
+      <div class="row"><button onclick="$('jf').click()">Use a different jar picture</button><button class="btn-sm" id="jarReset" onclick="api('/api/sprites/jar',{removeJar:true}).then(load)">Back to unicorn jar</button></div>
+    </div></div>
+    <input type="file" id="jf" accept="image/*" style="display:none">
+    <div class="row"><label>Left</label><input type="range" min="0" max="95" step="0.5" data-k="jarX"><span class="val" data-v="jarX" data-u="%"></span></div>
+    <div class="row"><label>Top</label><input type="range" min="0" max="95" step="0.5" data-k="jarY"><span class="val" data-v="jarY" data-u="%"></span></div>
+    <div class="row"><label>Size</label><input type="range" min="4" max="60" step="0.5" data-k="jarW"><span class="val" data-v="jarW" data-u="%"></span></div>
+    <div class="row"><label>Sprite size</label><input type="range" min="30" max="250" step="5" data-k="spriteSize"><span class="val" data-v="spriteSize" data-u="%"></span></div>
+    <details style="margin-top:8px"><summary class="note" style="cursor:pointer">Inside of the jar (where sprites can go)</summary>
+      <div class="row"><label>Inside left</label><input type="range" min="0" max="90" data-k="inL"><span class="val" data-v="inL" data-u="%"></span></div>
+      <div class="row"><label>Inside top</label><input type="range" min="0" max="90" data-k="inT"><span class="val" data-v="inT" data-u="%"></span></div>
+      <div class="row"><label>Inside width</label><input type="range" min="10" max="100" data-k="inW"><span class="val" data-v="inW" data-u="%"></span></div>
+      <div class="row"><label>Inside height</label><input type="range" min="10" max="100" data-k="inH"><span class="val" data-v="inH" data-u="%"></span></div>
+    </details>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Base sprites</h2>
+    <div class="note" style="margin-bottom:6px">The first sticker of each sprite (Base) gets its own size and its own catch moment.</div>
+    <div class="row"><label>Base in the book</label><input type="range" min="100" max="230" step="5" data-k="baseBook"><span class="val" data-v="baseBook" data-u="%"></span></div>
+    <div class="note">The Base sticker has the left page to itself; the variants are on the right page under My collection. 100% = same size as a variant.</div>
+    <div class="row"><label>Base toys on the floor</label><input type="range" min="60" max="250" step="5" data-k="baseToy"><span class="val" data-v="baseToy" data-u="%"></span></div>
+    <div class="row"><label>"New sprite!" moment</label><label class="sw"><input type="checkbox" data-k="baseCelebrate"><span></span></label></div>
+    <div class="note">Catching a Base shows "✨ New sprite: Jonesy! ✨" with an extra-big sparkle burst.</div>
+  </div>
+
+  <div class="card">
+    <h2>Sticker art</h2>
+    <div class="note">Put each sprite's art in <code>assets/sprites/&lt;Sprite Name&gt;/</code> named like <code>Jonesy.png</code> (Base), <code>Jonesy_Gold.png</code>, <code>Jonesy_Loot_Hacker.png</code>. New files are picked up by themselves — no restart.</div>
+    <div class="big" id="artCount" style="margin-top:10px;font-size:22px;font-weight:800;color:var(--gold)">…</div>
+    <div class="note" id="artMaking"></div>
+    <div id="artList" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sticker book</h2>
+    <div class="row"><button class="btn-accent" id="openBtn" onclick="toggleOpen()" style="min-width:170px">📖 Open the book</button><span class="note" id="openNote"></span></div>
+    <div class="note">Chat (you + your list): <code>!open</code> · <code>!close</code></div>
+    <div class="row"><label>Opens by itself for a catch</label><label class="sw"><input type="checkbox" data-k="catchOpens"><span></span></label></div>
+    <div class="note">On: when it's closed, the book swings open for the catch, then closes again. Off: the toy flies into the closed book.</div>
+    <div class="row" style="margin-top:10px"><label>Turn the page</label>
+      <button onclick="api('/api/sprites/jar',{turn:{dir:-1}})">◀ Back</button>
+      <select id="pageSel" onchange="if(this.value)api('/api/sprites/jar',{turn:{sprite:this.value}});this.value=''"></select>
+      <button onclick="api('/api/sprites/jar',{turn:{dir:1}})">Next ▶</button></div>
+    <div class="note">Chat (you + your list): <code>!page</code> next · <code>!page back</code> · <code>!page jonesy</code></div>
+    <div class="row" style="margin-top:10px"><label>The book</label><select data-k="bookStyle" id="bookStyleSel"><option value="propped">Propped up on the floor, always showing</option><option value="pop">Pops up in the middle on a catch</option></select></div>
+    <div class="row"><label>Look</label><select data-k="bookTheme"><option value="spooky">Spooky night-time storybook</option><option value="cute">Cute pink</option></select></div>
+    <div class="row"><label>Title</label><input type="text" data-k="title"></div>
+    <div id="propBox">
+    <div class="row"><label>Left</label><input type="range" min="0" max="80" step="0.5" data-k="pbX"><span class="val" data-v="pbX" data-u="%"></span></div>
+    <div class="row"><label>Size</label><input type="range" min="10" max="60" step="0.5" data-k="pbW"><span class="val" data-v="pbW" data-u="%"></span></div>
+    <div class="row"><label>Lift from bottom</label><input type="range" min="0" max="60" step="0.5" data-k="pbB"><span class="val" data-v="pbB" data-u="%"></span></div>
+    <div class="row"><label>Tilt</label><input type="range" min="-20" max="20" step="0.5" data-k="pbTilt"><span class="val" data-v="pbTilt" data-u="°"></span></div>
+    <div class="row"><label>Lean back</label><input type="range" min="0" max="40" step="1" data-k="pbLean"><span class="val" data-v="pbLean" data-u="°"></span></div>
+    <div class="row"><label>Flip pages by itself</label><input type="range" min="0" max="120" step="5" data-k="pbAuto"><span class="val" data-v="pbAuto" data-u="s"></span></div>
+    <div class="note">0 = off. Otherwise it turns to the next page every so many seconds when nothing is happening.</div>
+    </div>
+    <div id="popBox">
+    <div class="row"><label>Across</label><input type="range" min="10" max="90" step="0.5" data-k="bookX"><span class="val" data-v="bookX" data-u="%"></span></div>
+    <div class="row"><label>Down</label><input type="range" min="10" max="90" step="0.5" data-k="bookY"><span class="val" data-v="bookY" data-u="%"></span></div>
+    <div class="row"><label>Size</label><input type="range" min="20" max="90" step="0.5" data-k="bookW"><span class="val" data-v="bookW" data-u="%"></span></div>
+    </div>
+    <div class="row"><label>Show a catch for</label><input type="range" min="3" max="60" data-k="bookSec"><span class="val" data-v="bookSec" data-u="s"></span></div>
+    <div class="row"><button class="btn-sm btn-danger" onclick="if(confirm('Stop anything playing and close the book?'))api('/api/sprites/jar',{reset:true})">Stop / close book</button></div>
+  </div>
+</div>
+</div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function api(p, b){ return fetch(p, b === undefined ? {} : { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(b) }).then(function(r){ return r.json(); }); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
+$('url').value = location.origin + '/sprite-jar.html';
+function copyUrl(){ $('url').select(); try { navigator.clipboard.writeText($('url').value); } catch(e){ document.execCommand('copy'); } }
+function scalePrev(){ var w = $('prev').clientWidth; $('pf').style.transform = 'scale(' + (w / 1920) + ')'; }
+window.addEventListener('resize', scalePrev); scalePrev();
+
+var D = null, filled = false, timers = {};
+function save(k, v){ var o = {}; o[k] = v; clearTimeout(timers[k]); timers[k] = setTimeout(function(){ api('/api/sprites/jar', o); }, 200); }
+function showVal(k, v){ var s = document.querySelector('[data-v="' + k + '"]'); if (s) s.textContent = v + (s.getAttribute('data-u') || ''); }
+[].forEach.call(document.querySelectorAll('[data-k]'), function(el){
+  var k = el.getAttribute('data-k');
+  if (el.type === 'checkbox') el.onchange = function(){ save(k, el.checked); };
+  else if (el.type === 'range') el.oninput = function(){ showVal(k, el.value); save(k, Number(el.value)); };
+  else el.oninput = function(){ save(k, el.value); };
+});
+function boxes(){ var f = $('modeSel').value === 'floor'; $('floorBox').style.display = f ? '' : 'none'; $('jarBox').style.display = f ? 'none' : ''; var p = $('bookStyleSel').value === 'propped'; $('propBox').style.display = p ? '' : 'none'; $('popBox').style.display = p ? 'none' : ''; }
+$('bookStyleSel').addEventListener('change', boxes);
+$('modeSel').addEventListener('change', boxes);
+function fill(s){
+  [].forEach.call(document.querySelectorAll('[data-k]'), function(el){
+    var k = el.getAttribute('data-k'); if (s[k] === undefined) return;
+    if (el.type === 'checkbox') el.checked = !!s[k]; else el.value = s[k];
+    if (el.type === 'range') showVal(k, s[k]);
+  });
+}
+function load(){
+  return api('/api/sprites/jar').then(function(d){
+    D = d; $('health').textContent = 'ICB connected'; $('health').className = 'health';
+    if (!filled) {
+      fill(d.settings); filled = true; boxes();
+      $('pageSel').innerHTML = '<option value="">Turn to…</option>' + d.sprites.map(function(s){ return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('');
+      $('tS').innerHTML = d.sprites.map(function(s){ return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join(''); fillVars();
+    }
+    D.open = !!d.settings.bookOpen;
+    $('openBtn').textContent = D.open ? '📕 Close the book' : '📖 Open the book';
+    $('openNote').textContent = d.settings.bookStyle === 'propped' ? (D.open ? 'Open on stream' : 'Closed on the floor') : 'Only for the propped book';
+    $('jarPic').src = d.settings.jarUrl || d.settings.jarBack;
+    var have = 0, tot = 0, chips = [];
+    d.sprites.forEach(function(sp){ var n = Object.keys(sp.art || {}).length; have += n; tot += sp.variants.length; if (n) chips.push('<span class="note" style="background:#121219;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:' + (n === sp.variants.length ? 'var(--good)' : 'var(--text)') + '">' + esc(sp.name) + ' ' + n + '/' + sp.variants.length + '</span>'); });
+    $('artCount').textContent = have + ' of ' + tot + ' stickers have art';
+    $('artList').innerHTML = chips.join('');
+    $('artMaking').textContent = d.needArt && d.needArt.length ? 'Getting ' + d.needArt.length + ' new sticker' + (d.needArt.length === 1 ? '' : 's') + ' ready…' : '';
+    makeStickers(d.needArt || []);
+    $('jarNote').textContent = d.settings.jarUrl ? 'Using your uploaded jar picture.' : 'Using your unicorn jar (JAR_BACK + JAR_FRONT).';
+    $('jarReset').style.display = d.settings.jarUrl ? '' : 'none';
+  }).catch(function(){ $('health').textContent = 'ICB offline — run restart-icb-clean.bat'; $('health').className = 'health offline'; });
+}
+function fillVars(){ var s = D.sprites.filter(function(x){ return x.id === $('tS').value; })[0]; $('tV').innerHTML = (s ? s.variants : []).map(function(v){ return '<option>' + esc(v) + '</option>'; }).join(''); }
+function playTest(){ if (!D || !D.sprites.length) return; api('/api/sprites/jar', { play: { id: $('tS').value || D.sprites[0].id, variant: $('tV').value } }); }
+function catchIt(){ var c = $('cmd').value.trim(); if (!c) return; api('/api/sprites/jar', { catchCmd: c }).then(function(r){ if (r.ok === false) alert(r.error); else $('cmd').value = ''; }); }
+$('jf').onchange = function(e){
+  var f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  var r = new FileReader(); r.onload = function(){ api('/api/sprites/jar/image', { dataUrl: r.result }).then(function(x){ if (x.ok === false) alert(x.error); load(); }); }; r.readAsDataURL(f);
+};
+var making = false;
+function makeStickers(need){
+  if (making || !need.length) return; making = true;
+  var job = need[0], img = new Image(), done = function(){ making = false; setTimeout(load, 200); };
+  img.onload = function(){
+    try {
+      var w = img.naturalWidth, h = img.naturalHeight, c = document.createElement('canvas'); c.width = w; c.height = h;
+      var x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      var px = x.getImageData(0, 0, w, h).data, a = w, b = h, cc = -1, dd = -1;
+      for (var yy = 0; yy < h; yy += 2) for (var xx = 0; xx < w; xx += 2) if (px[(yy * w + xx) * 4 + 3] > 8) { if (xx < a) a = xx; if (xx > cc) cc = xx; if (yy < b) b = yy; if (yy > dd) dd = yy; }
+      if (cc < 0) { a = 0; b = 0; cc = w - 1; dd = h - 1; }
+      a = Math.max(0, a - 2); b = Math.max(0, b - 2); cc = Math.min(w - 1, cc + 2); dd = Math.min(h - 1, dd + 2);
+      var cw = cc - a + 1, ch = dd - b + 1, sc = Math.min(1, 256 / Math.max(cw, ch)), o = document.createElement('canvas');
+      o.width = Math.round(cw * sc); o.height = Math.round(ch * sc);
+      var ox = o.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(c, a, b, cw, ch, 0, 0, o.width, o.height);
+      api('/api/sprites/jar/sticker', { id: job.id, variant: job.variant, dataUrl: o.toDataURL('image/webp', 0.9) }).then(done, done);
+    } catch (e) { done(); }
+  };
+  img.onerror = done; img.src = job.src;
+}
+function toggleOpen(){ api('/api/sprites/jar', { bookOpen: !D.open }).then(load); }
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>

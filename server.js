@@ -1470,7 +1470,15 @@ async function handleApi(req, res, url) {
   if (pathname === '/api/steam' || pathname.startsWith('/api/steam/')) return handleSteamApi(req, res, pathname, method);
   if (pathname === '/api/newsticker' || pathname.startsWith('/api/newsticker/')) return handleNewsApi(req, res, pathname, method);
   if (pathname === '/api/sashimi' || pathname.startsWith('/api/sashimi/')) return handleSashiApi(req, res, pathname, method);
+  if (pathname === '/api/beanburger-signup' || pathname.startsWith('/api/beanburger-signup/')) return handleBbsuApi(req, res, pathname, method);
+  if (pathname === '/api/flowtree-signup' || pathname.startsWith('/api/flowtree-signup/')) return handleFtsuApi(req, res, pathname, method);
   if (pathname === '/api/desktop' || pathname.startsWith('/api/desktop/')) return handleDeskApi(req, res, pathname, method);
+  if (pathname === '/api/aniimo' || pathname.startsWith('/api/aniimo/')) return handleDexApi(req, res, pathname, method);
+  if (pathname === '/api/sprites' || pathname.startsWith('/api/sprites/')) return handleSpritesApi(req, res, pathname, method);
+  if (pathname === '/api/avatars' || pathname.startsWith('/api/avatars/')) return handleAvatarsApi(req, res, pathname, method);
+  if (pathname === '/api/countdowns') return handleCountdownsApi(req, res, pathname, method);
+  if (pathname === '/api/paliaclock') return handlePaliaClockApi(req, res, pathname, method);
+  if (pathname === '/api/hunt' || pathname.startsWith('/api/hunt/')) return handleHuntApi(req, res, pathname, method);
 
   // ---------------- Stream Giveaway ----------------
   if (pathname === '/api/giveaway/state' && method === 'GET') {
@@ -1486,6 +1494,7 @@ async function handleApi(req, res, url) {
     listenerStatus.lastSeen = new Date().toISOString();
     listenerStatus.lastEventAt = listenerStatus.lastSeen;
     listenerStatus.lastEvent = `${type}${username ? ' from ' + username : ''}${type === 'bits' ? ' (' + body.amount + ' bits)' : ''}${type === 'gifts' ? ' (' + body.count + ' gifted)' : ''}${type === 'sub' && body.months > 1 ? ' (' + body.months + ' months)' : ''}`;
+    try { if (type !== 'chat') avEvent(type, username, body); } catch (_error) {}
     const blocked = username && isBlocked(username);
     // Report-only events: no unicorns, just the nightly log.
     if (type === 'follow') {
@@ -1632,8 +1641,18 @@ async function handleApi(req, res, url) {
       try { walkerChat(body.data.sender, walkerParts(body.data), false); } catch (_error) {}
       try { pollChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
       try { teamsChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
-      try { sashiChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
-      try { partyChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      let shDone = false;   // "!show cake" / "!hide flow" ... (handled once, then the sign-ups skip it)
+      try { shDone = signupShowHideChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      if (!shDone) {
+        try { sashiChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+        try { bbsuChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+        try { ftsuChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      }
+      try { dexChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { avChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { sjChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      try { huntChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
+      if (!shDone) try { partyChat(body.data.sender, walkerParts(body.data)); } catch (_error) {}
     }
     return sendJson(res, 200, { ok: true });
   }
@@ -3529,14 +3548,22 @@ const HUB_BUILTIN = [
   { id: 'report', icon: '📄', name: 'Nightly Report', url: '/giveaway-report.html', desc: 'Everything that happened on stream - print or CSV' },
   { id: 'plushie', icon: '🧸', name: 'Plushie Jar', url: '/tradeup-control.html', desc: 'Plushie catalog and the plushie jar pick' },
   { id: 'decor', icon: '🍂', name: 'Decor Overlays', url: '/decor-control.html', desc: 'Falling leaves and other seasonal screen decor' },
-  { id: 'timer', icon: '⏱️', name: 'Stream Timer', url: '/timer-control.html', desc: 'Starting soon / BRB countdowns' },
+  { id: 'timer', icon: '⏳', name: 'Countdowns', url: '/countdown-control.html', desc: 'Starting soon / BRB countdowns - themes, size, your own text and end message' },
   { id: 'worldclock', icon: '🌍', name: 'World Time Bar', url: '/worldclock-control.html', desc: 'Time zone clocks overlay' },
   { id: 'poll', icon: '🗳️', name: 'Badge Vote', url: '/poll-control.html', desc: 'Let chat vote on badges with !vote - images, live results, winner reveal' },
   { id: 'newsticker', icon: '📰', name: 'News Ticker', url: '/newsticker-control.html', desc: 'Scrolling news bar along the bottom of stream - messages, alert, colours, speed' },
   { id: 'steam', icon: '🏅', name: 'Steam Achievements', url: '/steam-control.html', desc: 'Aniimo achievement pop-ups + progress on stream, read from Steam' },
-  { id: 'party', icon: '🎉', name: 'Party Sign-ups', url: '/party-control.html', desc: 'Chat signs up for overprep roles with !tomato PaliaName - events, roles, spots, waitlist' },
+  { id: 'party', icon: '🎂', name: 'Cake Sign-Ups', url: '/party-control.html', desc: 'Chat signs up for overprep roles with !tomato PaliaName - events, roles, spots, waitlist' },
+  { id: 'avatars', icon: '👻', name: 'Chat Avatars', url: '/chat-avatars-control.html', desc: 'Chatters become little sprites wandering the bottom of stream with speech bubbles' },
+  { id: 'paliaclock', icon: '🕰️', name: 'Palia Clock', url: '/palia-clock-control.html', desc: 'In-game Palia time on stream, with alarms at Palia times' },
+  { id: 'hunt', icon: '🎃', name: 'Team Hunt', url: '/hunt-control.html', desc: 'Team contest - chat joins with !team a, finds score with !cloth / !plushie, each worth its own points' },
+  { id: 'spritejar', icon: '🫙', name: 'Sprite Jar', url: '/sprite-jar-control.html', desc: 'Stream overlay - !jonesy gold floats that sprite out of the jar into the sticker book' },
+  { id: 'sprites', icon: '🎮', name: 'Fortnite Sprites', url: '/sprites-control.html', desc: 'Every sprite + variant this season - tap the circles as you catch them' },
+  { id: 'aniimo', icon: '✨', name: 'Aniimo Dex', url: '/aniimo-control.html', desc: 'Catch & variant checklist - progress overlay, new-catch pop-ups, chat !need look-ups, quick checker' },
   { id: 'desktop', icon: '🖥️', name: 'Desktop Widgets', url: '/desktop-control.html', desc: 'Put any widget on your desktop over your game - move, size, show/hide from here' },
-  { id: 'sashimi', icon: '📅', name: 'Event Sign-Up', url: '/sashimi-signin-control.html', desc: 'Sesh-style event sign-ups from chat - time in world time zones, countdown, roles with their own !commands' },
+  { id: 'sashimi', icon: '🥗', name: 'Poke Bowl Sign-up', url: '/sashimi-signin-control.html', desc: 'Sesh-style event sign-ups from chat - time in world time zones, countdown, roles with their own !commands' },
+  { id: 'bbsignup', icon: '🍔', name: 'Bean Burger Sign-Up', url: '/beanburger-signup-control.html', desc: 'Its own sign-up widget (a copy of the Poke Bowl Sign-up) - events, roles with !commands, world times, countdown. Pops up with !burger' },
+  { id: 'ftsignup', icon: '🌳', name: 'Flow Tree Sign-Up', url: '/flowtree-signup-control.html', desc: 'Its own sign-up widget (a copy of the Poke Bowl Sign-up) - events, roles with !commands, world times, countdown. Pops up with !flow' },
   { id: 'eventtime', icon: '🕒', name: 'Event Time Converter', url: '/eventtime-control.html', desc: 'Type when an event starts - shows that time + day in PDT, MDT, CDT, EDT, GMT+1, GMT+2' },
   { id: 'teams', icon: '🏆', name: 'Team Contest', url: '/teams-control.html', desc: 'Grinding-party teams: chat joins with !team a, scores with !cloth +2 - live board' },
   { id: 'walkers', icon: '💬', name: 'Chat Unicorns', url: '/walkers-control.html', desc: 'Chatters\' unicorns hopping along the bottom - who gets one, reminders' },
@@ -4217,7 +4244,7 @@ async function handleEventTimeApi(req, res, pathname, method) {
 // ---------------------------------------------------------------------------
 const PARTY_FILE = path.join(DATA_DIR, 'parties.json');
 function partyCmd(v) { return cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24); }
-const PARTY_RESERVED = new Set(['leave', 'team', 'vote', 'unvote', 'here', 'checkin', 'signin', 'party', 'show']);
+const PARTY_RESERVED = new Set(['leave', 'team', 'vote', 'unvote', 'here', 'checkin', 'signin', 'party', 'show', 'hide']);
 const PARTY_CHECKIN_CMDS = new Set(['here', 'checkin', 'signin']);
 function partyNewEvent(seq) {
   return { id: `e${seq}`, title: 'Overprep Party', when: '', subtitle: '', open: true,
@@ -4317,6 +4344,22 @@ function partySpotInfo() {
     rotateSec: parties.spotRotateSec || 20, holdSec: parties.spotHoldSec || 60, chat: parties.spotChat !== false,
     boards: partyLiveBoards().map(b => ({ slot: b.slot, title: b.ev.title })) };
 }
+// "Hidden until chat asks" (2026-10-15): with parties.onDemand on, boards stay invisible until chat types
+// "!show" / "!party" (all live boards) or "!show 3" / "!party 3" (Board 3), or someone signs up (showOnSignup).
+const partyShowUntil = {};   // slot -> ms ; 'all' -> ms
+let partyChatHidden = false;   // "!hide cake" from chat (2026-10-20)
+function partyReveal(n, sec) {
+  const until = Date.now() + (sec || parties.showSec || 30) * 1000;
+  if (n === 'all') partyShowUntil.all = until; else if (n >= 1 && n <= PARTY_SLOTS) partyShowUntil[n] = until;
+  broadcast('party', partyPublic());
+}
+function partyShown(n) {
+  if (!parties.visible || partyChatHidden) return false;
+  if (!parties.onDemand) return true;
+  const now = Date.now();
+  if (n === 'spot') return now < (partyShowUntil.all || 0) || !!(partySpot.slot && now < partySpot.until);
+  return now < (partyShowUntil.all || 0) || now < (partyShowUntil[n] || 0);
+}
 function partySlotOf(evId) { const i = parties.slots.indexOf(evId); return i >= 0 ? i + 1 : null; }
 // Who is in a role vs waiting: first `spots` sign-ups (by time) are in.
 function partyView(ev) {
@@ -4340,7 +4383,7 @@ function partyView(ev) {
 function partyPublic(slot) {
   const n = Math.max(1, Math.min(PARTY_SLOTS, Number(slot) || 1));
   const id = parties.slots[n - 1], ev = id && parties.events.find(e => e.id === id);
-  return { ok: true, visible: parties.visible, showTwitch: parties.showTwitch, board: n, empty: !ev, event: ev ? partyView(ev) : null, now: Date.now() };
+  return { ok: true, visible: partyShown(n), visibleSetting: parties.visible, chatHidden: partyChatHidden, onDemand: !!parties.onDemand, showTwitch: parties.showTwitch, board: n, empty: !ev, event: ev ? partyView(ev) : null, now: Date.now() };
 }
 function partySave() { writeJson(PARTY_FILE, parties); broadcast('party', partyPublic()); }
 // Meld sends chat text HTML-encoded (an apostrophe arrives as &#39;) - turn it back into plain text.
@@ -4371,9 +4414,10 @@ function partyChat(name, parts) {
   // "!party 3" (or !party3 / !show 3) puts Board 3 on the Spotlight layer for a while.
   const pm = /^(?:party|show)([1-7])?$/.exec(cmd);
   if (pm) {
-    if (parties.spotChat === false) return '';
     const n = Number(pm[1] || (/^\s*([1-7])\b/.exec(m[2]) || [])[1]);
-    if (!n) return '';
+    if (!n) { if (parties.onDemand && boards.length) { partyReveal('all'); return 'Showing the party boards'; } return ''; }
+    if (parties.onDemand && parties.slots[n - 1]) partyReveal(n);
+    if (parties.spotChat === false) return parties.onDemand ? `Showing Board ${n}` : '';
     return partySpotRequest(n, name) ? `Spotlight → Board ${n}` : `Board ${n} isn't live`;
   }
   // "!leave" drops them from every live board; "!leave3" only from Board 3.
@@ -4405,6 +4449,7 @@ function partyChat(name, parts) {
   if (existing && existing.role === role.id) { existing.palia = palia; partySave(); return `${name} updated name to ${palia} (${role.label})`; }
   ev.signups = ev.signups.filter(s => s.key !== key);
   ev.signups.push({ key, twitch: name, palia, role: role.id, at: Date.now(), checkedIn: existing ? existing.checkedIn || null : null });
+  if (parties.onDemand && parties.showOnSignup !== false) { const sl = partySlotOf(ev.id); if (sl) partyReveal(sl); }
   partySave();
   const pos = ev.signups.filter(s => s.role === role.id).length;
   return pos > role.spots ? `${palia} is on the ${role.label} waitlist (#${pos - role.spots})` : `${palia} signed up for ${role.label}`;
@@ -4416,7 +4461,7 @@ async function handlePartyApi(req, res, pathname, method) {
       const bq = String(q.get('board') || q.get('slot') || '');
       if (bq === 'spot' || bq === 'spotlight') {
         const sl = partySpotSlot();
-        return sendJson(res, 200, { ...(sl ? partyPublic(sl) : { ok: true, visible: parties.visible, showTwitch: parties.showTwitch, empty: true, event: null, now: Date.now() }), spot: partySpotInfo() });
+        return sendJson(res, 200, { ...(sl ? partyPublic(sl) : { ok: true, showTwitch: parties.showTwitch, empty: true, event: null, now: Date.now() }), visible: partyShown('spot'), spot: partySpotInfo() });
       }
       let slot = Number(bq) || 1;
       if (q.get('event')) { const sl = partySlotOf(String(q.get('event'))); if (sl) slot = sl; }
@@ -4424,7 +4469,7 @@ async function handlePartyApi(req, res, pathname, method) {
     }
     if (pathname === '/api/party/admin' && method === 'GET') {
       const art = (() => { try { return fs.readdirSync(PARTY_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((x, y) => x.localeCompare(y)); } catch (_e) { return []; } })();
-      return sendJson(res, 200, { ...partyPublic(), art, liveId: parties.slots[0] || null, slots: parties.slots, spot: partySpotInfo(),
+      return sendJson(res, 200, { ...partyPublic(), visible: parties.visible, showSec: parties.showSec || 30, showOnSignup: parties.showOnSignup !== false, art, liveId: parties.slots[0] || null, slots: parties.slots, spot: partySpotInfo(),
         events: parties.events.map(e => ({ id: e.id, title: e.title, when: e.when, count: e.signups.length, slot: partySlotOf(e.id) })),
         full: parties.events.map(e => ({ ...partyView(e), signups: e.signups.slice().sort((a, b) => a.at - b.at) })) });
     }
@@ -4447,6 +4492,11 @@ async function handlePartyApi(req, res, pathname, method) {
       if (b.spotHoldSec !== undefined) parties.spotHoldSec = Math.max(10, Math.min(600, Math.round(Number(b.spotHoldSec)) || 60));
       if (typeof b.spotChat === 'boolean') parties.spotChat = b.spotChat;
       if (b.spotShow !== undefined) partySpotRequest(Number(b.spotShow), 'dashboard');
+      if (typeof b.onDemand === 'boolean') parties.onDemand = b.onDemand;
+      if (typeof b.showOnSignup === 'boolean') parties.showOnSignup = b.showOnSignup;
+      if (b.showSec !== undefined) parties.showSec = Math.max(5, Math.min(600, Math.round(Number(b.showSec)) || 30));
+      if (b.showNow) { partyChatHidden = false; partyReveal(b.showNow === 'all' ? 'all' : Number(b.showNow)); }
+      if (b.hideNow) { for (const k of Object.keys(partyShowUntil)) delete partyShowUntil[k]; partySpot.until = 0; partyChatHidden = true; }
       partySave(); return sendJson(res, 200, { ok: true });
     }
     // Create a new event: { copyFrom? } copies title/roles (not sign-ups).
@@ -4806,8 +4856,8 @@ async function handleNewsApi(req, res, pathname, method) {
 // ---------------------------------------------------------------------------
 const SASHI_FILE = path.join(DATA_DIR, 'sashimi-signin.json');
 const SASHI_BUILTIN_IGNORE = ['here', 'checkin', 'signin', 'leave', 'party', 'show', 'team', 'vote', 'unvote', 'lurk', 'unlurk', 'discord', 'socials',
-  'so', 'shoutout', 'hug', 'commands', 'uptime', 'followage', 'raid', 'giveaway', 'enter', 'join', 'help', 'points', 'unicorns', 'jar', 'sashimi', 'sr', 'song', 'time', 'signup'];
-const SASHI_RESERVED = new Set(['leave', 'here', 'checkin', 'signin', 'party', 'show', 'team', 'vote', 'unvote', 'signup']);
+  'so', 'shoutout', 'hug', 'commands', 'uptime', 'followage', 'raid', 'giveaway', 'enter', 'join', 'help', 'points', 'unicorns', 'jar', 'sashimi', 'sr', 'song', 'time', 'signup', 'need', 'dex', 'event', 'hide', 'burger', 'burgers', 'beanburger', 'flow', 'flowtree', 'flowtrees'];
+const SASHI_RESERVED = new Set(['leave', 'here', 'checkin', 'signin', 'party', 'show', 'team', 'vote', 'unvote', 'signup', 'need', 'dex', 'event', 'hide', 'burger', 'burgers', 'beanburger', 'flow', 'flowtree', 'flowtrees']);
 const sashiGameKey = g => (cleanString(g).toLowerCase().replace(/[^a-z0-9]+/g, '') || 'palia').slice(0, 30);
 // World clocks she can tick on the dashboard (shared by all events).
 const SASHI_ZONE_PRESETS = [
@@ -4852,9 +4902,15 @@ let sashi = sashiLoad();
 const sashiEv = id => sashi.events.find(e => e.id === (id || sashi.live)) || null;
 const sashiRenumber = ev => { ev.guests.forEach((g, i) => { g.n = i + 1; }); };
 const sashiEpoch = ev => (ev && ev.date && ev.time ? etToEpoch(ev.date, ev.time, ev.tz) : null);
+// "Hidden until chat asks" (2026-10-15): with sashi.onDemand on, the overlay stays invisible until chat types
+// "!show" or "!event" (or someone signs up / leaves, if showOnSignup), then shows for showSec seconds.
+let sashiShowUntil = 0;
+let sashiChatHidden = false;   // "!hide <word>" from chat (2026-10-20) - hidden until "!show <word>" or the dashboard's Show it now
+function sashiReveal(sec) { sashiShowUntil = Date.now() + (sec || sashi.showSec || 30) * 1000; broadcast('sashimi', sashiPublic()); }
 function sashiPublic() {
   const ev = sashiEv();
-  return { ok: true, visible: sashi.visible, open: sashi.open, title: sashi.title, font: sashi.font, cols: sashi.cols, max: sashi.max,
+  return { ok: true, visible: sashi.visible && !sashiChatHidden && (!sashi.onDemand || Date.now() < sashiShowUntil), visibleSetting: sashi.visible, chatHidden: sashiChatHidden, onDemand: !!sashi.onDemand,
+    showSec: sashi.showSec || 30, showOnSignup: sashi.showOnSignup !== false, shownLeft: sashi.onDemand ? Math.max(0, Math.ceil((sashiShowUntil - Date.now()) / 1000)) : 0, open: sashi.open, title: sashi.title, font: sashi.font, cols: sashi.cols, max: sashi.max,
     accent: sashi.accent, panelColor: sashi.panelColor, panelOpacity: sashi.panelOpacity, showZones: sashi.showZones, showCountdown: sashi.showCountdown,
     zones: sashi.zones.filter(z => z.on).map(z => ({ label: z.label, tz: z.tz })),
     event: ev ? { id: ev.id, name: ev.name, game: ev.game, desc: ev.desc, date: ev.date, time: ev.time, tz: ev.tz, start: sashiEpoch(ev),
@@ -4863,6 +4919,7 @@ function sashiPublic() {
     total: ev ? ev.guests.length : 0, now: Date.now() };
 }
 function sashiSave() { writeJson(SASHI_FILE, sashi); broadcast('sashimi', sashiPublic()); }
+const sashiPop = () => { if (sashi.onDemand && sashi.showOnSignup !== false) sashiShowUntil = Math.max(sashiShowUntil, Date.now() + (sashi.showSec || 30) * 1000); };
 const sashiCleanName = x => cleanString(x).replace(/^\s*\d+[.)\-:]\s+/, '').replace(/[<>]/g, '').trim().slice(0, 40);
 const sashiCleanCmd = v => cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24);
 function sashiAddNames(ev, names, role) {
@@ -4879,6 +4936,7 @@ function sashiIgnored() {
   const set = new Set(SASHI_BUILTIN_IGNORE);
   for (const w of String(sashi.ignore || '').split(/[\s,]+/)) { const c = w.toLowerCase().replace(/^!+/, ''); if (c) set.add(c); }
   try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) { set.add(r.command); for (let i = 1; i <= 7; i++) set.add(r.command + i); } } catch (_e) {}
+  for (const c of signupRoleCmds()) set.add(c);
   try { [teams.item.command].concat(teams.item.aliases ? teams.item.aliases.split(/,\s*/) : []).forEach(c => { if (c) set.add(String(c).toLowerCase()); }); } catch (_e) {}
   return set;
 }
@@ -4899,6 +4957,8 @@ function sashiChat(sender, parts) {
   const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ');
   const ev = sashiEv(); if (!ev) return '';
   const key = twitch.toLowerCase();
+  // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
+  if (/^!(show|event)$/i.test(text)) { if (sashi.onDemand && sashi.visible) { sashiReveal(); return 'Showing the event sign-up'; } return ''; }
   // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
   // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
   if (/^!leave$/i.test(text)) {
@@ -4925,11 +4985,11 @@ function sashiChat(sender, parts) {
       const moved = mine.role !== role.id;
       mine.name = name;
       if (moved) { mine.role = role.id; mine.at = Date.now(); ev.guests = ev.guests.filter(g => g !== mine).concat([mine]); sashiRenumber(ev); }
-      sashiSave(); return moved ? `${name} switched to ${role.label}` : `${name} updated`;
+      sashiPop(); sashiSave(); return moved ? `${name} switched to ${role.label}` : `${name} updated`;
     }
     if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
     ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: role.id });
-    sashiSave();
+    sashiPop(); sashiSave();
     const pos = ev.guests.filter(g => g.role === role.id).length;
     return role.spots && pos > role.spots ? `${name} is on the ${role.label} waitlist (#${pos - role.spots})` : `${name} signed up for ${role.label}`;
   }
@@ -4943,7 +5003,7 @@ function sashiChat(sender, parts) {
     if (ev.guests.some(g => g.name.toLowerCase() === known.toLowerCase())) return `${known} is already signed up`;
     if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
     ev.guests.push({ n: ev.guests.length + 1, name: known, twitch, at: Date.now(), role: '' });
-    sashiSave(); return `${known} signed up (#${ev.guests.length})`;
+    sashiPop(); sashiSave(); return `${known} signed up (#${ev.guests.length})`;
   }
   const m = /^!([^\s!][^!]{0,31})$/.exec(text);
   if (!m) return '';
@@ -4956,17 +5016,17 @@ function sashiChat(sender, parts) {
   const taken = ev.guests.find(g => g.name.toLowerCase() === low);
   if (taken) return taken.twitch.toLowerCase() === key ? '' : `${name} is already signed up`;
   sashiRemember(ev, twitch, name);
-  if (mine) { mine.name = name; sashiSave(); return `${twitch} changed their name to ${name} (#${mine.n})`; }
+  if (mine) { mine.name = name; sashiPop(); sashiSave(); return `${twitch} changed their name to ${name} (#${mine.n})`; }
   if (sashi.max && ev.guests.length >= sashi.max) return `Event is full (${sashi.max})`;
   ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: '' });
-  sashiSave(); return `${name} signed up (#${ev.guests.length})`;
+  sashiPop(); sashiSave(); return `${name} signed up (#${ev.guests.length})`;
 }
 async function handleSashiApi(req, res, pathname, method) {
   try {
     if (pathname === '/api/sashimi' && method === 'GET') return sendJson(res, 200, sashiPublic());
     if (pathname === '/api/sashimi/admin' && method === 'GET') {
-      const ev = sashiEv(), pc = sashiPartyCmds();
-      return sendJson(res, 200, { ...sashiPublic(), live: sashi.live, ignore: sashi.ignore, builtinIgnore: SASHI_BUILTIN_IGNORE, allZones: sashi.zones,
+      const ev = sashiEv(), pc = new Set([...sashiPartyCmds(), ...signupRoleCmds('sashi')]);
+      return sendJson(res, 200, { ...sashiPublic(), visible: sashi.visible, live: sashi.live, ignore: sashi.ignore, builtinIgnore: SASHI_BUILTIN_IGNORE, allZones: sashi.zones,
         clashes: ev ? ev.roles.filter(r => pc.has(r.cmd)).map(r => r.cmd) : [],
         remembered: ev ? Object.entries(sashi.names[sashiGameKey(ev.game)] || {}).map(([twitch, name]) => ({ twitch, name })) : [],
         games: Array.from(new Set(sashi.events.map(e => e.game).concat(['Palia', 'Aniimo']))),
@@ -4974,7 +5034,10 @@ async function handleSashiApi(req, res, pathname, method) {
     }
     if (pathname === '/api/sashimi' && method === 'POST') {
       const b = await readBody(req);
-      for (const k of ['visible', 'open', 'showZones', 'showCountdown']) if (typeof b[k] === 'boolean') sashi[k] = b[k];
+      for (const k of ['visible', 'open', 'showZones', 'showCountdown', 'onDemand', 'showOnSignup']) if (typeof b[k] === 'boolean') sashi[k] = b[k];
+      if (b.showSec !== undefined) sashi.showSec = Math.max(5, Math.min(600, Math.round(Number(b.showSec)) || 30));
+      if (b.showNow) { sashiChatHidden = false; sashiShowUntil = Date.now() + (sashi.showSec || 30) * 1000; }
+      if (b.hideNow) { sashiShowUntil = 0; sashiChatHidden = true; }
       if (typeof b.title === 'string') sashi.title = cleanString(b.title).slice(0, 60);
       if (typeof b.ignore === 'string') sashi.ignore = cleanString(b.ignore).slice(0, 500);
       if (b.font !== undefined) sashi.font = Math.max(12, Math.min(70, Math.round(Number(b.font)) || 26));
@@ -5038,6 +5101,519 @@ async function handleSashiApi(req, res, pathname, method) {
 }
 
 // ---------------------------------------------------------------------------
+// BEAN BURGER SIGN-UP (Baby, 2026-10-20): its own copy of the Poke Bowl Sign-up (STREAM EVENT SIGN-UP above),
+// so changing this one never touches the others. Same features; generated from that section.
+//   - Overlay: /beanburger-signup.html   - Dashboard: /beanburger-signup-control.html   - data/beanburger-signup.json
+//   - Pops up (hidden-until-asked) with !burger / !burgers / !beanburger only. Remembered in-game names are
+//     shared with the Poke Bowl Sign-up (sashi.names), so viewers only type their name once.
+// ---------------------------------------------------------------------------
+const BBSU_FILE = path.join(DATA_DIR, 'beanburger-signup.json');
+function bbsuDefaults() {
+  return { visible: true, open: true, live: 'e1', seq: 2, font: sashi.font || 26, cols: sashi.cols || 2, title: '🍔 Bean Burger Sign-Up', max: 0, ignore: '',
+    accent: sashi.accent || '#ff8fd8', panelColor: sashi.panelColor || '#1c0e28', panelOpacity: sashi.panelOpacity === undefined ? 85 : sashi.panelOpacity, showZones: true, showCountdown: true, rseq: 1,
+    onDemand: !!sashi.onDemand, showSec: sashi.showSec || 30, showOnSignup: sashi.showOnSignup !== false,
+    zones: sashi.zones.map(z => ({ ...z })),
+    events: [{ id: 'e1', name: 'Bean Burgers', guests: [] }] };
+}
+function bbsuFixEvent(ev) {
+  ev.guests = Array.isArray(ev.guests) ? ev.guests : [];
+  ev.roles = Array.isArray(ev.roles) ? ev.roles : [];
+  ev.desc = typeof ev.desc === 'string' ? ev.desc : '';
+  ev.date = typeof ev.date === 'string' ? ev.date : ''; ev.time = typeof ev.time === 'string' ? ev.time : '';
+  ev.tz = etValidTz(ev.tz) ? ev.tz : 'America/Chicago';
+  ev.game = cleanString(ev.game).slice(0, 30) || 'Palia';
+  for (const g of ev.guests) if (typeof g.role !== 'string' || !ev.roles.some(r => r.id === g.role)) g.role = '';
+  return ev;
+}
+function bbsuLoad() {
+  const raw = readJson(BBSU_FILE, null) || {}; const s = { ...bbsuDefaults(), ...raw };
+  if (!Array.isArray(s.events) || !s.events.length) s.events = bbsuDefaults().events;
+  if (!Array.isArray(s.zones) || !s.zones.length) s.zones = bbsuDefaults().zones;
+  s.zones = s.zones.filter(z => z && etValidTz(z.tz));
+  delete s.names;
+  s.events.forEach(bbsuFixEvent);
+  return s;
+}
+let bbsu = bbsuLoad();
+const bbsuEv = id => bbsu.events.find(e => e.id === (id || bbsu.live)) || null;
+const bbsuRenumber = ev => { ev.guests.forEach((g, i) => { g.n = i + 1; }); };
+const bbsuEpoch = ev => (ev && ev.date && ev.time ? etToEpoch(ev.date, ev.time, ev.tz) : null);
+// "Hidden until chat asks" (2026-10-15): with bbsu.onDemand on, the overlay stays invisible until chat types
+// "!show" or "!event" (or someone signs up / leaves, if showOnSignup), then shows for showSec seconds.
+let bbsuShowUntil = 0;
+let bbsuChatHidden = false;   // "!hide <word>" from chat (2026-10-20) - hidden until "!show <word>" or the dashboard's Show it now
+function bbsuReveal(sec) { bbsuShowUntil = Date.now() + (sec || bbsu.showSec || 30) * 1000; broadcast('beanburger-signup', bbsuPublic()); }
+function bbsuPublic() {
+  const ev = bbsuEv();
+  return { ok: true, visible: bbsu.visible && !bbsuChatHidden && (!bbsu.onDemand || Date.now() < bbsuShowUntil), visibleSetting: bbsu.visible, chatHidden: bbsuChatHidden, onDemand: !!bbsu.onDemand,
+    showSec: bbsu.showSec || 30, showOnSignup: bbsu.showOnSignup !== false, shownLeft: bbsu.onDemand ? Math.max(0, Math.ceil((bbsuShowUntil - Date.now()) / 1000)) : 0, open: bbsu.open, title: bbsu.title, font: bbsu.font, cols: bbsu.cols, max: bbsu.max,
+    accent: bbsu.accent, panelColor: bbsu.panelColor, panelOpacity: bbsu.panelOpacity, showZones: bbsu.showZones, showCountdown: bbsu.showCountdown,
+    zones: bbsu.zones.filter(z => z.on).map(z => ({ label: z.label, tz: z.tz })),
+    event: ev ? { id: ev.id, name: ev.name, game: ev.game, desc: ev.desc, date: ev.date, time: ev.time, tz: ev.tz, start: bbsuEpoch(ev),
+      roles: ev.roles.map(r => ({ id: r.id, label: r.label, cmd: r.cmd, spots: r.spots || 0, color: r.color || '' })),
+      guests: ev.guests.map(g => ({ n: g.n, name: g.name, twitch: g.twitch || '', at: g.at || 0, role: g.role || '' })) } : null,
+    total: ev ? ev.guests.length : 0, now: Date.now() };
+}
+function bbsuSave() { writeJson(BBSU_FILE, bbsu); broadcast('beanburger-signup', bbsuPublic()); }
+const bbsuPop = () => { if (bbsu.onDemand && bbsu.showOnSignup !== false) bbsuShowUntil = Math.max(bbsuShowUntil, Date.now() + (bbsu.showSec || 30) * 1000); };
+const bbsuCleanName = x => cleanString(x).replace(/^\s*\d+[.)\-:]\s+/, '').replace(/[<>]/g, '').trim().slice(0, 40);
+const bbsuCleanCmd = v => cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24);
+function bbsuAddNames(ev, names, role) {
+  role = ev.roles.some(r => r.id === role) ? role : '';
+  for (const raw of names) {
+    const name = bbsuCleanName(raw);
+    if (!name || ev.guests.some(g => g.name.toLowerCase() === name.toLowerCase()) || ev.guests.length >= 200) continue;
+    ev.guests.push({ n: 0, name, twitch: '', at: Date.now(), role });
+  }
+  bbsuRenumber(ev);
+}
+// Every command word some other feature uses right now, so "!tomato" is never mistaken for a Palia name.
+function bbsuIgnored() {
+  const set = new Set(SASHI_BUILTIN_IGNORE);
+  for (const w of String(bbsu.ignore || '').split(/[\s,]+/)) { const c = w.toLowerCase().replace(/^!+/, ''); if (c) set.add(c); }
+  try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) { set.add(r.command); for (let i = 1; i <= 7; i++) set.add(r.command + i); } } catch (_e) {}
+  for (const c of signupRoleCmds()) set.add(c);
+  try { [teams.item.command].concat(teams.item.aliases ? teams.item.aliases.split(/,\s*/) : []).forEach(c => { if (c) set.add(String(c).toLowerCase()); }); } catch (_e) {}
+  return set;
+}
+// Party-board role commands that are live right now (to warn her about clashes).
+function bbsuPartyCmds() { const set = new Set(); try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) set.add(r.command); } catch (_e) {} return set; }
+function bbsuNames(ev) { const k = sashiGameKey(ev.game); return sashi.names[k] || (sashi.names[k] = {}); }
+// Remember their in-game name for this event's game (also for names she fixes on the dashboard).
+function bbsuRemember(ev, twitch, name) { if (twitch && name && bbsuNames(ev)[String(twitch).toLowerCase()] !== name) { bbsuNames(ev)[String(twitch).toLowerCase()] = name; writeJson(SASHI_FILE, sashi); } }
+// A Palia name typed in chat: up to 3 words / 32 characters, no @ or links.
+function bbsuChatName(v) {
+  const name = String(v || '').replace(/^\[|\]$/g, '').replace(/[<>]/g, '').trim();
+  if (name.length < 2 || name.length > 32 || !/[a-z]/i.test(name) || name.split(' ').length > 3 || /@|https?:|www\./i.test(name)) return '';
+  return name;
+}
+function bbsuChat(sender, parts) {
+  const twitch = cleanString(sender).replace(/^@/, '').slice(0, 40);
+  if (!twitch) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ');
+  const ev = bbsuEv(); if (!ev) return '';
+  const key = twitch.toLowerCase();
+  // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
+  if (/^!(burger|burgers|beanburger)$/i.test(text)) { if (bbsu.onDemand && bbsu.visible) { bbsuReveal(); return 'Showing the Bean Burger Sign-Up'; } return ''; }
+  // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
+  // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
+  if (/^!leave$/i.test(text)) {
+    const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+    if (!mine) return '';
+    ev.guests = ev.guests.filter(g => g !== mine); bbsuRenumber(ev); bbsuSave();
+    return `${mine.name} left`;
+  }
+  const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+  // ----- events WITH roles: "!<role command> [Palia name]" -----
+  if (ev.roles.length) {
+    const m = /^!([a-z0-9_]+)(?: (.+))?$/i.exec(text);
+    if (!m) return '';
+    const role = ev.roles.find(r => r.cmd === m[1].toLowerCase());
+    if (!role) return '';
+    if (!bbsu.open) return `${twitch}: sign-ups are closed`;
+    let name = m[2] ? bbsuChatName(m[2]) : '';
+    if (m[2] && !name) return '';
+    if (!name) name = (mine && mine.name) || bbsuNames(ev)[key] || twitch;
+    const taken = ev.guests.find(g => g.name.toLowerCase() === name.toLowerCase() && g !== mine);
+    if (taken) return `${name} is already signed up`;
+    bbsuRemember(ev, twitch, name);
+    if (mine) {
+      const moved = mine.role !== role.id;
+      mine.name = name;
+      if (moved) { mine.role = role.id; mine.at = Date.now(); ev.guests = ev.guests.filter(g => g !== mine).concat([mine]); bbsuRenumber(ev); }
+      bbsuPop(); bbsuSave(); return moved ? `${name} switched to ${role.label}` : `${name} updated`;
+    }
+    if (bbsu.max && ev.guests.length >= bbsu.max) return `Event is full (${bbsu.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: role.id });
+    bbsuPop(); bbsuSave();
+    const pos = ev.guests.filter(g => g.role === role.id).length;
+    return role.spots && pos > role.spots ? `${name} is on the ${role.label} waitlist (#${pos - role.spots})` : `${name} signed up for ${role.label}`;
+  }
+  // ----- events WITHOUT roles: "!Palia Name" (2026-10-10 / -11 rules) -----
+  if (!bbsu.open) return '';
+  // "!signup" alone = use the name we remember for this game (from their first sign-up).
+  if (/^!signup$/i.test(text)) {
+    const known = bbsuNames(ev)[key];
+    if (!known) return `${twitch}: type ! + your ${ev.game} name the first time`;
+    if (mine) return '';
+    if (ev.guests.some(g => g.name.toLowerCase() === known.toLowerCase())) return `${known} is already signed up`;
+    if (bbsu.max && ev.guests.length >= bbsu.max) return `Event is full (${bbsu.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name: known, twitch, at: Date.now(), role: '' });
+    bbsuPop(); bbsuSave(); return `${known} signed up (#${ev.guests.length})`;
+  }
+  const m = /^!([^\s!][^!]{0,31})$/.exec(text);
+  if (!m) return '';
+  const name = bbsuChatName(m[1]);
+  if (!name) return '';
+  const low = name.toLowerCase(), first = low.split(' ')[0];
+  // The first word decides whether it's another command ("!vote 2", "!tomato Kitsuu", "!hug Bob").
+  const ign = bbsuIgnored();
+  if (ign.has(first) || ign.has(low) || /^(leave|party|show|here)\d*$/.test(first)) return '';
+  const taken = ev.guests.find(g => g.name.toLowerCase() === low);
+  if (taken) return taken.twitch.toLowerCase() === key ? '' : `${name} is already signed up`;
+  bbsuRemember(ev, twitch, name);
+  if (mine) { mine.name = name; bbsuPop(); bbsuSave(); return `${twitch} changed their name to ${name} (#${mine.n})`; }
+  if (bbsu.max && ev.guests.length >= bbsu.max) return `Event is full (${bbsu.max})`;
+  ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: '' });
+  bbsuPop(); bbsuSave(); return `${name} signed up (#${ev.guests.length})`;
+}
+async function handleBbsuApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/beanburger-signup' && method === 'GET') return sendJson(res, 200, bbsuPublic());
+    if (pathname === '/api/beanburger-signup/admin' && method === 'GET') {
+      const ev = bbsuEv(), pc = new Set([...bbsuPartyCmds(), ...signupRoleCmds('bbsu')]);
+      return sendJson(res, 200, { ...bbsuPublic(), visible: bbsu.visible, live: bbsu.live, ignore: bbsu.ignore, builtinIgnore: SASHI_BUILTIN_IGNORE, allZones: bbsu.zones,
+        clashes: ev ? ev.roles.filter(r => pc.has(r.cmd)).map(r => r.cmd) : [],
+        remembered: ev ? Object.entries(sashi.names[sashiGameKey(ev.game)] || {}).map(([twitch, name]) => ({ twitch, name })) : [],
+        games: Array.from(new Set(bbsu.events.map(e => e.game).concat(['Palia', 'Aniimo']))),
+        events: bbsu.events.map(e => ({ id: e.id, name: e.name, count: e.guests.length })) });
+    }
+    if (pathname === '/api/beanburger-signup' && method === 'POST') {
+      const b = await readBody(req);
+      for (const k of ['visible', 'open', 'showZones', 'showCountdown', 'onDemand', 'showOnSignup']) if (typeof b[k] === 'boolean') bbsu[k] = b[k];
+      if (b.showSec !== undefined) bbsu.showSec = Math.max(5, Math.min(600, Math.round(Number(b.showSec)) || 30));
+      if (b.showNow) { bbsuChatHidden = false; bbsuShowUntil = Date.now() + (bbsu.showSec || 30) * 1000; }
+      if (b.hideNow) { bbsuShowUntil = 0; bbsuChatHidden = true; }
+      if (typeof b.title === 'string') bbsu.title = cleanString(b.title).slice(0, 60);
+      if (typeof b.ignore === 'string') bbsu.ignore = cleanString(b.ignore).slice(0, 500);
+      if (b.font !== undefined) bbsu.font = Math.max(12, Math.min(70, Math.round(Number(b.font)) || 26));
+      if (b.cols !== undefined) bbsu.cols = Math.max(1, Math.min(4, Math.round(Number(b.cols)) || 2));
+      if (b.max !== undefined) bbsu.max = Math.max(0, Math.min(200, Math.round(Number(b.max)) || 0));
+      if (b.panelOpacity !== undefined) bbsu.panelOpacity = Math.max(0, Math.min(100, Math.round(Number(b.panelOpacity)) || 0));
+      for (const k of ['accent', 'panelColor']) if (b[k] !== undefined && newsHex(b[k])) bbsu[k] = b[k];
+      // World clocks: [{tz, on, label}] - tick/untick, rename, or add another IANA zone.
+      if (Array.isArray(b.zones)) {
+        bbsu.zones = b.zones.slice(0, 24).filter(z => z && etValidTz(z.tz)).map(z => ({ tz: String(z.tz), label: cleanString(z.label).slice(0, 24) || String(z.tz).split('/').pop().replace(/_/g, ' '), on: !!z.on }));
+      }
+      if (b.newEvent) { const id = `e${bbsu.seq++}`; bbsu.events.push(bbsuFixEvent({ id, name: cleanString(b.newEvent).slice(0, 60) || 'Event', guests: [] })); bbsu.live = id; }
+      if (b.copyEvent) { // duplicate an event's details + roles (empty list) - handy for weekly repeats
+        const src = bbsuEv(String(b.copyEvent));
+        if (src) { const id = `e${bbsu.seq++}`; bbsu.events.push(bbsuFixEvent({ id, name: (src.name + ' (copy)').slice(0, 60), desc: src.desc, date: src.date, time: src.time, tz: src.tz, roles: JSON.parse(JSON.stringify(src.roles)), guests: [] })); bbsu.live = id; }
+      }
+      if (b.live && bbsuEv(String(b.live))) bbsu.live = String(b.live);
+      const ev = bbsuEv(b.event ? String(b.event) : null);
+      if (ev) {
+        if (typeof b.name === 'string' && cleanString(b.name)) ev.name = cleanString(b.name).slice(0, 60);
+        if (typeof b.game === 'string' && cleanString(b.game)) ev.game = cleanString(b.game).slice(0, 30);
+        if (typeof b.desc === 'string') ev.desc = String(b.desc).replace(/[<>]/g, '').slice(0, 400);
+        if (typeof b.date === 'string') ev.date = /^\d{4}-\d{2}-\d{2}$/.test(b.date) ? b.date : '';
+        if (typeof b.time === 'string') ev.time = /^\d{1,2}:\d{2}$/.test(b.time) ? b.time : '';
+        if (typeof b.tz === 'string' && etValidTz(b.tz)) ev.tz = b.tz;
+        // Roles (her own): full list [{id?, label, cmd, spots, color}] replaces the event's roles.
+        if (Array.isArray(b.roles)) {
+          const used = new Set(), out = [];
+          for (const r of b.roles.slice(0, 12)) {
+            const cmd = bbsuCleanCmd(r && r.cmd), label = cleanString(r && r.label).slice(0, 40);
+            if (!cmd || !label || used.has(cmd) || SASHI_RESERVED.has(cmd)) continue;
+            used.add(cmd);
+            const old = r.id && ev.roles.find(x => x.id === String(r.id));
+            out.push({ id: old ? old.id : `r${bbsu.rseq++}`, label, cmd, spots: Math.max(0, Math.min(200, Math.round(Number(r.spots)) || 0)), color: newsHex(r.color) || '' });
+          }
+          ev.roles = out; bbsuFixEvent(ev);
+        }
+        if (Array.isArray(b.add)) bbsuAddNames(ev, b.add, b.addRole);
+        if (b.remove !== undefined) { ev.guests = ev.guests.filter(g => g.n !== Number(b.remove)); bbsuRenumber(ev); }
+        if (b.move && b.move.n) { const i = ev.guests.findIndex(g => g.n === Number(b.move.n)), j = i + (Number(b.move.dir) < 0 ? -1 : 1);
+          if (i >= 0 && j >= 0 && j < ev.guests.length) { const t = ev.guests[i]; ev.guests[i] = ev.guests[j]; ev.guests[j] = t; bbsuRenumber(ev); } }
+        if (b.rename && b.rename.n) { const g = ev.guests.find(x => x.n === Number(b.rename.n)); const nn = bbsuCleanName(b.rename.name); if (g && nn) { g.name = nn; bbsuRemember(ev, g.twitch, nn); } }
+        if (b.setRole && b.setRole.n) { const g = ev.guests.find(x => x.n === Number(b.setRole.n)); if (g) g.role = ev.roles.some(r => r.id === b.setRole.role) ? b.setRole.role : ''; }
+        if (b.clear) ev.guests = [];
+      }
+      if (b.forget && b.forget.game && b.forget.twitch) { const m = sashi.names[sashiGameKey(b.forget.game)]; if (m) { delete m[String(b.forget.twitch).toLowerCase()]; writeJson(SASHI_FILE, sashi); } }
+      if (b.deleteEvent && bbsu.events.length > 1) {
+        bbsu.events = bbsu.events.filter(e => e.id !== String(b.deleteEvent));
+        if (!bbsuEv()) bbsu.live = bbsu.events[0].id;
+      }
+      bbsuSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/beanburger-signup/test' && method === 'POST') {
+      const b = await readBody(req);
+      return sendJson(res, 200, { ok: true, reply: bbsuChat(cleanString(b.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.text) }]) || 'ignored' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown beanburger-signup route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Event sign-up request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FLOW TREE SIGN-UP (Baby, 2026-10-20): its own copy of the Poke Bowl Sign-up (STREAM EVENT SIGN-UP above),
+// so changing this one never touches the others. Same features; generated from that section.
+//   - Overlay: /flowtree-signup.html   - Dashboard: /flowtree-signup-control.html   - data/flowtree-signup.json
+//   - Pops up (hidden-until-asked) with !flow / !flowtree / !flowtrees only. Remembered in-game names are
+//     shared with the Poke Bowl Sign-up (sashi.names), so viewers only type their name once.
+// ---------------------------------------------------------------------------
+const FTSU_FILE = path.join(DATA_DIR, 'flowtree-signup.json');
+function ftsuDefaults() {
+  return { visible: true, open: true, live: 'e1', seq: 2, font: sashi.font || 26, cols: sashi.cols || 2, title: '🌳 Flow Tree Sign-Up', max: 0, ignore: '',
+    accent: sashi.accent || '#ff8fd8', panelColor: sashi.panelColor || '#1c0e28', panelOpacity: sashi.panelOpacity === undefined ? 85 : sashi.panelOpacity, showZones: true, showCountdown: true, rseq: 1,
+    onDemand: !!sashi.onDemand, showSec: sashi.showSec || 30, showOnSignup: sashi.showOnSignup !== false,
+    zones: sashi.zones.map(z => ({ ...z })),
+    events: [{ id: 'e1', name: 'Flow Trees', guests: [] }] };
+}
+function ftsuFixEvent(ev) {
+  ev.guests = Array.isArray(ev.guests) ? ev.guests : [];
+  ev.roles = Array.isArray(ev.roles) ? ev.roles : [];
+  ev.desc = typeof ev.desc === 'string' ? ev.desc : '';
+  ev.date = typeof ev.date === 'string' ? ev.date : ''; ev.time = typeof ev.time === 'string' ? ev.time : '';
+  ev.tz = etValidTz(ev.tz) ? ev.tz : 'America/Chicago';
+  ev.game = cleanString(ev.game).slice(0, 30) || 'Palia';
+  for (const g of ev.guests) if (typeof g.role !== 'string' || !ev.roles.some(r => r.id === g.role)) g.role = '';
+  return ev;
+}
+function ftsuLoad() {
+  const raw = readJson(FTSU_FILE, null) || {}; const s = { ...ftsuDefaults(), ...raw };
+  if (!Array.isArray(s.events) || !s.events.length) s.events = ftsuDefaults().events;
+  if (!Array.isArray(s.zones) || !s.zones.length) s.zones = ftsuDefaults().zones;
+  s.zones = s.zones.filter(z => z && etValidTz(z.tz));
+  delete s.names;
+  s.events.forEach(ftsuFixEvent);
+  return s;
+}
+let ftsu = ftsuLoad();
+const ftsuEv = id => ftsu.events.find(e => e.id === (id || ftsu.live)) || null;
+const ftsuRenumber = ev => { ev.guests.forEach((g, i) => { g.n = i + 1; }); };
+const ftsuEpoch = ev => (ev && ev.date && ev.time ? etToEpoch(ev.date, ev.time, ev.tz) : null);
+// "Hidden until chat asks" (2026-10-15): with ftsu.onDemand on, the overlay stays invisible until chat types
+// "!show" or "!event" (or someone signs up / leaves, if showOnSignup), then shows for showSec seconds.
+let ftsuShowUntil = 0;
+let ftsuChatHidden = false;   // "!hide <word>" from chat (2026-10-20) - hidden until "!show <word>" or the dashboard's Show it now
+function ftsuReveal(sec) { ftsuShowUntil = Date.now() + (sec || ftsu.showSec || 30) * 1000; broadcast('flowtree-signup', ftsuPublic()); }
+function ftsuPublic() {
+  const ev = ftsuEv();
+  return { ok: true, visible: ftsu.visible && !ftsuChatHidden && (!ftsu.onDemand || Date.now() < ftsuShowUntil), visibleSetting: ftsu.visible, chatHidden: ftsuChatHidden, onDemand: !!ftsu.onDemand,
+    showSec: ftsu.showSec || 30, showOnSignup: ftsu.showOnSignup !== false, shownLeft: ftsu.onDemand ? Math.max(0, Math.ceil((ftsuShowUntil - Date.now()) / 1000)) : 0, open: ftsu.open, title: ftsu.title, font: ftsu.font, cols: ftsu.cols, max: ftsu.max,
+    accent: ftsu.accent, panelColor: ftsu.panelColor, panelOpacity: ftsu.panelOpacity, showZones: ftsu.showZones, showCountdown: ftsu.showCountdown,
+    zones: ftsu.zones.filter(z => z.on).map(z => ({ label: z.label, tz: z.tz })),
+    event: ev ? { id: ev.id, name: ev.name, game: ev.game, desc: ev.desc, date: ev.date, time: ev.time, tz: ev.tz, start: ftsuEpoch(ev),
+      roles: ev.roles.map(r => ({ id: r.id, label: r.label, cmd: r.cmd, spots: r.spots || 0, color: r.color || '' })),
+      guests: ev.guests.map(g => ({ n: g.n, name: g.name, twitch: g.twitch || '', at: g.at || 0, role: g.role || '' })) } : null,
+    total: ev ? ev.guests.length : 0, now: Date.now() };
+}
+function ftsuSave() { writeJson(FTSU_FILE, ftsu); broadcast('flowtree-signup', ftsuPublic()); }
+const ftsuPop = () => { if (ftsu.onDemand && ftsu.showOnSignup !== false) ftsuShowUntil = Math.max(ftsuShowUntil, Date.now() + (ftsu.showSec || 30) * 1000); };
+const ftsuCleanName = x => cleanString(x).replace(/^\s*\d+[.)\-:]\s+/, '').replace(/[<>]/g, '').trim().slice(0, 40);
+const ftsuCleanCmd = v => cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24);
+function ftsuAddNames(ev, names, role) {
+  role = ev.roles.some(r => r.id === role) ? role : '';
+  for (const raw of names) {
+    const name = ftsuCleanName(raw);
+    if (!name || ev.guests.some(g => g.name.toLowerCase() === name.toLowerCase()) || ev.guests.length >= 200) continue;
+    ev.guests.push({ n: 0, name, twitch: '', at: Date.now(), role });
+  }
+  ftsuRenumber(ev);
+}
+// Every command word some other feature uses right now, so "!tomato" is never mistaken for a Palia name.
+function ftsuIgnored() {
+  const set = new Set(SASHI_BUILTIN_IGNORE);
+  for (const w of String(ftsu.ignore || '').split(/[\s,]+/)) { const c = w.toLowerCase().replace(/^!+/, ''); if (c) set.add(c); }
+  try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) { set.add(r.command); for (let i = 1; i <= 7; i++) set.add(r.command + i); } } catch (_e) {}
+  for (const c of signupRoleCmds()) set.add(c);
+  try { [teams.item.command].concat(teams.item.aliases ? teams.item.aliases.split(/,\s*/) : []).forEach(c => { if (c) set.add(String(c).toLowerCase()); }); } catch (_e) {}
+  return set;
+}
+// Party-board role commands that are live right now (to warn her about clashes).
+function ftsuPartyCmds() { const set = new Set(); try { for (const b of partyLiveBoards()) for (const r of b.ev.roles) if (r.command) set.add(r.command); } catch (_e) {} return set; }
+function ftsuNames(ev) { const k = sashiGameKey(ev.game); return sashi.names[k] || (sashi.names[k] = {}); }
+// Remember their in-game name for this event's game (also for names she fixes on the dashboard).
+function ftsuRemember(ev, twitch, name) { if (twitch && name && ftsuNames(ev)[String(twitch).toLowerCase()] !== name) { ftsuNames(ev)[String(twitch).toLowerCase()] = name; writeJson(SASHI_FILE, sashi); } }
+// A Palia name typed in chat: up to 3 words / 32 characters, no @ or links.
+function ftsuChatName(v) {
+  const name = String(v || '').replace(/^\[|\]$/g, '').replace(/[<>]/g, '').trim();
+  if (name.length < 2 || name.length > 32 || !/[a-z]/i.test(name) || name.split(' ').length > 3 || /@|https?:|www\./i.test(name)) return '';
+  return name;
+}
+function ftsuChat(sender, parts) {
+  const twitch = cleanString(sender).replace(/^@/, '').slice(0, 40);
+  if (!twitch) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ');
+  const ev = ftsuEv(); if (!ev) return '';
+  const key = twitch.toLowerCase();
+  // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
+  if (/^!(flow|flowtree|flowtrees)$/i.test(text)) { if (ftsu.onDemand && ftsu.visible) { ftsuReveal(); return 'Showing the Flow Tree Sign-Up'; } return ''; }
+  // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
+  // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
+  if (/^!leave$/i.test(text)) {
+    const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+    if (!mine) return '';
+    ev.guests = ev.guests.filter(g => g !== mine); ftsuRenumber(ev); ftsuSave();
+    return `${mine.name} left`;
+  }
+  const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+  // ----- events WITH roles: "!<role command> [Palia name]" -----
+  if (ev.roles.length) {
+    const m = /^!([a-z0-9_]+)(?: (.+))?$/i.exec(text);
+    if (!m) return '';
+    const role = ev.roles.find(r => r.cmd === m[1].toLowerCase());
+    if (!role) return '';
+    if (!ftsu.open) return `${twitch}: sign-ups are closed`;
+    let name = m[2] ? ftsuChatName(m[2]) : '';
+    if (m[2] && !name) return '';
+    if (!name) name = (mine && mine.name) || ftsuNames(ev)[key] || twitch;
+    const taken = ev.guests.find(g => g.name.toLowerCase() === name.toLowerCase() && g !== mine);
+    if (taken) return `${name} is already signed up`;
+    ftsuRemember(ev, twitch, name);
+    if (mine) {
+      const moved = mine.role !== role.id;
+      mine.name = name;
+      if (moved) { mine.role = role.id; mine.at = Date.now(); ev.guests = ev.guests.filter(g => g !== mine).concat([mine]); ftsuRenumber(ev); }
+      ftsuPop(); ftsuSave(); return moved ? `${name} switched to ${role.label}` : `${name} updated`;
+    }
+    if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: role.id });
+    ftsuPop(); ftsuSave();
+    const pos = ev.guests.filter(g => g.role === role.id).length;
+    return role.spots && pos > role.spots ? `${name} is on the ${role.label} waitlist (#${pos - role.spots})` : `${name} signed up for ${role.label}`;
+  }
+  // ----- events WITHOUT roles: "!Palia Name" (2026-10-10 / -11 rules) -----
+  if (!ftsu.open) return '';
+  // "!signup" alone = use the name we remember for this game (from their first sign-up).
+  if (/^!signup$/i.test(text)) {
+    const known = ftsuNames(ev)[key];
+    if (!known) return `${twitch}: type ! + your ${ev.game} name the first time`;
+    if (mine) return '';
+    if (ev.guests.some(g => g.name.toLowerCase() === known.toLowerCase())) return `${known} is already signed up`;
+    if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+    ev.guests.push({ n: ev.guests.length + 1, name: known, twitch, at: Date.now(), role: '' });
+    ftsuPop(); ftsuSave(); return `${known} signed up (#${ev.guests.length})`;
+  }
+  const m = /^!([^\s!][^!]{0,31})$/.exec(text);
+  if (!m) return '';
+  const name = ftsuChatName(m[1]);
+  if (!name) return '';
+  const low = name.toLowerCase(), first = low.split(' ')[0];
+  // The first word decides whether it's another command ("!vote 2", "!tomato Kitsuu", "!hug Bob").
+  const ign = ftsuIgnored();
+  if (ign.has(first) || ign.has(low) || /^(leave|party|show|here)\d*$/.test(first)) return '';
+  const taken = ev.guests.find(g => g.name.toLowerCase() === low);
+  if (taken) return taken.twitch.toLowerCase() === key ? '' : `${name} is already signed up`;
+  ftsuRemember(ev, twitch, name);
+  if (mine) { mine.name = name; ftsuPop(); ftsuSave(); return `${twitch} changed their name to ${name} (#${mine.n})`; }
+  if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+  ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: '' });
+  ftsuPop(); ftsuSave(); return `${name} signed up (#${ev.guests.length})`;
+}
+async function handleFtsuApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/flowtree-signup' && method === 'GET') return sendJson(res, 200, ftsuPublic());
+    if (pathname === '/api/flowtree-signup/admin' && method === 'GET') {
+      const ev = ftsuEv(), pc = new Set([...ftsuPartyCmds(), ...signupRoleCmds('ftsu')]);
+      return sendJson(res, 200, { ...ftsuPublic(), visible: ftsu.visible, live: ftsu.live, ignore: ftsu.ignore, builtinIgnore: SASHI_BUILTIN_IGNORE, allZones: ftsu.zones,
+        clashes: ev ? ev.roles.filter(r => pc.has(r.cmd)).map(r => r.cmd) : [],
+        remembered: ev ? Object.entries(sashi.names[sashiGameKey(ev.game)] || {}).map(([twitch, name]) => ({ twitch, name })) : [],
+        games: Array.from(new Set(ftsu.events.map(e => e.game).concat(['Palia', 'Aniimo']))),
+        events: ftsu.events.map(e => ({ id: e.id, name: e.name, count: e.guests.length })) });
+    }
+    if (pathname === '/api/flowtree-signup' && method === 'POST') {
+      const b = await readBody(req);
+      for (const k of ['visible', 'open', 'showZones', 'showCountdown', 'onDemand', 'showOnSignup']) if (typeof b[k] === 'boolean') ftsu[k] = b[k];
+      if (b.showSec !== undefined) ftsu.showSec = Math.max(5, Math.min(600, Math.round(Number(b.showSec)) || 30));
+      if (b.showNow) { ftsuChatHidden = false; ftsuShowUntil = Date.now() + (ftsu.showSec || 30) * 1000; }
+      if (b.hideNow) { ftsuShowUntil = 0; ftsuChatHidden = true; }
+      if (typeof b.title === 'string') ftsu.title = cleanString(b.title).slice(0, 60);
+      if (typeof b.ignore === 'string') ftsu.ignore = cleanString(b.ignore).slice(0, 500);
+      if (b.font !== undefined) ftsu.font = Math.max(12, Math.min(70, Math.round(Number(b.font)) || 26));
+      if (b.cols !== undefined) ftsu.cols = Math.max(1, Math.min(4, Math.round(Number(b.cols)) || 2));
+      if (b.max !== undefined) ftsu.max = Math.max(0, Math.min(200, Math.round(Number(b.max)) || 0));
+      if (b.panelOpacity !== undefined) ftsu.panelOpacity = Math.max(0, Math.min(100, Math.round(Number(b.panelOpacity)) || 0));
+      for (const k of ['accent', 'panelColor']) if (b[k] !== undefined && newsHex(b[k])) ftsu[k] = b[k];
+      // World clocks: [{tz, on, label}] - tick/untick, rename, or add another IANA zone.
+      if (Array.isArray(b.zones)) {
+        ftsu.zones = b.zones.slice(0, 24).filter(z => z && etValidTz(z.tz)).map(z => ({ tz: String(z.tz), label: cleanString(z.label).slice(0, 24) || String(z.tz).split('/').pop().replace(/_/g, ' '), on: !!z.on }));
+      }
+      if (b.newEvent) { const id = `e${ftsu.seq++}`; ftsu.events.push(ftsuFixEvent({ id, name: cleanString(b.newEvent).slice(0, 60) || 'Event', guests: [] })); ftsu.live = id; }
+      if (b.copyEvent) { // duplicate an event's details + roles (empty list) - handy for weekly repeats
+        const src = ftsuEv(String(b.copyEvent));
+        if (src) { const id = `e${ftsu.seq++}`; ftsu.events.push(ftsuFixEvent({ id, name: (src.name + ' (copy)').slice(0, 60), desc: src.desc, date: src.date, time: src.time, tz: src.tz, roles: JSON.parse(JSON.stringify(src.roles)), guests: [] })); ftsu.live = id; }
+      }
+      if (b.live && ftsuEv(String(b.live))) ftsu.live = String(b.live);
+      const ev = ftsuEv(b.event ? String(b.event) : null);
+      if (ev) {
+        if (typeof b.name === 'string' && cleanString(b.name)) ev.name = cleanString(b.name).slice(0, 60);
+        if (typeof b.game === 'string' && cleanString(b.game)) ev.game = cleanString(b.game).slice(0, 30);
+        if (typeof b.desc === 'string') ev.desc = String(b.desc).replace(/[<>]/g, '').slice(0, 400);
+        if (typeof b.date === 'string') ev.date = /^\d{4}-\d{2}-\d{2}$/.test(b.date) ? b.date : '';
+        if (typeof b.time === 'string') ev.time = /^\d{1,2}:\d{2}$/.test(b.time) ? b.time : '';
+        if (typeof b.tz === 'string' && etValidTz(b.tz)) ev.tz = b.tz;
+        // Roles (her own): full list [{id?, label, cmd, spots, color}] replaces the event's roles.
+        if (Array.isArray(b.roles)) {
+          const used = new Set(), out = [];
+          for (const r of b.roles.slice(0, 12)) {
+            const cmd = ftsuCleanCmd(r && r.cmd), label = cleanString(r && r.label).slice(0, 40);
+            if (!cmd || !label || used.has(cmd) || SASHI_RESERVED.has(cmd)) continue;
+            used.add(cmd);
+            const old = r.id && ev.roles.find(x => x.id === String(r.id));
+            out.push({ id: old ? old.id : `r${ftsu.rseq++}`, label, cmd, spots: Math.max(0, Math.min(200, Math.round(Number(r.spots)) || 0)), color: newsHex(r.color) || '' });
+          }
+          ev.roles = out; ftsuFixEvent(ev);
+        }
+        if (Array.isArray(b.add)) ftsuAddNames(ev, b.add, b.addRole);
+        if (b.remove !== undefined) { ev.guests = ev.guests.filter(g => g.n !== Number(b.remove)); ftsuRenumber(ev); }
+        if (b.move && b.move.n) { const i = ev.guests.findIndex(g => g.n === Number(b.move.n)), j = i + (Number(b.move.dir) < 0 ? -1 : 1);
+          if (i >= 0 && j >= 0 && j < ev.guests.length) { const t = ev.guests[i]; ev.guests[i] = ev.guests[j]; ev.guests[j] = t; ftsuRenumber(ev); } }
+        if (b.rename && b.rename.n) { const g = ev.guests.find(x => x.n === Number(b.rename.n)); const nn = ftsuCleanName(b.rename.name); if (g && nn) { g.name = nn; ftsuRemember(ev, g.twitch, nn); } }
+        if (b.setRole && b.setRole.n) { const g = ev.guests.find(x => x.n === Number(b.setRole.n)); if (g) g.role = ev.roles.some(r => r.id === b.setRole.role) ? b.setRole.role : ''; }
+        if (b.clear) ev.guests = [];
+      }
+      if (b.forget && b.forget.game && b.forget.twitch) { const m = sashi.names[sashiGameKey(b.forget.game)]; if (m) { delete m[String(b.forget.twitch).toLowerCase()]; writeJson(SASHI_FILE, sashi); } }
+      if (b.deleteEvent && ftsu.events.length > 1) {
+        ftsu.events = ftsu.events.filter(e => e.id !== String(b.deleteEvent));
+        if (!ftsuEv()) ftsu.live = ftsu.events[0].id;
+      }
+      ftsuSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/flowtree-signup/test' && method === 'POST') {
+      const b = await readBody(req);
+      return sendJson(res, 200, { ok: true, reply: ftsuChat(cleanString(b.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.text) }]) || 'ignored' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown flowtree-signup route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Event sign-up request failed.' });
+  }
+}
+
+// "!show <word>" / "!hide <word>" for every sign-up widget (Baby, 2026-10-20):
+//   !show poke / !hide poke    -> Poke Bowl Sign-up      !show cake / !hide cake -> Cake Sign-Ups (all party boards)
+//   !show burger / !hide burger -> Bean Burger Sign-Up   !show flow / !hide flow -> Flow Tree Sign-Up
+// !hide keeps it off screen until !show (or the dashboard's Show button). !show brings it back; when the widget is
+// "hidden until chat asks" it shows for its usual N seconds. The dashboard's "Show on stream" switch still wins.
+// Returns true when the message was one of these, so the sign-up chat hooks skip it.
+const SIGNUP_SH_WORDS = {
+  poke: ['poke', 'pokebowl', 'pokebowls', 'bowl', 'sashimi'], cake: ['cake', 'cakes', 'party'],
+  burger: ['burger', 'burgers', 'beanburger', 'beanburgers'], flow: ['flow', 'flows', 'flowtree', 'flowtrees', 'tree', 'trees'] };
+function signupShowHideChat(sender, parts) {
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ').toLowerCase();
+  const m = /^!(show|hide) (.{2,30})$/.exec(text);
+  if (!m) return false;
+  const word = m[2].replace(/[^a-z]/g, '');
+  const which = Object.keys(SIGNUP_SH_WORDS).find(k => SIGNUP_SH_WORDS[k].includes(word));
+  if (!which) return false;
+  const show = m[1] === 'show';
+  if (which === 'cake') {
+    partyChatHidden = !show;
+    if (show) { if (parties.onDemand) partyReveal('all'); else broadcast('party', partyPublic()); }
+    else { for (const k of Object.keys(partyShowUntil)) delete partyShowUntil[k]; partySpot.until = 0; broadcast('party', partyPublic()); }
+    return true;
+  }
+  const w = which === 'poke' ? { set: v => { sashiChatHidden = v; }, s: sashi, until: v => { sashiShowUntil = v; }, pub: sashiPublic, ch: 'sashimi' }
+    : which === 'burger' ? { set: v => { bbsuChatHidden = v; }, s: bbsu, until: v => { bbsuShowUntil = v; }, pub: bbsuPublic, ch: 'beanburger-signup' }
+    : { set: v => { ftsuChatHidden = v; }, s: ftsu, until: v => { ftsuShowUntil = v; }, pub: ftsuPublic, ch: 'flowtree-signup' };
+  w.set(!show);
+  w.until(show && w.s.onDemand ? Date.now() + (w.s.showSec || 30) * 1000 : 0);
+  broadcast(w.ch, w.pub());
+  return true;
+}
+
+// Role commands on the live event of every sign-up widget (Poke Bowl, Bean Burger, Flow Tree), except `skip`.
+// Used so "!Name" sign-ups never treat another widget's role command as a name, and to warn about clashes.
+function signupRoleCmds(skip) {
+  const set = new Set();
+  const all = { sashi: () => sashiEv(), bbsu: () => bbsuEv(), ftsu: () => ftsuEv() };
+  for (const k of Object.keys(all)) { if (k === skip) continue; try { const ev = all[k](); if (ev) for (const r of ev.roles) if (r.cmd) set.add(r.cmd); } catch (_e) {} }
+  return set;
+}
+
+// ---------------------------------------------------------------------------
 // DESKTOP WIDGETS (Baby, 2026-10-11). Her own "widget displayer": a small Electron app
 // (desktop-widgets/, started with start-desktop-widgets.bat) puts any widget URL in a
 // see-through, always-on-top window on her desktop - over her game (Borderless Windowed).
@@ -5072,6 +5648,7 @@ function deskApply(w, b) {
   if (b.zoom !== undefined) w.zoom = deskNum(b.zoom, 25, 300, w.zoom);
   if (typeof b.on === 'boolean') w.on = b.on;
   if (typeof b.locked === 'boolean') w.locked = b.locked;     // stays click-through even in move mode
+  if (typeof b.clickable === 'boolean') w.clickable = b.clickable;   // takes mouse clicks even when Move mode is off (e.g. Aniimo quick checker)
   if (b.reload) w.reloadAt = Date.now();
 }
 function deskPublic() {
@@ -5127,6 +5704,1058 @@ async function handleDeskApi(req, res, pathname, method) {
     return sendJson(res, 404, { ok: false, error: 'Unknown desktop route.' });
   } catch (error) {
     return sendJson(res, 400, { ok: false, error: error.message || 'Desktop widgets request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ANIIMO DEX (Baby, 2026-10-14). Built on a catch & variant checklist a friend's Claude made
+// ("Aniimo Tracker.html", kept untouched in the ICB folder). Now lives in ICB:
+//   - Roster (Aniimo + their forms/specials) seeded once from config/aniimo-roster.json, then
+//     owned by data/aniimo-dex.json - Baby adds / edits / removes on the dashboard.
+//   - Checks saved on the server (not in a browser), with the time each was checked.
+//   - Overlay /aniimo.html: progress + "new catch" pop-up + chat look-ups.
+//   - Chat: "!need <Aniimo>" shows what she still needs for it; "!dex" shows overall progress
+//     (on the overlay - ICB doesn't post into Twitch chat). Per-person + global cooldown.
+//   - Quick checker /aniimo-quick.html (for a clickable Desktop Widget over the game).
+//   - Dashboard /aniimo-control.html. Import accepts the friend tracker's backup .json too.
+// ---------------------------------------------------------------------------
+const DEX_FILE = path.join(DATA_DIR, 'aniimo-dex.json');
+const DEX_SEED = path.join(APP_DIR, 'config', 'aniimo-roster.json');
+const DEX_ELEMENTS = ['Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Rock', 'Wind', 'Dark', 'Holy'];
+function dexDefaults() {
+  return { visible: true, title: '✨ Aniimo Dex', chat: true, popupSec: 8, lookupSec: 14, showElements: true, accent: '#7dd3fc', panelColor: '#101522', panelOpacity: 88,
+    roster: [], checked: {}, recent: [], seq: 1 };
+}
+const dexCleanVariant = v => cleanString(v).replace(/Prismana Form Form/g, 'Prismana Form').replace(/[<>|]/g, '').slice(0, 50);
+function dexCleanAniimo(a, id) {
+  const variants = [];
+  for (const v of (Array.isArray(a.variants) ? a.variants : String(a.variants || '').split(/\r?\n|,/))) { const c = dexCleanVariant(v); if (c && !variants.includes(c)) variants.push(c); }
+  return { id: id || String(a.id || a.number || '').replace(/[^0-9a-z_-]/gi, '').slice(0, 20), number: cleanString(a.number).slice(0, 10), name: cleanString(a.name).replace(/[<>]/g, '').slice(0, 40),
+    element: cleanString(a.element).slice(0, 40), variants: variants.slice(0, 40), image: a.image && DECOR_IMAGE_EXT.test(String(a.image)) ? path.basename(String(a.image)) : '',
+    // Photos of individual forms she caught / hatched (2026-10-14): { "Highland Form": "001__highlandform.webp" }
+    formImages: a.formImages && typeof a.formImages === 'object' ? Object.fromEntries(Object.entries(a.formImages).filter(([v, f]) => variants.includes(dexCleanVariant(v)) && DECOR_IMAGE_EXT.test(String(f))).map(([v, f]) => [dexCleanVariant(v), path.basename(String(f))])) : {} };
+}
+function dexLoad() {
+  const raw = readJson(DEX_FILE, null);
+  const d = { ...dexDefaults(), ...(raw || {}) };
+  if (!raw || !Array.isArray(raw.roster) || !raw.roster.length) {
+    const seed = readJson(DEX_SEED, null);
+    d.roster = (seed && Array.isArray(seed.roster) ? seed.roster : []).map(a => dexCleanAniimo(a)).filter(a => a.id && a.name);
+  }
+  d.checked = d.checked && typeof d.checked === 'object' ? d.checked : {};
+  d.recent = Array.isArray(d.recent) ? d.recent.slice(0, 30) : [];
+  return d;
+}
+let dex = dexLoad();
+let dexPopup = null, dexLookup = null;               // what the overlay shows right now
+const dexChatSeen = new Map(); let dexChatLast = 0;
+const dexKey = (id, v) => `${id}|${v}`;
+const dexFind = id => dex.roster.find(a => a.id === String(id));
+// Pictures (2026-10-14): assets/aniimo/. A picture she uploads is remembered on the Aniimo (a.image);
+// otherwise a file named after the number or name is matched automatically (001.png, 1.png, Emberpup.png...).
+const DEX_ART_DIR = path.join(APP_DIR, 'assets', 'aniimo');
+try { fs.mkdirSync(DEX_ART_DIR, { recursive: true }); } catch (_error) {}
+let dexArtList = null, dexArtAt = 0;
+function dexArtFiles() {
+  if (!dexArtList || Date.now() - dexArtAt > 5000) {
+    dexArtAt = Date.now(); dexArtList = new Map();
+    try { for (const f of fs.readdirSync(DEX_ART_DIR)) if (DECOR_IMAGE_EXT.test(f)) dexArtList.set(f.replace(/\.[a-z0-9]+$/i, '').toLowerCase().replace(/[^a-z0-9]/g, ''), f); } catch (_e) {}
+  }
+  return dexArtList;
+}
+const dexSlug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function dexArtUrl(f) { let v = 0; try { v = Math.round(fs.statSync(path.join(DEX_ART_DIR, f)).mtimeMs); } catch (_e) { return null; } return `/assets/aniimo/${encodeURIComponent(f)}?v=${v}`; }
+function dexFormImg(a, v) { return a && a.formImages && a.formImages[v] ? dexArtUrl(a.formImages[v]) : null; }
+function dexFormImgs(a) { const o = {}; if (a && a.formImages) for (const v of Object.keys(a.formImages)) { const u = dexFormImg(a, v); if (u) o[v] = u; } return o; }
+function dexImg(a) {
+  if (!a) return null;
+  const files = dexArtFiles();
+  const url = f => { let v = 0; try { v = Math.round(fs.statSync(path.join(DEX_ART_DIR, f)).mtimeMs); } catch (_e) { return null; } return `/assets/aniimo/${encodeURIComponent(f)}?v=${v}`; };
+  if (a.image) { const u = url(a.image); if (u) return u; }
+  const tries = [a.number, String(a.number).replace(/^0+/, ''), a.name, String(a.name).split('/')[0], a.id].map(dexSlug).filter(Boolean);
+  for (const t of tries) { const f = files.get(t); if (f) return url(f); }
+  return null;
+}
+function dexStats() {
+  let total = 0, done = 0, full = 0; const el = {};
+  for (const a of dex.roster) {
+    let n = 0; for (const v of a.variants) { total++; if (dex.checked[dexKey(a.id, v)]) { done++; n++; } }
+    if (a.variants.length && n === a.variants.length) full++;
+    for (const e of String(a.element).split('/').map(s => s.trim()).filter(Boolean)) { const o = el[e] || (el[e] = { done: 0, total: 0 }); o.done += n; o.total += a.variants.length; }
+  }
+  const basic = dex.roster.filter(a => dex.checked[dexKey(a.id, 'Basic Form')]).length;
+  return { total, done, pct: total ? Math.round(done / total * 1000) / 10 : 0, species: dex.roster.length, full, basic, elements: el };
+}
+function dexPublic() {
+  const now = Date.now();
+  return { ok: true, visible: dex.visible, title: dex.title, chat: dex.chat, showElements: dex.showElements, accent: dex.accent, panelColor: dex.panelColor, panelOpacity: dex.panelOpacity,
+    stats: dexStats(), recent: dex.recent.slice(0, 8).map(r => { const a = dexFind(r.id); return { ...r, img: dexFormImg(a, r.variant) || dexImg(a) }; }), popup: dexPopup && dexPopup.until > now ? dexPopup : null, lookup: dexLookup && dexLookup.until > now ? dexLookup : null, now };
+}
+function dexSave() { writeJson(DEX_FILE, dex); broadcast('aniimo', dexPublic()); }
+function dexSet(id, variant, on) {
+  const a = dexFind(id); if (!a || !a.variants.includes(variant)) return false;
+  const k = dexKey(a.id, variant);
+  if (on && !dex.checked[k]) {
+    dex.checked[k] = Date.now();
+    dex.recent = [{ id: a.id, name: a.name, variant, at: Date.now() }].concat(dex.recent.filter(r => !(r.id === a.id && r.variant === variant))).slice(0, 30);
+    const n = a.variants.filter(v => dex.checked[dexKey(a.id, v)]).length;
+    dexPopup = { id: a.id, name: a.name, number: a.number, element: a.element, img: dexImg(a), formImg: dexFormImg(a, variant), variant, have: n, of: a.variants.length, complete: n === a.variants.length, until: Date.now() + dex.popupSec * 1000, at: Date.now() };
+  } else if (!on && dex.checked[k]) { delete dex.checked[k]; dex.recent = dex.recent.filter(r => !(r.id === a.id && r.variant === variant)); }
+  return true;
+}
+// Find an Aniimo by what someone typed: number, exact name, start of name, then anywhere in name.
+function dexSearch(q) {
+  q = String(q || '').toLowerCase().replace(/^#/, '').trim(); if (!q) return null;
+  const R = dex.roster;
+  return R.find(a => a.number === q || a.number.replace(/^0+/, '') === q.replace(/^0+/, '')) || R.find(a => a.name.toLowerCase() === q) ||
+    R.find(a => a.name.toLowerCase().split(/\s*\/\s*/).some(n => n === q)) || R.find(a => a.name.toLowerCase().startsWith(q)) || (q.length >= 3 ? R.find(a => a.name.toLowerCase().includes(q)) : null);
+}
+function dexChat(sender, parts) {
+  if (!dex.chat) return '';
+  const name = cleanString(sender).replace(/^@/, '').slice(0, 40); if (!name) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim().replace(/\s+/g, ' ');
+  const m = /^!(need|dex)\b ?(.*)$/i.exec(text); if (!m) return '';
+  const now = Date.now(), key = name.toLowerCase();
+  if (now - (dexChatSeen.get(key) || 0) < 20000 || now - dexChatLast < 4000) return '';   // 20 s per person, 4 s overall
+  dexChatSeen.set(key, now); dexChatLast = now;
+  const sec = dex.lookupSec * 1000;
+  if (m[1].toLowerCase() === 'dex' || !m[2]) { dexLookup = { kind: 'dex', by: name, until: now + sec, at: now }; broadcast('aniimo', dexPublic()); return 'dex'; }
+  const a = dexSearch(m[2]);
+  if (!a) { dexLookup = { kind: 'notfound', by: name, q: m[2].slice(0, 30), until: now + 6000, at: now }; broadcast('aniimo', dexPublic()); return 'not found'; }
+  const have = a.variants.filter(v => dex.checked[dexKey(a.id, v)]), need = a.variants.filter(v => !dex.checked[dexKey(a.id, v)]);
+  dexLookup = { kind: 'need', by: name, id: a.id, name: a.name, number: a.number, element: a.element, img: dexImg(a), formImgs: dexFormImgs(a), have, need, until: now + sec, at: now };
+  broadcast('aniimo', dexPublic()); return `${a.name}: needs ${need.length}`;
+}
+async function handleDexApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/aniimo' && method === 'GET') return sendJson(res, 200, dexPublic());
+    if (pathname === '/api/aniimo/admin' && method === 'GET') return sendJson(res, 200, { ...dexPublic(), roster: dex.roster.map(a => ({ ...a, img: dexImg(a), formImgs: dexFormImgs(a) })), checked: dex.checked, popupSec: dex.popupSec, lookupSec: dex.lookupSec, elements: DEX_ELEMENTS });
+    if (pathname === '/api/aniimo' && method === 'POST') {
+      const b = await readBody(req);
+      for (const k of ['visible', 'chat', 'showElements']) if (typeof b[k] === 'boolean') dex[k] = b[k];
+      if (typeof b.title === 'string') dex.title = cleanString(b.title).slice(0, 60);
+      if (b.popupSec !== undefined) dex.popupSec = Math.max(2, Math.min(60, Math.round(Number(b.popupSec)) || 8));
+      if (b.lookupSec !== undefined) dex.lookupSec = Math.max(4, Math.min(60, Math.round(Number(b.lookupSec)) || 14));
+      if (b.panelOpacity !== undefined) dex.panelOpacity = Math.max(0, Math.min(100, Math.round(Number(b.panelOpacity)) || 0));
+      for (const k of ['accent', 'panelColor']) if (b[k] !== undefined && newsHex(b[k])) dex[k] = b[k];
+      if (b.check && b.check.id) dexSet(b.check.id, dexCleanVariant(b.check.variant), b.check.on !== false);
+      if (b.checkAll && b.checkAll.id) { const a = dexFind(b.checkAll.id); if (a) for (const v of a.variants) dexSet(a.id, v, b.checkAll.on !== false); }
+      if (b.lookup) { const a = dexSearch(b.lookup); if (a) { const now = Date.now(); dexLookup = { kind: 'need', by: '', id: a.id, name: a.name, number: a.number, element: a.element, img: dexImg(a), formImgs: dexFormImgs(a),
+        have: a.variants.filter(v => dex.checked[dexKey(a.id, v)]), need: a.variants.filter(v => !dex.checked[dexKey(a.id, v)]), until: now + dex.lookupSec * 1000, at: now }; } }
+      if (b.lookupDex) { const now = Date.now(); dexLookup = { kind: 'dex', by: '', until: now + dex.lookupSec * 1000, at: now }; }
+      if (b.hideNow) { dexPopup = null; dexLookup = null; }
+      // Roster editing (hers): save one Aniimo (new or existing), or remove one.
+      if (b.saveAniimo) {
+        const old = b.saveAniimo.id ? dexFind(b.saveAniimo.id) : null;
+        const a = dexCleanAniimo(b.saveAniimo, old ? old.id : `x${dex.seq++}`);
+        if (!a.name) return sendJson(res, 400, { ok: false, error: 'An Aniimo needs a name.' });
+        if (!a.variants.length) a.variants = ['Basic Form'];
+        if (old) {
+          a.image = old.image || '';   // the picture is set with /api/aniimo/image, not the edit form
+          a.formImages = Object.fromEntries(Object.entries(old.formImages || {}).filter(([v]) => a.variants.includes(v)));
+          for (const v of old.variants) if (!a.variants.includes(v)) delete dex.checked[dexKey(old.id, v)];   // removed forms lose their check
+          Object.assign(old, a);
+        } else dex.roster.push(a);
+        dex.roster.sort((x, y) => (parseInt(x.number, 10) || 1e9) - (parseInt(y.number, 10) || 1e9) || x.name.localeCompare(y.name));
+      }
+      if (b.removeAniimo) { const a = dexFind(b.removeAniimo); if (a) { for (const v of a.variants) delete dex.checked[dexKey(a.id, v)]; dex.roster = dex.roster.filter(x => x !== a); dex.recent = dex.recent.filter(r => r.id !== a.id); } }
+      // Add / rename a form on EVERY Aniimo at once (e.g. a new mutation type arrives in a patch).
+      if (b.addFormAll) { const v = dexCleanVariant(b.addFormAll); if (v) for (const a of dex.roster) if (!a.variants.includes(v)) a.variants.push(v); }
+      if (b.renameForm && b.renameForm.from && b.renameForm.to) {
+        const f = dexCleanVariant(b.renameForm.from), t = dexCleanVariant(b.renameForm.to);
+        if (f && t && f !== t) for (const a of dex.roster) { const i = a.variants.indexOf(f); if (i >= 0 && !a.variants.includes(t)) { a.variants[i] = t; if (a.formImages && a.formImages[f]) { a.formImages[t] = a.formImages[f]; delete a.formImages[f]; } const k = dexKey(a.id, f); if (dex.checked[k]) { dex.checked[dexKey(a.id, t)] = dex.checked[k]; delete dex.checked[k]; } } }
+      }
+      // Import: our own backup ({checked:{"id|variant":ts}}) or the friend tracker's ({checked:{"number|name|variant":true}}).
+      if (b.import && typeof b.import === 'object') {
+        const src = b.import.checked && typeof b.import.checked === 'object' ? b.import.checked : b.import; let n = 0;
+        if (Array.isArray(b.import.roster) && b.import.roster.length && b.replaceRoster) dex.roster = b.import.roster.map(a => dexCleanAniimo(a)).filter(a => a.id && a.name);
+        for (const k of Object.keys(src)) {
+          if (!src[k]) continue;
+          const p = k.split('|'), id = p[0], v = dexCleanVariant(p[p.length - 1]);
+          const a = dexFind(id) || dex.roster.find(x => p.length > 2 && x.name === p[1]);
+          if (a && a.variants.includes(v) && !dex.checked[dexKey(a.id, v)]) { dex.checked[dexKey(a.id, v)] = typeof src[k] === 'number' ? src[k] : Date.now(); n++; }
+        }
+        dexSave(); return sendJson(res, 200, { ok: true, imported: n });
+      }
+      if (b.resetChecks === 'yes') { dex.checked = {}; dex.recent = []; }
+      dexSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/aniimo/export' && method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="aniimo-dex-backup.json"' });
+      return res.end(JSON.stringify({ app: 'ICB Aniimo Dex', exportedAt: new Date().toISOString(), roster: dex.roster, checked: dex.checked }, null, 2));
+    }
+    // Picture for one Aniimo: { id, dataUrl } saves it (assets/aniimo/<number>.<ext>); { id, remove: true } clears it.
+    if (pathname === '/api/aniimo/image' && method === 'POST') {
+      const b = await readBody(req); const a = dexFind(b.id);
+      if (!a) return sendJson(res, 404, { ok: false, error: 'No Aniimo with that id.' });
+      // A photo for ONE form: { id, variant, dataUrl } / { id, variant, remove: true }. Optional tick: true also ticks it.
+      if (b.variant) {
+        const v = dexCleanVariant(b.variant);
+        if (!a.variants.includes(v)) return sendJson(res, 400, { ok: false, error: 'That Aniimo has no such form.' });
+        a.formImages = a.formImages || {};
+        if (a.formImages[v]) { try { fs.unlinkSync(path.join(DEX_ART_DIR, a.formImages[v])); } catch (_e) {} }
+        if (b.remove) { delete a.formImages[v]; dexSave(); return sendJson(res, 200, { ok: true }); }
+        const fm = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(b.dataUrl || ''));
+        if (!fm) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, JPG, WEBP, or GIF.' });
+        const fb = Buffer.from(fm[2], 'base64');
+        if (fb.length > 9 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+        const fname = `${(dexSlug(a.number) || dexSlug(a.name) || a.id).slice(0, 30)}__${dexSlug(v).slice(0, 40) || 'form'}.${fm[1] === 'jpeg' ? 'jpg' : fm[1]}`;
+        fs.writeFileSync(path.join(DEX_ART_DIR, fname), fb);
+        a.formImages[v] = fname;
+        if (b.tick) dexSet(a.id, v, true);
+        dexSave(); return sendJson(res, 200, { ok: true, img: dexFormImg(a, v) });
+      }
+      if (b.remove) {
+        const cur = dexImg(a);   // her uploaded picture, or a file she dropped in that was matched by name/number
+        if (cur) { try { fs.unlinkSync(path.join(DEX_ART_DIR, decodeURIComponent(cur.split('/').pop().split('?')[0]))); } catch (_e) {} }
+        a.image = ''; dexArtList = null; dexSave(); return sendJson(res, 200, { ok: true });
+      }
+      const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(b.dataUrl || ''));
+      if (!match) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, JPG, WEBP, or GIF.' });
+      const buffer = Buffer.from(match[2], 'base64');
+      if (buffer.length > 9 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base = (dexSlug(a.number) || dexSlug(a.name) || a.id).slice(0, 30);
+      if (a.image) { try { fs.unlinkSync(path.join(DEX_ART_DIR, a.image)); } catch (_e) {} }
+      for (const e of ['png', 'jpg', 'jpeg', 'webp', 'gif']) { try { fs.unlinkSync(path.join(DEX_ART_DIR, `${base}.${e}`)); } catch (_e) {} }
+      a.image = `${base}.${ext}`;
+      fs.writeFileSync(path.join(DEX_ART_DIR, a.image), buffer);
+      dexArtList = null; dexSave(); return sendJson(res, 200, { ok: true, img: dexImg(a) });
+    }
+    if (pathname === '/api/aniimo/test' && method === 'POST') {
+      const b = await readBody(req); dexChatSeen.clear(); dexChatLast = 0;
+      return sendJson(res, 200, { ok: true, reply: dexChat(cleanString(b.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.text) }]) || 'ignored' });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown aniimo route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Aniimo Dex request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FORTNITE SPRITES (Baby, 2026-10-18). Collection tracker for the season's sprites and their
+// variants (Base, Gold, Quack, Cheat Master, Loot Hacker, Bounty Hunter, Trick or Treat...).
+//   - Roster seeded once from config/sprites-c7s4.json (27 sprites / 162 variants), then owned by
+//     data/sprites.json - she adds / edits / removes on the dashboard. Pictures in assets/sprites/.
+//   - Dashboard /sprites-control.html: one panel per sprite with a circle per variant (like the game).
+//   - "New season" archives the season to data/sprites-<season>.json and starts an empty list.
+//   - GET /api/sprites gives stats + recent + the latest catch (for a stream overlay, still to design).
+// ---------------------------------------------------------------------------
+const SPR_FILE = path.join(DATA_DIR, 'sprites.json');
+const SPR_SEED = path.join(APP_DIR, 'config', 'sprites-c7s4.json');
+const SPR_ART_DIR = path.join(APP_DIR, 'assets', 'sprites');
+try { fs.mkdirSync(SPR_ART_DIR, { recursive: true }); } catch (_error) {}
+const SPR_RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Exotic'];
+const sprSlug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+const sprCleanVar = v => cleanString(v).replace(/[<>|]/g, '').slice(0, 40);
+function sprClean(s, id) {
+  const variants = [];
+  for (const v of (Array.isArray(s.variants) ? s.variants : String(s.variants || '').split(/\r?\n|,/))) { const c = sprCleanVar(v); if (c && !variants.includes(c)) variants.push(c); }
+  return { id: id || sprSlug(s.id || s.name), name: cleanString(s.name).replace(/[<>]/g, '').slice(0, 40), rarity: SPR_RARITIES.includes(s.rarity) ? s.rarity : 'Rare',
+    variants: variants.length ? variants.slice(0, 20) : ['Base'], image: s.image && DECOR_IMAGE_EXT.test(String(s.image)) ? path.basename(String(s.image)) : '' };
+}
+function sprLoad() {
+  const raw = readJson(SPR_FILE, null);
+  const d = { season: 'Chapter 7 Season 4', sprites: [], caught: {}, recent: [], popupSec: 8, ...(raw || {}) };
+  if (!raw) { const seed = readJson(SPR_SEED, null); if (seed) { d.season = seed.season || d.season; d.sprites = (seed.sprites || []).map(s => sprClean(s)).filter(s => s.id && s.name); } }
+  d.caught = d.caught && typeof d.caught === 'object' ? d.caught : {};
+  d.recent = Array.isArray(d.recent) ? d.recent.slice(0, 30) : [];
+  return d;
+}
+let spr = sprLoad();
+let sprPopup = null;
+const sprKey = (id, v) => `${id}|${v}`;
+const sprFind = id => spr.sprites.find(s => s.id === String(id));
+function sprImg(s) {
+  if (!s) return null;
+  // Her uploaded picture, else a file named after the sprite id (e.g. assets/sprites/jonesy.png).
+  const names = (s.image ? [s.image] : []).concat(['png', 'webp', 'jpg', 'jpeg', 'gif'].map(e => `${s.id}.${e}`));
+  for (const f of names) { try { return `/assets/sprites/${encodeURIComponent(f)}?v=${Math.round(fs.statSync(path.join(SPR_ART_DIR, f)).mtimeMs)}`; } catch (_e) {} }
+  return null;
+}
+// Drop-file import (2026-10-18): data/sprites-import.json = { caught: { "jonesy": ["Base","Gold"] } }
+// is merged in (adds catches only) and renamed to sprites-import.imported-<ms>.json. Checked at
+// start-up and every 3 s, so catches read from her screenshots can be added while ICB runs.
+const SPR_IMPORT = path.join(DATA_DIR, 'sprites-import.json');
+function sprImportCheck() {
+  if (!fs.existsSync(SPR_IMPORT)) return;
+  try {
+    const d = readJson(SPR_IMPORT, null) || {}; let n = 0;
+    for (const [id, vars] of Object.entries(d.caught || {})) {
+      const s = sprFind(id) || spr.sprites.find(x => x.name.toLowerCase() === String(id).toLowerCase()); if (!s) continue;
+      for (const v of (Array.isArray(vars) ? vars : [])) {
+        const vv = s.variants.find(x => x.toLowerCase() === String(v).toLowerCase() || x.split(' ')[0].toLowerCase() === String(v).toLowerCase());
+        if (vv && !spr.caught[sprKey(s.id, vv)]) { spr.caught[sprKey(s.id, vv)] = Date.now(); n++; }
+      }
+    }
+    // Optional rarity fixes: { rarity: { "overshield": "Rare" } } (read from the game's card colours).
+    for (const [id, r] of Object.entries(d.rarity || {})) { const s = sprFind(id); if (s && SPR_RARITIES.includes(r) && s.rarity !== r) { s.rarity = r; n++; } }
+    fs.renameSync(SPR_IMPORT, path.join(DATA_DIR, `sprites-import.imported-${Date.now()}.json`));
+    sprSave(); console.log(`[sprites] imported ${n} catches`);
+  } catch (error) { console.log('[sprites] import failed:', error.message); }
+}
+sprImportCheck(); setInterval(sprImportCheck, 3000);
+function sprStats() {
+  let total = 0, done = 0, full = 0, base = 0; const byVar = {}, byRarity = {};
+  for (const s of spr.sprites) {
+    let n = 0;
+    for (const v of s.variants) { total++; const has = !!spr.caught[sprKey(s.id, v)]; if (has) { done++; n++; } const o = byVar[v] || (byVar[v] = { done: 0, total: 0 }); o.total++; if (has) o.done++; }
+    if (n === s.variants.length) full++;
+    if (spr.caught[sprKey(s.id, s.variants[0])]) base++;
+    const r = byRarity[s.rarity] || (byRarity[s.rarity] = { done: 0, total: 0 }); r.total += s.variants.length; r.done += n;
+  }
+  return { total, done, pct: total ? Math.round(done / total * 1000) / 10 : 0, sprites: spr.sprites.length, full, base, byVar, byRarity };
+}
+function sprPublic() {
+  const now = Date.now();
+  return { ok: true, season: spr.season, stats: sprStats(), recent: spr.recent.slice(0, 8).map(r => ({ ...r, img: sprImg(sprFind(r.id)) })),
+    popup: sprPopup && sprPopup.until > now ? sprPopup : null, now };
+}
+function sprSave() { writeJson(SPR_FILE, spr); broadcast('sprites', sprPublic()); }
+function sprSet(id, v, on) {
+  const s = sprFind(id); if (!s || !s.variants.includes(v)) return false;
+  const k = sprKey(s.id, v);
+  if (on && !spr.caught[k]) {
+    spr.caught[k] = Date.now();
+    spr.recent = [{ id: s.id, name: s.name, variant: v, at: Date.now() }].concat(spr.recent.filter(r => !(r.id === s.id && r.variant === v))).slice(0, 30);
+    const n = s.variants.filter(x => spr.caught[sprKey(s.id, x)]).length;
+    sprPopup = { id: s.id, name: s.name, rarity: s.rarity, variant: v, img: sprImg(s), have: n, of: s.variants.length, complete: n === s.variants.length, at: Date.now(), until: Date.now() + (spr.popupSec || 8) * 1000 };
+  } else if (!on && spr.caught[k]) { delete spr.caught[k]; spr.recent = spr.recent.filter(r => !(r.id === s.id && r.variant === v)); }
+  return true;
+}
+async function handleSpritesApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/sprites/jar' || pathname.startsWith('/api/sprites/jar/')) return await handleSpriteJarApi(req, res, pathname, method);
+    if (pathname === '/api/sprites' && method === 'GET') return sendJson(res, 200, sprPublic());
+    if (pathname === '/api/sprites/admin' && method === 'GET') { const ap = sjArtPublic(), art = ap.urls; return sendJson(res, 200, { ...sprPublic(), needArt: ap.need, sprites: spr.sprites.map(s => ({ ...s, img: sprImg(s), art: art[s.id] || {} })), caught: spr.caught, rarities: SPR_RARITIES, popupSec: spr.popupSec }); }
+    if (pathname === '/api/sprites' && method === 'POST') {
+      const b = await readBody(req);
+      if (b.catch && b.catch.id) {
+        const had = !!spr.caught[sprKey(b.catch.id, sprCleanVar(b.catch.variant))];
+        sprSet(b.catch.id, sprCleanVar(b.catch.variant), b.catch.on !== false);
+        const s0 = sprFind(b.catch.id);   // jar overlay: play the float-into-the-book when she ticks it here (her switch)
+        if (s0 && b.catch.on !== false && !had && sjCfg().dashPlays) sjPush(s0, sprCleanVar(b.catch.variant), { kind: 'catch' });
+      }
+      if (b.catchAll && b.catchAll.id) { const s = sprFind(b.catchAll.id); if (s) for (const v of s.variants) sprSet(s.id, v, b.catchAll.on !== false); }
+      if (typeof b.season === 'string' && cleanString(b.season)) spr.season = cleanString(b.season).slice(0, 60);
+      if (b.popupSec !== undefined) spr.popupSec = Math.max(2, Math.min(60, Math.round(Number(b.popupSec)) || 8));
+      if (b.saveSprite) {
+        const old = b.saveSprite.id ? sprFind(b.saveSprite.id) : null;
+        const s = sprClean(b.saveSprite, old ? old.id : null);
+        if (!s.name) return sendJson(res, 400, { ok: false, error: 'A sprite needs a name.' });
+        if (old) { s.image = old.image; for (const v of old.variants) if (!s.variants.includes(v)) delete spr.caught[sprKey(old.id, v)]; Object.assign(old, s); }
+        else { let id = s.id || 'sprite', n = 2; while (sprFind(id)) id = `${s.id}-${n++}`; s.id = id; spr.sprites.push(s); }
+      }
+      if (b.removeSprite) { const s = sprFind(b.removeSprite); if (s) { for (const v of s.variants) delete spr.caught[sprKey(s.id, v)]; spr.sprites = spr.sprites.filter(x => x !== s); spr.recent = spr.recent.filter(r => r.id !== s.id); } }
+      if (b.move && b.move.id) { const i = spr.sprites.findIndex(s => s.id === b.move.id), j = i + (Number(b.move.dir) < 0 ? -1 : 1);
+        if (i >= 0 && j >= 0 && j < spr.sprites.length) { const t = spr.sprites[i]; spr.sprites[i] = spr.sprites[j]; spr.sprites[j] = t; } }
+      if (b.addVariantAll) { const v = sprCleanVar(b.addVariantAll); if (v) for (const s of spr.sprites) if (s.variants.length > 1 && !s.variants.includes(v)) s.variants.push(v); }
+      // New season: save this season to its own file, then start fresh (keep sprites? her choice).
+      if (b.newSeason) {
+        const name = cleanString(b.newSeason).slice(0, 60);
+        writeJson(path.join(DATA_DIR, `sprites-${sprSlug(spr.season) || 'old'}-${Date.now()}.json`), spr);
+        spr = { season: name || 'New season', sprites: b.keepSprites ? spr.sprites : [], caught: {}, recent: [], popupSec: spr.popupSec, jar: spr.jar };
+      }
+      if (b.resetCatches === 'yes') { spr.caught = {}; spr.recent = []; }
+      sprSave(); return sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/sprites/image' && method === 'POST') {
+      const b = await readBody(req); const s = sprFind(b.id);
+      if (!s) return sendJson(res, 404, { ok: false, error: 'No sprite with that id.' });
+      if (s.image) { try { fs.unlinkSync(path.join(SPR_ART_DIR, s.image)); } catch (_e) {} }
+      if (b.remove) { s.image = ''; sprSave(); return sendJson(res, 200, { ok: true }); }
+      const m = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(b.dataUrl || ''));
+      if (!m) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, JPG, WEBP, or GIF.' });
+      const buf = Buffer.from(m[2], 'base64'); if (buf.length > 9 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+      s.image = `${s.id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+      fs.writeFileSync(path.join(SPR_ART_DIR, s.image), buf);
+      sprSave(); return sendJson(res, 200, { ok: true, img: sprImg(s) });
+    }
+    if (pathname === '/api/sprites/export' && method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="sprites-backup.json"' });
+      return res.end(JSON.stringify(spr, null, 2));
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown sprites route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Sprites request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SPRITE JAR + STICKER BOOK (Baby, 2026-10-18). Stream overlay for catching sprites:
+// a glass jar holds every sprite this season; when she (or a mod on her list) types
+// "!jonesy gold" the sticker book pops open and that sprite floats out of the jar into
+// its sticker spot. Catches are the same as ticking the circle on the sprites dashboard.
+//   - Overlay /sprite-jar.html (full-screen Meld layer), dashboard /sprite-jar-control.html.
+//   - Settings live in data/sprites.json under "jar". Jar art: the unicorn jar pair in assets/resources
+//     (JAR_BACK.png behind the sprites, JAR_FRONT.png over them); an uploaded picture in assets/sprite-jar/ replaces it.
+//   - Meld doesn't tell ICB who is a mod, so she lists who may catch (default: her).
+// ---------------------------------------------------------------------------
+const SJ_DIR = path.join(APP_DIR, 'assets', 'sprite-jar');
+try { fs.mkdirSync(SJ_DIR, { recursive: true }); } catch (_error) {}
+function sjDefaults() {
+  return { listen: true, visible: true, allowed: 'IJustABabyTv', needPrefix: false, dashPlays: false, removeComplete: false, jarHolds: 'stickers', leaveCaught: false, mode: 'floor', floorL: 2, floorR: 98, floorH: 16, floorB: 1, toySize: 100,
+    bookStyle: 'propped', bookTheme: 'spooky', pbX: 1, pbW: 33, pbB: 1.5, pbTilt: -3, pbLean: 10, pbAuto: 0, baseBook: 170, baseToy: 140, baseCelebrate: true, bookOpen: false, catchOpens: true, avoidBook: false, mixSeed: 0,
+    jarX: 3, jarY: 38, jarW: 17, bookX: 50, bookY: 50, bookW: 46, bookSec: 9, title: 'Sprite Sticker Book',
+    jarImage: '', inL: 10, inT: 22, inW: 80, inH: 64, spriteSize: 100, epoch: 1 };
+}
+function sjCfg() { spr.jar = { ...sjDefaults(), ...(spr.jar || {}) }; return spr.jar; }
+let sjEvents = [], sjSeq = 1, sjLastChat = [];
+const sjLev = (a, b) => {
+  const m = a.length, n = b.length; if (Math.abs(m - n) > 2) return 9; const d = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);   // swapped letters (jonsey)
+  }
+  return d[m][n];
+};
+// "jonesy gold", "one wish willow cheat", "jonsey" (typo ok), "crash bandicoot loot hacker"
+function sjParse(words) {
+  const flat = w => w.join('').toLowerCase().replace(/[^a-z0-9]/g, '');
+  for (let k = Math.min(words.length, 4); k >= 1; k--) {
+    const c = flat(words.slice(0, k)); if (!c) continue;
+    let s = spr.sprites.find(x => flat([x.id]) === c || flat([x.name]) === c);
+    if (!s && c.length >= 5) s = spr.sprites.find(x => sjLev(flat([x.name]), c) <= (c.length >= 8 ? 2 : 1));
+    if (!s) continue;
+    const rest = words.slice(k).join(' ').toLowerCase().trim();
+    if (!rest) return { s, v: s.variants[0] };
+    const v = s.variants.find(x => x.toLowerCase() === rest) || s.variants.find(x => x.toLowerCase().split(' ').includes(rest.split(' ')[0]))
+      || s.variants.find(x => x.toLowerCase().startsWith(rest.split(' ')[0]));
+    return v ? { s, v } : { s, v: null, bad: rest };
+  }
+  return null;
+}
+function sjPush(s, v, extra) {
+  const n = s.variants.filter(x => spr.caught[sprKey(s.id, x)]).length;
+  const ev = { id: sjSeq++, sprite: s.id, name: s.name, rarity: s.rarity, variant: v, img: sjCut(s) || sprImg(s), have: n, of: s.variants.length,
+    complete: n === s.variants.length, stats: sprStats(), at: Date.now(), ...(extra || {}) };
+  sjEvents.push(ev); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+  return ev;
+}
+function sjCatch(s, v, who) {
+  const already = !!spr.caught[sprKey(s.id, v)];
+  if (!already) { sprSet(s.id, v, true); sprSave(); sjLastChat.push({ id: s.id, v }); if (sjLastChat.length > 20) sjLastChat.shift(); }
+  sjPush(s, v, { kind: already ? 'already' : 'catch', who: who || '' });
+  return already ? 'already' : 'caught';
+}
+// Page turning (2026-10-19): { kind: 'turn', dir: 1 | -1 } or { kind: 'turn', sprite: id }.
+function sjTurn(dirOrId) {
+  const ev = { id: sjSeq++, kind: 'turn', at: Date.now() };
+  if (typeof dirOrId === 'number') ev.dir = dirOrId < 0 ? -1 : 1; else ev.sprite = String(dirOrId);
+  sjEvents.push(ev); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+  return 'turn';
+}
+// Mix up the toys: a new layout seed (saved, so it sticks) + an event so the overlay animates the move.
+function sjMix() {
+  const c = sjCfg(); c.mixSeed = ((Number(c.mixSeed) || 0) + 1) % 100000;
+  sjEvents.push({ id: sjSeq++, kind: 'shuffle', at: Date.now() }); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+  sprSave(); return 'mixed';
+}
+function sjChat(sender, parts) {
+  const c = sjCfg(); if (!c.listen) return '';
+  const name = cleanString(sender).replace(/^@/, '').toLowerCase();
+  const ok = String(c.allowed || '').split(/[\s,]+/).map(x => x.toLowerCase().replace(/^@/, '')).filter(Boolean);
+  if (!name || !ok.includes(name)) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim();
+  const m = /^!(\S+)\s*(.*)$/.exec(text); if (!m) return '';
+  let cmd = m[1].toLowerCase(), words = m[2].split(/\s+/).filter(Boolean);
+  // "!open" / "!close": the propped book lies closed on the floor until she opens it (2026-10-19)
+  if (cmd === 'mix' || cmd === 'shuffle') return sjMix();
+  if (cmd === 'open' || cmd === 'close') { c.bookOpen = cmd === 'open'; sprSave(); return cmd; }
+  if (cmd === 'undo' || cmd === 'unsticker') {
+    const last = sjLastChat.pop(); const s = last && sprFind(last.id); if (!s) return '';
+    sprSet(s.id, last.v, false); sprSave(); sjPush(s, last.v, { kind: 'undo' }); return 'undone';
+  }
+  // "!page" next page, "!page back" previous, "!page jonesy" / "!book jonesy" turns to that sprite
+  if (cmd === 'page' || ((cmd === 'book' || cmd === 'stickers') && words.length)) {
+    const w = words.join(' ').toLowerCase();
+    if (!w || ['next', 'forward', '>'].includes(w)) return sjTurn(1);
+    if (['back', 'prev', 'previous', '<', 'last'].includes(w)) return sjTurn(-1);
+    const r = sjParse(words); return r ? sjTurn(r.s.id) : '';
+  }
+  if (cmd === 'book' || cmd === 'stickers') { const s = (spr.recent[0] && sprFind(spr.recent[0].id)) || spr.sprites[0]; if (s) sjPush(s, '', { kind: 'peek' }); return 'peek'; }
+  if (['catch', 'sticker', 'sprite', 'caught'].includes(cmd)) { /* "!catch jonesy gold" */ }
+  else if (c.needPrefix) return '';
+  else words = [m[1]].concat(words);
+  const r = sjParse(words); if (!r) return '';
+  if (!r.v) { sjPush(r.s, '', { kind: 'unknown', bad: r.bad }); return 'no-variant'; }
+  return sjCatch(r.s, r.v, sender);
+}
+// Sticker art (2026-10-19): assets/sprites/<Sprite Name>/<Name>_<Variant>.png, e.g. Jonesy/Jonesy_Gold.png,
+// Jonesy/Jonesy.png = Base. Folder and file names are matched loosely (case, spaces, "Adventrue" typo).
+// Her art is ~1250 px, so the browser (dashboard or overlay) makes 256 px copies in
+// assets/sprite-jar/stickers/<id>__<variant>-<source mtime>.webp; a newer source file makes a new copy.
+const SJ_STK_DIR = path.join(SJ_DIR, 'stickers');
+try { fs.mkdirSync(SJ_STK_DIR, { recursive: true }); } catch (_error) {}
+const sjFlat = v => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function sjArtScan() {
+  const out = {};
+  let dirs = []; try { dirs = fs.readdirSync(SPR_ART_DIR, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch (_e) {}
+  let thumbs = []; try { thumbs = fs.readdirSync(SJ_STK_DIR); } catch (_e) {}
+  for (const sp of spr.sprites) {
+    const dir = dirs.find(d => sjFlat(d) === sjFlat(sp.name) || sjFlat(d) === sjFlat(sp.id)); if (!dir) continue;
+    let files = []; try { files = fs.readdirSync(path.join(SPR_ART_DIR, dir)).filter(f => /\.(png|webp|jpe?g|gif)$/i.test(f)); } catch (_e) {}
+    for (const f of files) {
+      const stem = f.replace(/\.[a-z0-9]+$/i, ''), us = stem.indexOf('_');
+      let v = null;
+      let score = 3;
+      if (us < 0) v = sp.variants[0];
+      else {
+        const raw = stem.slice(us + 1), suf = sjFlat(raw);
+        v = sp.variants.find(x => sjFlat(x) === suf); score = 3;
+        if (!v) { v = sp.variants.find(x => sjFlat(x).startsWith(suf) || suf.startsWith(sjFlat(x))); score = 2; }
+        if (!v && suf === 'base') { v = sp.variants[0]; score = 3; }
+        if (!v) {   // near-miss names like "Klombo_Loot_Master": go by the first word (Loot -> Loot Hacker) when only one variant starts with it
+          const w0 = sjFlat(raw.split(/[_\s-]+/)[0]), hits = sp.variants.filter(x => w0 && sjFlat(x.split(/\s+/)[0]) === w0);
+          if (hits.length === 1) { v = hits[0]; score = 1; }
+        }
+      }
+      if (!v) continue;
+      let st = null; try { st = fs.statSync(path.join(SPR_ART_DIR, dir, f)); } catch (_e) { continue; }
+      const mt = Math.round(st.mtimeMs), isWebp = /\.webp$/i.test(f), had = (out[sp.id] || {})[v];
+      if (had && had.score > score) continue;   // an exact name beats a near-miss
+      if (had && had.score === score && had.webp && !isWebp) continue;   // her small .webp copy wins over the big .png (2026-10-19)
+      const key = `${sp.id}__${sprSlug(v)}`, thumb = `${key}-${mt}.webp`;
+      const src = `/assets/sprites/${encodeURIComponent(dir)}/${encodeURIComponent(f)}`;
+      const direct = isWebp && st.size <= 700 * 1024;   // small webp: use it as-is, no copy needed
+      (out[sp.id] || (out[sp.id] = {}))[v] = { src, key, thumb, webp: isWebp, score, direct: direct ? `${src}?v=${mt}` : null, ready: direct || thumbs.includes(thumb) };
+    }
+  }
+  return out;
+}
+function sjArtPublic() {
+  const art = sjArtScan(), urls = {}, need = [];
+  for (const [id, vs] of Object.entries(art)) for (const [v, a] of Object.entries(vs)) {
+    if (a.direct) (urls[id] || (urls[id] = {}))[v] = a.direct;
+    else if (a.ready) (urls[id] || (urls[id] = {}))[v] = `/assets/sprite-jar/stickers/${encodeURIComponent(a.thumb)}`;
+    else need.push({ id, variant: v, src: a.src });
+  }
+  return { urls, need };
+}
+// The jar uses the see-through cut-out (same picture as the chat avatar, assets/avatars/<id>.png) when there is one.
+function sjCut(s) {
+  for (const e of ['png', 'webp', 'gif']) { const f = `${s.id}.${e}`; try { return `/assets/avatars/${f}?v=${Math.round(fs.statSync(path.join(APP_DIR, 'assets', 'avatars', f)).mtimeMs)}`; } catch (_e) {} }
+  return null;
+}
+function sjPublic() {
+  const c = sjCfg(), art = sjArtPublic();
+  return { ok: true, season: spr.season, settings: { ...c, jarBack: '/resource-art/JAR_BACK.png', jarFront: '/resource-art/JAR_FRONT.png', jarUrl: c.jarImage ? `/assets/sprite-jar/${encodeURIComponent(c.jarImage)}?v=${(() => { try { return Math.round(fs.statSync(path.join(SJ_DIR, c.jarImage)).mtimeMs); } catch (_e) { return 0; } })()}` : '' },
+    sprites: spr.sprites.map(s => ({ id: s.id, name: s.name, rarity: s.rarity, img: sjCut(s) || sprImg(s), variants: s.variants, caught: s.variants.filter(v => spr.caught[sprKey(s.id, v)]), art: art.urls[s.id] || {} })),
+    needArt: art.need,
+    stats: sprStats(), recent: spr.recent[0] ? spr.recent[0].id : null, last: sjSeq - 1 };
+}
+async function handleSpriteJarApi(req, res, pathname, method) {
+  if (pathname === '/api/sprites/jar' && method === 'GET') {
+    const q = new URL(req.url, 'http://x').searchParams, since = Number(q.get('since')) || 0;
+    return sendJson(res, 200, { ...sjPublic(), events: q.get('first') ? [] : sjEvents.filter(e => e.id > since) });
+  }
+  if (pathname === '/api/sprites/jar' && method === 'POST') {
+    const b = await readBody(req), c = sjCfg();
+    for (const k of ['listen', 'visible', 'needPrefix', 'dashPlays', 'removeComplete', 'leaveCaught', 'baseCelebrate', 'bookOpen', 'catchOpens', 'avoidBook']) if (typeof b[k] === 'boolean') c[k] = b[k];
+    if (['stickers', 'sprites'].includes(b.jarHolds)) c.jarHolds = b.jarHolds;
+    if (['jar', 'floor'].includes(b.mode)) c.mode = b.mode;
+    if (['propped', 'pop'].includes(b.bookStyle)) c.bookStyle = b.bookStyle;   // propped = always on screen, leaning on the floor (2026-10-19)
+    if (['spooky', 'cute'].includes(b.bookTheme)) c.bookTheme = b.bookTheme;   // floor = toys scattered along the bottom of the stream (2026-10-19)
+    const nums = { jarX: [0, 95], jarY: [0, 95], jarW: [4, 60], bookX: [10, 90], bookY: [10, 90], bookW: [20, 90], bookSec: [3, 60], inL: [0, 90], inT: [0, 90], inW: [10, 100], inH: [10, 100], spriteSize: [30, 250], floorL: [0, 90], floorR: [10, 100], floorH: [3, 60], floorB: [0, 60], toySize: [30, 300], pbX: [0, 80], pbW: [10, 60], pbB: [0, 60], pbTilt: [-20, 20], pbLean: [0, 40], pbAuto: [0, 300], baseBook: [100, 230], baseToy: [60, 250] };
+    for (const [k, [lo, hi]] of Object.entries(nums)) if (b[k] !== undefined && Number.isFinite(Number(b[k]))) c[k] = Math.max(lo, Math.min(hi, Number(b[k])));
+    for (const k of ['allowed', 'title']) if (typeof b[k] === 'string') c[k] = cleanString(b[k]).slice(0, 400);
+    if (b.play && b.play.id) { const s = sprFind(b.play.id); const v = s && (s.variants.includes(b.play.variant) ? b.play.variant : s.variants[0]); if (s) sjPush(s, v, { kind: 'catch', test: true }); }
+    if (b.catchCmd) { const r = sjParse(String(b.catchCmd).replace(/^!/, '').split(/\s+/).filter(Boolean)); if (!r || !r.v) return sendJson(res, 400, { ok: false, error: 'No sprite/variant matches that.' }); sjCatch(r.s, r.v, 'dashboard'); }
+    if (b.showBook) { const s = (spr.recent[0] && sprFind(spr.recent[0].id)) || spr.sprites[0]; if (s) sjPush(s, '', { kind: 'peek' }); }
+    if (b.shuffle) sjMix();
+    if (b.turn) sjTurn(b.turn.sprite ? String(b.turn.sprite) : Number(b.turn.dir) || 1);
+    if (b.removeJar) { if (c.jarImage) { try { fs.unlinkSync(path.join(SJ_DIR, c.jarImage)); } catch (_e) {} } c.jarImage = ''; }
+    if (b.reset) c.epoch++;
+    sprSave(); return sendJson(res, 200, { ok: true });
+  }
+  if (pathname === '/api/sprites/jar/sticker' && method === 'POST') {
+    const b = await readBody(req), a = (sjArtScan()[String(b.id)] || {})[String(b.variant)];
+    if (!a) return sendJson(res, 404, { ok: false, error: 'No sticker art for that.' });
+    const m = /^data:image\/(webp|png);base64,(.+)$/.exec(String(b.dataUrl || ''));
+    if (!m) return sendJson(res, 400, { ok: false, error: 'Bad picture.' });
+    const buf = Buffer.from(m[2], 'base64'); if (buf.length > 3 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Too large.' });
+    for (const f of fs.readdirSync(SJ_STK_DIR)) if (f.startsWith(a.key + '-')) { try { fs.unlinkSync(path.join(SJ_STK_DIR, f)); } catch (_e) {} }
+    fs.writeFileSync(path.join(SJ_STK_DIR, a.thumb), buf);
+    return sendJson(res, 200, { ok: true });
+  }
+  if (pathname === '/api/sprites/jar/image' && method === 'POST') {
+    const b = await readBody(req), c = sjCfg();
+    const m = /^data:image\/(png|webp|gif|jpeg|jpg);base64,(.+)$/.exec(String(b.dataUrl || ''));
+    if (!m) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, WEBP, GIF, or JPG.' });
+    const buf = Buffer.from(m[2], 'base64'); if (buf.length > 12 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+    if (c.jarImage) { try { fs.unlinkSync(path.join(SJ_DIR, c.jarImage)); } catch (_e) {} }
+    c.jarImage = `jar-${Date.now()}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`; fs.writeFileSync(path.join(SJ_DIR, c.jarImage), buf);
+    sprSave(); return sendJson(res, 200, { ok: true });
+  }
+  return sendJson(res, 404, { ok: false, error: 'Unknown sprite jar route.' });
+}
+
+// ---------------------------------------------------------------------------
+// COUNTDOWNS (Baby, 2026-10-19). Replaces her Meld/Spark "timer-7pm-cst" element with an ICB one she
+// controls from the dashboard: themes, size, position, text, the message when it's over.
+//   - Overlay /countdown.html?id=<id> (one Meld layer per countdown), dashboard /countdown-control.html.
+//   - data/countdowns.json { list: [ { id, name, ...look/text settings, status, endsAt, leftMs } ] }
+//   - status: idle | running | paused | done. endsAt = ms epoch while running; leftMs while paused.
+// ---------------------------------------------------------------------------
+const CD_FILE = path.join(DATA_DIR, 'countdowns.json');
+function cdDefaults(id, name) {
+  return { id, name: name || 'Countdown', heading: 'STREAM STARTS IN', subheading: 'GRAB A SNACK 🌸', endText: '✨ WE\'RE LIVE! ✨', endSub: '',
+    icon: '✨', theme: 'flowtree', font: 'Outfit', accent1: '#38bdf8', accent2: '#c084fc', textColor: '#ffffff', plate: '#1c1130', plateAlpha: 92,
+    scale: 100, x: 50, y: 50, showHours: 'auto', showLabels: true, showBadge: true, showSub: true, pulseDot: true, floaty: true, flowBorder: true,
+    labelH: 'HOURS', labelM: 'MINUTES', labelS: 'SECONDS', celebrate: true, hideAfter: 0, idleShow: 'dim',
+    lastMinutes: 10, lastTime: '19:00', lastTz: 'America/Chicago', status: 'idle', endsAt: 0, leftMs: 0, doneAt: 0 };
+}
+function cdLoad() {
+  const raw = readJson(CD_FILE, null);
+  const list = raw && Array.isArray(raw.list) && raw.list.length ? raw.list : [cdDefaults('main', 'Main countdown')];
+  return { list: list.map(c => ({ ...cdDefaults(c.id, c.name), ...c })) };
+}
+let cdState = cdLoad();
+function cdSave() { writeJson(CD_FILE, cdState); broadcast('countdowns', { ok: true }); }
+const cdFind = id => cdState.list.find(c => c.id === String(id || 'main')) || null;
+function cdTick() {   // a running countdown that reaches zero becomes "done" (so the dashboard shows it too)
+  let changed = false; const now = Date.now();
+  for (const c of cdState.list) if (c.status === 'running' && c.endsAt && c.endsAt <= now) { c.status = 'done'; c.doneAt = c.endsAt; changed = true; }
+  if (changed) cdSave();
+}
+setInterval(cdTick, 1000);
+const CD_TEXT = ['name', 'heading', 'subheading', 'endText', 'endSub', 'icon', 'labelH', 'labelM', 'labelS', 'lastTime', 'lastTz'];
+const CD_THEMES = ['flowtree', 'spooky', 'pink', 'gold', 'fortnite', 'glass', 'custom'];
+const CD_FONTS = ['Outfit', 'Comfortaa', 'Fredoka', 'Chewy', 'Creepster', 'Bungee', 'Quicksand', 'Orbitron'];
+async function handleCountdownsApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/countdowns' && method === 'GET') {
+      cdTick();
+      const id = new URL(req.url, 'http://x').searchParams.get('id');
+      if (id) { const c = cdFind(id); return sendJson(res, c ? 200 : 404, c ? { ok: true, countdown: c, now: Date.now() } : { ok: false, error: 'No countdown with that id.' }); }
+      return sendJson(res, 200, { ok: true, list: cdState.list, themes: CD_THEMES, fonts: CD_FONTS, now: Date.now() });
+    }
+    if (pathname === '/api/countdowns' && method === 'POST') {
+      const b = await readBody(req), now = Date.now();
+      if (b.add) {
+        let id = sprSlug(b.add.name || 'countdown') || 'countdown', n = 2, base = id;
+        while (cdFind(id)) id = `${base}-${n++}`;
+        const src = b.add.copyFrom ? cdFind(b.add.copyFrom) : null;
+        cdState.list.push({ ...(src ? { ...src, status: 'idle', endsAt: 0, leftMs: 0 } : cdDefaults(id)), id, name: cleanString(b.add.name || 'Countdown').slice(0, 40) });
+        cdSave(); return sendJson(res, 200, { ok: true, id });
+      }
+      if (b.remove) { if (cdState.list.length > 1) cdState.list = cdState.list.filter(c => c.id !== String(b.remove)); cdSave(); return sendJson(res, 200, { ok: true }); }
+      const c = cdFind(b.id); if (!c) return sendJson(res, 404, { ok: false, error: 'No countdown with that id.' });
+      const s = b.set || {};
+      for (const k of CD_TEXT) if (typeof s[k] === 'string') c[k] = cleanString(s[k]).slice(0, 120);
+      for (const k of ['showLabels', 'showBadge', 'showSub', 'pulseDot', 'floaty', 'flowBorder', 'celebrate']) if (typeof s[k] === 'boolean') c[k] = s[k];
+      for (const k of ['accent1', 'accent2', 'textColor', 'plate']) if (/^#[0-9a-f]{6}$/i.test(String(s[k] || ''))) c[k] = s[k];
+      const nums = { plateAlpha: [0, 100], scale: [20, 400], x: [0, 100], y: [0, 100], hideAfter: [0, 3600], lastMinutes: [0, 1440] };
+      for (const [k, [lo, hi]] of Object.entries(nums)) if (s[k] !== undefined && Number.isFinite(Number(s[k]))) c[k] = Math.max(lo, Math.min(hi, Number(s[k])));
+      if (CD_THEMES.includes(s.theme)) c.theme = s.theme;
+      if (CD_FONTS.includes(s.font)) c.font = s.font;
+      if (['auto', 'always', 'never'].includes(s.showHours)) c.showHours = s.showHours;
+      if (['dim', 'zeros', 'hide'].includes(s.idleShow)) c.idleShow = s.idleShow;
+      // Timer actions
+      const a = b.action;
+      if (a === 'start') {   // { ms } from now, or { endsAt } (clock time worked out on the dashboard)
+        const end = Number(b.endsAt) > now ? Number(b.endsAt) : now + Math.max(1000, Number(b.ms) || 0);
+        c.endsAt = end; c.leftMs = 0; c.status = 'running';
+      } else if (a === 'pause' && c.status === 'running') { c.leftMs = Math.max(0, c.endsAt - now); c.status = 'paused'; }
+      else if (a === 'resume' && c.status === 'paused') { c.endsAt = now + c.leftMs; c.status = 'running'; }
+      else if (a === 'addTime') {   // +/- minutes on a running, paused or finished timer
+        const d = Number(b.ms) || 0;
+        if (c.status === 'running') c.endsAt = Math.max(now + 1000, c.endsAt + d);
+        else if (c.status === 'paused') c.leftMs = Math.max(1000, c.leftMs + d);
+        else if (d > 0) { c.endsAt = now + d; c.status = 'running'; }
+      } else if (a === 'finish') { c.status = 'done'; c.doneAt = now; c.endsAt = now; }
+      else if (a === 'reset') { c.status = 'idle'; c.endsAt = 0; c.leftMs = 0; }
+      cdSave(); return sendJson(res, 200, { ok: true, countdown: c, now });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown countdowns route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Countdowns request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TEAM HUNT (Baby, 2026-10-19). ICB version of her Meld "cloth-team-contest" widget, bigger:
+//   - As many teams as she wants. Chat joins with "!team a" (or the team's own key/name).
+//   - Several things to hunt at once, each with its own command + points: "!cloth" = 10 pts,
+//     "!plushie" = 8 pts... "!cloth 2" = found 2. Finds are saved per item, so changing an
+//     item's points later re-scores everyone.
+//   - Contest timer (start/pause/reset from the dashboard), winner banner when it ends.
+//   - Overlay /hunt.html, dashboard /hunt-control.html, data/hunt.json.
+// ---------------------------------------------------------------------------
+const HUNT_FILE = path.join(DATA_DIR, 'hunt.json');
+const HUNT_COLORS = ['#06b6d4', '#d946ef', '#f59e0b', '#22c55e', '#f43f5e', '#8b5cf6', '#14b8a6', '#eab308', '#3b82f6', '#ec4899', '#84cc16', '#f97316'];
+function huntDefaults() {
+  return { title: 'Team Hunt', subtitle: 'Find them in Palia - type the command when you get one!', visible: true, joinOpen: true, scoring: true, lockTeams: true,
+    ignore: 'Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Sery_Bot, MixItUpBot',
+    teams: [{ key: 'a', name: 'Team A', color: HUNT_COLORS[0] }, { key: 'b', name: 'Team B', color: HUNT_COLORS[1] }],
+    items: [{ command: 'cloth', aliases: 'cloths', label: 'Tattered Cloth', pts: 10, icon: '🧵', image: '' }, { command: 'plushie', aliases: 'plush, plushies', label: 'Plushie', pts: 8, icon: '🧸', image: '' }],
+    players: {}, log: [], seq: 1,
+    timer: { minutes: 60, status: 'idle', endsAt: 0, leftMs: 0 }, stopAtEnd: true,
+    look: { theme: 'spooky', scale: 100, x: 50, y: 50, width: 46, showPlayers: 8, showLegend: true, showTicker: true, showTimer: true, showBar: true },
+    epoch: 1 };
+}
+const huntKey = v => cleanString(v).toLowerCase().replace(/^!+/, '').replace(/[^a-z0-9_]/g, '').slice(0, 20);
+function huntCleanTeam(t, i) {
+  return { key: huntKey(t.key) || 'abcdefghijklmnopqrstuvwxyz'[i % 26], name: cleanString(t.name).slice(0, 30) || `Team ${String(t.key || i + 1).toUpperCase()}`,
+    color: /^#[0-9a-f]{6}$/i.test(String(t.color || '')) ? t.color : HUNT_COLORS[i % HUNT_COLORS.length] };
+}
+function huntCleanItem(o) {
+  const image = o.image ? path.basename(String(o.image)) : '';
+  return { command: huntKey(o.command) || 'point', aliases: String(o.aliases || '').split(/[\s,]+/).map(huntKey).filter(Boolean).slice(0, 8).join(', '),
+    label: cleanString(o.label).slice(0, 40), pts: Math.max(-1000, Math.min(100000, Math.round(Number(o.pts)) || 0)), icon: cleanString(o.icon).slice(0, 8),
+    image: image && DECOR_IMAGE_EXT.test(image) ? image : '' };
+}
+function huntLoad() {
+  const raw = readJson(HUNT_FILE, null) || {}, d = huntDefaults();
+  const h = { ...d, ...raw, timer: { ...d.timer, ...(raw.timer || {}) }, look: { ...d.look, ...(raw.look || {}) } };
+  h.teams = (Array.isArray(h.teams) && h.teams.length ? h.teams : d.teams).slice(0, 26).map(huntCleanTeam);
+  h.items = (Array.isArray(h.items) ? h.items : d.items).slice(0, 20).map(huntCleanItem);
+  h.players = h.players && typeof h.players === 'object' ? h.players : {};
+  for (const p of Object.values(h.players)) if (!p.finds || typeof p.finds !== 'object') p.finds = {};
+  h.log = Array.isArray(h.log) ? h.log.slice(-200) : [];
+  return h;
+}
+let hunt = huntLoad();
+function huntSave() { writeJson(HUNT_FILE, hunt); broadcast('hunt', { ok: true }); }
+function huntPts(p) { let s = 0; for (const it of hunt.items) s += (Number(p.finds[it.command]) || 0) * it.pts; return s; }
+function huntTimerLeft(now) { const t = hunt.timer; return t.status === 'running' ? Math.max(0, t.endsAt - now) : t.status === 'paused' ? t.leftMs : t.status === 'idle' ? t.minutes * 60000 : 0; }
+function huntTick() {
+  const t = hunt.timer;
+  if (t.status === 'running' && t.endsAt <= Date.now()) { t.status = 'ended'; if (hunt.stopAtEnd) hunt.scoring = false; huntLog({ kind: 'end' }); huntSave(); }
+}
+setInterval(huntTick, 1000);
+function huntBoard() {
+  const board = hunt.teams.map(t => ({ key: t.key, name: t.name, color: t.color, total: 0, players: [] }));
+  const by = new Map(board.map(b => [b.key, b]));
+  for (const p of Object.values(hunt.players)) {
+    const b = by.get(p.team); if (!b) continue;
+    const pts = huntPts(p); b.players.push({ name: p.name, points: pts, joined: p.joined || 0 }); b.total += pts;
+  }
+  for (const b of board) b.players.sort((x, y) => (y.points - x.points) || (x.joined - y.joined));
+  const max = board.reduce((a, b) => Math.max(a, b.total), 0);
+  for (const b of board) b.leading = max > 0 && b.total === max;
+  return board;
+}
+function huntPublic() {
+  const now = Date.now();
+  return { ok: true, title: hunt.title, subtitle: hunt.subtitle, visible: hunt.visible, joinOpen: hunt.joinOpen, scoring: hunt.scoring, look: hunt.look, epoch: hunt.epoch,
+    items: hunt.items.map(it => ({ ...it, imageUrl: it.image ? `/assets/resources/${encodeURIComponent(it.image)}` : null })),
+    teams: hunt.teams, board: huntBoard(), timer: { status: hunt.timer.status, minutes: hunt.timer.minutes, endsAt: hunt.timer.endsAt, left: huntTimerLeft(now) },
+    recent: hunt.log.slice(-10), last: hunt.seq - 1, now };
+}
+function huntLog(e) { e.id = hunt.seq++; e.at = Date.now(); hunt.log.push(e); if (hunt.log.length > 200) hunt.log = hunt.log.slice(-200); }
+const huntTeamName = k => { const t = hunt.teams.find(x => x.key === k); return t ? t.name : `Team ${String(k).toUpperCase()}`; };
+function huntFindTeam(word) {
+  const w = huntKey(word); if (!w) return null;
+  return hunt.teams.find(t => t.key === w) || hunt.teams.find(t => huntKey(t.name) === w) || hunt.teams.find(t => huntKey(t.name.replace(/^team\s*/i, '')) === w) || null;
+}
+function huntAdd(key, cmd, n, how) {
+  const p = hunt.players[key]; if (!p) return '';
+  const it = hunt.items.find(x => x.command === cmd); if (!it) return '';
+  const before = Number(p.finds[cmd]) || 0, after = Math.max(0, before + n), applied = after - before;
+  if (!applied) return `${p.name} has none to take away`;
+  p.finds[cmd] = after;
+  huntLog({ kind: 'find', name: p.name, key, team: p.team, item: cmd, label: it.label, icon: it.icon, n: applied, pts: applied * it.pts, total: huntPts(p), how });
+  huntSave(); return `${p.name} ${applied > 0 ? '+' : ''}${applied} ${it.label || cmd} (${applied * it.pts > 0 ? '+' : ''}${applied * it.pts} pts)`;
+}
+function huntChat(name, parts) {
+  name = cleanString(name).replace(/^@/, '').slice(0, 40);
+  if (!name) return '';
+  if (String(hunt.ignore || '').split(/[\s,]+/).map(s => s.toLowerCase().replace(/^@/, '')).filter(Boolean).includes(name.toLowerCase())) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim();
+  if (text[0] !== '!') return '';
+  const key = name.toLowerCase();
+  let m = /^!(?:team|join)\s+(.+)$/i.exec(text);
+  if (m) {
+    const t = huntFindTeam(m[1].split(/\s+/)[0]) || huntFindTeam(m[1]);
+    if (!t) return `${name}: there is no team "${m[1]}"`;
+    const ex = hunt.players[key];
+    if (ex && ex.team === t.key) return `${name} is already on ${t.name}`;
+    if (ex && ex.team && hunt.lockTeams) return `${name} is already on ${huntTeamName(ex.team)} (locked)`;
+    if (!hunt.joinOpen) return `${name}: joining is closed`;
+    hunt.players[key] = { name, team: t.key, finds: (ex && ex.finds) || {}, joined: (ex && ex.joined) || Date.now() };
+    huntLog({ kind: 'join', name, team: t.key }); huntSave();
+    return `${name} joined ${t.name}`;
+  }
+  m = /^!([a-z0-9_]+)(?:\s+([+-]?)\s*(\d{1,3}))?(?:\s|$)/i.exec(text);
+  if (!m) return '';
+  const c = m[1].toLowerCase();
+  const it = hunt.items.find(x => x.command === c || (x.aliases && x.aliases.split(/,\s*/).includes(c)));
+  if (!it) return '';
+  if (!hunt.scoring) return `${name}: the hunt isn't scoring right now`;
+  const p = hunt.players[key];
+  if (!p || !hunt.teams.some(t => t.key === p.team)) { huntLog({ kind: 'noteam', name, item: it.command }); huntSave(); return `${name} isn't on a team yet`; }
+  let n = m[3] ? Math.min(50, Number(m[3])) : 1; if (m[2] === '-') n = -n;
+  return n ? huntAdd(key, it.command, n, 'chat') : '';
+}
+async function handleHuntApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/hunt' && method === 'GET') { huntTick(); return sendJson(res, 200, huntPublic()); }
+    if (pathname === '/api/hunt/admin' && method === 'GET') {
+      const art = (() => { try { return fs.readdirSync(RESOURCE_ART_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b)); } catch (_e) { return []; } })();
+      const players = Object.entries(hunt.players).map(([key, p]) => ({ key, name: p.name, team: p.team, finds: p.finds, points: huntPts(p) })).sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+      return sendJson(res, 200, { ...huntPublic(), settings: { ignore: hunt.ignore, lockTeams: hunt.lockTeams, stopAtEnd: hunt.stopAtEnd }, players, log: hunt.log.slice(-60).reverse(), art });
+    }
+    if (pathname === '/api/hunt' && method === 'POST') {
+      const b = await readBody(req), now = Date.now(); let out = 'ok';
+      const s = b.set || {};
+      for (const k of ['title', 'subtitle', 'ignore']) if (typeof s[k] === 'string') hunt[k] = cleanString(s[k]).slice(0, k === 'ignore' ? 600 : 120);
+      for (const k of ['visible', 'joinOpen', 'scoring', 'lockTeams', 'stopAtEnd']) if (typeof s[k] === 'boolean') hunt[k] = s[k];
+      if (s.look && typeof s.look === 'object') {
+        const L = hunt.look, l = s.look;
+        for (const k of ['showLegend', 'showTicker', 'showTimer', 'showBar']) if (typeof l[k] === 'boolean') L[k] = l[k];
+        const nums = { scale: [20, 400], x: [0, 100], y: [0, 100], width: [20, 100], showPlayers: [0, 30] };
+        for (const [k, [lo, hi]] of Object.entries(nums)) if (l[k] !== undefined && Number.isFinite(Number(l[k]))) L[k] = Math.max(lo, Math.min(hi, Number(l[k])));
+        if (['spooky', 'pink', 'palia', 'clean'].includes(l.theme)) L.theme = l.theme;
+      }
+      if (Array.isArray(b.teams) && b.teams.length) {
+        const list = b.teams.slice(0, 26).map(huntCleanTeam), seen = {};
+        for (const t of list) { let k = t.key, n = 2; while (seen[k]) k = t.key + n++; t.key = k; seen[k] = 1; }
+        hunt.teams = list;
+      }
+      if (Array.isArray(b.items)) { const seen = {}; hunt.items = b.items.slice(0, 20).map(huntCleanItem).filter(it => !seen[it.command] && (seen[it.command] = 1)); }
+      // timer
+      const T = hunt.timer;
+      if (b.timer) {
+        const a = b.timer.action;
+        if (b.timer.minutes !== undefined) T.minutes = Math.max(1, Math.min(1440, Number(b.timer.minutes) || 60));
+        if (a === 'start') { T.endsAt = now + T.minutes * 60000; T.status = 'running'; hunt.scoring = true; huntLog({ kind: 'start' }); }
+        else if (a === 'pause' && T.status === 'running') { T.leftMs = Math.max(0, T.endsAt - now); T.status = 'paused'; }
+        else if (a === 'resume' && T.status === 'paused') { T.endsAt = now + T.leftMs; T.status = 'running'; }
+        else if (a === 'add') { const d = (Number(b.timer.ms) || 0); if (T.status === 'running') T.endsAt = Math.max(now + 1000, T.endsAt + d); else if (T.status === 'paused') T.leftMs = Math.max(1000, T.leftMs + d); }
+        else if (a === 'end') { T.status = 'ended'; T.endsAt = now; if (hunt.stopAtEnd) hunt.scoring = false; huntLog({ kind: 'end' }); }
+        else if (a === 'reset') { T.status = 'idle'; T.endsAt = 0; T.leftMs = 0; }
+      }
+      // players
+      if (b.player && b.player.key) {
+        const p = hunt.players[String(b.player.key)];
+        if (p) {
+          if (b.player.remove) delete hunt.players[String(b.player.key)];
+          if (b.player.team && hunt.teams.some(t => t.key === b.player.team)) { p.team = b.player.team; huntLog({ kind: 'move', name: p.name, team: p.team }); }
+          if (b.player.item) out = huntAdd(String(b.player.key), String(b.player.item), Math.round(Number(b.player.n)) || 0, 'dashboard');
+        }
+      }
+      if (b.add && b.add.name) {
+        const nm = cleanString(b.add.name).replace(/^@/, '').slice(0, 40), t = huntFindTeam(b.add.team) || hunt.teams[0];
+        if (nm && t) { const k = nm.toLowerCase(); hunt.players[k] = { name: nm, team: t.key, finds: (hunt.players[k] && hunt.players[k].finds) || {}, joined: Date.now() }; huntLog({ kind: 'join', name: nm, team: t.key, how: 'dashboard' }); }
+      }
+      if (b.undo) {
+        const e = hunt.log.find(x => x.id === Number(b.undo) && x.kind === 'find' && !x.undone);
+        if (e && hunt.players[e.key]) { const p = hunt.players[e.key]; p.finds[e.item] = Math.max(0, (Number(p.finds[e.item]) || 0) - e.n); e.undone = true; }
+      }
+      if (b.reset === 'points') { for (const p of Object.values(hunt.players)) p.finds = {}; hunt.log = []; hunt.epoch++; }
+      if (b.reset === 'all') { hunt.players = {}; hunt.log = []; hunt.epoch++; T.status = 'idle'; T.endsAt = 0; T.leftMs = 0; }
+      if (b.test) out = huntChat(cleanString(b.test.name) || 'TestViewer', [{ t: 'text', v: String(b.test.text || '') }]) || 'ignored (not a hunt command)';
+      huntSave(); return sendJson(res, 200, { ok: true, result: out });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown hunt route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Hunt request failed.' });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PALIA CLOCK (Baby, 2026-10-19). In-game Palia clock + alarms for stream, like
+// https://ghervis.github.io/palia-time-notifier/ . Palia time comes straight from the real clock:
+// one Palia day = one real hour, one Palia hour = 2.5 real minutes, and it is 6:00 AM in Palia at
+// :15 past every real hour (UTC). Same formula as that site (STEADY_DAILY_MINUTE 15, start hour 6).
+//   - Overlay /palia-clock.html, dashboard /palia-clock-control.html, data/paliaclock.json.
+//   - Alarms fire every Palia day (= every real hour) unless "once"; the overlay shows the banner.
+// ---------------------------------------------------------------------------
+const PC_FILE = path.join(DATA_DIR, 'paliaclock.json');
+function paliaHours(ms) {   // 0..24 decimal Palia hour for a real time
+  const d = new Date(ms); const m = d.getUTCMinutes() + d.getUTCSeconds() / 60 + d.getUTCMilliseconds() / 60000;
+  return (((6 + (m - 15) / 2.5) % 24) + 24) % 24;
+}
+function pcDefaults() {
+  return { visible: true, title: 'Palia Time', bannerSec: 8, sound: true, volume: 60,
+    alarms: [
+      { id: 'a1', time: '06:00', label: 'A new day in Palia!', icon: '🌅', on: true, once: false },
+      { id: 'a2', time: '18:00', label: 'Evening in Palia', icon: '🌇', on: false, once: false },
+      { id: 'a3', time: '00:00', label: 'Midnight', icon: '🌙', on: false, once: false },
+    ],
+    look: { theme: 'night', scale: 100, x: 88, y: 8, show24h: false, showReal: true, showNext: true, showDayBar: true }, seq: 1 };
+}
+function pcLoad() { const raw = readJson(PC_FILE, null) || {}, d = pcDefaults(); return { ...d, ...raw, look: { ...d.look, ...(raw.look || {}) }, alarms: Array.isArray(raw.alarms) ? raw.alarms : d.alarms }; }
+let pc = pcLoad(), pcEvents = [];
+function pcSave() { writeJson(PC_FILE, pc); broadcast('paliaclock', { ok: true }); }
+function pcCleanAlarm(a, i) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(a.time || '')); const h = m ? Math.min(23, Number(m[1])) : 6, mi = m ? Math.min(59, Number(m[2])) : 0;
+  return { id: cleanString(a.id).slice(0, 20) || `a${Date.now().toString(36)}${i}`, time: `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`,
+    label: cleanString(a.label).slice(0, 80), icon: cleanString(a.icon).slice(0, 8), on: a.on !== false, once: !!a.once, until: Number(a.until) || 0 };
+}
+setInterval(() => {   // one-time alarms go away once they have rung
+  const now = Date.now(), before = pc.alarms.length;
+  pc.alarms = pc.alarms.filter(a => !(a.once && a.until && a.until + 15000 < now));
+  if (pc.alarms.length !== before) pcSave();
+}, 5000);
+function pcUntil(time, from) {   // real ms epoch of the next time the Palia clock shows HH:MM
+  const [h, m] = time.split(':').map(Number), now = paliaHours(from);
+  let dh = ((h + m / 60) - now + 24) % 24; if (dh < 1 / 240) dh += 24;
+  return from + dh * 2.5 * 60000;
+}
+async function handlePaliaClockApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/paliaclock' && method === 'GET') {
+      const since = Number(new URL(req.url, 'http://x').searchParams.get('since')) || 0;
+      return sendJson(res, 200, { ok: true, ...pc, events: pcEvents.filter(e => e.id > since), last: pc.seq - 1, now: Date.now() });
+    }
+    if (pathname === '/api/paliaclock' && method === 'POST') {
+      const b = await readBody(req), s = b.set || {};
+      if (typeof s.title === 'string') pc.title = cleanString(s.title).slice(0, 40);
+      for (const k of ['visible', 'sound']) if (typeof s[k] === 'boolean') pc[k] = s[k];
+      if (s.bannerSec !== undefined) pc.bannerSec = Math.max(2, Math.min(60, Number(s.bannerSec) || 8));
+      if (s.volume !== undefined) pc.volume = Math.max(0, Math.min(100, Number(s.volume) || 0));
+      if (s.look) {
+        const L = pc.look, l = s.look;
+        for (const k of ['show24h', 'showReal', 'showNext', 'showDayBar']) if (typeof l[k] === 'boolean') L[k] = l[k];
+        for (const [k, lo, hi] of [['scale', 20, 400], ['x', 0, 100], ['y', 0, 100]]) if (l[k] !== undefined && Number.isFinite(Number(l[k]))) L[k] = Math.max(lo, Math.min(hi, Number(l[k])));
+        if (['night', 'palia', 'pink', 'glass'].includes(l.theme)) L.theme = l.theme;
+      }
+      if (Array.isArray(b.alarms)) pc.alarms = b.alarms.slice(0, 40).map(pcCleanAlarm);
+      if (b.addAlarm) { const a = pcCleanAlarm({ ...b.addAlarm, id: '' }, pc.alarms.length); if (a.once) a.until = pcUntil(a.time, Date.now()); pc.alarms.push(a); }
+      if (b.inHours) {   // quick timer: N Palia hours from now
+        const n = Math.max(0.25, Math.min(24, Number(b.inHours.hours) || 1)), at = Date.now() + n * 2.5 * 60000, ph = paliaHours(at);
+        const t = `${String(Math.floor(ph)).padStart(2, '0')}:${String(Math.floor((ph % 1) * 60)).padStart(2, '0')}`;
+        pc.alarms.push(pcCleanAlarm({ time: t, label: cleanString(b.inHours.label) || `${n} Palia hour${n === 1 ? '' : 's'} are up!`, icon: '⏰', once: true, until: at, id: '' }, pc.alarms.length));
+      }
+      if (b.removeAlarm) pc.alarms = pc.alarms.filter(a => a.id !== String(b.removeAlarm));
+      if (b.test) { pcEvents.push({ id: pc.seq++, kind: 'ring', label: cleanString(b.test.label) || 'Test alarm!', icon: cleanString(b.test.icon) || '🔔', time: '' }); if (pcEvents.length > 30) pcEvents = pcEvents.slice(-30); }
+      pcSave(); return sendJson(res, 200, { ok: true });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown palia clock route.' });
+  } catch (error) { return sendJson(res, 400, { ok: false, error: error.message || 'Palia clock request failed.' }); }
+}
+
+// ---------------------------------------------------------------------------
+// CHAT AVATARS (Baby, 2026-10-18). ICB version of her Meld element "ghost-stream-avatars":
+// every chatter becomes a little sprite that wanders along the bottom of the stream with their
+// name; their chat pops up in a speech bubble; subs / follows / raids get a cheer + bounce.
+//   - Overlay /chat-avatars.html (Meld layer, full screen).  Dashboard /chat-avatars-control.html
+//   - Pictures: assets/avatars/*.png (her 27 Fortnite sprites to start; she can add/turn off).
+//   - Chatters always get the same avatar (hash), unless she assigns one or they type
+//     "!avatar <name>" (e.g. "!avatar sonic") when that's allowed.
+//   - Chat arrives through /api/activity/raw (text + emotes) and /api/giveaway/event (sub/follow/raid).
+//   - Saved in data/avatars.json. Overlay polls GET /api/avatars?since=<id>.
+// ---------------------------------------------------------------------------
+const AV_FILE = path.join(DATA_DIR, 'avatars.json');
+const AV_DIR = path.join(APP_DIR, 'assets', 'avatars');
+try { fs.mkdirSync(AV_DIR, { recursive: true }); } catch (_error) {}
+function avDefaults() {
+  return { visible: true, maxAvatars: 25, size: 100, speed: 100, bubbles: 'all', bubbleSec: 7, showNames: true, textSize: 100, bottom: 2,
+    leftEdge: 5, rightEdge: 95, idleMin: 0, ignore: 'Nightbot, StreamElements, Moobot, Streamlabs, Fossabot, Sery_Bot, MixItUpBot',
+    sayCmds: 'say, avatar, ghost', pickCmd: true, colors: '#38bdf8, #c084fc, #34d399, #fbbf24, #f43f5e, #22d3ee', onlyCmdShow: false,
+    subOn: true, subMsg: 'Subscribed! 🎉', followOn: true, followMsg: 'Followed! ⭐', raidOn: true, raidMsg: 'Raided with {n}! 🚀', bitsOn: true, bitsMsg: 'Cheered {n} bits! 💎',
+    bounceAllOnSub: true, disabled: [], assign: {}, epoch: 1 };
+}
+function avLoad() { const raw = readJson(AV_FILE, null) || {}; const d = { ...avDefaults(), ...raw }; d.assign = d.assign && typeof d.assign === 'object' ? d.assign : {}; d.disabled = Array.isArray(d.disabled) ? d.disabled : []; return d; }
+let av = avLoad();
+let avEvents = [], avSeq = 1;
+const avSeen = new Map();   // lower name -> { name, at, avatar }
+function avFiles() { try { return fs.readdirSync(AV_DIR).filter(f => DECOR_IMAGE_EXT.test(f)).sort(); } catch (_e) { return []; } }
+const avIdOf = f => f.replace(/\.[a-z0-9]+$/i, '');
+const avNice = id => id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+function avPool() { return avFiles().filter(f => !av.disabled.includes(avIdOf(f))); }
+function avUrl(f) { let v = 0; try { v = Math.round(fs.statSync(path.join(AV_DIR, f)).mtimeMs); } catch (_e) {} return `/assets/avatars/${encodeURIComponent(f)}?v=${v}`; }
+function avFor(name) {
+  const key = String(name).toLowerCase(), files = avFiles(), pool = avPool();
+  const a = av.assign[key]; if (a) { const f = files.find(x => avIdOf(x) === a); if (f) return f; }
+  const list = pool.length ? pool : files; if (!list.length) return null;
+  let h = 0; for (let i = 0; i < key.length; i++) { h = (h << 5) - h + key.charCodeAt(i); h |= 0; }
+  return list[Math.abs(h) % list.length];
+}
+const avIgnored = name => String(av.ignore || '').split(/[\s,]+/).map(s => s.toLowerCase().replace(/^@/, '')).filter(Boolean).includes(String(name).toLowerCase());
+function avPush(kind, name, extra) {
+  const f = name ? avFor(name) : null;
+  const ev = { id: avSeq++, kind, name: name || '', avatar: f ? avUrl(f) : null, at: Date.now(), ...(extra || {}) };
+  avEvents.push(ev); if (avEvents.length > 300) avEvents = avEvents.slice(-300);
+  if (name) avSeen.set(name.toLowerCase(), { name, at: Date.now(), avatar: f ? avIdOf(f) : null });
+  if (avSeen.size > 400) avSeen.delete(avSeen.keys().next().value);
+  return ev;
+}
+// Chat text -> parts the overlay can draw: [{t:'text', v}, {t:'emote', url}]
+function avChat(sender, parts) {
+  const name = cleanString(sender).replace(/^@/, '').slice(0, 40);
+  if (!name || avIgnored(name)) return '';
+  const text = partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim();
+  // "!avatar sonic" picks your own avatar (when allowed); "!avatar" alone just waves.
+  const pm = /^!avatar\s+(.+)$/i.exec(text);
+  if (pm && av.pickCmd) {
+    const want = pm[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const f = avPool().find(x => avIdOf(x) === want) || avPool().find(x => avIdOf(x).startsWith(want));
+    if (f) { av.assign[name.toLowerCase()] = avIdOf(f); writeJson(AV_FILE, av); avPush('pick', name, { text: `I'm ${avNice(avIdOf(f))} now!` }); return 'picked'; }
+  }
+  const cmds = String(av.sayCmds || '').split(/[\s,]+/).map(s => s.toLowerCase().replace(/^!/, '')).filter(Boolean);
+  const cm = /^!([a-z0-9_]+)\s*(.*)$/i.exec(text);
+  const isSay = cm && cmds.includes(cm[1].toLowerCase());
+  let show = (parts || []).map(p => p.t === 'emote' ? { t: 'emote', url: p.url } : { t: 'text', v: partyDecode(p.v) });
+  if (isSay) { const rest = cm[2]; show = rest ? [{ t: 'text', v: rest }] : []; }
+  else if (/^!/.test(text)) show = [];            // other commands: just appear, no bubble
+  if (av.onlyCmdShow && !isSay && !avSeen.has(name.toLowerCase())) return '';
+  const bubble = av.bubbles === 'all' ? show : av.bubbles === 'commands' ? (isSay ? show : []) : [];
+  avPush('chat', name, { parts: bubble.slice(0, 40) });
+  return 'ok';
+}
+function avEvent(type, username, body) {
+  const name = cleanString(username).replace(/^@/, '').slice(0, 40);
+  if (!name || avIgnored(name)) return;
+  const n = type === 'raid' ? Math.max(0, Math.trunc(Number(body.viewers)) || 0) : type === 'bits' ? Math.max(0, Math.trunc(Number(body.amount)) || 0) : 0;
+  const msg = (t) => String(t || '').replace(/\{n\}/g, n);
+  if ((type === 'sub' || type === 'gifts') && av.subOn) avPush('cheer', name, { text: type === 'gifts' ? `Gifted ${body.count || ''} subs! 🎁` : msg(av.subMsg), all: !!av.bounceAllOnSub });
+  else if (type === 'follow' && av.followOn) avPush('cheer', name, { text: msg(av.followMsg) });
+  else if (type === 'raid' && av.raidOn) avPush('cheer', name, { text: msg(av.raidMsg), all: true });
+  else if (type === 'bits' && av.bitsOn) avPush('cheer', name, { text: msg(av.bitsMsg) });
+}
+function avPublic() {
+  const pick = ['visible', 'maxAvatars', 'size', 'speed', 'bubbles', 'bubbleSec', 'showNames', 'textSize', 'bottom', 'leftEdge', 'rightEdge', 'idleMin'];
+  const o = { ok: true, epoch: av.epoch, colors: String(av.colors || '').split(/[\s,]+/).filter(c => /^#[0-9a-f]{6}$/i.test(c)) };
+  for (const k of pick) o[k] = av[k];
+  return o;
+}
+async function handleAvatarsApi(req, res, pathname, method) {
+  try {
+    if (pathname === '/api/avatars' && method === 'GET') {
+      const q = new URL(req.url, 'http://x').searchParams, since = Number(q.get('since')) || 0;
+      // First load (?first=1) gets only the newest id, so old chat doesn't replay.
+      return sendJson(res, 200, { ...avPublic(), last: avSeq - 1, events: q.get('first') ? [] : avEvents.filter(e => e.id > since), now: Date.now() });
+    }
+    if (pathname === '/api/avatars/admin' && method === 'GET') {
+      const files = avFiles();
+      return sendJson(res, 200, { ...avPublic(), settings: av, avatars: files.map(f => ({ id: avIdOf(f), name: avNice(avIdOf(f)), url: avUrl(f), on: !av.disabled.includes(avIdOf(f)) })),
+        chatters: Array.from(avSeen.values()).sort((a, b) => b.at - a.at).slice(0, 60).map(c => ({ ...c, avatar: (avFor(c.name) && avIdOf(avFor(c.name))) || null, assigned: av.assign[c.name.toLowerCase()] || null })),
+        assigned: Object.entries(av.assign).map(([k, v]) => ({ name: k, avatar: v })) });
+    }
+    if (pathname === '/api/avatars' && method === 'POST') {
+      const b = await readBody(req);
+      for (const k of ['visible', 'showNames', 'pickCmd', 'onlyCmdShow', 'subOn', 'followOn', 'raidOn', 'bitsOn', 'bounceAllOnSub']) if (typeof b[k] === 'boolean') av[k] = b[k];
+      const nums = { maxAvatars: [1, 60], size: [30, 300], speed: [0, 400], bubbleSec: [2, 30], textSize: [50, 250], bottom: [0, 40], leftEdge: [0, 90], rightEdge: [10, 100], idleMin: [0, 240] };
+      for (const [k, [lo, hi]] of Object.entries(nums)) if (b[k] !== undefined && Number.isFinite(Number(b[k]))) av[k] = Math.max(lo, Math.min(hi, Number(b[k])));
+      if (['all', 'commands', 'off'].includes(b.bubbles)) av.bubbles = b.bubbles;
+      for (const k of ['ignore', 'sayCmds', 'colors', 'subMsg', 'followMsg', 'raidMsg', 'bitsMsg']) if (typeof b[k] === 'string') av[k] = cleanString(b[k]).slice(0, 600);
+      if (b.toggleAvatar) { const id = String(b.toggleAvatar); av.disabled = av.disabled.includes(id) ? av.disabled.filter(x => x !== id) : av.disabled.concat([id]); }
+      if (b.assign && b.assign.name) { const k = cleanString(b.assign.name).toLowerCase().replace(/^@/, ''); if (b.assign.avatar) av.assign[k] = String(b.assign.avatar); else delete av.assign[k]; }
+      if (b.clear) { av.epoch++; avEvents = []; }
+      if (b.wave) avPush('wave', '', {});
+      if (b.test) avChat(cleanString(b.test.name) || 'TestViewer', [{ t: 'text', v: cleanString(b.test.text) || 'Hi! 👋' }]);
+      if (b.testEvent) avEvent(String(b.testEvent), cleanString(b.name) || 'TestViewer', { viewers: 25, amount: 100, count: 5 });
+      writeJson(AV_FILE, av); return sendJson(res, 200, { ok: true });
+    }
+    // Upload / remove an avatar picture
+    if (pathname === '/api/avatars/image' && method === 'POST') {
+      const b = await readBody(req);
+      if (b.remove) { const f = avFiles().find(x => avIdOf(x) === String(b.remove)); if (f) { try { fs.unlinkSync(path.join(AV_DIR, f)); } catch (_e) {} } return sendJson(res, 200, { ok: true }); }
+      const m = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(String(b.dataUrl || ''));
+      if (!m) return sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, JPG, WEBP, or GIF.' });
+      const buf = Buffer.from(m[2], 'base64'); if (buf.length > 9 * 1024 * 1024) return sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+      let id = cleanString(b.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'avatar', n = 2, base = id;
+      while (avFiles().some(x => avIdOf(x) === id)) id = `${base}-${n++}`;
+      fs.writeFileSync(path.join(AV_DIR, `${id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`), buf);
+      return sendJson(res, 200, { ok: true, id });
+    }
+    return sendJson(res, 404, { ok: false, error: 'Unknown avatars route.' });
+  } catch (error) {
+    return sendJson(res, 400, { ok: false, error: error.message || 'Chat avatars request failed.' });
   }
 }
 

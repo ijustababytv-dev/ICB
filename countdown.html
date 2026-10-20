@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ICB Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chewy&family=Comfortaa:wght@600;700&family=Creepster&family=Fredoka:wght@500;700&family=Orbitron:wght@700;900&family=Outfit:wght@600;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* ICB countdown (Baby, 2026-10-19) - replaces her Meld/Spark "Flow Tree" timer. Full-screen transparent layer:
+     countdown.html?id=main. Everything (text, theme, colours, size, position) comes from the dashboard. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #wrap { position: absolute; left: 50%; top: 50%; transition: opacity .6s; }
+  #card { position: relative; text-align: center; padding: 1.1em 1.75em 1.25em; border-radius: 1.6em; min-width: 26em; color: var(--text);
+    background: radial-gradient(circle at 50% 0%, var(--a2s) 0%, transparent 60%), radial-gradient(circle at 10% 100%, var(--a1s) 0%, transparent 55%), var(--plate);
+    border: .12em solid var(--a1h);
+    box-shadow: 0 1em 2.5em rgba(0,0,0,.7), 0 0 1.5em var(--a1g), 0 0 2.8em var(--a2g), inset 0 .06em .12em rgba(255,255,255,.25), inset 0 0 1.25em var(--a1s);
+    overflow: hidden; transition: opacity .5s; }
+  #card.floaty { -webkit-animation: floaty 5s ease-in-out infinite alternate; animation: floaty 5s ease-in-out infinite alternate; }
+  @-webkit-keyframes floaty { 0% { -webkit-transform: translateY(0); } 100% { -webkit-transform: translateY(-.25em); } }
+  @keyframes floaty { 0% { transform: translateY(0); } 100% { transform: translateY(-.25em); } }
+  #flow { position: absolute; left: -.12em; top: -.12em; right: -.12em; bottom: -.12em; border-radius: 1.6em; padding: .14em; pointer-events: none; display: none;
+    background: linear-gradient(120deg, var(--a1), var(--a2), var(--a3), var(--a1)); background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    -webkit-animation: flowg 8s linear infinite; animation: flowg 8s linear infinite; opacity: .85; }
+  #card.flowb #flow { display: block; }
+  @-webkit-keyframes flowg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes flowg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  .badge { position: relative; z-index: 2; display: inline-block; padding: .25em 1em; border-radius: 99em; margin-bottom: .45em; white-space: nowrap;
+    background: linear-gradient(90deg, var(--a2s), var(--a1s)); border: .06em solid var(--a2h); box-shadow: 0 0 .9em var(--a2g), inset 0 0 .5em var(--a1s); }
+  .badge .ic { display: inline-block; font-size: .9em; margin-right: .35em; -webkit-animation: twinkle 3s ease-in-out infinite; animation: twinkle 3s ease-in-out infinite; vertical-align: middle; }
+  @-webkit-keyframes twinkle { 0%,100% { -webkit-transform: rotate(0) scale(1); } 50% { -webkit-transform: rotate(10deg) scale(1.15); } }
+  @keyframes twinkle { 0%,100% { transform: rotate(0) scale(1); } 50% { transform: rotate(10deg) scale(1.15); } }
+  .dot { display: inline-block; width: .5em; height: .5em; border-radius: 50%; background: var(--a1); box-shadow: 0 0 .6em var(--a1), 0 0 .25em var(--a2); margin-right: .45em; vertical-align: middle;
+    -webkit-animation: pulse 1.8s infinite ease-in-out; animation: pulse 1.8s infinite ease-in-out; }
+  @-webkit-keyframes pulse { 0%,100% { -webkit-transform: scale(1); opacity: 1; } 50% { -webkit-transform: scale(1.4); opacity: .6; } }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: .6; } }
+  .badge .tx { font-size: .75em; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; vertical-align: middle; text-shadow: 0 0 .5em var(--a2g); }
+  .sub { position: relative; z-index: 2; font-size: .75em; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--a3); margin-bottom: .6em; white-space: nowrap;
+    text-shadow: 0 0 .8em var(--a3g), 0 .15em .3em rgba(0,0,0,.8); }
+  #digits { position: relative; z-index: 2; white-space: nowrap; }
+  .seg { display: inline-block; vertical-align: top; min-width: 5.6em; }
+  .box { position: relative; overflow: hidden; border-radius: 1em; padding: .5em .75em; border: .09em solid var(--a1h);
+    background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)); box-shadow: inset 0 .12em .4em rgba(0,0,0,.85), inset 0 0 .9em var(--a1s), 0 .25em .75em rgba(0,0,0,.5), 0 0 .9em var(--a2g); }
+  .box:after { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, var(--a1s), transparent);
+    -webkit-animation: sheen 4.5s ease-in-out infinite; animation: sheen 4.5s ease-in-out infinite; }
+  @-webkit-keyframes sheen { 0% { left: -100%; } 50%, 100% { left: 160%; } }
+  @keyframes sheen { 0% { left: -100%; } 50%, 100% { left: 160%; } }
+  .num { font-size: 3.25em; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 .12em .8em rgba(0,0,0,.9), 0 0 .27em var(--a1g), 0 0 .55em var(--a2g); }
+  .lbl { margin-top: .3em; font-size: .62em; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--a1l); text-shadow: 0 0 .4em var(--a1g); }
+  .sep { display: inline-block; vertical-align: top; font-size: 2.6em; font-weight: 900; color: var(--a1); margin: .12em .12em 0; text-shadow: 0 0 .35em var(--a1), 0 0 .6em var(--a2g);
+    -webkit-animation: blink 1.8s infinite ease-in-out; animation: blink 1.8s infinite ease-in-out; }
+  .paused .sep { -webkit-animation: none; animation: none; opacity: .5; }
+  @-webkit-keyframes blink { 0%,100% { opacity: .95; } 50% { opacity: .35; } }
+  @keyframes blink { 0%,100% { opacity: .95; } 50% { opacity: .35; } }
+  #done { position: relative; z-index: 2; display: none; padding: .3em .6em; }
+  #done .big { font-size: 2.1em; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--a1l); line-height: 1.15;
+    text-shadow: 0 0 .7em var(--a1g), 0 0 1.3em var(--a2g), 0 .1em .4em rgba(0,0,0,.9); -webkit-animation: pop 1.2s ease-in-out infinite alternate; animation: pop 1.2s ease-in-out infinite alternate; }
+  #done .small { margin-top: .4em; font-size: .85em; font-weight: 700; letter-spacing: .1em; color: var(--a3); text-transform: uppercase; }
+  @-webkit-keyframes pop { 0% { -webkit-transform: scale(1); } 100% { -webkit-transform: scale(1.04); } }
+  @keyframes pop { 0% { transform: scale(1); filter: brightness(1); } 100% { transform: scale(1.04); filter: brightness(1.25); } }
+  #card.isdone #digits { display: none; } #card.isdone #done { display: block; }
+  .spark { position: absolute; z-index: 3; font-size: 1.2em; pointer-events: none; transition: all 1.4s ease-out; }
+  /* theme extras */
+  #card.th-spooky:before, #card.th-spooky:after { content: ''; position: absolute; top: 0; width: 5em; height: 5em; z-index: 1; pointer-events: none; background-size: 100% 100%;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='rgba(235,225,255,0.5)' stroke-width='1.2'><path d='M0 0L100 28M0 0L72 72M0 0L28 100'/><path d='M0 20Q12 12 20 0M0 42Q28 30 42 0M0 66Q46 48 66 0M0 90Q64 64 90 0'/></g></svg>"); }
+  #card.th-spooky:before { left: 0; } #card.th-spooky:after { right: 0; -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  #card.th-fortnite { border-radius: .6em; -webkit-transform: skewX(-6deg); transform: skewX(-6deg); }
+  #card.th-fortnite .box { border-radius: .35em; } #card.th-fortnite #flow { border-radius: .6em; }
+  #card.th-glass { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="card">
+  <div id="flow"></div>
+  <div class="badge" id="badge"><span class="ic" id="icon"></span><span class="dot" id="dot"></span><span class="tx" id="head"></span></div>
+  <div class="sub" id="sub"></div>
+  <div id="digits">
+    <span id="hWrap"><span class="seg"><div class="box"><span class="num" id="h">00</span></div><div class="lbl" id="lh"></div></span><span class="sep">:</span></span><span class="seg"><div class="box"><span class="num" id="m">00</span></div><div class="lbl" id="lm"></div></span><span class="sep">:</span><span class="seg"><div class="box"><span class="num" id="s">00</span></div><div class="lbl" id="ls"></div></span>
+  </div>
+  <div id="done"><div class="big" id="endBig"></div><div class="small" id="endSmall"></div></div>
+</div></div>
+<script>
+(function () {
+  var id = (/[?&]id=([^&]+)/.exec(location.search) || [])[1] || 'main';
+  var C = null, off = 0, lastDoneAt = 0, sparked = false;
+  function $(x) { return document.getElementById(x); }
+  function hex(h, a) { var n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; }
+  function light(h) { var n = parseInt(h.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return 'rgb(' + Math.round(r + (255 - r) * .55) + ',' + Math.round(g + (255 - g) * .55) + ',' + Math.round(b + (255 - b) * .55) + ')'; }
+  var GOLD = { flowtree: '#fde047', spooky: '#ffb24d', pink: '#fff1a8', gold: '#fff3c4', fortnite: '#ffe14d', glass: '#e0f2fe', custom: '#fde047' };
+  function two(n) { n = Math.max(0, Math.floor(n)); return n < 10 ? '0' + n : '' + n; }
+  function apply() {
+    var c = C, card = $('card'), st = card.style, a3 = GOLD[c.theme] || '#fde047';
+    st.setProperty('--a1', c.accent1); st.setProperty('--a2', c.accent2); st.setProperty('--a3', a3);
+    st.setProperty('--a1s', hex(c.accent1, .16)); st.setProperty('--a2s', hex(c.accent2, .22));
+    st.setProperty('--a1g', hex(c.accent1, .5)); st.setProperty('--a2g', hex(c.accent2, .45)); st.setProperty('--a3g', hex(a3, .5));
+    st.setProperty('--a1h', hex(c.accent1, .45)); st.setProperty('--a2h', hex(c.accent2, .55)); st.setProperty('--a1l', light(c.accent1));
+    st.setProperty('--text', c.textColor); st.setProperty('--plate', hex(c.plate, c.plateAlpha / 100));
+    card.style.fontFamily = "'" + c.font + "', 'Outfit', sans-serif";
+    $('head').textContent = c.heading; $('sub').textContent = c.subheading; $('icon').textContent = c.icon || '';
+    $('badge').style.display = c.showBadge && (c.heading || c.icon) ? '' : 'none';
+    $('sub').style.display = c.showSub && c.subheading ? '' : 'none';
+    $('dot').style.display = c.pulseDot ? '' : 'none'; $('icon').style.display = c.icon ? '' : 'none';
+    $('lh').textContent = c.labelH; $('lm').textContent = c.labelM; $('ls').textContent = c.labelS;
+    var lb = document.querySelectorAll('.lbl'); for (var i = 0; i < lb.length; i++) lb[i].style.display = c.showLabels ? '' : 'none';
+    $('endBig').textContent = c.endText; $('endSmall').textContent = c.endSub; $('endSmall').style.display = c.endSub ? '' : 'none';
+    fit();
+  }
+  function fit() {
+    if (!C) return; var W = window.innerWidth, H = window.innerHeight; if (!W || !H) return;
+    var k = H / 1080 * C.scale / 100, w = $('wrap');
+    $('card').style.fontSize = (16 * k) + 'px';
+    w.style.left = (W * C.x / 100) + 'px'; w.style.top = (H * C.y / 100) + 'px';
+    w.style.transform = w.style.webkitTransform = 'translate(-50%,-50%)';
+  }
+  window.onresize = fit;
+  function sparkle() {
+    var card = $('card'), ch = ['✦', '✧', '★', '♥', '✨'], cw = card.offsetWidth, chh = card.offsetHeight;
+    for (var i = 0; i < 22; i++) (function (i) {
+      var e = document.createElement('span'); e.className = 'spark'; e.textContent = ch[i % ch.length];
+      e.style.left = (cw / 2) + 'px'; e.style.top = (chh / 2) + 'px'; e.style.color = [C.accent1, C.accent2, GOLD[C.theme] || '#fde047', '#fff'][i % 4];
+      card.appendChild(e);
+      setTimeout(function () { var a = Math.random() * Math.PI * 2, d = cw * (.25 + Math.random() * .4); e.style.left = (cw / 2 + Math.cos(a) * d) + 'px'; e.style.top = (chh / 2 + Math.sin(a) * d * .6) + 'px'; e.style.opacity = '0'; }, 30);
+      setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1600);
+    })(i);
+  }
+  function tick() {
+    if (!C) return;
+    var c = C, card = $('card'), now = Date.now() + off, left = 0, status = c.status;
+    if (status === 'running') { left = c.endsAt - now; if (left <= 0) { status = 'done'; left = 0; } }
+    else if (status === 'paused') left = c.leftMs;
+    var done = status === 'done';
+    card.className = (c.floaty ? 'floaty ' : '') + (c.flowBorder ? 'flowb ' : '') + 'th-' + c.theme + (done ? ' isdone' : '') + (status === 'paused' ? ' paused' : '');
+    var secs = Math.ceil(left / 1000), h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    var showH = c.showHours === 'always' || (c.showHours === 'auto' && h > 0);
+    $('hWrap').style.display = showH ? '' : 'none';
+    if (!showH) m += h * 60;
+    $('h').textContent = two(h); $('m').textContent = two(m); $('s').textContent = two(s);
+    var op = 1;
+    if (status === 'idle') op = c.idleShow === 'hide' ? 0 : c.idleShow === 'dim' ? .25 : 1;
+    if (done) {
+      var since = now - (c.doneAt || c.endsAt || now);
+      if (c.hideAfter && since > c.hideAfter * 1000) op = 0;
+      if (!sparked && c.celebrate && since < 8000) { sparked = true; sparkle(); setTimeout(sparkle, 700); }
+    } else sparked = false;
+    $('wrap').style.opacity = op;
+  }
+  function poll() {
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/countdowns?id=' + encodeURIComponent(id) + '&t=' + Date.now(), true);
+    x.timeout = 4000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      if (x.status === 200) { try { var d = JSON.parse(x.responseText); off = d.now - Date.now(); C = d.countdown; apply(); tick(); } catch (e) {} }
+      setTimeout(poll, 1000);
+    };
+    x.send();
+  }
+  setInterval(tick, 250);
+  poll();
+})();
+</script>
+</body>
+</html>

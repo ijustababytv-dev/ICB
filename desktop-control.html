@@ -110,6 +110,8 @@
         <option value="/overlay.html">Trackers overlay</option>
         <option value="/decor-overlay.html">Decor</option>
         <option value="/webcam.html">My webcam</option>
+        <option value="/aniimo-quick.html">Aniimo quick checker</option>
+        <option value="/aniimo.html">Aniimo Dex progress</option>
       </datalist>
       <div class="row"><button class="btn-accent" onclick="addW()">Add widget</button><button onclick="addCam()">📷 Add my webcam</button><span class="note" id="addMsg"></span></div>
       <div class="note">Tip: you can paste any widget link here, like the NeoStream one or a StreamElements/Streamlabs link.</div>
@@ -199,6 +201,7 @@ function buildCard(w){
       '<div class="note" style="margin:0">For a circle, make the width and height the same.</div><div class="note cstat" style="margin:4px 0 0"></div></div>' +
     '<div class="row"><label style="min-width:90px">See-through</label><input type="range" class="op" min="10" max="100" style="flex:1"><span class="opv" style="width:40px"></span></div>' +
     '<div class="row"><label style="min-width:90px">Zoom</label><input type="range" class="zm" min="25" max="300" step="5" style="flex:1"><span class="zmv" style="width:40px"></span></div>' +
+    '<div class="row"><label style="min-width:auto"><input type="checkbox" class="ck"> Clickable (I can click/type in it over my game)</label></div>' +
     '<div class="row"><label style="min-width:auto"><input type="checkbox" class="lk"> Keep locked in Move mode (never clickable)</label><span class="spacer"></span><button class="btn-sm btn-danger rm">Remove</button></div>';
   var q = function(s){ return c.querySelector(s); };
   q('.on').onchange = function(){ upd(w.id, { on: this.checked }); };
@@ -211,6 +214,7 @@ function buildCard(w){
   q('.op').oninput = function(){ q('.opv').textContent = this.value + '%'; }; q('.op').onchange = function(){ upd(w.id, { opacity: this.value }); };
   q('.zm').oninput = function(){ q('.zmv').textContent = this.value + '%'; }; q('.zm').onchange = function(){ upd(w.id, { zoom: this.value }); };
   q('.lk').onchange = function(){ upd(w.id, { locked: this.checked }); };
+  q('.ck').onchange = function(){ upd(w.id, { clickable: this.checked }); };
   ['.ccam', '.cmir', '.cshape', '.cbor', '.cbw'].forEach(function(k){ q(k).onchange = function(){ camSave(w.id); }; });
   q('.rm').onclick = function(){ removeW(w.id); };
   c.onclick = function(e){ if (sel !== w.id) { sel = w.id; drawMap(); markSel(); } };
@@ -228,6 +232,7 @@ function renderList(){
     setVal(q('.x'), w.x); setVal(q('.y'), w.y); setVal(q('.w'), w.w); setVal(q('.h'), w.h);
     setVal(q('.op'), w.opacity); q('.opv').textContent = w.opacity + '%'; setVal(q('.zm'), w.zoom); q('.zmv').textContent = w.zoom + '%';
     setVal(q('.lk'), w.locked);
+    setVal(q('.ck'), w.clickable);
     var cr = q('.camrow'); cr.style.display = isCam(w) ? 'block' : 'none';
     if (isCam(w)) {
       var o = camOpts(w.url), cams = (S.app.cams || []).slice(); if (o.cam && cams.indexOf(o.cam) < 0) cams.unshift(o.cam);

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Party Sign-ups — ICB</title>
+<title>Cake Sign-Ups — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --bad:#ff5c6c; --gold:#ffd166; }
@@ -79,7 +79,7 @@
 <body>
   <div class="top">
     <div>
-      <h1>🎉 <span>Party Sign-ups</span></h1>
+      <h1>🎂 <span>Cake Sign-Ups</span></h1>
       <div class="sub">Chat signs up for a role with <code>!tomato TheirPaliaName</code> · <code>!leave</code> drops out · a different role swaps them.</div>
     </div>
     <div class="spacer"></div>
@@ -160,6 +160,14 @@
           <div class="row"><button class="btn-accent" onclick="saveSpot()">Save spotlight</button></div>
         </div>
         <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the sign-up board on stream</div>
+        <div class="spotbox">
+          <div class="switchrow" style="margin-top:0"><label class="switch"><input type="checkbox" id="onDemand"><span></span></label> <b>Hidden until chat asks</b></div>
+          <div class="note" style="margin:0 0 6px">Boards stay invisible until chat types <code>!show</code> / <code>!party</code> (all live boards) or <code>!show 3</code> / <code>!party 3</code> (just Board 3).</div>
+          <div class="row"><label>Stays up for</label><input type="number" id="showSec" min="5" max="600" style="width:80px"> seconds
+            <label style="min-width:auto;margin-left:10px"><input type="checkbox" id="showOnSignup"> Pop up when someone signs up</label></div>
+          <div class="row"><button class="btn-sm" onclick="act('/api/party/settings', { showNow: 'all' }, 'Showing all boards')">👀 Show all now</button><button class="btn-sm" onclick="act('/api/party/settings', { hideNow: true }, 'Hidden')">Hide now</button></div>
+        </div>
+        <div class="note" style="margin:6px 0">Chat can type <code>!show cake</code> / <code>!hide cake</code> to put all the boards on screen or take them off. <b id="chatHid" style="color:#ffe66d"></b></div>
         <div class="switchrow"><label class="switch"><input type="checkbox" id="showTwitch"><span></span></label> Also show Twitch names (small) next to Palia names</div>
       </div>
 
@@ -242,6 +250,8 @@ function render(){
   if (document.activeElement !== $('putBoard')) { if (mySlot) $('putBoard').value = String(mySlot); else { var free = A.slots.indexOf(null); $('putBoard').value = String(free >= 0 ? free + 1 : 1); } }
   renderBoards();
   $('visible').checked = A.visible; $('showTwitch').checked = A.showTwitch;
+  $('chatHid').textContent = A.chatHidden ? 'Hidden by !hide cake right now (chat types !show cake or click Show all now).' : '';
+  $('onDemand').checked = !!A.onDemand; $('showOnSignup').checked = A.showOnSignup !== false; if (document.activeElement !== $('showSec')) $('showSec').value = A.showSec || 30;
   $('countNote').textContent = '— ' + e.filled + ' / ' + e.spots + ' spots filled' + (e.open ? '' : ' · sign-ups closed');
   var roleOpts = e.roles.map(function(r){ return '<option value="' + r.id + '">' + esc((r.emoji ? r.emoji + ' ' : '') + r.label) + '</option>'; }).join('');
   var keepRole = $('addRole').value; $('addRole').innerHTML = roleOpts; if (keepRole) $('addRole').value = keepRole;
@@ -377,6 +387,8 @@ $('titleImage').addEventListener('change', function(){ showThumb('titleImage', '
 $('bgFit').addEventListener('change', function(){ saveLook(); }); $('border').addEventListener('change', function(){ saveLook(); });
 $('tText').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendTest(); });
 $('evPick').addEventListener('change', function(){ cur = $('evPick').value; fillForm(); render(); });
+['onDemand','showOnSignup'].forEach(function(id){ $(id).addEventListener('change', function(){ var b = {}; b[id] = $(id).checked; act('/api/party/settings', b, 'Saved'); }); });
+$('showSec').addEventListener('change', function(){ act('/api/party/settings', { showSec: Number($('showSec').value) }, 'Saved'); });
 ['visible','showTwitch'].forEach(function(id){ $(id).addEventListener('change', function(){ var b = {}; b[id] = $(id).checked; act('/api/party/settings', b, 'Saved'); }); });
 $('open').addEventListener('change', function(){ act('/api/party/event', { id: cur, open: $('open').checked }, $('open').checked ? 'Sign-ups open' : 'Sign-ups closed'); });
 

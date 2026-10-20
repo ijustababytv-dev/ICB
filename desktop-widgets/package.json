@@ -1,6 +1,6 @@
 {
   "name": "icb-desktop-widgets",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "ICB Desktop Widgets - see-through always-on-top widget windows controlled from the ICB dashboard",
   "main": "main.js",

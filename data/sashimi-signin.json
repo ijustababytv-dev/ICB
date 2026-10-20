@@ -1,12 +1,12 @@
 {
   "visible": true,
   "open": true,
-  "live": "e6",
-  "seq": 7,
-  "font": 26,
+  "live": "e8",
+  "seq": 9,
+  "font": 39,
   "cols": 2,
-  "title": "Bean Burgers",
-  "max": 0,
+  "title": "50 - 100 Poke Bowls",
+  "max": 30,
   "ignore": "spawn",
   "accent": "#ff8fd8",
   "panelColor": "#1c0e28",
@@ -26,10 +26,22 @@
       "dylans__babygirl": "Dylans__Babygirl",
       "geckotryhard": "geckotryhard",
       "froggyswowttv": "froggyswowttv",
-      "4kayslayz": "4KaySlayz"
+      "4kayslayz": "4KaySlayz",
+      "kjdragon2018": "kjdragon2018",
+      "bunnybliss_": "bunnybliss_",
+      "sammiileigh": "sammiileigh",
+      "voxdawnbringer": "VoxDawnbringer",
+      "ijustababytv": "IJustABabyTv",
+      "someadj_kitty": "someadj_kitty",
+      "railgunxxc": "Railgunxxc",
+      "echoaurelia": "EchoAurelia",
+      "heidiialaa": "heidiialaa",
+      "missjocey": "MissJocey",
+      "jax_juniper": "jax_juniper",
+      "talvirhornshoal": "TalvirHornshoal"
     }
   },
-  "rseq": 9,
+  "rseq": 20,
   "zones": [
     {
       "tz": "Pacific/Honolulu",
@@ -79,7 +91,7 @@
     {
       "tz": "Europe/Berlin",
       "label": "Central Europe",
-      "on": false
+      "on": true
     },
     {
       "tz": "Europe/Athens",
@@ -153,92 +165,7 @@
     {
       "id": "e6",
       "name": "x50 Bean Burgers",
-      "guests": [
-        {
-          "n": 1,
-          "name": "freyaoreo",
-          "twitch": "freyaoreo",
-          "at": 1791925662321,
-          "role": "r6"
-        },
-        {
-          "n": 2,
-          "name": "Haleyplzhush",
-          "twitch": "haley_please_hush",
-          "at": 1791925665442,
-          "role": "r4"
-        },
-        {
-          "n": 3,
-          "name": "catmomma1997",
-          "twitch": "catmomma1997",
-          "at": 1791925700749,
-          "role": "r7"
-        },
-        {
-          "n": 4,
-          "name": "granny2shoes5011",
-          "twitch": "granny2shoes5011",
-          "at": 1791925982853,
-          "role": "r4"
-        },
-        {
-          "n": 5,
-          "name": "nightshifter71",
-          "twitch": "nightshifter71",
-          "at": 1791927573089,
-          "role": "r5"
-        },
-        {
-          "n": 6,
-          "name": "RazorDom",
-          "twitch": "razordomme",
-          "at": 1791927576024,
-          "role": "r3"
-        },
-        {
-          "n": 7,
-          "name": "MissCupcake",
-          "twitch": "ItsMissCupcake",
-          "at": 1791927953322,
-          "role": "r5"
-        },
-        {
-          "n": 8,
-          "name": "Nova Hazelwood",
-          "twitch": "wonderlilyes",
-          "at": 1791927961963,
-          "role": "r5"
-        },
-        {
-          "n": 9,
-          "name": "Dylans__Babygirl",
-          "twitch": "Dylans__Babygirl",
-          "at": 1791933360087,
-          "role": "r8"
-        },
-        {
-          "n": 10,
-          "name": "geckotryhard",
-          "twitch": "geckotryhard",
-          "at": 1791933390454,
-          "role": "r8"
-        },
-        {
-          "n": 11,
-          "name": "froggyswowttv",
-          "twitch": "froggyswowttv",
-          "at": 1791933402885,
-          "role": "r8"
-        },
-        {
-          "n": 12,
-          "name": "4KaySlayz",
-          "twitch": "4KaySlayz",
-          "at": 1791934614496,
-          "role": "r8"
-        }
-      ],
+      "guests": [],
       "roles": [
         {
           "id": "r3",
@@ -285,6 +212,177 @@
       ],
       "desc": "",
       "date": "2026-10-13",
+      "time": "19:00",
+      "tz": "America/Chicago",
+      "game": "Palia"
+    },
+    {
+      "id": "e7",
+      "name": "Flow Trees",
+      "guests": [],
+      "roles": [],
+      "desc": "",
+      "date": "",
+      "time": "",
+      "tz": "America/Chicago",
+      "game": "Palia"
+    },
+    {
+      "id": "e8",
+      "name": "PPA Sign-Up Overprep !poke",
+      "guests": [
+        {
+          "n": 1,
+          "name": "Dylans__Babygirl",
+          "twitch": "Dylans__Babygirl",
+          "at": 1792446041258,
+          "role": "r13"
+        },
+        {
+          "n": 2,
+          "name": "heidiialaa",
+          "twitch": "heidiialaa",
+          "at": 1792449802159,
+          "role": "r13"
+        },
+        {
+          "n": 3,
+          "name": "MissJocey",
+          "twitch": "MissJocey",
+          "at": 1792455611499,
+          "role": "r12"
+        },
+        {
+          "n": 4,
+          "name": "jax_juniper",
+          "twitch": "jax_juniper",
+          "at": 1792455620713,
+          "role": "r12"
+        },
+        {
+          "n": 5,
+          "name": "MissCupcake",
+          "twitch": "ItsMissCupcake",
+          "at": 1792455622720,
+          "role": "r12"
+        },
+        {
+          "n": 6,
+          "name": "sammiileigh",
+          "twitch": "sammiileigh",
+          "at": 1792455647240,
+          "role": "r12"
+        },
+        {
+          "n": 7,
+          "name": "Nova Hazelwood",
+          "twitch": "wonderlilyes",
+          "at": 1792455661669,
+          "role": "r12"
+        },
+        {
+          "n": 8,
+          "name": "Haleyplzhush",
+          "twitch": "haley_please_hush",
+          "at": 1792455668395,
+          "role": "r12"
+        },
+        {
+          "n": 9,
+          "name": "geckotryhard",
+          "twitch": "geckotryhard",
+          "at": 1792456105568,
+          "role": "r12"
+        },
+        {
+          "n": 10,
+          "name": "TalvirHornshoal",
+          "twitch": "TalvirHornshoal",
+          "at": 1792456413955,
+          "role": "r12"
+        },
+        {
+          "n": 11,
+          "name": "bunnybliss_",
+          "twitch": "bunnybliss_",
+          "at": 1792459884447,
+          "role": "r13"
+        },
+        {
+          "n": 12,
+          "name": "kjdragon2018",
+          "twitch": "kjdragon2018",
+          "at": 1792459894651,
+          "role": "r13"
+        }
+      ],
+      "roles": [
+        {
+          "id": "r11",
+          "label": "Starter- Vinegar",
+          "cmd": "v",
+          "spots": 1,
+          "color": "#8e17cf"
+        },
+        {
+          "id": "r12",
+          "label": "Spice-Dari Cloves",
+          "cmd": "c",
+          "spots": 1,
+          "color": "#fafafa"
+        },
+        {
+          "id": "r13",
+          "label": "Ground Dari Cloves",
+          "cmd": "d",
+          "spots": 1,
+          "color": "#ff8fd8"
+        },
+        {
+          "id": "r14",
+          "label": "Spice Sprouts",
+          "cmd": "s",
+          "spots": 1,
+          "color": "#cc1919"
+        },
+        {
+          "id": "r15",
+          "label": "Heat Root",
+          "cmd": "r",
+          "spots": 1,
+          "color": "#3da4c7"
+        },
+        {
+          "id": "r16",
+          "label": "Heavenly Spice-Free",
+          "cmd": "free",
+          "spots": 1,
+          "color": "#030303"
+        },
+        {
+          "id": "r17",
+          "label": "Tomato",
+          "cmd": "t",
+          "spots": 5,
+          "color": "#aa5050"
+        },
+        {
+          "id": "r18",
+          "label": "Onion",
+          "cmd": "o",
+          "spots": 5,
+          "color": "#d265ac"
+        },
+        {
+          "id": "r19",
+          "label": "Garlic",
+          "cmd": "g",
+          "spots": 5,
+          "color": "#bda8b6"
+        }
+      ],
+      "desc": "If you sign-up on PPA, do not sign up here on LIVE!",
+      "date": "2026-10-16",
       "time": "19:00",
       "tz": "America/Chicago",
       "game": "Palia"

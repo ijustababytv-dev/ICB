@@ -1,17 +1,24 @@
 {
   "order": [
+    "ftsignup",
+    "bbsignup",
+    "sashimi",
+    "party",
+    "spritejar",
+    "sprites",
+    "hunt",
+    "avatars",
+    "c1790715802794",
     "desktop",
     "c1790719767680",
     "timer",
     "trackers",
     "giveaway",
     "newsticker",
-    "sashimi",
     "teams",
     "walkers",
     "c1790715802796",
-    "c1790715802794",
-    "party",
+    "aniimo",
     "c1790715802799",
     "c1790715802797",
     "c1790715802795",
@@ -22,7 +29,8 @@
     "c1790715802798",
     "poll",
     "steam",
-    "eventtime"
+    "eventtime",
+    "paliaclock"
   ],
   "startup": [],
   "custom": [

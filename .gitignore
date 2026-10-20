@@ -28,3 +28,4 @@ dist/
 # Local assets and backups
 /assets/
 /data/backups/
+/backups/

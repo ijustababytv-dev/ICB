@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Event Sign-Up — ICB</title>
+<title>Poke Bowl Sign-up — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#ff8fd8; --accent2:#b77cff; --good:#58d68d; --bad:#ff5c6c; --gold:#ffd166; }
@@ -65,7 +65,7 @@
 </head>
 <body>
 <div class="top">
-  <div><h1>📅 <span>Event</span> Sign-Up</h1><div class="sub">Like Sesh, but on stream: an event card with its time in world time zones, a countdown, and roles chat signs up for with their own <code>!commands</code>.</div></div>
+  <div><h1>🥗 <span>Poke Bowl</span> Sign-up</h1><div class="sub">Like Sesh, but on stream: an event card with its time in world time zones, a countdown, and roles chat signs up for with their own <code>!commands</code>.</div></div>
   <div class="spacer"></div>
   <span class="health" id="health">connecting…</span>
   <a href="/hub.html"><button>🏠 Hub</button></a>
@@ -129,6 +129,11 @@
     <div class="card">
       <h2>⚙️ Settings</h2>
       <div class="switchrow"><label class="switch"><input type="checkbox" id="visible" onchange="set({visible:this.checked})"><span></span></label> Show on stream</div>
+      <div class="note">Chat can type <code>!show poke</code> / <code>!hide poke</code> to put it on screen or take it off.</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="onDemand" onchange="set({onDemand:this.checked})"><span></span></label> <b>Hidden until chat asks</b> - pops up when chat types <code>!show</code> or <code>!event</code></div>
+      <div class="row"><label>Stays up for</label><input type="number" id="showSec" min="5" max="600" style="width:80px" onchange="set({showSec:this.value})"> seconds
+        <label style="min-width:auto;margin-left:10px"><input type="checkbox" id="showOnSignup" onchange="set({showOnSignup:this.checked})"> Also pop up when someone signs up or leaves</label></div>
+      <div class="row"><button class="btn-sm" onclick="set({showNow:true})">👀 Show it now</button><button class="btn-sm" onclick="set({hideNow:true})">Hide it now</button><span class="note" id="shownLeft"></span></div>
       <div class="row"><label>Title</label><input type="text" id="title" style="flex:1" onchange="set({title:this.value})"></div>
       <div class="row"><label>Text size</label><input type="number" id="font" min="12" max="70" style="width:80px" onchange="set({font:this.value})">
         <label style="min-width:auto">Columns</label><select id="cols" onchange="set({cols:this.value})"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
@@ -213,7 +218,7 @@ function load(){
       $('evDate').value = e.date || ''; $('evTime').value = e.time || ''; $('evTz').value = e.tz;
     }
     if (rolesFor !== e.id + JSON.stringify(e.roles)) { rolesFor = e.id + JSON.stringify(e.roles); drawRoles(); }
-    $('clash').innerHTML = d.clashes && d.clashes.length ? '<div class="warn">⚠️ ' + d.clashes.map(function(c){ return '!' + c; }).join(', ') + ' is also a command on a live party board - chat would sign up for both. Pick a different command.</div>' : '';
+    $('clash').innerHTML = d.clashes && d.clashes.length ? '<div class="warn">⚠️ ' + d.clashes.map(function(c){ return '!' + c; }).join(', ') + ' is also a command on a live party board or another sign-up widget - chat would sign up for both. Pick a different command.</div>' : '';
     var zs = JSON.stringify(d.allZones); if (zs !== zonesSig && !$('zones').contains(document.activeElement)) { zonesSig = zs; drawZones(); }
     var roleName = {}; e.roles.forEach(function(r){ roleName[r.id] = r.label; });
     var opts = function(sel){ return '<option value="">' + (e.roles.length ? '(no role)' : '—') + '</option>' + e.roles.map(function(r){ return '<option value="' + r.id + '"' + (r.id === sel ? ' selected' : '') + '>' + esc(r.label) + '</option>'; }).join(''); };
@@ -229,7 +234,9 @@ function load(){
     }).join('') : '<div class="empty">No one yet.</div>';
     $('remGame').textContent = '— ' + (e.game || 'Palia') + ' (' + (d.remembered || []).length + ')';
     $('rem').innerHTML = (d.remembered || []).length ? d.remembered.map(function(r){ return '<div><span><b>' + esc(r.name) + '</b> <span class="note">· ' + esc(r.twitch) + '</span></span><button class="btn-sm btn-danger" onclick="forget(\'' + esc(r.twitch).replace(/'/g, '&#39;') + '\')">✕</button></div>'; }).join('') : '<div class="empty">Nobody yet for this game.</div>';
-    ['visible', 'open', 'showZones', 'showCountdown'].forEach(function(k){ $(k).checked = !!d[k]; });
+    ['visible', 'open', 'showZones', 'showCountdown', 'onDemand', 'showOnSignup'].forEach(function(k){ $(k).checked = !!d[k]; });
+    if (document.activeElement !== $('showSec')) $('showSec').value = d.showSec;
+    $('shownLeft').textContent = d.chatHidden ? 'Hidden by !hide poke - chat types !show poke (or click Show it now)' : d.onDemand ? (d.shownLeft ? 'On screen now - ' + d.shownLeft + 's left' : 'Hidden right now') : '';
     ['title', 'font', 'cols', 'max', 'ignore', 'accent', 'panelColor', 'panelOpacity'].forEach(function(k){ if (document.activeElement !== $(k)) $(k).value = d[k]; });
   }).catch(function(){ $('health').textContent = 'ICB offline'; $('health').className = 'health offline'; });
 }

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "countdown": {
-    "heading": "CHARGERS IT'S TIME",
+    "heading": "Get Ready For Sashimi  PPA !profit",
     "subheading": "Host: ijustababyTv",
-    "targetAt": "2026-10-14T00:00:00.000Z",
+    "targetAt": "2026-10-18T22:03:16.720Z",
     "timezone": "America/Chicago",
     "status": "running"
   },
@@ -56,7 +56,7 @@
   "stream": {
     "title": "",
     "category": "Palia",
-    "goLiveMessage": "UNICORN_GOAL:685:10:1000:0"
+    "goLiveMessage": "UNICORN_GOAL:707:10:1000:0"
   },
   "ticker": {
     "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
@@ -78,6 +78,7 @@
       "log"
     ],
     "trackerOrder": [
+      "poke-bowl",
       "bean-burger",
       "sashimi",
       "amber-echo",
@@ -114,5 +115,5 @@
     ],
     "trackerHidden": []
   },
-  "updatedAt": "2026-10-13T21:34:45.937Z"
+  "updatedAt": "2026-10-19T23:06:00.477Z"
 }

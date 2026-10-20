@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aniimo Dex — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --bg:#140f1c; --panel:#1f1729; --panel2:#281e35; --line:#3a2d4d; --text:#f3ecff; --dim:#a898c0; --accent:#7dd3fc; --accent2:#38bdf8; --good:#58d68d; --bad:#ff5c6c; --gold:#ffd166; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 10% -10%, #2c1b3f 0%, var(--bg) 60%) fixed; color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; padding:24px; }
+  h1{ margin:0; font-size:24px; } h1 span{ color:var(--accent); }
+  .sub{ color:var(--dim); margin:4px 0 18px; }
+  .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .spacer{ flex:1; }
+  .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#1d3b2a; color:var(--good); }
+  .health.offline{ background:#4a1f26; color:var(--bad); }
+  button{ font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 14px; cursor:pointer; }
+  button:hover{ border-color:var(--accent2); }
+  .btn-accent{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:var(--accent); color:#1b0f2a; font-weight:700; }
+  .btn-danger{ border-color:#6a2b37; color:#ffb3bd; }
+  .btn-sm{ padding:3px 9px; font-size:12px; border-radius:8px; }
+  input[type=text], input[type=number], select{ font:inherit; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 11px; min-width:0; }
+  input[type=color]{ width:44px; height:34px; border:1px solid var(--line); border-radius:8px; background:#130d1b; padding:2px; cursor:pointer; }
+  .grid{ display:grid; grid-template-columns:minmax(400px,1fr) minmax(420px,1.15fr); gap:16px; align-items:start; }
+  @media (max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2{ margin:0 0 12px; font-size:16px; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .row label{ color:var(--dim); min-width:110px; }
+  .note{ color:var(--dim); font-size:12px; margin-top:6px; }
+  .url{ display:flex; gap:8px; align-items:center; background:#130d1b; border:1px dashed var(--line); border-radius:10px; padding:6px 10px; font-family:Consolas, monospace; font-size:12px; color:var(--dim); margin-bottom:12px; }
+  .url code{ flex:1; color:var(--text); background:none; }
+  .switchrow{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+  .switch{ position:relative; width:52px; height:28px; flex:none; }
+  .switch input{ display:none; }
+  .switch span{ position:absolute; inset:0; border-radius:999px; background:#3b3148; transition:.2s; cursor:pointer; }
+  .switch span::after{ content:""; position:absolute; left:3px; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch input:checked + span{ background:var(--accent); }
+  .switch input:checked + span::after{ left:27px; }
+  code{ background:#130d1b; padding:1px 6px; border-radius:6px; }
+  .presets{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+  .preset{ display:flex; align-items:center; gap:6px; background:#181122; border:1px solid var(--line); border-radius:12px; padding:5px 6px 5px 10px; }
+  .preset.on{ border-color:var(--accent); background:#2e1c3a; }
+  .preset b{ cursor:pointer; }
+  .preset .x{ padding:0 7px; font-size:12px; border:none; background:none; color:var(--dim); }
+  .stats{ display:flex; gap:26px; flex-wrap:wrap; align-items:flex-end; }
+  .stats .big{ font-size:30px; font-weight:900; color:var(--good); }
+  .pbar{ height:12px; background:#0c1220; border-radius:99px; overflow:hidden; margin:10px 0; }
+  .pbar span{ display:block; height:100%; background:linear-gradient(90deg,#38bdf8,#86efac); width:0; transition:width .6s; }
+  .controls{ display:grid; grid-template-columns:1fr 170px 190px auto; gap:8px; }
+  .cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; margin-top:12px; align-items:start; }
+  details.cr{ border:1px solid var(--line); background:#181122; border-radius:14px; padding:11px 12px; border-left:5px solid var(--c); }
+  details.cr.full{ background:#13261c; }
+  details.cr summary{ cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  details.cr summary::-webkit-details-marker{ display:none; }
+  .th{ width:48px; height:48px; border-radius:10px; background:#0c1220; flex:none; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px; color:#0b1220; overflow:hidden; }
+  .th img{ width:100%; height:100%; object-fit:contain; }
+  .th.big{ width:120px; height:120px; font-size:44px; }
+  details.cr.drop{ outline:2px dashed var(--accent); }
+  .pic{ display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+  .checks label{ position:relative; }
+  .checks label .vt{ flex:1; }
+  .cam{ flex:none; border:none; background:none; padding:0 2px; font-size:14px; cursor:pointer; opacity:.55; line-height:1; }
+  .cam:hover{ opacity:1; }
+  .cam img{ width:34px; height:34px; object-fit:contain; border-radius:6px; background:#0c1220; display:block; }
+  .cam.has{ opacity:1; }
+  .checks label.drop{ outline:2px dashed var(--accent); }
+  .fbig{ flex:none; width:240px; height:240px; border-radius:14px; background:#0c1220; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:60px; color:#3a2d4d; }
+  .fbig img{ width:100%; height:100%; object-fit:contain; }
+  .album{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .album img{ width:46px; height:46px; object-fit:contain; border-radius:8px; background:#0c1220; cursor:pointer; }
+  .nm{ font-weight:800; } .meta{ font-size:12px; color:var(--dim); } .tag{ font-size:13px; font-weight:800; color:var(--accent); white-space:nowrap; }
+  .checks{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+  .checks label{ display:flex; gap:6px; align-items:flex-start; font-size:13px; background:#221a30; padding:6px; border-radius:8px; cursor:pointer; }
+  .checks label.done{ color:var(--good); outline:1px solid #368866; }
+  .checks input{ accent-color:#86efac; margin:2px 0 0; }
+  .cr .acts{ display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:50; }
+  .modal.on{ display:flex; }
+  .modal .card{ width:min(520px,92vw); margin:0; }
+  textarea{ width:100%; min-height:200px; font:14px/1.5 Consolas, monospace; background:#130d1b; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:10px; }
+  .recent div{ font-size:13px; padding:3px 0; border-bottom:1px solid #2c2240; }
+  @media (max-width:900px){ .controls{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>✨ <span>Aniimo</span> Dex</h1><div class="sub">Catch & variant checklist - saved in ICB, with a stream overlay, new-catch pop-ups and chat <code>!need</code> look-ups.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div class="stats">
+        <div><div class="big" id="pct">0%</div><div class="note" style="margin:0">of all forms & specials</div></div>
+        <div><b id="done">0 / 0</b><div class="note" style="margin:0">forms checked</div></div>
+        <div><b id="basic">0 / 0</b><div class="note" style="margin:0">Aniimo caught (Basic Form)</div></div>
+        <div><b id="full">0</b><div class="note" style="margin:0">fully complete</div></div>
+      </div>
+      <div class="pbar"><span id="pbar"></span></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🕘 Latest checks</h2>
+      <div class="recent" id="recent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <input type="text" id="q" placeholder="Search Aniimo name or number…">
+    <select id="el"><option value="">All elements</option></select>
+    <select id="view"><option value="all">All Aniimo</option><option value="missing">Still need something</option><option value="full">Fully complete</option><option value="uncaught">Not caught yet</option></select>
+    <button id="expand" onclick="expandAll()">Expand all</button>
+  </div>
+  <div class="note" id="shown"></div>
+  <div class="cards" id="list"></div>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>📺 On stream</h2>
+      <div class="url"><span>Meld layer:</span><code>http://127.0.0.1:8790/aniimo.html</code><button class="btn-sm" onclick="cp('/aniimo.html')">Copy</button></div>
+      <div class="note" style="margin-top:-6px">Want the parts in different spots? Make separate layers with <code>?part=panel</code>, <code>?part=popup</code> and <code>?part=lookup</code> on the end.</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="visible" onchange="set({visible:this.checked})"><span></span></label> Show on stream</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="showElements" onchange="set({showElements:this.checked})"><span></span></label> Show progress per element</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="chat" onchange="set({chat:this.checked})"><span></span></label> Chat look-ups: <code>!need Emberpup</code> (what you still need) and <code>!dex</code> (overall)</div>
+      <div class="row"><label>Title</label><input type="text" id="title" style="flex:1" onchange="set({title:this.value})"></div>
+      <div class="row"><label>New-catch pop-up</label><input type="number" id="popupSec" min="2" max="60" style="width:70px" onchange="set({popupSec:this.value})"> seconds
+        <label style="min-width:auto;margin-left:10px">Look-up</label><input type="number" id="lookupSec" min="4" max="60" style="width:70px" onchange="set({lookupSec:this.value})"> seconds</div>
+      <div class="row"><label>Colours</label>Accent <input type="color" id="accent" onchange="set({accent:this.value})"> Panel <input type="color" id="panelColor" onchange="set({panelColor:this.value})">
+        <label style="min-width:auto">See-through</label><input type="range" id="panelOpacity" min="0" max="100" onchange="set({panelOpacity:this.value})"></div>
+      <div class="row"><button class="btn-sm" onclick="set({lookupDex:true})">Show overall progress now</button><button class="btn-sm" onclick="set({hideNow:true})">Hide pop-ups now</button></div>
+      <div class="note">Tip: each Aniimo card below has a 📺 button to show what you still need for it on stream.</div>
+    </div>
+    <div class="card">
+      <h2>⚡ Quick checker (over your game)</h2>
+      <div class="url"><span>Link:</span><code>http://127.0.0.1:8790/aniimo-quick.html</code><button class="btn-sm" onclick="cp('/aniimo-quick.html')">Copy</button></div>
+      <div class="note" style="margin-top:-6px">A small search-and-tick panel. In <b>Desktop Widgets</b>, add this link and switch on <b>Clickable</b> for it so you can tick catches without leaving the game.</div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>✏️ Edit the list</h2>
+      <div class="row"><button class="btn-accent" onclick="editA(null)">＋ Add an Aniimo</button></div>
+      <div class="row"><label>Add a form to every Aniimo</label><input type="text" id="formAll" placeholder="e.g. Shiny mutation" style="flex:1"><button class="btn-sm" onclick="addFormAll()">Add</button></div>
+      <div class="row"><label>Rename a form everywhere</label><input type="text" id="rnFrom" list="formList" placeholder="old name" style="flex:1"><input type="text" id="rnTo" placeholder="new name" style="flex:1"><button class="btn-sm" onclick="renameForm()">Rename</button></div>
+      <datalist id="formList"></datalist>
+      <div class="note">📷 <b>Form photos:</b> every form has a 📷 - click it and paste a snip of the form you just caught or hatched (it ticks the form too). You can also drop a photo straight onto a form.</div>
+      <div class="note">🖼️ <b>Pictures:</b> drag a picture onto any card, or open ✏️ and paste a snip (Win+Shift+S, then Ctrl+V). You can also drop files into <code>ICB\assets\aniimo</code> named by number or name (e.g. <code>001.png</code> or <code>Emberpup.png</code>).</div>
+      <div class="note">To change one Aniimo, use the ✏️ on its card. The starting list came from your friend's tracker (community info - the game may differ).</div>
+    </div>
+    <div class="card">
+      <h2>💾 Backup</h2>
+      <div class="row"><a href="/api/aniimo/export"><button>Download backup (.json)</button></a><button onclick="$('imp').click()">Import backup</button><input type="file" id="imp" accept=".json" hidden><button onclick="csv()">Download checklist (.csv)</button></div>
+      <div class="note">Import works with an ICB backup <b>or</b> a backup from your friend's Aniimo Tracker ("Download backup" there). Imports only add checks, they never remove any.</div>
+      <div class="row" style="margin-top:10px"><button class="btn-danger" onclick="resetAll()">Reset all checks</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="card">
+  <h2 id="mTitle">Aniimo</h2>
+  <div class="pic" id="picBox"><div id="mPic" class="th big">?</div><div>
+    <button class="btn-sm" onclick="$('picFile').click()">🖼️ Upload picture</button> <button class="btn-sm btn-danger" id="mRemove" onclick="removePic()">Remove</button>
+    <input type="file" id="picFile" accept="image/*" hidden>
+    <div class="note">Or snip it with <b>Win + Shift + S</b> and press <b>Ctrl + V</b> here, or drag a picture in. See-through edges are trimmed and big pictures shrunk for you.</div>
+  </div></div>
+  <div class="note" id="picNew" style="display:none">Save this Aniimo first, then open ✏️ again to add a picture.</div>
+  <div class="row"><label>Name</label><input type="text" id="mName" style="flex:1"></div>
+  <div class="row"><label>Number</label><input type="text" id="mNum" style="width:110px"><label style="min-width:auto">Element</label><input type="text" id="mEl" list="elList" placeholder="Fire / Dark" style="flex:1"></div>
+  <datalist id="elList"></datalist>
+  <div class="note">Forms & specials - one per line:</div>
+  <textarea id="mVars"></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn-accent" onclick="saveA()">Save</button><button onclick="closeM()">Cancel</button><span class="spacer"></span><button class="btn-danger" id="mDel" onclick="delA()">Remove this Aniimo</button></div>
+</div></div>
+
+<div class="modal" id="fmodal"><div class="card">
+  <h2 id="fTitle">Form photo</h2>
+  <div class="pic"><div class="fbig" id="fBig">📷</div><div>
+    <div class="note" style="margin-top:0">Caught or hatched this form? Snip it with <b>Win + Shift + S</b> and press <b>Ctrl + V</b> here - or drag a picture in, or:</div>
+    <div class="row" style="margin-top:8px"><button class="btn-sm" onclick="$('fFile').click()">🖼️ Upload photo</button><button class="btn-sm btn-danger" id="fRemove" onclick="removeForm()">Remove</button></div>
+    <div class="row"><button class="btn-sm" id="fMain" onclick="formAsMain()">⭐ Use as this Aniimo's main picture</button></div>
+    <label class="note" style="display:block;margin-top:8px"><input type="checkbox" id="fTick" checked> Tick this form when I add its photo</label>
+    <div class="note" id="fState"></div>
+    <input type="file" id="fFile" accept="image/*" hidden>
+  </div></div>
+  <div class="row"><span class="spacer"></span><button onclick="closeForm()">Done</button></div>
+</div></div>
+
+<script>
+var S = null, $ = function(id){ return document.getElementById(id); }, rosterSig = '', editing = null;
+var EL = { Fire: '#ff7a45', Water: '#4aa8ff', Grass: '#5fd068', Electric: '#ffd84a', Ice: '#8fe3ff', Rock: '#c49a6c', Wind: '#a8f0d0', Dark: '#a77bff', Holy: '#fff2a8' };
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function api(path, body){ return fetch(path, body === undefined ? {} : { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }); }
+function set(o){ return api('/api/aniimo', o).then(load); }
+function cp(p){ navigator.clipboard.writeText('http://127.0.0.1:8790' + p); }
+function key(a, v){ return a.id + '|' + v; }
+function elColor(e){ return EL[String(e || '').split('/')[0].replace(/\s/g, '')] || '#7dd3fc'; }
+function haveN(a){ return a.variants.filter(function(v){ return S.checked[key(a, v)]; }).length; }
+function A(id){ return S.roster.filter(function(a){ return a.id === id; })[0]; }
+// ---------- checklist: built once per roster change, then updated in place ----------
+function build(){
+  var list = $('list'), open = {};
+  [].forEach.call(list.querySelectorAll('details[open]'), function(d){ open[d.getAttribute('data-id')] = 1; });
+  list.innerHTML = '';
+  S.roster.forEach(function(a){
+    var d = document.createElement('details'); d.className = 'cr'; d.setAttribute('data-id', a.id); d.style.setProperty('--c', elColor(a.element)); if (open[a.id]) d.open = true;
+    d.innerHTML = '<summary><div style="display:flex;gap:10px;align-items:center">' + thumb(a, '') + '<div><div class="nm">' + esc(a.name) + '</div><div class="meta">No. ' + esc(a.number) + ' · ' + esc(a.element) + '</div></div></div><div class="tag"></div></summary>' +
+      '<div class="checks">' + a.variants.map(function(v){ var fi = (a.formImgs || {})[v];
+        return '<label data-v="' + esc(v) + '"><input type="checkbox"><span class="vt">' + esc(v) + '</span><button class="cam' + (fi ? ' has' : '') + '" title="Photo of this form">' + (fi ? '<img src="' + esc(fi) + '" alt="">' : '📷') + '</button></label>'; }).join('') + '</div>' +
+      '<div class="acts"><button class="btn-sm" data-act="all">✓ Tick all</button><button class="btn-sm" data-act="none">Untick all</button><button class="btn-sm" data-act="show">📺 Show on stream</button><button class="btn-sm" data-act="edit">✏️ Edit</button></div>';
+    [].forEach.call(d.querySelectorAll('label[data-v]'), function(l){
+      var v = l.getAttribute('data-v');
+      l.querySelector('input').onchange = function(){ set({ check: { id: a.id, variant: v, on: this.checked } }); };
+      l.querySelector('.cam').onclick = function(e){ e.preventDefault(); e.stopPropagation(); openForm(a.id, v); };
+      // Drop a photo onto a form to attach it (and tick that form).
+      l.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); l.classList.add('drop'); });
+      l.addEventListener('dragleave', function(){ l.classList.remove('drop'); });
+      l.addEventListener('drop', function(e){ e.preventDefault(); e.stopPropagation(); l.classList.remove('drop'); var f = e.dataTransfer.files[0]; if (f) uploadForm(a.id, v, f, true); });
+    });
+    d.querySelector('[data-act=all]').onclick = function(){ set({ checkAll: { id: a.id, on: true } }); };
+    d.querySelector('[data-act=none]').onclick = function(){ if (confirm('Untick everything for ' + a.name + '?')) set({ checkAll: { id: a.id, on: false } }); };
+    d.querySelector('[data-act=show]').onclick = function(){ set({ lookup: a.number || a.name }); };
+    d.querySelector('[data-act=edit]').onclick = function(){ editA(a.id); };
+    // Drop a picture file straight onto a card to set that Aniimo's picture.
+    d.addEventListener('dragover', function(e){ e.preventDefault(); d.classList.add('drop'); });
+    d.addEventListener('dragleave', function(){ d.classList.remove('drop'); });
+    d.addEventListener('drop', function(e){ e.preventDefault(); d.classList.remove('drop'); var f = e.dataTransfer.files[0]; if (f) uploadPic(a.id, f); });
+    list.appendChild(d);
+  });
+}
+function refresh(){
+  var q = $('q').value.trim().toLowerCase(), el = $('el').value, view = $('view').value, shown = 0;
+  S.roster.forEach(function(a){
+    var d = $('list').querySelector('details[data-id="' + a.id + '"]'); if (!d) return;
+    var n = haveN(a), full = n === a.variants.length, caught = !!S.checked[key(a, 'Basic Form')];
+    [].forEach.call(d.querySelectorAll('label[data-v]'), function(l){ var on = !!S.checked[key(a, l.getAttribute('data-v'))]; l.querySelector('input').checked = on; l.className = on ? 'done' : ''; });
+    d.querySelector('.tag').textContent = n + '/' + a.variants.length + (full ? ' 🏆' : '');
+    d.className = 'cr' + (full ? ' full' : '');
+    var ok = (!q || a.name.toLowerCase().indexOf(q) >= 0 || a.number.indexOf(q) >= 0) && (!el || a.element.split(/\s*\/\s*/).indexOf(el) >= 0) &&
+      (view === 'all' || (view === 'full' ? full : view === 'missing' ? !full : !caught));
+    d.style.display = ok ? '' : 'none'; if (ok) shown++;
+  });
+  $('shown').textContent = 'Showing ' + shown + ' of ' + S.roster.length + ' Aniimo';
+}
+['q', 'el', 'view'].forEach(function(id){ $(id).addEventListener('input', refresh); });
+function expandAll(){ var ds = [].slice.call($('list').querySelectorAll('details')).filter(function(d){ return d.style.display !== 'none'; }); var o = ds.some(function(d){ return !d.open; }); ds.forEach(function(d){ d.open = o; }); $('expand').textContent = o ? 'Collapse all' : 'Expand all'; }
+// ---------- pictures ----------
+function thumb(a, cls){ return '<div class="th ' + cls + '" style="' + (a.img ? '' : 'background:' + elColor(a.element)) + '">' + (a.img ? '<img src="' + esc(a.img) + '" alt="">' : esc((a.name || '?').charAt(0))) + '</div>'; }
+// Trim see-through edges, shrink to max 512 px, save as WEBP (keeps transparency, small file).
+function prepPic(file){
+  return new Promise(function(ok, fail){
+    var img = new Image(), u = URL.createObjectURL(file);
+    img.onload = function(){
+      var c = document.createElement('canvas'), w = img.naturalWidth, h = img.naturalHeight; c.width = w; c.height = h;
+      var x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      var px = x.getImageData(0, 0, w, h).data, minX = w, minY = h, maxX = -1, maxY = -1;
+      for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) if (px[(yy * w + xx) * 4 + 3] > 8) { if (xx < minX) minX = xx; if (xx > maxX) maxX = xx; if (yy < minY) minY = yy; if (yy > maxY) maxY = yy; }
+      if (maxX < 0) { minX = 0; minY = 0; maxX = w - 1; maxY = h - 1; }
+      var cw = maxX - minX + 1, ch = maxY - minY + 1, sc = Math.min(1, 512 / Math.max(cw, ch));
+      var o = document.createElement('canvas'); o.width = Math.round(cw * sc); o.height = Math.round(ch * sc);
+      var ox = o.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(c, minX, minY, cw, ch, 0, 0, o.width, o.height);
+      URL.revokeObjectURL(u); ok(o.toDataURL('image/webp', 0.92));
+    };
+    img.onerror = function(){ URL.revokeObjectURL(u); fail(new Error('That file is not a picture.')); };
+    img.src = u;
+  });
+}
+function uploadPic(id, file){
+  return prepPic(file).then(function(dataUrl){ return api('/api/aniimo/image', { id: id, dataUrl: dataUrl }); })
+    .then(function(r){ if (r.ok === false) alert(r.error); return load().then(function(){ if (editing === id) showPic(); }); })
+    .catch(function(e){ alert(e.message || 'Upload failed'); });
+}
+function showPic(){ var a = A(editing); $('mPic').outerHTML = a ? thumb(a, 'big').replace('class="th big"', 'id="mPic" class="th big"') : '<div id="mPic" class="th big">?</div>'; $('mRemove').style.display = a && a.img ? '' : 'none'; }
+function removePic(){ if (editing && confirm('Remove this picture?')) api('/api/aniimo/image', { id: editing, remove: true }).then(load).then(showPic); }
+// ---------- photos of single forms (caught / hatched) ----------
+var formEd = null;   // { id, v }
+function uploadForm(id, v, file, tick){
+  return prepPic(file).then(function(dataUrl){ return api('/api/aniimo/image', { id: id, variant: v, dataUrl: dataUrl, tick: !!tick }); })
+    .then(function(r){ if (r.ok === false) alert(r.error); return load().then(function(){ if (formEd && formEd.id === id && formEd.v === v) drawForm(); }); })
+    .catch(function(e){ alert(e.message || 'Upload failed'); });
+}
+function openForm(id, v){ formEd = { id: id, v: v }; drawForm(); $('fmodal').className = 'modal on'; }
+function closeForm(){ $('fmodal').className = 'modal'; formEd = null; }
+function drawForm(){
+  var a = A(formEd.id), u = (a.formImgs || {})[formEd.v];
+  $('fTitle').textContent = a.name + ' — ' + formEd.v;
+  $('fBig').innerHTML = u ? '<img src="' + esc(u) + '" alt="">' : '📷';
+  $('fRemove').style.display = u ? '' : 'none'; $('fMain').style.display = u ? '' : 'none';
+  $('fState').textContent = S.checked[key(a, formEd.v)] ? '✅ Ticked' : 'Not ticked yet';
+}
+function removeForm(){ if (confirm('Remove this photo?')) api('/api/aniimo/image', { id: formEd.id, variant: formEd.v, remove: true }).then(load).then(drawForm); }
+function formAsMain(){
+  var a = A(formEd.id), u = (a.formImgs || {})[formEd.v]; if (!u) return;
+  fetch(u).then(function(r){ return r.blob(); }).then(function(b){ return uploadPic(formEd.id, b); }).then(function(){ alert('Now the main picture for ' + a.name + '.'); });
+}
+// Paste a snip (Win+Shift+S): into the form-photo window, or the Aniimo's edit window.
+document.addEventListener('paste', function(e){
+  if (formEd && $('fmodal').className === 'modal on') {
+    var it2 = [].slice.call((e.clipboardData || {}).items || []).filter(function(i){ return i.type.indexOf('image') === 0; })[0];
+    if (it2) { e.preventDefault(); uploadForm(formEd.id, formEd.v, it2.getAsFile(), $('fTick').checked); }
+    return;
+  }
+  if (!editing || $('modal').className !== 'modal on') return;
+  var it = [].slice.call((e.clipboardData || {}).items || []).filter(function(i){ return i.type.indexOf('image') === 0; })[0];
+  if (it) { e.preventDefault(); uploadPic(editing, it.getAsFile()); }
+});
+// ---------- roster editor ----------
+function editA(id){
+  editing = id; var a = id ? A(id) : { name: '', number: '', element: '', variants: ['Basic Form', 'Prismana (rare)', 'Sparkling mutation', 'Alpha mutation', 'Mini mutation', 'Umbral variant'] };
+  $('mTitle').textContent = id ? 'Edit ' + a.name : 'Add an Aniimo';
+  $('mName').value = a.name; $('mNum').value = a.number; $('mEl').value = a.element; $('mVars').value = a.variants.join('\n');
+  $('mDel').style.display = id ? '' : 'none'; $('modal').className = 'modal on'; $('mName').focus();
+  $('picBox').style.display = id ? '' : 'none'; $('picNew').style.display = id ? 'none' : ''; if (id) showPic();
+}
+function closeM(){ $('modal').className = 'modal'; }
+function saveA(){
+  var b = { id: editing || '', name: $('mName').value, number: $('mNum').value, element: $('mEl').value, variants: $('mVars').value.split(/\r?\n/) };
+  if (editing) { var a = A(editing), gone = a.variants.filter(function(v){ return b.variants.map(function(x){ return x.trim(); }).indexOf(v) < 0 && S.checked[key(a, v)]; });
+    if (gone.length && !confirm('These ticked forms will be removed: ' + gone.join(', ') + '. Continue?')) return; }
+  api('/api/aniimo', { saveAniimo: b }).then(function(r){ if (r.ok === false) alert(r.error); else { closeM(); load(); } });
+}
+function delA(){ var a = A(editing); if (confirm('Remove ' + a.name + ' and its ticks from the list?')) set({ removeAniimo: editing }).then(closeM); }
+function addFormAll(){ var v = $('formAll').value.trim(); if (v && confirm('Add "' + v + '" to all ' + S.roster.length + ' Aniimo?')) set({ addFormAll: v }).then(function(){ $('formAll').value = ''; }); }
+function renameForm(){ var f = $('rnFrom').value.trim(), t = $('rnTo').value.trim(); if (f && t) set({ renameForm: { from: f, to: t } }).then(function(){ $('rnFrom').value = ''; $('rnTo').value = ''; }); }
+// ---------- backup ----------
+$('imp').onchange = function(e){
+  var f = e.target.files[0]; if (!f) return;
+  f.text().then(function(t){ var d = JSON.parse(t); return api('/api/aniimo', { import: d }); }).then(function(r){ alert(r.ok ? 'Imported ' + r.imported + ' new checks.' : (r.error || 'Import failed')); load(); })
+   .catch(function(){ alert('That file could not be imported.'); });
+  e.target.value = '';
+};
+function csv(){
+  var rows = [['Caught', 'Number', 'Aniimo', 'Element', 'Form / Special']];
+  S.roster.forEach(function(a){ a.variants.forEach(function(v){ rows.push([S.checked[key(a, v)] ? 'Yes' : 'No', a.number, a.name, a.element, v]); }); });
+  var blob = new Blob([rows.map(function(r){ return r.map(function(x){ return '"' + String(x).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n')], { type: 'text/csv' });
+  var u = URL.createObjectURL(blob), l = document.createElement('a'); l.href = u; l.download = 'aniimo-checklist.csv'; document.body.appendChild(l); l.click(); l.remove();
+}
+function resetAll(){ if (confirm('Untick EVERYTHING? (Download a backup first if you might want it back.)') && confirm('Really reset all checks?')) set({ resetChecks: 'yes' }); }
+// ---------- load ----------
+function load(){
+  return api('/api/aniimo/admin').then(function(d){
+    S = d; $('health').textContent = 'ICB connected'; $('health').className = 'health';
+    var st = d.stats;
+    $('pct').textContent = st.pct + '%'; $('done').textContent = st.done + ' / ' + st.total; $('basic').textContent = st.basic + ' / ' + st.species; $('full').textContent = st.full; $('pbar').style.width = st.pct + '%';
+    $('recent').innerHTML = d.recent.length ? d.recent.map(function(r){ return '<div>✅ <b>' + esc(r.name) + '</b> · ' + esc(r.variant) + ' <span class="note">' + new Date(r.at).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) + '</span></div>'; }).join('') : '<div class="empty">Nothing checked yet.</div>';
+    if ($('el').options.length < 2) d.elements.forEach(function(e){ var o = document.createElement('option'); o.value = o.textContent = e; $('el').appendChild(o); });
+    $('elList').innerHTML = d.elements.map(function(e){ return '<option value="' + e + '">'; }).join('');
+    var forms = {}; d.roster.forEach(function(a){ a.variants.forEach(function(v){ forms[v] = 1; }); });
+    $('formList').innerHTML = Object.keys(forms).sort().map(function(v){ return '<option value="' + esc(v) + '">'; }).join('');
+    var sig = JSON.stringify(d.roster); if (sig !== rosterSig) { rosterSig = sig; build(); }
+    refresh();
+    ['visible', 'chat', 'showElements'].forEach(function(k){ $(k).checked = !!d[k]; });
+    ['title', 'popupSec', 'lookupSec', 'accent', 'panelColor', 'panelOpacity'].forEach(function(k){ if (document.activeElement !== $(k)) $(k).value = d[k]; });
+  }).catch(function(){ $('health').textContent = 'ICB offline'; $('health').className = 'health offline'; });
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { closeM(); closeForm(); } });
+$('fFile').onchange = function(e){ var f = e.target.files[0]; if (f && formEd) uploadForm(formEd.id, formEd.v, f, $('fTick').checked); e.target.value = ''; };
+$('fmodal').addEventListener('dragover', function(e){ e.preventDefault(); });
+$('fmodal').addEventListener('drop', function(e){ e.preventDefault(); var f = e.dataTransfer.files[0]; if (f && formEd) uploadForm(formEd.id, formEd.v, f, $('fTick').checked); });
+$('picFile').onchange = function(e){ var f = e.target.files[0]; if (f && editing) uploadPic(editing, f); e.target.value = ''; };
+$('modal').addEventListener('dragover', function(e){ e.preventDefault(); });
+$('modal').addEventListener('drop', function(e){ e.preventDefault(); var f = e.dataTransfer.files[0]; if (f && editing) uploadPic(editing, f); });
+load(); setInterval(load, 3000);
+</script>
+</body>
+</html>
