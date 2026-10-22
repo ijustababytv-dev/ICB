@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last Sprite Found</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+
+  /* ---- TV screen container ---- */
+  #tv {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12%;
+    background: #0a0a12;
+  }
+
+  /* Scanlines */
+  #tv::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,.18) 2px,
+      rgba(0,0,0,.18) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Vignette */
+  #tv::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%);
+    pointer-events: none;
+    z-index: 11;
+  }
+
+  /* ---- content area ---- */
+  #content {
+    position: relative;
+    z-index: 5;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4%;
+    width: 82%; height: 82%;
+    text-align: center;
+    filter: brightness(1.05) saturate(1.1);
+  }
+  #content.pos-top    { flex-direction: column-reverse; }
+  #content.pos-bottom { flex-direction: column; }
+  #content.pos-overlay { position: relative; }
+  #content.pos-overlay #text-wrap {
+    position: absolute; bottom: 6%; left: 0; width: 100%;
+    background: rgba(0,0,0,.45); padding: 4% 2%;
+  }
+
+  /* ---- sprite image ---- */
+  #sprite-img {
+    max-width: 58%;
+    max-height: 52%;
+    object-fit: contain;
+    image-rendering: auto;
+    filter: drop-shadow(0 0 8px rgba(120,200,255,.4));
+    transition: opacity .4s ease;
+  }
+
+  /* ---- text ---- */
+  #sprite-name {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 800;
+    font-size: clamp(11px, 4.5vw, 28px);
+    color: #fff;
+    text-shadow: 0 0 6px rgba(100,180,255,.7), 0 0 18px rgba(80,140,255,.3);
+    line-height: 1.15;
+    letter-spacing: .02em;
+  }
+  #sprite-variant {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    font-size: clamp(9px, 3vw, 18px);
+    color: #c8b8ff;
+    text-shadow: 0 0 5px rgba(160,120,255,.5);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  /* ---- rarity colors ---- */
+  .rarity-rare    #sprite-name { color: #5bf; text-shadow: 0 0 6px rgba(50,160,255,.7), 0 0 18px rgba(50,160,255,.3); }
+  .rarity-epic    #sprite-name { color: #c77dff; text-shadow: 0 0 6px rgba(180,100,255,.7), 0 0 18px rgba(180,100,255,.3); }
+  .rarity-legendary #sprite-name { color: #ffb347; text-shadow: 0 0 6px rgba(255,170,50,.7), 0 0 18px rgba(255,170,50,.3); }
+  .rarity-mythic  #sprite-name { color: #ff6b9d; text-shadow: 0 0 6px rgba(255,100,150,.7), 0 0 18px rgba(255,100,150,.3); }
+
+  /* ---- "new catch" flash ---- */
+  @keyframes catchFlash {
+    0%   { filter: brightness(2) saturate(0); transform: scale(1.15); }
+    100% { filter: brightness(1) saturate(1);  transform: scale(1); }
+  }
+  #sprite-img.flash { animation: catchFlash .5s ease-out; }
+
+  /* ---- color-bar idle ---- */
+  #idle {
+    position: absolute; inset: 0;
+    z-index: 4;
+    display: flex; flex-direction: column;
+  }
+  #idle .bar { flex: 1; }
+  #idle .bar:nth-child(1) { background: #c0c0c0; }
+  #idle .bar:nth-child(2) { background: #c0c000; }
+  #idle .bar:nth-child(3) { background: #00c0c0; }
+  #idle .bar:nth-child(4) { background: #00c000; }
+  #idle .bar:nth-child(5) { background: #c000c0; }
+  #idle .bar:nth-child(6) { background: #c00000; }
+  #idle .bar:nth-child(7) { background: #0000c0; }
+  #idle-label {
+    position: absolute; bottom: 14%; left: 0; width: 100%;
+    text-align: center;
+    font-family: monospace; font-size: clamp(9px, 3vw, 16px);
+    color: #fff; text-shadow: 0 0 4px #000;
+    letter-spacing: .15em;
+    z-index: 5;
+  }
+
+  /* ---- static / noise overlay ---- */
+  @keyframes static {
+    0%   { background-position: 0 0; }
+    100% { background-position: -200px -300px; }
+  }
+  #noise {
+    position: absolute; inset: 0;
+    z-index: 12;
+    opacity: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' x='0' y='0' fill='white' opacity='.06'/%3E%3Crect width='1' height='1' x='2' y='2' fill='white' opacity='.04'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+  }
+  #noise.on {
+    opacity: 1;
+    animation: static .08s steps(4) 3;
+  }
+
+  /* ---- BROADCAST INTERRUPT ---- */
+  #interrupt {
+    position: absolute; inset: 0;
+    z-index: 6;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #0a0a12;
+    text-align: center;
+    padding: 8%;
+  }
+  #interrupt.show { display: flex; }
+
+  @keyframes interruptPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .6; }
+  }
+  #int-icon {
+    font-size: clamp(18px, 8vw, 50px);
+    margin-bottom: 4%;
+    animation: interruptPulse 1.2s ease-in-out infinite;
+  }
+  #int-msg {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(10px, 4vw, 24px);
+    color: #ff4444;
+    text-shadow: 0 0 12px rgba(255,60,60,.6), 0 0 30px rgba(255,40,40,.25);
+    letter-spacing: .08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+  #int-sub {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(8px, 3vw, 16px);
+    color: #ffcc44;
+    text-shadow: 0 0 8px rgba(255,200,60,.5);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-top: 4%;
+  }
+
+  /* slideshow counter */
+  #ss-counter {
+    position: absolute; top: 6%; right: 6%;
+    font-family: monospace; font-size: clamp(8px, 2.5vw, 14px);
+    color: rgba(255,255,255,.45);
+    z-index: 6;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="tv">
+  <!-- Color bars -->
+  <div id="idle">
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div id="idle-label">AWAITING SIGNAL</div>
+  </div>
+
+  <!-- Sprite display -->
+  <div id="content" style="display:none;">
+    <img id="sprite-img" src="" alt="">
+    <div id="text-wrap">
+      <div id="sprite-name"></div>
+      <div id="sprite-variant"></div>
+    </div>
+  </div>
+
+  <!-- Broadcast interrupt banner -->
+  <div id="interrupt">
+    <div id="int-icon">📡</div>
+    <div id="int-msg">WE INTERRUPT THIS BROADCAST...</div>
+    <div id="int-sub">HAVE YOU SEEN THESE SPRITES?</div>
+  </div>
+
+  <!-- Slideshow counter -->
+  <div id="ss-counter"></div>
+
+  <!-- Static noise -->
+  <div id="noise"></div>
+</div>
+
+<script>
+(function () {
+  var BASE = 'http://127.0.0.1:8790';
+  var lastKey = '';
+  var cfg = {};
+  var ssTimer = null;       // slideshow interval timer
+  var ssDelayTimer = null;  // delay before slideshow starts
+  var ssPool = [];          // sprites to cycle through
+  var ssIndex = 0;
+  var ssActive = false;
+  var manualDisplay = null; // when a real sprite is being shown (last caught / pinned)
+
+  /* ---- fire static + flash effects ---- */
+  function doStatic() {
+    var n = document.getElementById('noise');
+    // remove and re-create the element to guarantee the animation restarts
+    var parent = n.parentNode;
+    var clone = n.cloneNode(true);
+    clone.className = 'on';
+    clone.style.opacity = '1';
+    clone.style.animation = 'static .08s steps(4) 3';
+    parent.replaceChild(clone, n);
+  }
+
+  function doFlash() {
+    var img = document.getElementById('sprite-img');
+    var parent = img.parentNode;
+    var clone = img.cloneNode(true);
+    clone.className = 'flash';
+    clone.style.animation = 'catchFlash .5s ease-out';
+    parent.replaceChild(clone, img);
+  }
+
+  function doEffects() {
+    doStatic();
+    doFlash();
+  }
+
+  /* ---- apply server settings ---- */
+  function applySettings(s) {
+    if (!s) return;
+    cfg = s;
+    document.getElementById('tv').style.display = s.visible === false ? 'none' : '';
+
+    var idle = document.getElementById('idle');
+    if (idle.style.display !== 'none') {
+      idle.style.opacity = s.idleBars === false ? '0' : '1';
+    }
+
+    var c = document.getElementById('content');
+    c.classList.remove('pos-top', 'pos-bottom', 'pos-overlay');
+    c.classList.add('pos-' + (s.textPos || 'bottom'));
+
+    var tw = document.getElementById('text-wrap');
+    tw.style.transform = 'scale(' + ((s.textSize || 100) / 100) + ')';
+
+    var img = document.getElementById('sprite-img');
+    var iScale = (s.imgSize || 100) / 100;
+    img.style.maxWidth = Math.round(58 * iScale) + '%';
+    img.style.maxHeight = Math.round(52 * iScale) + '%';
+  }
+
+  /* ---- show a sprite on screen ---- */
+  function showSprite(name, variant, rarity, imgUrl, withEffects) {
+    var key = name + '|' + variant;
+    var isNew = key !== lastKey;
+    lastKey = key;
+
+    document.getElementById('idle').style.display = 'none';
+    document.getElementById('interrupt').classList.remove('show');
+    var c = document.getElementById('content');
+    c.style.display = '';
+
+    c.className = c.className.replace(/rarity-\S+/g, '').trim();
+    if (cfg.showRarity !== false && rarity) c.classList.add('rarity-' + rarity.toLowerCase());
+    c.classList.remove('pos-top', 'pos-bottom', 'pos-overlay');
+    c.classList.add('pos-' + (cfg.textPos || 'bottom'));
+
+    var nameEl = document.getElementById('sprite-name');
+    nameEl.textContent = name;
+    nameEl.style.display = cfg.showName === false ? 'none' : '';
+
+    var varEl = document.getElementById('sprite-variant');
+    varEl.textContent = variant || '';
+    varEl.style.display = cfg.showVariant === false ? 'none' : '';
+
+    var img = document.getElementById('sprite-img');
+    if (imgUrl) { img.src = imgUrl; img.style.display = ''; }
+    else img.style.display = 'none';
+
+    if ((isNew || withEffects) && withEffects !== false) doEffects();
+  }
+
+  /* ---- go to idle bars ---- */
+  function goIdle() {
+    document.getElementById('content').style.display = 'none';
+    document.getElementById('interrupt').classList.remove('show');
+    document.getElementById('ss-counter').style.display = 'none';
+    var idle = document.getElementById('idle');
+    idle.style.display = '';
+    idle.style.opacity = cfg.idleBars !== false ? '1' : '0';
+    document.getElementById('idle-label').textContent = 'AWAITING SIGNAL';
+    lastKey = '';
+  }
+
+  /* ======== SLIDESHOW ======== */
+
+  function stopSlideshow() {
+    ssActive = false;
+    if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
+    if (ssDelayTimer) { clearTimeout(ssDelayTimer); ssDelayTimer = null; }
+    document.getElementById('ss-counter').style.display = 'none';
+    document.getElementById('interrupt').classList.remove('show');
+  }
+
+  function showInterrupt(cb) {
+    if (!cfg.ssShowInterrupt) { cb(); return; }
+    doStatic();
+
+    document.getElementById('idle').style.display = 'none';
+    document.getElementById('content').style.display = 'none';
+
+    var intEl = document.getElementById('interrupt');
+    document.getElementById('int-msg').textContent = cfg.ssMessage || 'WE INTERRUPT THIS BROADCAST...';
+    document.getElementById('int-sub').textContent = cfg.ssSubMessage || 'HAVE YOU SEEN THESE SPRITES?';
+    intEl.classList.add('show');
+
+    setTimeout(function () {
+      intEl.classList.remove('show');
+      cb();
+    }, 3000);
+  }
+
+  function ssShowNext() {
+    if (!ssPool.length) { stopSlideshow(); goIdle(); return; }
+    ssIndex = ssIndex % ssPool.length;
+    var sp = ssPool[ssIndex];
+    var imgUrl = sp.variantImg || sp.img || '';
+    if (imgUrl && !imgUrl.startsWith('http')) imgUrl = BASE + imgUrl;
+    showSprite(sp.name, sp.variant, sp.rarity, imgUrl, true);
+
+    var counter = document.getElementById('ss-counter');
+    counter.textContent = (ssIndex + 1) + ' / ' + ssPool.length;
+    counter.style.display = '';
+
+    ssIndex++;
+  }
+
+  function startSlideshow() {
+    if (ssActive) return;
+    // fetch the slideshow sprites from the server
+    fetch(BASE + '/api/sprite-tv/slideshow')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok || !d.sprites || !d.sprites.length) return;
+        ssPool = d.sprites;
+        ssIndex = 0;
+        ssActive = true;
+
+        showInterrupt(function () {
+          ssShowNext();
+          ssTimer = setInterval(function () {
+            if (!ssActive) return;
+            doStatic();
+            ssShowNext();
+          }, (cfg.ssInterval || 5) * 1000);
+        });
+      })
+      .catch(function () {});
+  }
+
+  function scheduleSlideshow() {
+    stopSlideshow();
+    if (!cfg.slideshow) return;
+    var delay = (cfg.ssDelay || 8) * 1000;
+    ssDelayTimer = setTimeout(function () {
+      startSlideshow();
+    }, delay);
+  }
+
+  /* ---- process full sprite-tv payload ---- */
+  function processPayload(d) {
+    if (!d || !d.ok) return;
+    var oldSlideshow = cfg.slideshow;
+    applySettings(d.settings);
+
+    // Slideshow mode: start with idle bars, then cycle sprites
+    if (cfg.slideshow) {
+      if (!ssActive && !ssDelayTimer) {
+        goIdle();
+        scheduleSlideshow();
+      }
+      return;
+    }
+
+    // Normal mode: show the display sprite or idle
+    if (d.display) {
+      stopSlideshow();
+      var imgUrl = d.display.variantImg
+        ? BASE + d.display.variantImg
+        : (d.display.img ? BASE + d.display.img : '');
+      showSprite(d.display.name, d.display.variant, d.display.rarity, imgUrl);
+    } else {
+      goIdle();
+    }
+  }
+
+  /* ---- initial load ---- */
+  function init() {
+    fetch(BASE + '/api/sprite-tv')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { processPayload(d); })
+      .catch(function () {
+        fetch(BASE + '/api/sprites')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d && d.recent && d.recent.length) {
+              var r = d.recent[0];
+              showSprite(r.name, r.variant, '', r.img ? BASE + r.img : '');
+            }
+          })
+          .catch(function () {});
+      });
+  }
+
+  /* ---- SSE ---- */
+  function connectSSE() {
+    var es = new EventSource(BASE + '/events?role=overlay');
+    es.addEventListener('spritetv', function (e) {
+      try {
+        var d = JSON.parse(e.data);
+        processPayload(d);
+      } catch (_e) {}
+    });
+    es.addEventListener('sprites', function (e) {
+      try {
+        // new catch came in — re-fetch full payload
+        fetch(BASE + '/api/sprite-tv')
+          .then(function (r) { return r.json(); })
+          .then(function (d) { processPayload(d); })
+          .catch(function () {});
+      } catch (_e) {}
+    });
+    es.onerror = function () {
+      es.close();
+      setTimeout(connectSSE, 3000);
+    };
+  }
+
+  init();
+  connectSSE();
+})();
+</script>
+</body>
+</html>

@@ -1,16 +1,16 @@
 {
-  "windowStartedAt": "2026-10-20T21:07:30.738Z",
+  "windowStartedAt": "2026-10-22T19:02:13.485Z",
   "entrants": {
     "VoxDawnbringer": {
       "username": "VoxDawnbringer",
       "counts": {
-        "chatWindows": 228,
+        "chatWindows": 229,
         "subMonths": 1,
         "giftedSubs": 8,
         "bits": 0
       },
       "note": "",
-      "chatTickets": 228,
+      "chatTickets": 229,
       "subTickets": 10,
       "giftTickets": 80,
       "bitsTickets": 0,
@@ -106,13 +106,13 @@
     "haley_please_hush": {
       "username": "haley_please_hush",
       "counts": {
-        "chatWindows": 319,
+        "chatWindows": 320,
         "subMonths": 0,
         "giftedSubs": 0,
         "bits": 0
       },
       "note": "",
-      "chatTickets": 319,
+      "chatTickets": 320,
       "subTickets": 0,
       "giftTickets": 0,
       "bitsTickets": 0,
@@ -3368,10 +3368,7 @@
       "lastSeenAt": "2026-10-20T02:03:48.375Z"
     }
   },
-  "chatActiveThisWindow": {
-    "VoxDawnbringer": true,
-    "haley_please_hush": true
-  },
+  "chatActiveThisWindow": {},
   "winners": [],
   "manualLog": [],
   "rates": {
@@ -3381,12 +3378,12 @@
     "bitsPerUnicorn": 100
   },
   "jarBaseline": {
-    "night": "2026-10-20",
-    "startedAt": "2026-10-20T18:07:49.154Z",
+    "night": "2026-10-22",
+    "startedAt": "2026-10-22T16:51:24.230Z",
     "snapshot": {
       "VoxDawnbringer": {
         "counts": {
-          "chatWindows": 227,
+          "chatWindows": 228,
           "subMonths": 1,
           "giftedSubs": 8,
           "bits": 0
@@ -3431,7 +3428,7 @@
       },
       "wonderlilyes": {
         "counts": {
-          "chatWindows": 168,
+          "chatWindows": 170,
           "subMonths": 1,
           "giftedSubs": 0,
           "bits": 1000
@@ -3440,7 +3437,7 @@
       },
       "haley_please_hush": {
         "counts": {
-          "chatWindows": 318,
+          "chatWindows": 319,
           "subMonths": 0,
           "giftedSubs": 0,
           "bits": 0

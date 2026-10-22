@@ -5,7 +5,7 @@
   "seq": 9,
   "font": 39,
   "cols": 2,
-  "title": "50 - 100 Poke Bowls",
+  "title": "100 Poke Bowls",
   "max": 30,
   "ignore": "spawn",
   "accent": "#ff8fd8",
@@ -41,7 +41,7 @@
       "talvirhornshoal": "TalvirHornshoal"
     }
   },
-  "rseq": 20,
+  "rseq": 21,
   "zones": [
     {
       "tz": "Pacific/Honolulu",
@@ -230,92 +230,7 @@
     {
       "id": "e8",
       "name": "PPA Sign-Up Overprep !poke",
-      "guests": [
-        {
-          "n": 1,
-          "name": "Dylans__Babygirl",
-          "twitch": "Dylans__Babygirl",
-          "at": 1792446041258,
-          "role": "r13"
-        },
-        {
-          "n": 2,
-          "name": "heidiialaa",
-          "twitch": "heidiialaa",
-          "at": 1792449802159,
-          "role": "r13"
-        },
-        {
-          "n": 3,
-          "name": "MissJocey",
-          "twitch": "MissJocey",
-          "at": 1792455611499,
-          "role": "r12"
-        },
-        {
-          "n": 4,
-          "name": "jax_juniper",
-          "twitch": "jax_juniper",
-          "at": 1792455620713,
-          "role": "r12"
-        },
-        {
-          "n": 5,
-          "name": "MissCupcake",
-          "twitch": "ItsMissCupcake",
-          "at": 1792455622720,
-          "role": "r12"
-        },
-        {
-          "n": 6,
-          "name": "sammiileigh",
-          "twitch": "sammiileigh",
-          "at": 1792455647240,
-          "role": "r12"
-        },
-        {
-          "n": 7,
-          "name": "Nova Hazelwood",
-          "twitch": "wonderlilyes",
-          "at": 1792455661669,
-          "role": "r12"
-        },
-        {
-          "n": 8,
-          "name": "Haleyplzhush",
-          "twitch": "haley_please_hush",
-          "at": 1792455668395,
-          "role": "r12"
-        },
-        {
-          "n": 9,
-          "name": "geckotryhard",
-          "twitch": "geckotryhard",
-          "at": 1792456105568,
-          "role": "r12"
-        },
-        {
-          "n": 10,
-          "name": "TalvirHornshoal",
-          "twitch": "TalvirHornshoal",
-          "at": 1792456413955,
-          "role": "r12"
-        },
-        {
-          "n": 11,
-          "name": "bunnybliss_",
-          "twitch": "bunnybliss_",
-          "at": 1792459884447,
-          "role": "r13"
-        },
-        {
-          "n": 12,
-          "name": "kjdragon2018",
-          "twitch": "kjdragon2018",
-          "at": 1792459894651,
-          "role": "r13"
-        }
-      ],
+      "guests": [],
       "roles": [
         {
           "id": "r11",
@@ -326,7 +241,7 @@
         },
         {
           "id": "r12",
-          "label": "Spice-Dari Cloves",
+          "label": "Salsa-Dari Cloves",
           "cmd": "c",
           "spots": 1,
           "color": "#fafafa"
@@ -363,22 +278,29 @@
           "id": "r17",
           "label": "Tomato",
           "cmd": "t",
-          "spots": 5,
+          "spots": 1,
           "color": "#aa5050"
         },
         {
           "id": "r18",
           "label": "Onion",
           "cmd": "o",
-          "spots": 5,
+          "spots": 1,
           "color": "#d265ac"
         },
         {
           "id": "r19",
           "label": "Garlic",
           "cmd": "g",
-          "spots": 5,
+          "spots": 1,
           "color": "#bda8b6"
+        },
+        {
+          "id": "r20",
+          "label": "OverPrep-tomato, onion or garlic",
+          "cmd": "op",
+          "spots": 0,
+          "color": "#ff8fd8"
         }
       ],
       "desc": "If you sign-up on PPA, do not sign up here on LIVE!",

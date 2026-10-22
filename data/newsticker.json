@@ -3,7 +3,7 @@
   "label": "📰 NEWS",
   "showLabel": true,
   "separator": "✦",
-  "speed": 62,
+  "speed": 102,
   "gap": 1,
   "barColor": "#1c0e28",
   "barOpacity": 88,
@@ -15,7 +15,7 @@
   "messages": [
     {
       "id": "m4",
-      "text": "Sign-Ups Open for Flow Tree Relay...  Type \"!show flow\" to see the sign up and \"!hide flow\" when you are done!",
+      "text": "Not Trading Sprites Until Next Week!",
       "on": true
     }
   ],

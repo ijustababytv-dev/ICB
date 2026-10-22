@@ -3,21 +3,21 @@
     {
       "id": "main",
       "name": "Main countdown",
-      "heading": "TATTERED CLOTH CONTEST",
-      "subheading": "GRAB A SNACK 🌸",
-      "endText": "✨ WE'RE LIVE! ✨",
+      "heading": "FORTNITE",
+      "subheading": "",
+      "endText": "✨ SPRITE HUNT ✨",
       "endSub": "",
       "icon": "✨",
       "theme": "spooky",
-      "font": "Creepster",
+      "font": "Chewy",
       "accent1": "#ff8a2a",
       "accent2": "#8b5cf6",
       "textColor": "#fff3e0",
       "plate": "#120a1f",
       "plateAlpha": 100,
       "scale": 400,
-      "x": 52,
-      "y": 50,
+      "x": 50,
+      "y": 46.5,
       "showHours": "auto",
       "showLabels": true,
       "showBadge": true,
@@ -34,10 +34,10 @@
       "lastMinutes": 24,
       "lastTime": "18:00",
       "lastTz": "America/Chicago",
-      "status": "running",
+      "status": "done",
       "endsAt": 1792537200000,
       "leftMs": 0,
-      "doneAt": 1792454400000
+      "doneAt": 1792537200000
     }
   ]
 }

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ICB Sprite Jar</title>
+<link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Sprite jar + sticker book overlay (Baby, 2026-10-18). Full-screen transparent Meld layer. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; font-family: 'Fredoka', sans-serif; }
+  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  #stage.hidden { display: none; }
+  #jar { position: absolute; }
+  #jar img.layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  #inner { position: absolute; }
+  .js { position: absolute; left: 0; top: 0; }
+  .js img { width: 100%; height: 100%; display: block; -webkit-filter: drop-shadow(0 .15vw .25vw rgba(0,0,0,.35)); filter: drop-shadow(0 .15vw .25vw rgba(0,0,0,.35)); }
+  .js.done img { -webkit-filter: drop-shadow(0 0 .4vw #ffd34d); filter: drop-shadow(0 0 .4vw #ffd34d); }
+  #jarCount { position: absolute; left: 0; width: 100%; text-align: center; font-family: 'Chewy', cursive; color: #fff; font-size: 1.5vw;
+    text-shadow: 0 0 .5vw #b77cff, -0.1vw -0.1vw 0 #3b1f5c, 0.1vw -0.1vw 0 #3b1f5c, -0.1vw 0.1vw 0 #3b1f5c, 0.1vw 0.1vw 0 #3b1f5c; }
+
+  /* ---------- sticker book ---------- */
+  #book { position: absolute; opacity: 0; -webkit-transform: translate(-50%,-50%) scale(.3) rotate(-8deg); transform: translate(-50%,-50%) scale(.3) rotate(-8deg);
+    transition: opacity .45s, -webkit-transform .6s cubic-bezier(.2,1.4,.4,1); transition: opacity .45s, transform .6s cubic-bezier(.2,1.4,.4,1); }
+  #book.open { opacity: 1; -webkit-transform: translate(-50%,-50%) scale(1) rotate(0); transform: translate(-50%,-50%) scale(1) rotate(0); }
+  .cover { background: linear-gradient(135deg, #ff8fd8 0%, #b77cff 55%, #7c5cff 100%); border-radius: 1.4em; padding: 2.6em .9em .9em; position: relative;
+    box-shadow: 0 1em 2.5em rgba(40,10,70,.55), inset 0 0 0 .25em rgba(255,255,255,.35); }
+  .ribbon { position: absolute; left: 0; top: .55em; width: 100%; text-align: center; font-family: 'Chewy', cursive; color: #fff; font-size: 1.55em; letter-spacing: .03em;
+    text-shadow: 0 .08em 0 #6a2fa8, 0 0 .4em rgba(255,255,255,.6); white-space: nowrap; }
+  .ribbon small { font-family: 'Fredoka', sans-serif; font-size: .5em; opacity: .9; margin-left: .6em; letter-spacing: 0; }
+  .pages { position: relative; background: #fff8ee; border-radius: .7em; overflow: hidden; height: 30em; }
+  .pages:after { content: ''; position: absolute; left: 50%; top: 0; width: 3em; margin-left: -1.5em; height: 100%;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(120,80,60,.16) 45%, rgba(120,80,60,.28) 50%, rgba(120,80,60,.16) 55%, rgba(0,0,0,0) 100%); pointer-events: none; }
+  .page { position: absolute; top: 0; width: 50%; height: 100%; padding: 1.3em 1.6em;
+    background-image: radial-gradient(rgba(183,124,255,.18) .09em, transparent .1em); background-size: 1.1em 1.1em; }
+  .page.l { left: 0; } .page.r { left: 50%; }
+  .pname { font-family: 'Chewy', cursive; font-size: 2.5em; color: #4b2a7a; line-height: 1; white-space: nowrap; overflow: hidden; }
+  .rar { display: inline-block; font-size: .8em; font-weight: 700; color: #fff; padding: .15em .7em; border-radius: 1em; margin: .45em 0 .6em; letter-spacing: .05em; text-transform: uppercase; }
+  .slots { text-align: center; }
+  .slot { display: inline-block; vertical-align: top; width: 7.6em; margin: .35em .3em; text-align: center; }
+  .spot { width: 7.6em; height: 7.6em; border: .18em dashed rgba(120,90,160,.45); border-radius: 1.1em; position: relative; background: rgba(255,255,255,.65); }
+  .spot img { position: absolute; left: 8%; top: 8%; width: 84%; height: 84%; display: none; }
+  .slot.has .spot { border-style: solid; border-color: transparent; background: transparent; }
+  .slot.has .spot img { display: block; -webkit-filter: drop-shadow(.12em 0 0 #fff) drop-shadow(-.12em 0 0 #fff) drop-shadow(0 .12em 0 #fff) drop-shadow(0 -.12em 0 #fff) drop-shadow(0 .2em .25em rgba(0,0,0,.3));
+    filter: drop-shadow(.12em 0 0 #fff) drop-shadow(-.12em 0 0 #fff) drop-shadow(0 .12em 0 #fff) drop-shadow(0 -.12em 0 #fff) drop-shadow(0 .2em .25em rgba(0,0,0,.3)); }
+  .slot.has.gold .spot img { -webkit-filter: sepia(1) saturate(3.2) hue-rotate(-12deg) brightness(1.08) drop-shadow(.12em 0 0 #fff) drop-shadow(-.12em 0 0 #fff) drop-shadow(0 .12em 0 #fff) drop-shadow(0 -.12em 0 #fff) drop-shadow(0 0 .4em #ffc93c);
+    filter: sepia(1) saturate(3.2) hue-rotate(-12deg) brightness(1.08) drop-shadow(.12em 0 0 #fff) drop-shadow(-.12em 0 0 #fff) drop-shadow(0 .12em 0 #fff) drop-shadow(0 -.12em 0 #fff) drop-shadow(0 0 .4em #ffc93c); }
+  .slot.small, .slot.small .spot { width: 5.6em; } .slot.small .spot { height: 5.6em; } .slot.small { margin: .3em .2em; }
+  .slot .lb { display: inline-block; margin-top: .35em; font-size: .78em; font-weight: 700; color: #fff; padding: .1em .65em; border-radius: .8em; letter-spacing: .04em; }
+  .slot.target .spot { border-color: #ff8fd8; box-shadow: 0 0 0 .2em rgba(255,143,216,.35), 0 0 1em rgba(255,143,216,.7); }
+  .slot.pulse .spot { -webkit-animation: pulse 1s ease-in-out 3; animation: pulse 1s ease-in-out 3; }
+  .slot.stick .spot img { -webkit-animation: stick .55s cubic-bezier(.3,1.6,.5,1); animation: stick .55s cubic-bezier(.3,1.6,.5,1); }
+  .slot.peel .spot img { -webkit-animation: peel .9s ease-in forwards; animation: peel .9s ease-in forwards; }
+  @-webkit-keyframes stick { 0% { -webkit-transform: scale(1.6) rotate(-14deg); } 55% { -webkit-transform: scale(.88,1.1) rotate(3deg); } 100% { -webkit-transform: scale(1) rotate(0); } }
+  @keyframes stick { 0% { transform: scale(1.6) rotate(-14deg); } 55% { transform: scale(.88,1.1) rotate(3deg); } 100% { transform: scale(1) rotate(0); } }
+  @-webkit-keyframes pulse { 50% { -webkit-transform: scale(1.08); } }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+  @-webkit-keyframes peel { 100% { -webkit-transform: translate(2em,-3em) rotate(35deg) scale(.6); opacity: 0; } }
+  @keyframes peel { 100% { transform: translate(2em,-3em) rotate(35deg) scale(.6); opacity: 0; } }
+  .caption { position: absolute; left: 1.6em; right: 1.6em; bottom: 1.1em; text-align: center; font-family: 'Chewy', cursive; font-size: 1.7em; color: #4b2a7a; opacity: 0;
+    -webkit-transform: translateY(.6em); transform: translateY(.6em); transition: all .4s cubic-bezier(.2,1.4,.4,1); }
+  .caption.on { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+  .caption b { color: #ff4fb8; }
+  .bigNum { font-family: 'Chewy', cursive; font-size: 3.4em; color: #4b2a7a; line-height: 1; margin-top: .1em; }
+  .bigNum span { font-size: .45em; color: #8a72ad; }
+  .ctitle { font-family: 'Chewy', cursive; font-size: 1.5em; color: #b77cff; }
+  .bar { height: 1.1em; background: #eadff7; border-radius: 1em; overflow: hidden; margin: .5em 0 .9em; }
+  .bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #b77cff, #ff8fd8, #ffc93c); border-radius: 1em; transition: width 1s; }
+  .minis { text-align: center; }
+  .mini { display: inline-block; width: 3.05em; margin: .12em; text-align: center; vertical-align: top; }
+  .mini img { width: 2.6em; height: 2.6em; display: block; margin: 0 auto; }
+  .mini.none img { -webkit-filter: grayscale(1) brightness(1.1); filter: grayscale(1) brightness(1.1); opacity: .35; }
+  .mini.full img { -webkit-filter: drop-shadow(0 0 .25em #ffc93c); filter: drop-shadow(0 0 .25em #ffc93c); }
+  .mini.cur { background: rgba(255,143,216,.28); border-radius: .5em; }
+  .mini i { display: block; font-style: normal; font-size: .62em; font-weight: 700; color: #7a62a0; line-height: 1.2; }
+  .mini.full i { color: #e09a00; }
+
+  /* ---------- flying sprite + sparkles ---------- */
+  #fly { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  .flyer { position: absolute; left: 0; top: 0; }
+  .flyer img { width: 100%; height: 100%; display: block; -webkit-filter: drop-shadow(0 0 .6vw #fff) drop-shadow(0 0 1.2vw #ff8fd8); filter: drop-shadow(0 0 .6vw #fff) drop-shadow(0 0 1.2vw #ff8fd8); }
+  .flyer.gold img { -webkit-filter: sepia(1) saturate(3.2) hue-rotate(-12deg) brightness(1.08) drop-shadow(0 0 1vw #ffc93c); filter: sepia(1) saturate(3.2) hue-rotate(-12deg) brightness(1.08) drop-shadow(0 0 1vw #ffc93c); }
+  .spark { position: absolute; left: 0; top: 0; font-size: 1.4vw; line-height: 1; color: #fff; text-shadow: 0 0 .5vw #ff8fd8; opacity: 1; transition: all .9s ease-out; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="jar">
+    <img class="layer" id="jarBack" alt="">
+    <div id="inner"></div>
+    <img class="layer" id="jarFront" alt="">
+    <div id="jarCount"></div>
+  </div>
+  <div id="book">
+    <div class="cover">
+      <div class="ribbon" id="ribbon">Sprite Sticker Book</div>
+      <div class="pages">
+        <div class="page l" id="pl"></div>
+        <div class="page r" id="pr"></div>
+        <div class="caption" id="cap"></div>
+      </div>
+    </div>
+  </div>
+  <div id="fly"></div>
+</div>
+<script>
+(function () {
+  var VAR = { 'Base': ['BASE', '#9a9ea8'], 'Gold': ['GOLD', '#f5a33a'], 'Cheat Master': ['CHEAT', '#4fb52a'], 'Loot Hacker': ['HACKER', '#6b6dff'], 'Bounty Hunter': ['HUNTER', '#e384ea'], 'Trick or Treat': ['TRICK', '#ff7a2e'], 'Quack': ['QUACK', '#a46bff'] };
+  var RAR = { Common: '#8e949e', Uncommon: '#3fae4a', Rare: '#3b8df0', Epic: '#a052e6', Legendary: '#ee8a1c', Mythic: '#e6b422', Exotic: '#2ad1c9' };
+  function vinfo(v) { return VAR[v] || [String(v || '').toUpperCase().slice(0, 8), '#b77cff']; }
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var stage = $('stage'), jar = $('jar'), inner = $('inner'), book = $('book'), fly = $('fly');
+  var S = null, roster = [], stats = null, season = '', last = 0, started = false, epoch = null;
+  var bodies = {}, queue = [], busy = false, closeT = null, jarKey = '';
+
+  // ---------- layout ----------
+  function fit() {
+    var W = window.innerWidth, H = window.innerHeight; if (!W || !H || !S) return;
+    stage.className = S.visible ? '' : 'hidden';
+    var custom = !!S.jarUrl, back = custom ? S.jarUrl : S.jarBack;
+    if ($('jarBack').getAttribute('src') !== back) $('jarBack').src = back;
+    $('jarFront').style.display = custom ? 'none' : '';
+    if (!custom && $('jarFront').getAttribute('src') !== S.jarFront) $('jarFront').src = S.jarFront;
+    var img = $('jarBack'), ar = img.naturalWidth ? img.naturalHeight / img.naturalWidth : 1.5;
+    var jw = W * S.jarW / 100, jh = jw * ar;
+    jar.style.left = (W * S.jarX / 100) + 'px'; jar.style.top = (H * S.jarY / 100) + 'px'; jar.style.width = jw + 'px'; jar.style.height = jh + 'px';
+    inner.style.left = (jw * S.inL / 100) + 'px'; inner.style.top = (jh * S.inT / 100) + 'px';
+    inner.style.width = (jw * S.inW / 100) + 'px'; inner.style.height = (jh * S.inH / 100) + 'px';
+    $('jarCount').style.top = (jh + W * 0.004) + 'px';
+    var bw = W * S.bookW / 100;
+    book.style.width = bw + 'px'; book.style.fontSize = (bw / 60) + 'px';
+    book.style.left = (W * S.bookX / 100) + 'px'; book.style.top = (H * S.bookY / 100) + 'px';
+    $('ribbon').innerHTML = esc(S.title || 'Sprite Sticker Book') + '<small>' + esc(season) + '</small>';
+    sizeBodies();
+  }
+  window.onresize = fit;
+
+  // ---------- sprites in the jar (little physics pile) ----------
+  function inJar() { return roster.filter(function (s) { return s.img && !(S.removeComplete && s.caught.length === s.variants.length); }); }
+  function radius() {
+    var n = Math.max(1, inJar().length), a = inner.clientWidth * inner.clientHeight;
+    var r = Math.sqrt(a * 0.5 / (n * Math.PI)) * (S.spriteSize / 100);
+    return Math.max(6, Math.min(r, inner.clientWidth / 3));
+  }
+  function sizeBodies() { var r = radius(); for (var k in bodies) if (bodies.hasOwnProperty(k)) { bodies[k].r = r; bodies[k].el.style.width = bodies[k].el.style.height = (r * 2.2) + 'px'; } }
+  function syncJar() {
+    var list = inJar(), key = list.map(function (s) { return s.id + s.img + (s.caught.length === s.variants.length ? '*' : ''); }).join('|');
+    $('jarCount').textContent = stats ? stats.done + ' / ' + stats.total + ' stickers' : '';
+    if (key === jarKey) return; jarKey = key;
+    var keep = {};
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i], b = bodies[s.id]; keep[s.id] = 1;
+      if (!b) {
+        var el = document.createElement('div'); el.className = 'js'; el.innerHTML = '<img alt="">'; inner.appendChild(el);
+        b = bodies[s.id] = { id: s.id, el: el, x: Math.random() * inner.clientWidth, y: -Math.random() * inner.clientHeight * 0.6, vx: (Math.random() - .5) * 60, vy: 0, rot: (Math.random() - .5) * 30, r: 10 };
+      }
+      if (b.el.firstChild.getAttribute('src') !== s.img) b.el.firstChild.src = s.img;
+      b.el.className = 'js' + (s.caught.length === s.variants.length ? ' done' : '');
+    }
+    for (var k in bodies) if (bodies.hasOwnProperty(k) && !keep[k]) { if (bodies[k].el.parentNode) bodies[k].el.parentNode.removeChild(bodies[k].el); delete bodies[k]; }
+    sizeBodies();
+  }
+  function shake(power) { for (var k in bodies) if (bodies.hasOwnProperty(k)) { bodies[k].vx += (Math.random() - .5) * power; bodies[k].vy -= Math.random() * power * .8; } }
+  function physics(dt) {
+    var W = inner.clientWidth, H = inner.clientHeight, list = [], k, i, j, g = H * 2.2;
+    for (k in bodies) if (bodies.hasOwnProperty(k)) list.push(bodies[k]);
+    for (i = 0; i < list.length; i++) { var b = list[i]; if (b.hold) continue; b.vy += g * dt; b.vx *= 0.995; b.x += b.vx * dt; b.y += b.vy * dt; }
+    for (var it = 0; it < 4; it++) {
+      for (i = 0; i < list.length; i++) for (j = i + 1; j < list.length; j++) {
+        var a = list[i], c = list[j]; if (a.hold || c.hold) continue;
+        var dx = c.x - a.x, dy = c.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 0.01, m = a.r + c.r;
+        if (d < m) {
+          var o = (m - d) / 2, nx = dx / d, ny = dy / d;
+          a.x -= nx * o; a.y -= ny * o; c.x += nx * o; c.y += ny * o;
+          var rv = (c.vx - a.vx) * nx + (c.vy - a.vy) * ny;
+          if (rv < 0) { var imp = -rv * 0.6; a.vx -= imp * nx; a.vy -= imp * ny; c.vx += imp * nx; c.vy += imp * ny; }
+        }
+      }
+      for (i = 0; i < list.length; i++) {
+        var q = list[i]; if (q.hold) continue;
+        if (q.x < q.r) { q.x = q.r; q.vx = Math.abs(q.vx) * 0.4; } if (q.x > W - q.r) { q.x = W - q.r; q.vx = -Math.abs(q.vx) * 0.4; }
+        if (q.y > H - q.r) { q.y = H - q.r; q.vy = -Math.abs(q.vy) * 0.25; q.vx *= 0.9; }
+        if (q.y < q.r - H * 0.1 && it === 3) { q.y = Math.max(q.y, q.r - H * 0.1); }
+      }
+    }
+    for (i = 0; i < list.length; i++) {
+      var p = list[i]; if (p.hold) continue;
+      p.rot += p.vx * dt * 0.6; p.rot *= 0.97;
+      var sz = p.r * 2.2;
+      p.el.style.transform = p.el.style.webkitTransform = 'translate(' + (p.x - sz / 2).toFixed(1) + 'px,' + (p.y - sz / 2).toFixed(1) + 'px) rotate(' + p.rot.toFixed(1) + 'deg)';
+    }
+  }
+
+  // ---------- book pages ----------
+  function spriteOf(id) { for (var i = 0; i < roster.length; i++) if (roster[i].id === id) return roster[i]; return null; }
+  function drawLeft(s, ev, hideVariant) {
+    var html = '<div class="pname">' + esc(s.name) + '</div><span class="rar" style="background:' + (RAR[s.rarity] || '#b77cff') + '">' + esc(s.rarity) + '</span><div class="slots">';
+    for (var i = 0; i < s.variants.length; i++) {
+      var v = s.variants[i], vi = vinfo(v), has = s.caught.indexOf(v) >= 0 && v !== hideVariant;
+      html += '<div class="slot' + (has ? ' has' : '') + (v === 'Gold' ? ' gold' : '') + '" data-v="' + esc(v) + '"><div class="spot"><img src="' + esc(s.img || '') + '" alt=""></div>' +
+        '<span class="lb" style="background:' + vi[1] + '">' + esc(vi[0]) + '</span></div>';
+    }
+    $('pl').innerHTML = html + '</div>';
+    if (s.variants.length > 6) { var a = $('pl').querySelectorAll('.slot'); for (var j = 0; j < a.length; j++) a[j].className += ' small'; }
+  }
+  function slotEl(v) { var a = $('pl').querySelectorAll('.slot'); for (var i = 0; i < a.length; i++) if (a[i].getAttribute('data-v') === v) return a[i]; return null; }
+  function drawRight(st, curId, minus) {
+    var done = st.done - (minus || 0), pct = st.total ? done / st.total * 100 : 0;
+    var html = '<div class="ctitle">My collection</div><div class="bigNum" id="bn">' + done + ' <span>/ ' + st.total + ' stickers</span></div>' +
+      '<div class="bar"><span id="barFill" style="width:' + pct.toFixed(1) + '%"></span></div><div class="minis">';
+    for (var i = 0; i < roster.length; i++) {
+      var s = roster[i], n = s.caught.length - (s.id === curId ? (minus || 0) : 0);
+      html += '<div class="mini' + (n === 0 ? ' none' : '') + (n === s.variants.length ? ' full' : '') + (s.id === curId ? ' cur' : '') + '" data-id="' + esc(s.id) + '"><img src="' + esc(s.img || '') + '" alt=""><i>' + n + '/' + s.variants.length + '</i></div>';
+    }
+    $('pr').innerHTML = html + '</div>';
+  }
+  function caption(h) { var c = $('cap'); c.className = 'caption'; c.innerHTML = h; if (h) setTimeout(function () { c.className = 'caption on'; }, 30); }
+  function openBook() { clearTimeout(closeT); book.className = 'open'; }
+  function closeLater(ms) { clearTimeout(closeT); closeT = setTimeout(function () { book.className = ''; setTimeout(next, 650); }, ms); }
+
+  // ---------- sparkles ----------
+  function sparkle(x, y, n, spread) {
+    var ch = ['✦', '✧', '★', '♥', '✨'];
+    for (var i = 0; i < n; i++) (function () {
+      var e = document.createElement('div'); e.className = 'spark'; e.textContent = ch[Math.floor(Math.random() * ch.length)];
+      e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.color = ['#fff', '#ffd34d', '#ff8fd8', '#b8f0ff'][i % 4];
+      fly.appendChild(e);
+      setTimeout(function () { var a = Math.random() * Math.PI * 2, d = spread * (0.4 + Math.random() * 0.8);
+        e.style.left = (x + Math.cos(a) * d) + 'px'; e.style.top = (y + Math.sin(a) * d) + 'px'; e.style.opacity = '0'; e.style.transform = 'scale(' + (0.5 + Math.random()) + ') rotate(' + (Math.random() * 180) + 'deg)'; }, 20);
+      setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1000);
+    })();
+  }
+  function rectOf(el) { var r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; }
+
+  // ---------- the show ----------
+  function next() {
+    busy = false;
+    if (!queue.length) return;
+    busy = true; play(queue.shift());
+  }
+  function play(ev) {
+    var s = spriteOf(ev.sprite);
+    if (!s) return next();
+    if (ev.stats) stats = ev.stats;
+    var vi = vinfo(ev.variant);
+    if (ev.kind === 'catch') {
+      drawLeft(s, ev, ev.variant); drawRight(stats, s.id, (!ev.test && s.caught.indexOf(ev.variant) >= 0) ? 1 : 0); caption(''); openBook();
+      var slot = slotEl(ev.variant); if (slot) slot.className += ' target';
+      setTimeout(function () { flyIn(s, ev, slot); }, 750);
+      return;
+    }
+    drawLeft(s, ev, null); drawRight(stats, s.id, 0); openBook();
+    if (ev.kind === 'already') {
+      var sl = slotEl(ev.variant); if (sl) sl.className += ' pulse';
+      caption('<b>' + esc(s.name) + ' ' + esc(vi[0]) + '</b> is already in the book!');
+    } else if (ev.kind === 'undo') {
+      drawLeft({ name: s.name, rarity: s.rarity, img: s.img, variants: s.variants, caught: s.caught.concat([ev.variant]) }, ev, null);
+      drawRight(stats, s.id, 0);
+      setTimeout(function () { var su = slotEl(ev.variant); if (su) su.className += ' peel'; }, 500);
+      caption('Sticker peeled off: ' + esc(s.name) + ' ' + esc(vi[0]));
+    } else if (ev.kind === 'unknown') {
+      caption('Which ' + esc(s.name) + '? ' + s.variants.map(function (v) { return vinfo(v)[0]; }).join(' · '));
+    } else caption('');
+    closeLater(S.bookSec * 1000);
+  }
+  function flyIn(s, ev, slot) {
+    var b = bodies[s.id], start, size;
+    var jr = jar.getBoundingClientRect(), ir = inner.getBoundingClientRect();
+    if (b) { b.hold = true; start = { x: ir.left + b.x, y: ir.top + b.y }; size = b.r * 2.2; b.el.style.visibility = 'hidden'; }
+    else { start = { x: jr.left + jr.width / 2, y: ir.top + ir.height * 0.6 }; size = ir.width * 0.3; }
+    shake(ir.height * 0.6);
+    var up = { x: jr.left + jr.width / 2, y: jr.top - jr.height * 0.12 };
+    var tgt = slot ? rectOf(slot.querySelector('.spot')) : rectOf(book);
+    var endSize = slot ? tgt.w * 0.84 : size;
+    var f = document.createElement('div'); f.className = 'flyer' + (ev.variant === 'Gold' ? ' gold' : ''); f.innerHTML = '<img src="' + esc(s.img) + '" alt="">';
+    fly.appendChild(f);
+    var t0 = null, T1 = 650, T2 = 1150, lastSpark = 0;
+    var ctrl = { x: (up.x + tgt.x) / 2, y: Math.min(up.y, tgt.y) - window.innerHeight * 0.22 };
+    function place(x, y, sz, rot) { f.style.width = f.style.height = sz + 'px'; f.style.transform = f.style.webkitTransform = 'translate(' + (x - sz / 2) + 'px,' + (y - sz / 2) + 'px) rotate(' + rot + 'deg)'; }
+    function ease(t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var t = ts - t0, x, y, sz, rot;
+      if (t < T1) { var k = 1 - Math.pow(1 - t / T1, 3); x = start.x + (up.x - start.x) * k; y = start.y + (up.y - start.y) * k; sz = size * (1 + 0.6 * k); rot = Math.sin(t / 90) * 8; }
+      else if (t < T1 + T2) {
+        var u = ease((t - T1) / T2), a = 1 - u;
+        x = a * a * up.x + 2 * a * u * ctrl.x + u * u * tgt.x; y = a * a * up.y + 2 * a * u * ctrl.y + u * u * tgt.y;
+        sz = size * 1.6 + (endSize - size * 1.6) * u; rot = 360 * u;
+      } else { land(); return; }
+      place(x, y, sz, rot);
+      if (ts - lastSpark > 90) { lastSpark = ts; sparkle(x, y, 2, size * 0.5); }
+      requestAnimationFrame(step);
+    }
+    function land() {
+      if (f.parentNode) f.parentNode.removeChild(f);
+      if (b) { b.hold = false; b.el.style.visibility = ''; b.x = inner.clientWidth / 2; b.y = -b.r * 2; b.vy = 0; }
+      var live = spriteOf(s.id) || s;
+      drawLeft({ name: s.name, rarity: s.rarity, img: s.img, variants: s.variants, caught: live.caught.indexOf(ev.variant) >= 0 ? live.caught : live.caught.concat([ev.variant]) }, ev, null);
+      var sl = slotEl(ev.variant); if (sl) sl.className += ' stick';
+      drawRight(stats, s.id, 0);
+      sparkle(tgt.x, tgt.y, 16, tgt.w * 1.1);
+      caption(ev.complete ? '⭐ <b>' + esc(s.name) + '</b> page complete! ⭐' : '<b>' + esc(s.name) + ' ' + esc(vinfo(ev.variant)[0]) + '</b> sticker! ' + ev.have + ' / ' + ev.of);
+      if (ev.complete) setTimeout(function () { var r = rectOf($('pl')); sparkle(r.x, r.y, 30, r.w * 0.7); }, 400);
+      closeLater(S.bookSec * 1000);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- data ----------
+  function poll() {
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/sprites/jar' + (started ? '?since=' + last : '?first=1') + '&t=' + Date.now(), true);
+    x.timeout = 5000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      if (x.status === 200) {
+        try {
+          var d = JSON.parse(x.responseText);
+          S = d.settings; roster = d.sprites || []; season = d.season || ''; if (!busy) stats = d.stats;
+          if (epoch !== null && S.epoch !== epoch) { queue = []; book.className = ''; }
+          epoch = S.epoch;
+          fit(); syncJar();
+          if (!started) { last = d.last || 0; started = true; }
+          else if (d.last < last) last = d.last;
+          var evs = d.events || [];
+          for (var i = 0; i < evs.length; i++) if (evs[i].id > last) { last = evs[i].id; queue.push(evs[i]); }
+          if (!busy && queue.length) next();
+        } catch (e) {}
+      }
+      setTimeout(poll, 800);
+    };
+    x.send();
+  }
+  $('jarBack').onload = fit;
+  var prev = 0;
+  function frame(ts) {
+    var dt = prev ? Math.min(0.05, (ts - prev) / 1000) : 0.016; prev = ts;
+    if (S && S.visible && inner.clientWidth > 0) physics(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  poll();
+})();
+</script>
+</body>
+</html>
