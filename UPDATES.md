@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-22: Added Cloudinary image comparison and sync commands. New and changed images upload; identical images are skipped, folders stay organized, and remote-only images are kept.
+- 2026-10-22: Uploaded and checksum-verified all 274 project images. Confirmed a repeat sync uploads nothing; added a double-click launcher and saved the image URLs locally.
 - 2026-10-16: Chat Avatars (ghost avatars for chatters), Sprite Jar + spooky sticker book with floor toys, Fortnite Sprites sticker art.
 - 2026-10-17: Countdowns dashboard and overlay (themes, end text, size).
 - 2026-10-18: Team Hunt contest (unlimited !team teams, custom hunt items with points).

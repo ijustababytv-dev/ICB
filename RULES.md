@@ -121,8 +121,10 @@ Keep HTML files together in an HTML folder.
 
 # JavaScript
 
-Keep JavaScript/TypeScript or similar files in their own folder, but also use subfolders to organize them logically.
+- Keep JavaScript/TypeScript or similar files in their own folder, but also use subfolders to organize them logically.
+- Never minify code files
+- Use 4 spaces for "tabbing out" code
 
 # Images
 
-Store image assets as local files and refer to their URLs through ICB. Never embed base64 image assets in scripts, HTML, or CSS. A future cloud image location will be chosen by Baby; do not introduce a cloud provider or upload images without that direction.
+Store image assets as local files and refer to their URLs through ICB. Never embed base64 image assets in scripts, HTML, or CSS. Baby selected Cloudinary and authorized image uploads on 2026-10-22. The sync must compare local contents with Cloudinary and upload only new or changed images, preserving remote-only images. Keep local files for overlays. See `docs/CLOUDINARY.md`; do not introduce another provider without Baby's direction.

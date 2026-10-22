@@ -112,7 +112,7 @@ synthetic test fixture. **When in doubt about log behaviour, read a real log** a
 ## Source layout (2026-10-22)
 
 - The former 7,089-line root server has been split into `js/server/`; start with `npm start` or the existing launchers. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-- HTML is in `html/`, browser scripts in `js/client/`, styles in `css/`, and former base64 images in `images/embedded/`. URLs remain unchanged. Keep image hosting local until Baby provides her cloud decision.
+- HTML is in `html/`, browser scripts in `js/client/`, styles in `css/`, and former base64 images in `images/embedded/`. URLs remain unchanged. Baby chose Cloudinary on 2026-10-22: `npm run images:sync` uploads only new or changed images, while overlays continue using local files. See [`docs/CLOUDINARY.md`](docs/CLOUDINARY.md).
 - Every new or changed business rule requires unit tests. Run `npm run test:unit` and `npm run test:e2e`; run `npm run test:browser` after browser code changes.
 - Maintained JS/HTML/CSS must stay within 500 lines and 40 KB. Structure tests enforce this and reject embedded base64 image assets.
 

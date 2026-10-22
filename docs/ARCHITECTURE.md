@@ -20,6 +20,7 @@ Updated 2026-10-22. The application is still one dependency-free Node server at 
 | `images/embedded/` | Images extracted from former inline data URLs; ordinary local files |
 | `assets/` | Existing operator-managed artwork and audio; still excluded from Git |
 | `js/bridge/` | Palia log bridge; its existing cursor stays in `bridge/` |
+| `js/tools/` | Standalone image inventory and Cloudinary sync; never started by the server |
 | `desktop-widgets/js/` | Electron code; its package and lockfile stay in `desktop-widgets/` |
 | `js/test/unit/` | Node built-in unit tests and structural guards |
 | `js/test/e2e.js`, `js/test/helpers/` | HTTP, persistence, log-reader, and asset integration tests |
@@ -38,7 +39,7 @@ Maintained JS, HTML, and CSS have a 500-line / 40 KB ceiling, enforced by `struc
 
 All previously embedded base64 image assets are files in `images/embedded/`; repeated images share the same file. Browser scripts refer to `/images/embedded/<file>`. Existing artwork URLs under `/assets/` and `/resource-art/` still work. Image upload request encoding is transport, not an embedded asset.
 
-Keep image hosting local until Baby supplies her cloud decision. Do not add a storage service, account, SDK, or upload workflow preemptively. The extracted images are versioned because they were previously part of tracked source; operator-managed `assets/` remains ignored.
+Baby selected Cloudinary on 2026-10-22. `npm run images:plan` compares local originals with Cloudinary; `npm run images:sync` uploads only new or changed files and records their URLs. See `docs/CLOUDINARY.md`. Overlays continue using local image files. The extracted images are versioned because they were previously part of tracked source; operator-managed `assets/` remains ignored.
 
 The public server maps `/control.html` to `html/control.html`, `/` to `html/hub.html`, and the old `/matter.min.js` and `/meld-firehose.js` URLs to `js/vendor/`. Server source, test source, and `data/` are not public static roots. Never put the private dashboard in Meld.
 
