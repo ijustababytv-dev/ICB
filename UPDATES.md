@@ -13,6 +13,7 @@
 
 ## Improvements
 
+- 2026-10-22: Formatted all maintained JavaScript with four-space indentation and blank lines between functions. Split files that exceeded the size limits, added repeatable formatting commands, and expanded browser checks to 16 pages.
 - 2026-10-22: Split the giant server into focused feature, route, and business-rule modules; organized HTML, scripts, styles, and local images while keeping existing URLs and launchers.
 - 2026-10-22: Added unit tests, headless browser checks, and guards against giant files, circular imports, and embedded base64 images. All future business rules require unit tests.
 - 2026-10-20: Renamed Event Sign-Up to Poke Bowl Sign-up and Party Sign-ups to Cake Sign-Ups.

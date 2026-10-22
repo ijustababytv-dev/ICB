@@ -9,462 +9,485 @@
 // sparkles). Each behaviour is one entry in ACTIONS below, so new ones can be
 // added later. After afkMinutes without chatting it gets sleepy ("Zzz"),
 // turns to the nearest edge and walks off; chatting again brings it back.
-(function(){
-  var W = 1920, H = 1080;
-  var MIN_X = 50, MAX_X = 1870;          // walking bounds (centre of unicorn)
-  var GROUND_BELOW = H - 48, GROUND_ABOVE = H - 14;   // feet line (room for a name under them, or not)
-  var MAX_ON_SCREEN = 40;
+(function () {
+    // Live accessors preserve shared state across the feature files.
+    // Static drawing settings are initialized before feature factories.
+    var W = 1920,
+        H = 1080;
+    var MIN_X = 50,
+        MAX_X = 1870;
+    var MAX_ON_SCREEN = 40;
+    var sharedState = {
+        get nameLift() {
+            return nameLift;
+        },
 
-  var stage = document.getElementById('stage');
-  function fit(){
-    var sx = window.innerWidth / W, sy = window.innerHeight / H;
-    stage.style.transform = 'scale(' + Math.min(sx, sy) + ')';
-  }
-  window.addEventListener('resize', fit); fit();
+        W: W,
 
-  var settings = { enabled: true, size: 140, speed: 1, afkMinutes: 10, bubbleSeconds: 7, reminderEveryMinutes: 4, reminders: [], anims: {}, trickGap: 8, entrance: 'drop', exitStyle: 'walk' };
-  var lastTryAt = -1;
-  var art = [], pick = {};
-  var walkers = {};           // lowercase name -> walker
-  var lastSeq = -1, lastClear = 0, lastReminder = Date.now();
-  var SUPPORTS = {};
+        get stage() {
+            return stage;
+        },
 
-  // Ghosts float instead of hopping: any picture with "ghost" (or "float")
-  // in its file name (Baby, 2026-09-29).
-  function isFloaty(src){ return /ghost|float/i.test(decodeURIComponent(String(src || '').split('/').pop())); }
-  function hash(s){ var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); }
-  function artFor(key){ return pick[key] || (art.length ? art[hash(key) % art.length] : ''); }
-  function rand(a, b){ return a + Math.random() * (b - a); }
-  function now(){ return new Date().getTime(); }
+        get settings() {
+            return settings;
+        },
 
-  // Placeholder unicorn (only until Baby adds art to assets/decor/unicorn).
-  var PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100">' +
-    '<ellipse cx="55" cy="60" rx="38" ry="24" fill="#ffd6f2" stroke="#b0579a" stroke-width="3"/>' +
-    '<circle cx="92" cy="40" r="16" fill="#ffd6f2" stroke="#b0579a" stroke-width="3"/>' +
-    '<polygon points="96,26 104,4 106,28" fill="#ffe27a" stroke="#c9a200" stroke-width="2"/>' +
-    '<circle cx="97" cy="38" r="2.6" fill="#3a1446"/>' +
-    '<path d="M22 50 Q8 40 14 64" stroke="#c77dff" stroke-width="7" fill="none" stroke-linecap="round"/>' +
-    '<rect x="30" y="78" width="7" height="18" rx="3" fill="#ffd6f2" stroke="#b0579a" stroke-width="2"/>' +
-    '<rect x="70" y="78" width="7" height="18" rx="3" fill="#ffd6f2" stroke="#b0579a" stroke-width="2"/></svg>');
+        get walkers() {
+            return walkers;
+        },
 
-  function makeWalker(name){
-    var key = name.toLowerCase();
-    var el = document.createElement('div'); el.className = 'walker';
-    var body = document.createElement('div'); body.className = 'body';
-    var img = document.createElement('img'); img.src = artFor(key) || PLACEHOLDER;
-    img.onerror = function(){ img.onerror = null; img.src = PLACEHOLDER; };
-    body.appendChild(img);
-    var plate = document.createElement('div'); plate.className = 'name'; plate.appendChild(document.createTextNode(name));
-    var zzz = document.createElement('div'); zzz.className = 'zzz'; zzz.appendChild(document.createTextNode('Zzz...'));
-    el.appendChild(body); el.appendChild(zzz); el.appendChild(plate);
-    stage.appendChild(el);
-    // Pop in at the emptiest spot along the bottom (so their first message
-    // is readable straight away), dropping in with a little hop.
-    var best = rand(MIN_X + 100, MAX_X - 100), bestGap = -1;
-    for (var c = 0; c < 24; c++) {
-      var cx = rand(MIN_X + 100, MAX_X - 100), gap = 99999;
-      for (var k in walkers) if (walkers.hasOwnProperty(k)) gap = Math.min(gap, Math.abs(walkers[k].x - cx));
-      if (gap > bestGap) { bestGap = gap; best = cx; }
-    }
-    var w = {
-      key: key, name: name, el: el, body: body, img: img, plate: plate, zzz: zzz, bubble: null, bubbleUntil: 0,
-      x: best, dir: Math.random() < 0.5 ? 1 : -1, speed: rand(0.8, 1.25), dropStart: now(),
-      phase: rand(0, 6.28), hop: 0, spin: 0, lastMsg: now(), leaving: false, entering: false,
-      action: null, actionUntil: 0, nextActionAt: now() + rand(3000, 9000), artSrc: img.src, floaty: isFloaty(img.src),
-      style: pickStyle(null), nextStyleAt: now() + rand(8000, 20000), enterStyle: settings.entrance || 'drop'
+        rand: rand,
+
+        now: now,
+
+        get RAINBOW() {
+            return RAINBOW;
+        },
+
+        get lookKey() {
+            return lookKey;
+        },
+
+        set lookKey(value) {
+            lookKey = value;
+        },
+
+        get lookStyle() {
+            return lookStyle;
+        },
+
+        MIN_X: MIN_X,
+
+        MAX_X: MAX_X,
+
+        get GROUND_BELOW() {
+            return GROUND_BELOW;
+        },
+
+        get GROUND_ABOVE() {
+            return GROUND_ABOVE;
+        },
+
+        get lastReminder() {
+            return lastReminder;
+        },
+
+        set lastReminder(value) {
+            lastReminder = value;
+        },
+
+        removeWalker: removeWalker,
+
+        get say() {
+            return say;
+        },
+
+        get hideBubble() {
+            return hideBubble;
+        },
+
+        get sparkle() {
+            return sparkle;
+        },
+
+        get hearts() {
+            return hearts;
+        },
+
+        get trailDot() {
+            return trailDot;
+        },
+
+        get MOVES() {
+            return MOVES;
+        },
+
+        get ACTIONS() {
+            return ACTIONS;
+        },
+
+        get layoutBubbles() {
+            return layoutBubbles;
+        },
+
+        get lastT() {
+            return lastT;
+        },
+
+        set lastT(value) {
+            lastT = value;
+        }
     };
-    walkers[key] = w;
-    startEntrance(w, w.enterStyle);
-    return w;
-  }
 
-  function removeWalker(w){
-    if (w.el.parentNode) w.el.parentNode.removeChild(w.el);
-    delete walkers[w.key];
-  }
+    var ICBWalkerAppearance = window.ICBWalkerAppearance(sharedState);
+    var say = ICBWalkerAppearance.say;
+    var hideBubble = ICBWalkerAppearance.hideBubble;
+    var sparkle = ICBWalkerAppearance.sparkle;
+    var hearts = ICBWalkerAppearance.hearts;
+    var trailDot = ICBWalkerAppearance.trailDot;
+    var outline = ICBWalkerAppearance.outline;
+    var applyLook = ICBWalkerAppearance.applyLook;
+    var layoutBubbles = ICBWalkerAppearance.layoutBubbles;
 
-  // ---- speech bubbles --------------------------------------------------
-  function say(w, parts, isReminder){
-    if (w.bubble && w.bubble.parentNode) w.bubble.parentNode.removeChild(w.bubble);
-    var b = document.createElement('div'); b.className = 'bubble' + (isReminder ? ' reminder' : '');
-    for (var i = 0; i < parts.length; i++) {
-      var p = parts[i];
-      if (p.t === 'emote' && p.url) {
-        var im = document.createElement('img'); im.className = 'emote'; im.src = p.url; im.alt = p.name || '';
-        b.appendChild(im);
-      } else if (p.v) {
-        b.appendChild(document.createTextNode(p.v));
-      }
+    var ICBWalkerAnimation = window.ICBWalkerAnimation(sharedState);
+    var animOn = ICBWalkerAnimation.animOn;
+    var animOften = ICBWalkerAnimation.animOften;
+    var pickStyle = ICBWalkerAnimation.pickStyle;
+    var actionById = ICBWalkerAnimation.actionById;
+    var pickAction = ICBWalkerAnimation.pickAction;
+    var startAction = ICBWalkerAnimation.startAction;
+    var nextGap = ICBWalkerAnimation.nextGap;
+    var startEntrance = ICBWalkerAnimation.startEntrance;
+    var startExit = ICBWalkerAnimation.startExit;
+    var nameLift = ICBWalkerAnimation.nameLift;
+    var frame = ICBWalkerAnimation.frame;
+
+    // walking bounds (centre of unicorn)
+    var GROUND_BELOW = H - 48,
+        GROUND_ABOVE = H - 14; // feet line (room for a name under them, or not)
+
+    var stage = document.getElementById('stage');
+    function fit() {
+        var sx = window.innerWidth / W,
+            sy = window.innerHeight / H;
+        stage.style.transform = 'scale(' + Math.min(sx, sy) + ')';
     }
-    if (!b.childNodes.length) return;
-    w.el.appendChild(b);
-    w.bubble = b;
-    w.lastBubbleAt = now();
-    w.bubbleUntil = now() + settings.bubbleSeconds * 1000;
-    setTimeout(function(){ b.className += ' show'; }, 20);
-  }
 
-  function hideBubble(w){
-    var b = w.bubble; if (!b) return;
-    w.bubble = null;
-    b.className = b.className.replace(' show', '');
-    setTimeout(function(){ if (b.parentNode) b.parentNode.removeChild(b); }, 260);
-  }
+    window.addEventListener('resize', fit);
+    fit();
 
-  function sparkle(w){
-    for (var i = 0; i < 6; i++) {
-      var s = document.createElement('div'); s.className = 'spark';
-      s.appendChild(document.createTextNode(['✨', '💖', '⭐', '🌈'][Math.floor(Math.random() * 4)]));
-      s.style.left = (settings.size * 0.5 + rand(-30, 30)) + 'px'; s.style.bottom = (settings.size * rand(0.3, 0.9)) + 'px';
-      s.style.setProperty('--dx', rand(-40, 40) + 'px');
-      w.el.appendChild(s);
-      (function(node){ setTimeout(function(){ if (node.parentNode) node.parentNode.removeChild(node); }, 1200); })(s);
+    var settings = {
+        enabled: true,
+        size: 140,
+        speed: 1,
+        afkMinutes: 10,
+        bubbleSeconds: 7,
+        reminderEveryMinutes: 4,
+        reminders: [],
+        anims: {},
+        trickGap: 8,
+        entrance: 'drop',
+        exitStyle: 'walk'
+    };
+    var lastTryAt = -1;
+    var art = [],
+        pick = {};
+    var walkers = {}; // lowercase name -> walker
+    var lastSeq = -1,
+        lastClear = 0,
+        lastReminder = Date.now();
+    var SUPPORTS = {};
+
+    // Ghosts float instead of hopping: any picture with "ghost" (or "float")
+    // in its file name (Baby, 2026-09-29).
+    function isFloaty(src) {
+        return /ghost|float/i.test(
+            decodeURIComponent(
+                String(src || '')
+                    .split('/')
+                    .pop()
+            )
+        );
     }
-  }
 
-  function hearts(w){
-    for (var i = 0; i < 5; i++) (function(i){
-      setTimeout(function(){
-        if (!w.el.parentNode) return;
-        var h = document.createElement('div'); h.className = 'heart';
-        h.appendChild(document.createTextNode(['💖', '💗', '💕', '💜'][Math.floor(Math.random() * 4)]));
-        h.style.left = (settings.size * 0.5 + rand(-25, 25)) + 'px'; h.style.bottom = (settings.size * 0.8) + 'px';
-        h.style.setProperty('--dx', rand(-50, 50) + 'px');
-        w.el.appendChild(h);
-        setTimeout(function(){ if (h.parentNode) h.parentNode.removeChild(h); }, 1900);
-      }, i * 220);
-    })(i);
-  }
-  var RAINBOW = ['#ff5f6d', '#ffb347', '#ffe66d', '#7ee081', '#5ec8ff', '#b388ff'];
-  function trailDot(w, y){
-    var d = document.createElement('div'); d.className = 'trail';
-    w.trailI = ((w.trailI || 0) + 1) % RAINBOW.length;
-    d.style.background = RAINBOW[w.trailI];
-    d.style.left = (w.x - 13 - w.dir * settings.size * 0.45) + 'px'; d.style.top = (y + settings.size * 0.55) + 'px';
-    stage.appendChild(d);
-    setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 950);
-  }
-
-  // ---- animation switches from the dashboard (settings.anims) ------------
-  function animOn(id){ var a = settings.anims && settings.anims[id]; return a ? a.on !== false : true; }
-  function animOften(id){ var a = settings.anims && settings.anims[id]; return a ? Math.max(1, Number(a.often) || 1) : 1; }
-  var MOVES = ['hop', 'glide', 'float', 'skip', 'trot', 'waddle'];
-  // How it gets around: a weighted pick from the movement styles that are on.
-  function pickStyle(current){
-    var pool = [], total = 0, i;
-    for (i = 0; i < MOVES.length; i++) if (animOn(MOVES[i])) { pool.push(MOVES[i]); total += animOften(MOVES[i]); }
-    if (!pool.length) return 'glide';   // everything off: just slide along calmly
-    if (pool.length > 1 && current) total -= 0; // (keeps weights simple)
-    var r = Math.random() * total;
-    for (i = 0; i < pool.length; i++) { r -= animOften(pool[i]); if (r <= 0) return pool[i]; }
-    return pool[0];
-  }
-
-  // ---- random tricks (add new ones here + a branch in frame()) ----------
-  var ACTIONS = [
-    { id: 'pause',     ms: [1500, 4000] },
-    { id: 'bighop',    ms: [700, 700] },
-    { id: 'spin',      ms: [900, 900] },
-    { id: 'sparkle',   ms: [800, 800] },
-    { id: 'turn',      ms: [300, 300] },
-    { id: 'flip',      ms: [900, 900] },
-    { id: 'twirljump', ms: [1100, 1100] },
-    { id: 'bounce',    ms: [1100, 1100] },
-    { id: 'dance',     ms: [2200, 3200] },
-    { id: 'hearts',    ms: [1200, 1200] },
-    { id: 'zoomies',   ms: [1500, 2500] },
-    { id: 'rainbow',   ms: [2000, 3000] },
-    { id: 'grow',      ms: [1000, 1000] },
-    { id: 'nap',       ms: [4000, 6000] }
-  ];
-  function actionById(id){ for (var i = 0; i < ACTIONS.length; i++) if (ACTIONS[i].id === id) return ACTIONS[i]; return null; }
-  function pickAction(){
-    var total = 0, i;
-    for (i = 0; i < ACTIONS.length; i++) if (animOn(ACTIONS[i].id)) total += animOften(ACTIONS[i].id);
-    if (!total) return null;             // every trick switched off
-    var r = Math.random() * total;
-    for (i = 0; i < ACTIONS.length; i++) { if (!animOn(ACTIONS[i].id)) continue; r -= animOften(ACTIONS[i].id); if (r <= 0) return ACTIONS[i]; }
-    return null;
-  }
-  function startAction(w, t, forced){
-    var a = forced || pickAction();
-    if (!a) { w.nextActionAt = t + nextGap(); return; }
-    w.action = a.id; w.actionStart = t; w.actionUntil = t + rand(a.ms[0], a.ms[1]);
-    if (a.id === 'turn') w.dir = -w.dir;
-    if (a.id === 'sparkle') sparkle(w);
-    if (a.id === 'hearts') hearts(w);
-    if (a.id === 'nap') w.zzz.className = 'zzz show';
-  }
-  function nextGap(){ var g = (settings.trickGap || 8) * 1000; return rand(g * 0.5, g * 1.5); }
-
-  // ---- arriving and leaving ----------------------------------------------
-  function startEntrance(w, style){
-    var t = now();
-    w.dropStart = 0; w.popStart = 0; w.floatDownStart = 0;
-    if (style === 'pop') { w.popStart = t; setTimeout(function(){ sparkle(w); }, 250); }
-    else if (style === 'floatdown') { w.floatDownStart = t; }
-    else if (style === 'slide') { w.x = w.x < W / 2 ? -settings.size : W + settings.size; w.dir = w.x < 0 ? 1 : -1; w.entering = true; }
-    else { w.dropStart = t; setTimeout(function(){ sparkle(w); }, 450); }
-  }
-  function startExit(w){
-    w.leaving = true; w.action = null; w.exitStart = now();
-    w.exitStyle = settings.exitStyle || 'walk';
-    w.dir = w.x < W / 2 ? -1 : 1;
-    w.zzz.className = 'zzz show';
-    if (w.exitStyle === 'poof') setTimeout(function(){ sparkle(w); }, 1200);
-  }
-
-  // Height taken up by a name shown ABOVE the head (bubbles and Zzz sit above it).
-  function nameLift(w){ return settings.namePosition === 'above' ? w.plate.offsetHeight + 6 : 0; }
-
-  // Name + chat look from the dashboard: font, size, colour, outline,
-  // optional background pill, above/below/hidden, chat text size.
-  var lookKey = '';
-  var lookStyle = document.createElement('style'); document.head.appendChild(lookStyle);
-  function outline(width, color){
-    if (!width) return 'none';
-    var out = [], steps = 16;
-    for (var i = 0; i < steps; i++) { var a = i / steps * Math.PI * 2; out.push((Math.cos(a) * width).toFixed(2) + 'px ' + (Math.sin(a) * width).toFixed(2) + 'px 0 ' + color); }
-    return out.join(',');
-  }
-  function applyLook(){
-    var s = settings;
-    var key = [s.namePosition, s.nameFont, s.nameSize, s.nameColor, s.nameBold, s.nameOutlineColor, s.nameOutlineWidth, s.nameBackground, s.nameBgColor, s.chatTextSize].join('|');
-    if (key === lookKey) return;
-    lookKey = key;
-    var font = '"' + (s.nameFont || 'Baloo 2') + '", "Comic Sans MS", "Trebuchet MS", sans-serif';
-    var css = '.walker .name{font-family:' + font + ';font-size:' + (s.nameSize || 22) + 'px;font-weight:' + (s.nameBold === false ? 600 : 900) + ';color:' + (s.nameColor || '#fff') + ';';
-    if (s.namePosition === 'below') css += 'top:100%;bottom:auto;margin-top:4px;';
-    else css += 'bottom:100%;top:auto;margin-bottom:6px;';
-    if (s.namePosition === 'hidden') css += 'display:none;';
-    if (s.nameBackground) css += 'padding:4px 12px 5px;border-radius:999px;background:' + (s.nameBgColor || '#782896') + ';border:2px solid rgba(255,255,255,.75);text-shadow:' + outline(Math.min(2, s.nameOutlineWidth || 0), s.nameOutlineColor || '#3a1446') + ';';
-    else css += 'padding:0;background:none;border:0;text-shadow:' + outline(s.nameOutlineWidth || 0, s.nameOutlineColor || '#3a1446') + ';';
-    css += '}';
-    css += '.bubble{font-size:' + (s.chatTextSize || 22) + 'px;}';
-    lookStyle.textContent = css;
-  }
-
-  // Keep bubbles on screen and stop neighbours' bubbles covering each other:
-  // shift in from the screen edges, then stack any that overlap.
-  function layoutBubbles(){
-    var list = [], k;
-    for (k in walkers) if (walkers.hasOwnProperty(k) && walkers[k].bubble) list.push(walkers[k]);
-    list.sort(function(a, b){ return a.lastBubbleAt - b.lastBubbleAt; });
-    var placed = [];
-    for (var i = 0; i < list.length; i++) {
-      var w = list[i], b = w.bubble, bw = b.offsetWidth, bh = b.offsetHeight;
-      var half = bw / 2, shift = 0;
-      if (w.x - half < 10) shift = 10 - (w.x - half); else if (w.x + half > W - 10) shift = (W - 10) - (w.x + half);
-      var left = w.x - half + shift, right = left + bw;
-      var baseBottom = w.renderY - 14 - nameLift(w); // where the bubble's bottom edge sits (stage y)
-      var bottom = baseBottom, moved = true, guard = 0;
-      while (moved && guard++ < 20) {
-        moved = false;
-        for (var j = 0; j < placed.length; j++) {
-          var p = placed[j];
-          if (left < p.right + 6 && right > p.left - 6 && bottom > p.top - 6 && bottom - bh < p.bottom + 6) { bottom = p.top - 8; moved = true; }
+    function hash(s) {
+        var h = 0;
+        for (var i = 0; i < s.length; i++) {
+            h = (h * 31 + s.charCodeAt(i)) | 0;
         }
-      }
-      placed.push({ left: left, right: right, top: bottom - bh, bottom: bottom });
-      b.style.marginLeft = shift + 'px';
-      b.style.marginBottom = (14 + nameLift(w) + (baseBottom - bottom)) + 'px';
-      b.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, half - shift)) + 'px');
+        return Math.abs(h);
     }
-  }
 
-  // ---- main loop ---------------------------------------------------------
-  var lastT = 0;
-  function frame(){
-    var t = now(), dt = lastT ? Math.min(3, (t - lastT) / 16.67) : 1; lastT = t;
-    var size = settings.size, afkMs = settings.afkMinutes * 60000;
-    var GROUND = settings.namePosition === 'below' ? GROUND_BELOW : GROUND_ABOVE;
-    for (var key in walkers) {
-      if (!walkers.hasOwnProperty(key)) continue;
-      var w = walkers[key];
+    function artFor(key) {
+        return pick[key] || (art.length ? art[hash(key) % art.length] : '');
+    }
 
-      // Sleepy after afkMinutes: Zzz, face the nearest edge, walk off.
-      if (!w.leaving && t - w.lastMsg > afkMs) startExit(w);
+    function rand(a, b) {
+        return a + Math.random() * (b - a);
+    }
 
-      // Switch movement style now and then (or right away if it was turned off).
-      if (!w.floaty && (t > w.nextStyleAt || !animOn(w.style))) { w.style = pickStyle(w.style); w.nextStyleAt = t + rand(8000, 20000); }
-      var style = w.floaty ? 'float' : w.style;
+    function now() {
+        return new Date().getTime();
+    }
 
-      var moving = true, speedMul = 1, lift = 0, rot = 0, scale = 1, wiggleX = 0;
-      if (w.entering) {
-        if (w.x > MIN_X + 40 && w.x < MAX_X - 40) w.entering = false;
-      } else if (!w.leaving) {
-        if (!w.action && t > w.nextActionAt) startAction(w, t);
-        if (w.action) {
-          var p = Math.min(1, (t - w.actionStart) / Math.max(1, w.actionUntil - w.actionStart));
-          var A = w.action;
-          if (A === 'pause' || A === 'sparkle' || A === 'hearts') moving = false;
-          else if (A === 'bighop' || A === 'hop') lift = Math.sin(p * Math.PI) * size * 0.55;
-          else if (A === 'spin') { moving = false; rot = p * 360; }
-          else if (A === 'flip') { lift = Math.sin(p * Math.PI) * size * 0.75; rot = -p * 360; }
-          else if (A === 'twirljump') { moving = false; lift = Math.sin(p * Math.PI) * size * 0.65; rot = p * 720; }
-          else if (A === 'bounce') { moving = false; lift = Math.abs(Math.sin(p * Math.PI * 3)) * size * 0.3; }
-          else if (A === 'dance') { moving = false; rot = Math.sin(p * Math.PI * 10) * 14; wiggleX = Math.sin(p * Math.PI * 5) * size * 0.08; lift = Math.abs(Math.sin(p * Math.PI * 10)) * size * 0.06; }
-          else if (A === 'zoomies') speedMul = 3.6;
-          else if (A === 'rainbow') { speedMul = 2.4; if (!w.lastTrail || t - w.lastTrail > 45) { w.lastTrail = t; w.wantTrail = true; } }
-          else if (A === 'grow') { moving = false; scale = 1 + 0.4 * Math.sin(p * Math.PI); }
-          else if (A === 'nap') moving = false;
-          else if (A === 'trot') speedMul = 2.2;
-          if (t >= w.actionUntil) {
-            if (A === 'nap' && !w.leaving) w.zzz.className = 'zzz';
-            w.action = null; w.nextActionAt = t + nextGap();
-          }
+    // Placeholder unicorn (only until Baby adds art to assets/decor/unicorn).
+    var PLACEHOLDER =
+        'data:image/svg+xml;utf8,' +
+        encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100">' +
+                '<ellipse cx="55" cy="60" rx="38" ry="24" fill="#ffd6f2" stroke="#b0579a" stroke-width="3"/>' +
+                '<circle cx="92" cy="40" r="16" fill="#ffd6f2" stroke="#b0579a" stroke-width="3"/>' +
+                '<polygon points="96,26 104,4 106,28" fill="#ffe27a" stroke="#c9a200" stroke-width="2"/>' +
+                '<circle cx="97" cy="38" r="2.6" fill="#3a1446"/>' +
+                '<path d="M22 50 Q8 40 14 64" stroke="#c77dff" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+                '<rect x="30" y="78" width="7" height="18" rx="3" fill="#ffd6f2" stroke="#b0579a" stroke-width="2"/>' +
+                '<rect x="70" y="78" width="7" height="18" rx="3" fill="#ffd6f2" stroke="#b0579a" stroke-width="2"/></svg>'
+        );
+
+    function makeWalker(name) {
+        var key = name.toLowerCase();
+        var el = document.createElement('div');
+        el.className = 'walker';
+        var body = document.createElement('div');
+        body.className = 'body';
+        var img = document.createElement('img');
+        img.src = artFor(key) || PLACEHOLDER;
+        img.onerror = function () {
+            img.onerror = null;
+            img.src = PLACEHOLDER;
+        };
+
+        body.appendChild(img);
+        var plate = document.createElement('div');
+        plate.className = 'name';
+        plate.appendChild(document.createTextNode(name));
+        var zzz = document.createElement('div');
+        zzz.className = 'zzz';
+        zzz.appendChild(document.createTextNode('Zzz...'));
+        el.appendChild(body);
+        el.appendChild(zzz);
+        el.appendChild(plate);
+        stage.appendChild(el);
+        // Pop in at the emptiest spot along the bottom (so their first message
+        // is readable straight away), dropping in with a little hop.
+        var best = rand(MIN_X + 100, MAX_X - 100),
+            bestGap = -1;
+        for (var c = 0; c < 24; c++) {
+            var cx = rand(MIN_X + 100, MAX_X - 100),
+                gap = 99999;
+            for (var k in walkers)
+                if (walkers.hasOwnProperty(k)) gap = Math.min(gap, Math.abs(walkers[k].x - cx));
+            if (gap > bestGap) {
+                bestGap = gap;
+                best = cx;
+            }
         }
-      }
-      if (w.leaving) speedMul = 0.8;
-      if (w.dropStart) {                  // arriving: fall in from above and land
-        var dp = (t - w.dropStart) / 600;
-        if (dp >= 1) w.dropStart = 0; else { lift = Math.max(lift, (1 - dp) * (1 - dp) * size * 2.2); moving = false; }
-      }
-      if (w.popStart) {                   // arriving: grow out of nothing with a little overshoot
-        var pp = (t - w.popStart) / 500;
-        if (pp >= 1) w.popStart = 0; else { scale *= pp < 0.7 ? pp / 0.7 * 1.15 : 1.15 - (pp - 0.7) / 0.3 * 0.15; moving = false; }
-      }
-      if (w.floatDownStart) {             // arriving: drift down slowly, swaying
-        var fp = (t - w.floatDownStart) / 2200;
-        if (fp >= 1) w.floatDownStart = 0; else { lift = Math.max(lift, (1 - fp) * size * 3.5); rot = Math.sin(fp * Math.PI * 4) * 10; moving = false; }
-      }
-      var exitFade = 1;
-      if (w.leaving && w.exitStyle && w.exitStyle !== 'walk') {
-        var ep = (t - w.exitStart) / 1000;
-        moving = false;
-        if (w.exitStyle === 'floataway') { if (ep > 1) { lift = (ep - 1) * (ep - 1) * size * 1.6; rot = Math.sin(ep * 3) * 8; exitFade = Math.max(0, 1 - (ep - 1) / 2.5); } }
-        else if (w.exitStyle === 'poof') { if (ep > 1.2) { scale *= Math.max(0, 1 - (ep - 1.2) / 0.35); exitFade = scale; } }
-        if (exitFade <= 0.01) { removeWalker(w); continue; }
-      }
-
-      var styleMul = style === 'glide' ? 1.15 : style === 'trot' ? 1.7 : style === 'waddle' ? 0.65 : style === 'skip' ? 1.2 : style === 'float' ? 0.9 : 1;
-      if (w.action !== 'zoomies' && w.action !== 'rainbow') speedMul *= styleMul;
-      if (moving) {
-        w.x += w.dir * 1.4 * w.speed * settings.speed * speedMul * dt;
-        w.phase += 0.22 * settings.speed * speedMul * dt;
-        // Edge: turn around (unless arriving or leaving).
-        if (!w.entering && !w.leaving) {
-          if (w.x > MAX_X) { w.x = MAX_X; w.dir = -1; }
-          if (w.x < MIN_X) { w.x = MIN_X; w.dir = 1; }
-        }
-      }
-      var bob = 0, tilt = 0, squashOk = false;
-      if (style === 'hop') { bob = moving ? Math.abs(Math.sin(w.phase)) * size * 0.12 : 0; squashOk = true; }
-      else if (style === 'glide') { bob = 0; tilt = moving ? 5 : 0; }
-      else if (style === 'trot') { bob = moving ? Math.abs(Math.sin(w.phase * 1.3)) * size * 0.05 : 0; squashOk = true; }
-      else if (style === 'waddle') { bob = moving ? Math.abs(Math.sin(w.phase)) * size * 0.03 : 0; tilt = moving ? Math.sin(w.phase) * 9 : 0; }
-      else if (style === 'skip') {
-        // two small hops, then a big one
-        var beat = Math.floor(w.phase / Math.PI) % 3;
-        bob = moving ? Math.abs(Math.sin(w.phase)) * size * (beat === 2 ? 0.3 : 0.1) : 0; tilt = moving ? 4 : 0; squashOk = true;
-      }
-      if (style === 'float') {            // hover above the ground, drifting gently up and down
-        w.floatPhase = (w.floatPhase || rand(0, 6.28)) + 0.035 * dt;
-        bob = size * 0.28 + Math.sin(w.floatPhase) * size * 0.09;
-        tilt = Math.sin(w.floatPhase * 0.7) * 6 * (moving ? 1 : 0.5);
-        lift *= 0.6;                      // a big "hop" becomes a swoop upward
-      }
-
-      if (w.leaving && (w.x < -size * 1.5 || w.x > W + size * 1.5)) { removeWalker(w); continue; }
-
-      // Position the whole walker; flip ONLY the picture.
-      var bw = size * 1.15, bh = size;
-      w.body.style.width = bw + 'px'; w.body.style.height = bh + 'px';
-      w.el.style.width = bw + 'px'; w.el.style.height = bh + 'px';
-      w.el.style.transform = 'translate(' + (w.x - bw / 2 + wiggleX).toFixed(1) + 'px,' + (GROUND - bh - bob - lift).toFixed(1) + 'px)';
-      if (w.wantTrail) { w.wantTrail = false; trailDot(w, GROUND - bh - bob - lift); }
-      var squash = squashOk && moving && bob < size * 0.02 ? ' scaleY(0.94)' : '';
-      if (scale !== 1) squash += ' scale(' + scale.toFixed(3) + ')';
-      w.el.style.opacity = exitFade < 1 ? exitFade.toFixed(2) : '';
-      if (tilt && !rot) rot = tilt;
-      var faceLeft = (w.dir < 0) !== !!settings.artFacesLeft; // mirror only when the art faces the other way
-      w.body.style.transform = 'scaleX(' + (faceLeft ? -1 : 1) + ')' + (rot ? ' rotate(' + (faceLeft ? -rot : rot) + 'deg)' : '') + squash;
-
-      w.renderY = GROUND - bh - bob - lift;
-      w.zzz.style.marginBottom = nameLift(w) + 'px';
-      if (w.bubble && t > w.bubbleUntil) hideBubble(w);
+        var w = {
+            key: key,
+            name: name,
+            el: el,
+            body: body,
+            img: img,
+            plate: plate,
+            zzz: zzz,
+            bubble: null,
+            bubbleUntil: 0,
+            x: best,
+            dir: Math.random() < 0.5 ? 1 : -1,
+            speed: rand(0.8, 1.25),
+            dropStart: now(),
+            phase: rand(0, 6.28),
+            hop: 0,
+            spin: 0,
+            lastMsg: now(),
+            leaving: false,
+            entering: false,
+            action: null,
+            actionUntil: 0,
+            nextActionAt: now() + rand(3000, 9000),
+            artSrc: img.src,
+            floaty: isFloaty(img.src),
+            style: pickStyle(null),
+            nextStyleAt: now() + rand(8000, 20000),
+            enterStyle: settings.entrance || 'drop'
+        };
+        walkers[key] = w;
+        startEntrance(w, w.enterStyle);
+        return w;
     }
-    layoutBubbles();
 
-    // Now and then a random unicorn shares a reminder.
-    var everyMs = settings.reminderEveryMinutes * 60000;
-    if (everyMs > 0 && settings.reminders.length && t - lastReminder > everyMs) {
-      lastReminder = t;
-      var pool = [];
-      for (var k in walkers) if (walkers.hasOwnProperty(k) && !walkers[k].leaving && !walkers[k].bubble) pool.push(walkers[k]);
-      if (pool.length) say(pool[Math.floor(Math.random() * pool.length)], [{ t: 'text', v: settings.reminders[Math.floor(Math.random() * settings.reminders.length)] }], true);
+    function removeWalker(w) {
+        if (w.el.parentNode) w.el.parentNode.removeChild(w.el);
+        delete walkers[w.key];
     }
+
+    // ---- speech bubbles --------------------------------------------------
+
+    var RAINBOW = window.ICBWalkerOptions.RAINBOW;
+
+    // ---- animation switches from the dashboard (settings.anims) ------------
+
+    var MOVES = window.ICBWalkerOptions.MOVES;
+    // How it gets around: a weighted pick from the movement styles that are on.
+
+    // ---- random tricks (add new ones here + a branch in frame()) ----------
+    var ACTIONS = window.ICBWalkerOptions.ACTIONS;
+
+    // ---- arriving and leaving ----------------------------------------------
+
+    // Height taken up by a name shown ABOVE the head (bubbles and Zzz sit above it).
+
+    // Name + chat look from the dashboard: font, size, colour, outline,
+    // optional background pill, above/below/hidden, chat text size.
+    var lookKey = '';
+    var lookStyle = document.createElement('style');
+    document.head.appendChild(lookStyle);
+
+    // Keep bubbles on screen and stop neighbours' bubbles covering each other:
+    // shift in from the screen edges, then stack any that overlap.
+
+    // ---- main loop ---------------------------------------------------------
+    var lastT = 0;
+
     requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
 
-  function onChat(ev){
-    if (!settings.enabled) return;
-    var key = ev.name.toLowerCase();
-    var w = walkers[key];
-    if (w && w.leaving) {                 // was walking off: wake up and come back
-      w.leaving = false; w.zzz.className = 'zzz'; w.entering = w.x < MIN_X || w.x > MAX_X;
-      w.dir = w.x < W / 2 ? 1 : -1;
-    }
-    if (!w) {
-      var count = 0; for (var k in walkers) if (walkers.hasOwnProperty(k)) count++;
-      if (count >= MAX_ON_SCREEN) {       // crowded: the quietest one leaves
-        var quiet = null; for (var k2 in walkers) if (walkers.hasOwnProperty(k2) && !walkers[k2].leaving && (!quiet || walkers[k2].lastMsg < quiet.lastMsg)) quiet = walkers[k2];
-        if (quiet) quiet.lastMsg = 0;
-      }
-      w = makeWalker(ev.name);
-    }
-    w.lastMsg = now();
-    if (settings.showChat !== false) say(w, ev.parts || [], false);
-  }
-
-  // "▶ Try" on the dashboard: every unicorn on screen does it right now.
-  function tryAnim(id){
-    var t = now();
-    for (var k in walkers) {
-      if (!walkers.hasOwnProperty(k)) continue;
-      var w = walkers[k]; if (w.leaving) continue;
-      if (MOVES.indexOf(id) >= 0) { if (!w.floaty) { w.style = id; w.nextStyleAt = t + 15000; } }
-      else if (id.indexOf('enter:') === 0) { w.x = Math.max(MIN_X + 100, Math.min(MAX_X - 100, w.x)); w.entering = false; startEntrance(w, id.slice(6)); }
-      else if (id.indexOf('exit:') === 0) { (function(w2, style){ var keep = settings.exitStyle; settings.exitStyle = style; startExit(w2); settings.exitStyle = keep;
-          setTimeout(function(){ if (walkers[w2.key] !== w2) { /* gone: bring it back */ var nw = makeWalker(w2.name); nw.lastMsg = now(); } else { w2.leaving = false; w2.zzz.className = 'zzz'; w2.el.style.opacity = ''; w2.lastMsg = now(); w2.entering = w2.x < MIN_X || w2.x > MAX_X; w2.dir = w2.x < W / 2 ? 1 : -1; } }, 4500); })(w, id.slice(5)); }
-      else { var a = actionById(id); if (a) { w.action = null; startAction(w, t, a); } }
-    }
-  }
-
-  function applyArt(){
-    for (var key in walkers) {
-      if (!walkers.hasOwnProperty(key)) continue;
-      var src = artFor(key);
-      if (src && walkers[key].artSrc !== src) { walkers[key].img.src = src; walkers[key].artSrc = src; walkers[key].floaty = isFloaty(src); }
-    }
-  }
-
-  function poll(){
-    var x = new XMLHttpRequest();
-    x.open('GET', '/api/walkers/state?since=' + Math.max(0, lastSeq) + '&_=' + now(), true);
-    x.onreadystatechange = function(){
-      if (x.readyState !== 4 || x.status !== 200) return;
-      try {
-        var d = JSON.parse(x.responseText);
-        if (!d || !d.ok) return;
-        settings = d.settings; art = d.art || []; pick = d.pick || {};
-        applyLook();
-        applyArt();
-        if (d.tryAnim) {
-          if (lastTryAt < 0) lastTryAt = d.tryAnim.at || 0;          // don't replay an old preview on load
-          else if (d.tryAnim.at && d.tryAnim.at !== lastTryAt) { lastTryAt = d.tryAnim.at; tryAnim(d.tryAnim.id); }
+    function onChat(ev) {
+        if (!settings.enabled) return;
+        var key = ev.name.toLowerCase();
+        var w = walkers[key];
+        if (w && w.leaving) {
+            // was walking off: wake up and come back
+            w.leaving = false;
+            w.zzz.className = 'zzz';
+            w.entering = w.x < MIN_X || w.x > MAX_X;
+            w.dir = w.x < W / 2 ? 1 : -1;
         }
-        if (lastSeq < 0) { lastSeq = d.seq; lastClear = d.clearAt; return; } // don't replay old chat on load
-        if (d.clearAt !== lastClear) { lastClear = d.clearAt; for (var k in walkers) if (walkers.hasOwnProperty(k)) walkers[k].lastMsg = 0; }
-        if (!settings.enabled) { for (var k3 in walkers) if (walkers.hasOwnProperty(k3)) walkers[k3].lastMsg = 0; }
-        for (var i = 0; i < d.events.length; i++) { if (d.events[i].seq > lastSeq) { lastSeq = d.events[i].seq; onChat(d.events[i]); } }
-      } catch (e) {}
-    };
-    x.send();
-  }
-  poll(); setInterval(poll, 1000);
+        if (!w) {
+            var count = 0;
+            for (var k in walkers) if (walkers.hasOwnProperty(k)) count++;
+            if (count >= MAX_ON_SCREEN) {
+                // crowded: the quietest one leaves
+                var quiet = null;
+                for (var k2 in walkers)
+                    if (
+                        walkers.hasOwnProperty(k2) &&
+                        !walkers[k2].leaving &&
+                        (!quiet || walkers[k2].lastMsg < quiet.lastMsg)
+                    )
+                        quiet = walkers[k2];
+                if (quiet) quiet.lastMsg = 0;
+            }
+            w = makeWalker(ev.name);
+        }
+        w.lastMsg = now();
+        if (settings.showChat !== false) say(w, ev.parts || [], false);
+    }
 
-  window.__walkers = { state: function(){ var o = []; for (var k in walkers) if (walkers.hasOwnProperty(k)) { var w = walkers[k]; o.push({ name: w.name, x: Math.round(w.x), dir: w.dir, leaving: w.leaving, action: w.action, style: w.floaty ? 'float' : w.style, floaty: !!w.floaty, bubble: !!w.bubble, flip: w.body.style.transform }); } return o; } };
+    // "▶ Try" on the dashboard: every unicorn on screen does it right now.
+    function tryAnim(id) {
+        var t = now();
+        for (var k in walkers) {
+            if (!walkers.hasOwnProperty(k)) continue;
+            var w = walkers[k];
+            if (w.leaving) continue;
+            if (MOVES.indexOf(id) >= 0) {
+                if (!w.floaty) {
+                    w.style = id;
+                    w.nextStyleAt = t + 15000;
+                }
+            } else if (id.indexOf('enter:') === 0) {
+                w.x = Math.max(MIN_X + 100, Math.min(MAX_X - 100, w.x));
+                w.entering = false;
+                startEntrance(w, id.slice(6));
+            } else if (id.indexOf('exit:') === 0) {
+                (function (w2, style) {
+                    var keep = settings.exitStyle;
+                    settings.exitStyle = style;
+                    startExit(w2);
+                    settings.exitStyle = keep;
+                    setTimeout(function () {
+                        if (walkers[w2.key] !== w2) {
+                            /* gone: bring it back */ var nw = makeWalker(w2.name);
+                            nw.lastMsg = now();
+                        } else {
+                            w2.leaving = false;
+                            w2.zzz.className = 'zzz';
+                            w2.el.style.opacity = '';
+                            w2.lastMsg = now();
+                            w2.entering = w2.x < MIN_X || w2.x > MAX_X;
+                            w2.dir = w2.x < W / 2 ? 1 : -1;
+                        }
+                    }, 4500);
+                })(w, id.slice(5));
+            } else {
+                var a = actionById(id);
+                if (a) {
+                    w.action = null;
+                    startAction(w, t, a);
+                }
+            }
+        }
+    }
+
+    function applyArt() {
+        for (var key in walkers) {
+            if (!walkers.hasOwnProperty(key)) continue;
+            var src = artFor(key);
+            if (src && walkers[key].artSrc !== src) {
+                walkers[key].img.src = src;
+                walkers[key].artSrc = src;
+                walkers[key].floaty = isFloaty(src);
+            }
+        }
+    }
+
+    function poll() {
+        var x = new XMLHttpRequest();
+        x.open('GET', '/api/walkers/state?since=' + Math.max(0, lastSeq) + '&_=' + now(), true);
+        x.onreadystatechange = function () {
+            if (x.readyState !== 4 || x.status !== 200) return;
+            try {
+                var d = JSON.parse(x.responseText);
+                if (!d || !d.ok) return;
+                settings = d.settings;
+                art = d.art || [];
+                pick = d.pick || {};
+                applyLook();
+                applyArt();
+                if (d.tryAnim) {
+                    if (lastTryAt < 0)
+                        lastTryAt = d.tryAnim.at || 0; // don't replay an old preview on load
+                    else if (d.tryAnim.at && d.tryAnim.at !== lastTryAt) {
+                        lastTryAt = d.tryAnim.at;
+                        tryAnim(d.tryAnim.id);
+                    }
+                }
+                if (lastSeq < 0) {
+                    lastSeq = d.seq;
+                    lastClear = d.clearAt;
+                    return;
+                } // don't replay old chat on load
+                if (d.clearAt !== lastClear) {
+                    lastClear = d.clearAt;
+                    for (var k in walkers) if (walkers.hasOwnProperty(k)) walkers[k].lastMsg = 0;
+                }
+                if (!settings.enabled) {
+                    for (var k3 in walkers) if (walkers.hasOwnProperty(k3)) walkers[k3].lastMsg = 0;
+                }
+                for (var i = 0; i < d.events.length; i++) {
+                    if (d.events[i].seq > lastSeq) {
+                        lastSeq = d.events[i].seq;
+                        onChat(d.events[i]);
+                    }
+                }
+            } catch (e) {}
+        };
+
+        x.send();
+    }
+
+    poll();
+    setInterval(poll, 1000);
+
+    window.__walkers = {
+        state: function () {
+            var o = [];
+            for (var k in walkers)
+                if (walkers.hasOwnProperty(k)) {
+                    var w = walkers[k];
+                    o.push({
+                        name: w.name,
+                        x: Math.round(w.x),
+                        dir: w.dir,
+                        leaving: w.leaving,
+                        action: w.action,
+                        style: w.floaty ? 'float' : w.style,
+                        floaty: !!w.floaty,
+                        bubble: !!w.bubble,
+                        flip: w.body.style.transform
+                    });
+                }
+            return o;
+        }
+    };
 })();

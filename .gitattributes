@@ -1,0 +1,7 @@
+# Keep formatter output stable across Windows and Unix checkouts.
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+
+# Preserve third-party distributions exactly as supplied.
+js/vendor/** !text !eol

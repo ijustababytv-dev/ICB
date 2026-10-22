@@ -5,21 +5,25 @@ const mDomainHtml = require('../domain/html');
 
 /** Ship resource artwork in HTML and keep live values in the polling overlay. */
 function renderResourceCardPage(card, query) {
-  if (Array.isArray(card.slots)) return mViewsCollection.renderCollectionCardPage(card, query);
-  const width = Math.max(120, Number(query.get('w')) || 620);
-  const box = card.valueBox || { left: 30, top: 45, width: 55, height: 30 };
-  const hasSecondary = Boolean(card.secondary);
-  // Cards with a 'secondary' count (e.g. Ramen Plush) show BOTH numbers as
-  // text in the one existing blank box - "<cooked> Ramen Cooked VS <count>
-  // Plushies" - instead of a bare number. Two independently-updated spans so
-  // each number keeps its own thousands-separator grouping.
-  const innerMarkup = hasSecondary
-    ? `<span id="c1">${card.secondaryCount || 0}</span> ${mDomainHtml.escapeHtml(card.secondary.label || 'Cooked')}` +
-      ` <span class="vs">VS</span> <span id="n">${card.count}</span> ${mDomainHtml.escapeHtml(card.secondary.primaryLabel || card.name)}`
-    : `<span id="n">${card.count}</span>`;
-  // The pattern proven to render in Meld: image in the static HTML, plain ES5,
-  // an XHR poll that only rewrites the number. Do not modernise this.
-  return `<!doctype html>
+    if (Array.isArray(card.slots)) return mViewsCollection.renderCollectionCardPage(card, query);
+    const width = Math.max(120, Number(query.get('w')) || 620);
+    const box = card.valueBox || { left: 30, top: 45, width: 55, height: 30 };
+    const hasSecondary = Boolean(card.secondary);
+    // Cards with a 'secondary' count (e.g. Ramen Plush) show BOTH numbers as
+    // text in the one existing blank box - "<cooked> Ramen Cooked VS <count>
+    // Plushies" - instead of a bare number. Two independently-updated spans so
+    // each number keeps its own thousands-separator grouping.
+    const innerMarkup = hasSecondary
+        ? `<span id="c1">${card.secondaryCount || 0}</span> ${mDomainHtml.escapeHtml(
+              card.secondary.label || 'Cooked'
+          )}` +
+          ` <span class="vs">VS</span> <span id="n">${card.count}</span> ${mDomainHtml.escapeHtml(
+              card.secondary.primaryLabel || card.name
+          )}`
+        : `<span id="n">${card.count}</span>`;
+    // The pattern proven to render in Meld: image in the static HTML, plain ES5,
+    // an XHR poll that only rewrites the number. Do not modernise this.
+    return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -28,7 +32,9 @@ function renderResourceCardPage(card, query) {
   html,body{margin:0;padding:0;background:transparent;overflow:hidden}
   #wrap{position:relative;width:${width}px}
   #wrap img{width:100%;display:block}
-  #box{position:absolute;left:${box.left}%;top:${box.top}%;width:${box.width}%;height:${box.height}%;
+  #box{position:absolute;left:${box.left}%;top:${box.top}%;width:${box.width}%;height:${
+        box.height
+    }%;
        display:table;table-layout:fixed}
   #inner{display:table-cell;vertical-align:middle;text-align:center;white-space:nowrap}
   #inner{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;font-weight:bold;color:#ffffff;
@@ -39,7 +45,9 @@ function renderResourceCardPage(card, query) {
 </head>
 <body>
 <div id="wrap">
-  <img src="/resource-art/${encodeURIComponent(card.image)}" alt="${mDomainHtml.escapeHtml(card.name)}">
+  <img src="/resource-art/${encodeURIComponent(card.image)}" alt="${mDomainHtml.escapeHtml(
+        card.name
+    )}">
   <div id="box"><div id="inner">${innerMarkup}</div></div>
 </div>
 <script>
@@ -76,7 +84,9 @@ function renderResourceCardPage(card, query) {
   }
   function poll(){
     var x = new XMLHttpRequest();
-    x.open('GET', '/api/resource-trackers?src=${encodeURIComponent(card.id)}&_=' + new Date().getTime(), true);
+    x.open('GET', '/api/resource-trackers?src=${encodeURIComponent(
+        card.id
+    )}&_=' + new Date().getTime(), true);
     x.onreadystatechange = function(){
       if (x.readyState !== 4) { return; }
       if (x.status !== 200) { return; }

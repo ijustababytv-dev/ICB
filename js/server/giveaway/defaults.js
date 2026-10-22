@@ -1,7 +1,5 @@
 'use strict';
 
-
-
 // -----------------------------------------------------------------------
 // STREAM GIVEAWAY — built 2026-09-24 for the pink/purple "fluffy unicorn"
 // giveaway, one night's worth of tickets, two prize types (plushie, mystery
@@ -36,60 +34,77 @@
 // *Tickets fields are recomputed from giveaway.rates. Changing a rate on the
 // dashboard re-prices everyone, live and hand-entered alike.
 const GIVEAWAY_DEFAULTS = {
-  windowStartedAt: null,
-  entrants: {},   // username -> { username, counts:{chatWindows,subMonths,giftedSubs,bits}, chatTickets, subTickets, giftTickets, bitsTickets (derived), manualTickets, note, mysteryOutfitWon, lastSeenAt }
-  chatActiveThisWindow: {}, // username -> true, cleared every CHAT_WINDOW_MS tick
-  winners: [],    // { username, prize, tickets, at }
-  manualLog: [],  // { username, kind, amount, delta, reason, at } - dashboard "Give fluffy unicorns" history, newest last
-  // Fluffy unicorns earned per thing. Survives Reset (it's a setting).
-  rates: { chatWindow: 1, subMonth: 2, giftedSub: 4, bitsPerUnicorn: 100 },
-  // The on-screen jar starts empty each stream day while everyone's counts
-  // roll over (Baby, 2026-09-25). Snapshot of each viewer's counts when the
-  // jar was last emptied; the jar shows only what was earned since.
-  jarBaseline: { night: null, startedAt: null, snapshot: {} },
-  // Never part of the giveaway: Baby herself + chat bots. Case-insensitive.
-  // Survives Reset. Edited on the dashboard. (Baby, 2026-09-25: "I don't
-  // want me nor any bots in the giveaways".)
-  blocked: [
-    'IJustABabyTv', 'StreamDatabase', 'Nightbot', 'StreamElements', 'Streamlabs', 'Moobot',
-    'Fossabot', 'Sery_Bot', 'Wizebot', 'SoundAlerts', 'Blerp', 'KofiStreamBot', 'StreamStickers',
-    'TangiaBot', 'PokemonCommunityGame', 'BotRixOficial', 'CommanderRoot', 'LurxxBot', 'Streamlootsbot',
-    'Own3d', 'Anonymous',
-  ],
-  // On-screen wording for the overlays, edited from giveaway-control.html.
-  // Survives "Reset for tonight" - reset only clears entrants/winners.
-  display: {
-    entrantsTitle: '🦄 Giveaway Entrants 🦄',
-    emptyMessage: 'No entries yet — chat, sub, gift, or cheer to get in!',
-    maxRows: 10,
-    tickerMessages: [
-      'Chat every 10 min = 1 fluffy unicorn, all night long!',
-      'Sub = 2 fluffy unicorns a month. Gift a sub = 4 fluffy unicorns EACH!',
-      '100 bits = 1 fluffy unicorn (250 bits = 2 fluffy unicorns)',
-      'Plushie drawings every ~30 min - you can win more than once!',
-      'Mystery Outfit drawing every hour - one per person per night!',
+    windowStartedAt: null,
+    entrants: {}, // username -> { username, counts:{chatWindows,subMonths,giftedSubs,bits}, chatTickets, subTickets, giftTickets, bitsTickets (derived), manualTickets, note, mysteryOutfitWon, lastSeenAt }
+    chatActiveThisWindow: {}, // username -> true, cleared every CHAT_WINDOW_MS tick
+    winners: [], // { username, prize, tickets, at }
+    manualLog: [], // { username, kind, amount, delta, reason, at } - dashboard "Give fluffy unicorns" history, newest last
+    // Fluffy unicorns earned per thing. Survives Reset (it's a setting).
+    rates: { chatWindow: 1, subMonth: 2, giftedSub: 4, bitsPerUnicorn: 100 },
+    // The on-screen jar starts empty each stream day while everyone's counts
+    // roll over (Baby, 2026-09-25). Snapshot of each viewer's counts when the
+    // jar was last emptied; the jar shows only what was earned since.
+    jarBaseline: { night: null, startedAt: null, snapshot: {} },
+    // Never part of the giveaway: Baby herself + chat bots. Case-insensitive.
+    // Survives Reset. Edited on the dashboard. (Baby, 2026-09-25: "I don't
+    // want me nor any bots in the giveaways".)
+    blocked: [
+        'IJustABabyTv',
+        'StreamDatabase',
+        'Nightbot',
+        'StreamElements',
+        'Streamlabs',
+        'Moobot',
+        'Fossabot',
+        'Sery_Bot',
+        'Wizebot',
+        'SoundAlerts',
+        'Blerp',
+        'KofiStreamBot',
+        'StreamStickers',
+        'TangiaBot',
+        'PokemonCommunityGame',
+        'BotRixOficial',
+        'CommanderRoot',
+        'LurxxBot',
+        'Streamlootsbot',
+        'Own3d',
+        'Anonymous'
     ],
-    winnersTitle: '🏆 Winners Circle 🏆',
-    winnersEmptyMessage: 'No winners drawn yet tonight!',
-    // unicorn-jar.html settings
-    jarSide: 'right',       // 'left' | 'center' | 'right'
-    unicornSize: 'medium',  // 'small' | 'medium' | 'large'
-    showNames: false,       // print each viewer's name on their unicorns (Baby turned this off 2026-09-25)
-    magic: true,            // cloud, falling stars and rainbow on unicorn-jar.html
-    // What to call the current prize on the winner banner/board (Baby,
-    // 2026-09-26), e.g. "Squishmallow Corgi" instead of the generic
-    // "Plushie". Baked into each winnerRecord at draw time (see /draw
-    // below) so past winners keep whatever was current when they won.
-    // Empty = fall back to the generic "Plushie" / "Mystery Outfit" wording.
-    currentPrizeLabel: '',
-  },
-  // Baby (2026-09-26): a "Test" button so she can show someone how a
-  // drawing looks without it being a real one. Bumping seq tells
-  // unicorn-jar.html to run the full show with IJustABabyTv as the
-  // winner - it never touches entrants, giveaway.winners, or the
-  // activity log, so it can't leak into the real Winners Circle or
-  // nightly report, and it works even though IJustABabyTv is blocked.
-  testDraw: { seq: 0, prize: 'plushie' },
+    // On-screen wording for the overlays, edited from giveaway-control.html.
+    // Survives "Reset for tonight" - reset only clears entrants/winners.
+    display: {
+        entrantsTitle: '🦄 Giveaway Entrants 🦄',
+        emptyMessage: 'No entries yet — chat, sub, gift, or cheer to get in!',
+        maxRows: 10,
+        tickerMessages: [
+            'Chat every 10 min = 1 fluffy unicorn, all night long!',
+            'Sub = 2 fluffy unicorns a month. Gift a sub = 4 fluffy unicorns EACH!',
+            '100 bits = 1 fluffy unicorn (250 bits = 2 fluffy unicorns)',
+            'Plushie drawings every ~30 min - you can win more than once!',
+            'Mystery Outfit drawing every hour - one per person per night!'
+        ],
+        winnersTitle: '🏆 Winners Circle 🏆',
+        winnersEmptyMessage: 'No winners drawn yet tonight!',
+        // unicorn-jar.html settings
+        jarSide: 'right', // 'left' | 'center' | 'right'
+        unicornSize: 'medium', // 'small' | 'medium' | 'large'
+        showNames: false, // print each viewer's name on their unicorns (Baby turned this off 2026-09-25)
+        magic: true, // cloud, falling stars and rainbow on unicorn-jar.html
+        // What to call the current prize on the winner banner/board (Baby,
+        // 2026-09-26), e.g. "Squishmallow Corgi" instead of the generic
+        // "Plushie". Baked into each winnerRecord at draw time (see /draw
+        // below) so past winners keep whatever was current when they won.
+        // Empty = fall back to the generic "Plushie" / "Mystery Outfit" wording.
+        currentPrizeLabel: ''
+    },
+    // Baby (2026-09-26): a "Test" button so she can show someone how a
+    // drawing looks without it being a real one. Bumping seq tells
+    // unicorn-jar.html to run the full show with IJustABabyTv as the
+    // winner - it never touches entrants, giveaway.winners, or the
+    // activity log, so it can't leak into the real Winners Circle or
+    // nightly report, and it works even though IJustABabyTv is blocked.
+    testDraw: { seq: 0, prize: 'plushie' }
 };
 const CHAT_WINDOW_MS = 10 * 60 * 1000;
 

@@ -21,212 +21,450 @@ const mHttpBody = require('./http/body');
 //   - Meld doesn't tell ICB who is a mod, so she lists who may catch (default: her).
 // ---------------------------------------------------------------------------
 const SJ_DIR = path.join(mConfig.APP_DIR, 'assets', 'sprite-jar');
-try { fs.mkdirSync(SJ_DIR, { recursive: true }); } catch (_error) {}
+try {
+    fs.mkdirSync(SJ_DIR, { recursive: true });
+} catch (_error) {}
 /** Create independent initial sprite jar settings for first-run or missing saved fields. */
 function sjDefaults() {
-  return { listen: true, visible: true, allowed: 'IJustABabyTv', needPrefix: false, dashPlays: false, removeComplete: false, jarHolds: 'stickers', leaveCaught: false, mode: 'floor', floorL: 2, floorR: 98, floorH: 16, floorB: 1, toySize: 100,
-    bookStyle: 'propped', bookTheme: 'spooky', pbX: 1, pbW: 33, pbB: 1.5, pbTilt: -3, pbLean: 10, pbAuto: 0, baseBook: 170, baseToy: 140, baseCelebrate: true, bookOpen: false, catchOpens: true, avoidBook: false, mixSeed: 0,
-    jarX: 3, jarY: 38, jarW: 17, bookX: 50, bookY: 50, bookW: 46, bookSec: 9, title: 'Sprite Sticker Book',
-    jarImage: '', inL: 10, inT: 22, inW: 80, inH: 64, spriteSize: 100, epoch: 1 };
+    return {
+        listen: true,
+        visible: true,
+        allowed: 'IJustABabyTv',
+        needPrefix: false,
+        dashPlays: false,
+        removeComplete: false,
+        jarHolds: 'stickers',
+        leaveCaught: false,
+        mode: 'floor',
+        floorL: 2,
+        floorR: 98,
+        floorH: 16,
+        floorB: 1,
+        toySize: 100,
+        bookStyle: 'propped',
+        bookTheme: 'spooky',
+        pbX: 1,
+        pbW: 33,
+        pbB: 1.5,
+        pbTilt: -3,
+        pbLean: 10,
+        pbAuto: 0,
+        baseBook: 170,
+        baseToy: 140,
+        baseCelebrate: true,
+        bookOpen: false,
+        catchOpens: true,
+        avoidBook: false,
+        mixSeed: 0,
+        jarX: 3,
+        jarY: 38,
+        jarW: 17,
+        bookX: 50,
+        bookY: 50,
+        bookW: 46,
+        bookSec: 9,
+        title: 'Sprite Sticker Book',
+        jarImage: '',
+        inL: 10,
+        inT: 22,
+        inW: 80,
+        inH: 64,
+        spriteSize: 100,
+        epoch: 1
+    };
 }
+
 /** Merge stored jar preferences with defaults without losing new settings. */
-function sjCfg() { mSprites.spr.jar = { ...sjDefaults(), ...(mSprites.spr.jar || {}) }; return mSprites.spr.jar; }
-let sjEvents = [], sjSeq = 1, sjLastChat = [];
+function sjCfg() {
+    mSprites.spr.jar = { ...sjDefaults(), ...(mSprites.spr.jar || {}) };
+    return mSprites.spr.jar;
+}
+
+let sjEvents = [],
+    sjSeq = 1,
+    sjLastChat = [];
 const sjLev = (a, b) => {
-  const m = a.length, n = b.length; if (Math.abs(m - n) > 2) return 9; const d = Array.from({ length: m + 1 }, (_, i) => [i]);
-  for (let j = 1; j <= n; j++) d[0][j] = j;
-  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
-    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);   // swapped letters (jonsey)
-  }
-  return d[m][n];
+    const m = a.length,
+        n = b.length;
+    if (Math.abs(m - n) > 2) return 9;
+    const d = Array.from({ length: m + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++) {
+            d[i][j] = Math.min(
+                d[i - 1][j] + 1,
+                d[i][j - 1] + 1,
+                d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+            );
+            if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+                d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1); // swapped letters (jonsey)
+        }
+    return d[m][n];
 };
+
 // "jonesy gold", "one wish willow cheat", "jonsey" (typo ok), "crash bandicoot loot hacker"
 function sjParse(words) {
-  const flat = w => w.join('').toLowerCase().replace(/[^a-z0-9]/g, '');
-  for (let k = Math.min(words.length, 4); k >= 1; k--) {
-    const c = flat(words.slice(0, k)); if (!c) continue;
-    let s = mSprites.spr.sprites.find(x => flat([x.id]) === c || flat([x.name]) === c);
-    if (!s && c.length >= 5) s = mSprites.spr.sprites.find(x => sjLev(flat([x.name]), c) <= (c.length >= 8 ? 2 : 1));
-    if (!s) continue;
-    const rest = words.slice(k).join(' ').toLowerCase().trim();
-    if (!rest) return { s, v: s.variants[0] };
-    const v = s.variants.find(x => x.toLowerCase() === rest) || s.variants.find(x => x.toLowerCase().split(' ').includes(rest.split(' ')[0]))
-      || s.variants.find(x => x.toLowerCase().startsWith(rest.split(' ')[0]));
-    return v ? { s, v } : { s, v: null, bad: rest };
-  }
-  return null;
+    const flat = (w) =>
+        w
+            .join('')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+
+    for (let k = Math.min(words.length, 4); k >= 1; k--) {
+        const c = flat(words.slice(0, k));
+        if (!c) continue;
+        let s = mSprites.spr.sprites.find((x) => flat([x.id]) === c || flat([x.name]) === c);
+        if (!s && c.length >= 5)
+            s = mSprites.spr.sprites.find(
+                (x) => sjLev(flat([x.name]), c) <= (c.length >= 8 ? 2 : 1)
+            );
+        if (!s) continue;
+        const rest = words.slice(k).join(' ').toLowerCase().trim();
+        if (!rest) return { s, v: s.variants[0] };
+        const v =
+            s.variants.find((x) => x.toLowerCase() === rest) ||
+            s.variants.find((x) => x.toLowerCase().split(' ').includes(rest.split(' ')[0])) ||
+            s.variants.find((x) => x.toLowerCase().startsWith(rest.split(' ')[0]));
+        return v ? { s, v } : { s, v: null, bad: rest };
+    }
+    return null;
 }
+
 /** Queue a bounded jar animation event for the requested sprite/variant. */
 function sjPush(s, v, extra) {
-  const n = s.variants.filter(x => mSprites.spr.caught[mSprites.sprKey(s.id, x)]).length;
-  const ev = { id: sjSeq++, sprite: s.id, name: s.name, rarity: s.rarity, variant: v, img: sjCut(s) || mSprites.sprImg(s), have: n, of: s.variants.length,
-    complete: n === s.variants.length, stats: mSprites.sprStats(), at: Date.now(), ...(extra || {}) };
-  sjEvents.push(ev); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
-  return ev;
+    const n = s.variants.filter((x) => mSprites.spr.caught[mSprites.sprKey(s.id, x)]).length;
+    const ev = {
+        id: sjSeq++,
+        sprite: s.id,
+        name: s.name,
+        rarity: s.rarity,
+        variant: v,
+        img: sjCut(s) || mSprites.sprImg(s),
+        have: n,
+        of: s.variants.length,
+        complete: n === s.variants.length,
+        stats: mSprites.sprStats(),
+        at: Date.now(),
+        ...(extra || {})
+    };
+    sjEvents.push(ev);
+    if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+    return ev;
 }
+
 /** Record a sprite catch and queue its corresponding jar animation. */
 function sjCatch(s, v, who) {
-  const already = !!mSprites.spr.caught[mSprites.sprKey(s.id, v)];
-  if (!already) { mSprites.sprSet(s.id, v, true); mSprites.sprSave(); sjLastChat.push({ id: s.id, v }); if (sjLastChat.length > 20) sjLastChat.shift(); }
-  sjPush(s, v, { kind: already ? 'already' : 'catch', who: who || '' });
-  return already ? 'already' : 'caught';
+    const already = !!mSprites.spr.caught[mSprites.sprKey(s.id, v)];
+    if (!already) {
+        mSprites.sprSet(s.id, v, true);
+        mSprites.sprSave();
+        sjLastChat.push({ id: s.id, v });
+        if (sjLastChat.length > 20) sjLastChat.shift();
+    }
+    sjPush(s, v, { kind: already ? 'already' : 'catch', who: who || '' });
+    return already ? 'already' : 'caught';
 }
+
 // Page turning (2026-10-19): { kind: 'turn', dir: 1 | -1 } or { kind: 'turn', sprite: id }.
 function sjTurn(dirOrId) {
-  const ev = { id: sjSeq++, kind: 'turn', at: Date.now() };
-  if (typeof dirOrId === 'number') ev.dir = dirOrId < 0 ? -1 : 1; else ev.sprite = String(dirOrId);
-  sjEvents.push(ev); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
-  return 'turn';
+    const ev = { id: sjSeq++, kind: 'turn', at: Date.now() };
+    if (typeof dirOrId === 'number') ev.dir = dirOrId < 0 ? -1 : 1;
+    else ev.sprite = String(dirOrId);
+    sjEvents.push(ev);
+    if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+    return 'turn';
 }
+
 // Mix up the toys: a new layout seed (saved, so it sticks) + an event so the overlay animates the move.
 function sjMix() {
-  const c = sjCfg(); c.mixSeed = ((Number(c.mixSeed) || 0) + 1) % 100000;
-  sjEvents.push({ id: sjSeq++, kind: 'shuffle', at: Date.now() }); if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
-  mSprites.sprSave(); return 'mixed';
+    const c = sjCfg();
+    c.mixSeed = ((Number(c.mixSeed) || 0) + 1) % 100000;
+    sjEvents.push({ id: sjSeq++, kind: 'shuffle', at: Date.now() });
+    if (sjEvents.length > 100) sjEvents = sjEvents.slice(-100);
+    mSprites.sprSave();
+    return 'mixed';
 }
+
 /** Interpret supported sprite jar chat commands while preserving unrelated messages. */
 function sjChat(sender, parts) {
-  const c = sjCfg(); if (!c.listen) return '';
-  const name = mDomainValidation.cleanString(sender).replace(/^@/, '').toLowerCase();
-  const ok = String(c.allowed || '').split(/[\s,]+/).map(x => x.toLowerCase().replace(/^@/, '')).filter(Boolean);
-  if (!name || !ok.includes(name)) return '';
-  const text = mParty.partyDecode((parts || []).filter(x => x.t === 'text').map(x => x.v).join(' ')).trim();
-  const m = /^!(\S+)\s*(.*)$/.exec(text); if (!m) return '';
-  let cmd = m[1].toLowerCase(), words = m[2].split(/\s+/).filter(Boolean);
-  // "!open" / "!close": the propped book lies closed on the floor until she opens it (2026-10-19)
-  if (cmd === 'mix' || cmd === 'shuffle') return sjMix();
-  if (cmd === 'open' || cmd === 'close') { c.bookOpen = cmd === 'open'; mSprites.sprSave(); return cmd; }
-  if (cmd === 'undo' || cmd === 'unsticker') {
-    const last = sjLastChat.pop(); const s = last && mSprites.sprFind(last.id); if (!s) return '';
-    mSprites.sprSet(s.id, last.v, false); mSprites.sprSave(); sjPush(s, last.v, { kind: 'undo' }); return 'undone';
-  }
-  // "!page" next page, "!page back" previous, "!page jonesy" / "!book jonesy" turns to that sprite
-  if (cmd === 'page' || ((cmd === 'book' || cmd === 'stickers') && words.length)) {
-    const w = words.join(' ').toLowerCase();
-    if (!w || ['next', 'forward', '>'].includes(w)) return sjTurn(1);
-    if (['back', 'prev', 'previous', '<', 'last'].includes(w)) return sjTurn(-1);
-    const r = sjParse(words); return r ? sjTurn(r.s.id) : '';
-  }
-  if (cmd === 'book' || cmd === 'stickers') { const s = (mSprites.spr.recent[0] && mSprites.sprFind(mSprites.spr.recent[0].id)) || mSprites.spr.sprites[0]; if (s) sjPush(s, '', { kind: 'peek' }); return 'peek'; }
-  if (['catch', 'sticker', 'sprite', 'caught'].includes(cmd)) { /* "!catch jonesy gold" */ }
-  else if (c.needPrefix) return '';
-  else words = [m[1]].concat(words);
-  const r = sjParse(words); if (!r) return '';
-  if (!r.v) { sjPush(r.s, '', { kind: 'unknown', bad: r.bad }); return 'no-variant'; }
-  return sjCatch(r.s, r.v, sender);
+    const c = sjCfg();
+    if (!c.listen) return '';
+    const name = mDomainValidation.cleanString(sender).replace(/^@/, '').toLowerCase();
+    const ok = String(c.allowed || '')
+        .split(/[\s,]+/)
+        .map((x) => x.toLowerCase().replace(/^@/, ''))
+        .filter(Boolean);
+    if (!name || !ok.includes(name)) return '';
+    const text = mParty
+        .partyDecode(
+            (parts || [])
+                .filter((x) => x.t === 'text')
+                .map((x) => x.v)
+                .join(' ')
+        )
+        .trim();
+    const m = /^!(\S+)\s*(.*)$/.exec(text);
+    if (!m) return '';
+    let cmd = m[1].toLowerCase(),
+        words = m[2].split(/\s+/).filter(Boolean);
+    // "!open" / "!close": the propped book lies closed on the floor until she opens it (2026-10-19)
+    if (cmd === 'mix' || cmd === 'shuffle') return sjMix();
+    if (cmd === 'open' || cmd === 'close') {
+        c.bookOpen = cmd === 'open';
+        mSprites.sprSave();
+        return cmd;
+    }
+    if (cmd === 'undo' || cmd === 'unsticker') {
+        const last = sjLastChat.pop();
+        const s = last && mSprites.sprFind(last.id);
+        if (!s) return '';
+        mSprites.sprSet(s.id, last.v, false);
+        mSprites.sprSave();
+        sjPush(s, last.v, { kind: 'undo' });
+        return 'undone';
+    }
+    // "!page" next page, "!page back" previous, "!page jonesy" / "!book jonesy" turns to that sprite
+    if (cmd === 'page' || ((cmd === 'book' || cmd === 'stickers') && words.length)) {
+        const w = words.join(' ').toLowerCase();
+        if (!w || ['next', 'forward', '>'].includes(w)) return sjTurn(1);
+        if (['back', 'prev', 'previous', '<', 'last'].includes(w)) return sjTurn(-1);
+        const r = sjParse(words);
+        return r ? sjTurn(r.s.id) : '';
+    }
+    if (cmd === 'book' || cmd === 'stickers') {
+        const s =
+            (mSprites.spr.recent[0] && mSprites.sprFind(mSprites.spr.recent[0].id)) ||
+            mSprites.spr.sprites[0];
+        if (s) sjPush(s, '', { kind: 'peek' });
+        return 'peek';
+    }
+    if (['catch', 'sticker', 'sprite', 'caught'].includes(cmd)) {
+        /* "!catch jonesy gold" */
+    } else if (c.needPrefix) return '';
+    else words = [m[1]].concat(words);
+    const r = sjParse(words);
+    if (!r) return '';
+    if (!r.v) {
+        sjPush(r.s, '', { kind: 'unknown', bad: r.bad });
+        return 'no-variant';
+    }
+    return sjCatch(r.s, r.v, sender);
 }
+
 // Sticker art (2026-10-19): assets/sprites/<Sprite Name>/<Name>_<Variant>.png, e.g. Jonesy/Jonesy_Gold.png,
 // Jonesy/Jonesy.png = Base. Folder and file names are matched loosely (case, spaces, "Adventrue" typo).
 // Her art is ~1250 px, so the browser (dashboard or overlay) makes 256 px copies in
 // assets/sprite-jar/stickers/<id>__<variant>-<source mtime>.webp; a newer source file makes a new copy.
 const SJ_STK_DIR = path.join(SJ_DIR, 'stickers');
-try { fs.mkdirSync(SJ_STK_DIR, { recursive: true }); } catch (_error) {}
-const sjFlat = v => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+try {
+    fs.mkdirSync(SJ_STK_DIR, { recursive: true });
+} catch (_error) {}
+const sjFlat = (v) =>
+    String(v || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
 /** Match local sticker art to configured sprites and report missing variants. */
-function sjArtScan() {
-  const out = {};
-  let dirs = []; try { dirs = fs.readdirSync(mSprites.SPR_ART_DIR, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch (_e) {}
-  let thumbs = []; try { thumbs = fs.readdirSync(SJ_STK_DIR); } catch (_e) {}
-  for (const sp of mSprites.spr.sprites) {
-    const dir = dirs.find(d => sjFlat(d) === sjFlat(sp.name) || sjFlat(d) === sjFlat(sp.id)); if (!dir) continue;
-    let files = []; try { files = fs.readdirSync(path.join(mSprites.SPR_ART_DIR, dir)).filter(f => /\.(png|webp|jpe?g|gif)$/i.test(f)); } catch (_e) {}
-    for (const f of files) {
-      const stem = f.replace(/\.[a-z0-9]+$/i, ''), us = stem.indexOf('_');
-      let v = null;
-      let score = 3;
-      if (us < 0) v = sp.variants[0];
-      else {
-        const raw = stem.slice(us + 1), suf = sjFlat(raw);
-        v = sp.variants.find(x => sjFlat(x) === suf); score = 3;
-        if (!v) { v = sp.variants.find(x => sjFlat(x).startsWith(suf) || suf.startsWith(sjFlat(x))); score = 2; }
-        if (!v && suf === 'base') { v = sp.variants[0]; score = 3; }
-        if (!v) {   // near-miss names like "Klombo_Loot_Master": go by the first word (Loot -> Loot Hacker) when only one variant starts with it
-          const w0 = sjFlat(raw.split(/[_\s-]+/)[0]), hits = sp.variants.filter(x => w0 && sjFlat(x.split(/\s+/)[0]) === w0);
-          if (hits.length === 1) { v = hits[0]; score = 1; }
-        }
-      }
-      if (!v) continue;
-      let st = null; try { st = fs.statSync(path.join(mSprites.SPR_ART_DIR, dir, f)); } catch (_e) { continue; }
-      const mt = Math.round(st.mtimeMs), isWebp = /\.webp$/i.test(f), had = (out[sp.id] || {})[v];
-      if (had && had.score > score) continue;   // an exact name beats a near-miss
-      if (had && had.score === score && had.webp && !isWebp) continue;   // her small .webp copy wins over the big .png (2026-10-19)
-      const key = `${sp.id}__${mSprites.sprSlug(v)}`, thumb = `${key}-${mt}.webp`;
-      const src = `/assets/sprites/${encodeURIComponent(dir)}/${encodeURIComponent(f)}`;
-      const direct = isWebp && st.size <= 700 * 1024;   // small webp: use it as-is, no copy needed
-      (out[sp.id] || (out[sp.id] = {}))[v] = { src, key, thumb, webp: isWebp, score, direct: direct ? `${src}?v=${mt}` : null, ready: direct || thumbs.includes(thumb) };
-    }
-  }
-  return out;
-}
+
+const createSpriteJarArt = require('./sprite-jar-art')({
+    fs: fs,
+
+    path: path,
+
+    mConfig: mConfig,
+
+    mSprites: mSprites,
+
+    SJ_STK_DIR: SJ_STK_DIR,
+
+    sjFlat: sjFlat
+});
+const sjArtScan = createSpriteJarArt.sjArtScan;
+const sjArtPublic = createSpriteJarArt.sjArtPublic;
+const sjCut = createSpriteJarArt.sjCut;
+
 /** Expose discovered sticker URLs and missing-art requirements to the dashboard. */
-function sjArtPublic() {
-  const art = sjArtScan(), urls = {}, need = [];
-  for (const [id, vs] of Object.entries(art)) for (const [v, a] of Object.entries(vs)) {
-    if (a.direct) (urls[id] || (urls[id] = {}))[v] = a.direct;
-    else if (a.ready) (urls[id] || (urls[id] = {}))[v] = `/assets/sprite-jar/stickers/${encodeURIComponent(a.thumb)}`;
-    else need.push({ id, variant: v, src: a.src });
-  }
-  return { urls, need };
-}
+
 // The jar uses the see-through cut-out (same picture as the chat avatar, assets/avatars/<id>.png) when there is one.
-function sjCut(s) {
-  for (const e of ['png', 'webp', 'gif']) { const f = `${s.id}.${e}`; try { return `/assets/avatars/${f}?v=${Math.round(fs.statSync(path.join(mConfig.APP_DIR, 'assets', 'avatars', f)).mtimeMs)}`; } catch (_e) {} }
-  return null;
-}
+
 /** Build the sprite jar response consumed by dashboards and overlays. */
 function sjPublic() {
-  const c = sjCfg(), art = sjArtPublic();
-  return { ok: true, season: mSprites.spr.season, settings: { ...c, jarBack: '/resource-art/JAR_BACK.png', jarFront: '/resource-art/JAR_FRONT.png', jarUrl: c.jarImage ? `/assets/sprite-jar/${encodeURIComponent(c.jarImage)}?v=${(() => { try { return Math.round(fs.statSync(path.join(SJ_DIR, c.jarImage)).mtimeMs); } catch (_e) { return 0; } })()}` : '' },
-    sprites: mSprites.spr.sprites.map(s => ({ id: s.id, name: s.name, rarity: s.rarity, img: sjCut(s) || mSprites.sprImg(s), variants: s.variants, caught: s.variants.filter(v => mSprites.spr.caught[mSprites.sprKey(s.id, v)]), art: art.urls[s.id] || {} })),
-    needArt: art.need,
-    stats: mSprites.sprStats(), recent: mSprites.spr.recent[0] ? mSprites.spr.recent[0].id : null, last: sjSeq - 1 };
+    const c = sjCfg(),
+        art = sjArtPublic();
+    return {
+        ok: true,
+        season: mSprites.spr.season,
+        settings: {
+            ...c,
+            jarBack: '/resource-art/JAR_BACK.png',
+            jarFront: '/resource-art/JAR_FRONT.png',
+            jarUrl: c.jarImage
+                ? `/assets/sprite-jar/${encodeURIComponent(c.jarImage)}?v=${(() => {
+                      try {
+                          return Math.round(fs.statSync(path.join(SJ_DIR, c.jarImage)).mtimeMs);
+                      } catch (_e) {
+                          return 0;
+                      }
+                  })()}`
+                : ''
+        },
+        sprites: mSprites.spr.sprites.map((s) => ({
+            id: s.id,
+            name: s.name,
+            rarity: s.rarity,
+            img: sjCut(s) || mSprites.sprImg(s),
+            variants: s.variants,
+            caught: s.variants.filter((v) => mSprites.spr.caught[mSprites.sprKey(s.id, v)]),
+            art: art.urls[s.id] || {}
+        })),
+        needArt: art.need,
+        stats: mSprites.sprStats(),
+        recent: mSprites.spr.recent[0] ? mSprites.spr.recent[0].id : null,
+        last: sjSeq - 1
+    };
 }
+
 /** Validate and dispatch sprite jar API requests, returning client errors for invalid input. */
 async function handleSpriteJarApi(req, res, pathname, method) {
-  if (pathname === '/api/sprites/jar' && method === 'GET') {
-    const q = new URL(req.url, 'http://x').searchParams, since = Number(q.get('since')) || 0;
-    return mHttpResponse.sendJson(res, 200, { ...sjPublic(), events: q.get('first') ? [] : sjEvents.filter(e => e.id > since) });
-  }
-  if (pathname === '/api/sprites/jar' && method === 'POST') {
-    const b = await mHttpBody.readBody(req), c = sjCfg();
-    for (const k of ['listen', 'visible', 'needPrefix', 'dashPlays', 'removeComplete', 'leaveCaught', 'baseCelebrate', 'bookOpen', 'catchOpens', 'avoidBook']) if (typeof b[k] === 'boolean') c[k] = b[k];
-    if (['stickers', 'sprites'].includes(b.jarHolds)) c.jarHolds = b.jarHolds;
-    if (['jar', 'floor'].includes(b.mode)) c.mode = b.mode;
-    if (['propped', 'pop'].includes(b.bookStyle)) c.bookStyle = b.bookStyle;   // propped = always on screen, leaning on the floor (2026-10-19)
-    if (['spooky', 'cute'].includes(b.bookTheme)) c.bookTheme = b.bookTheme;   // floor = toys scattered along the bottom of the stream (2026-10-19)
-    const nums = { jarX: [0, 95], jarY: [0, 95], jarW: [4, 60], bookX: [10, 90], bookY: [10, 90], bookW: [20, 90], bookSec: [3, 60], inL: [0, 90], inT: [0, 90], inW: [10, 100], inH: [10, 100], spriteSize: [30, 250], floorL: [0, 90], floorR: [10, 100], floorH: [3, 60], floorB: [0, 60], toySize: [30, 300], pbX: [0, 80], pbW: [10, 60], pbB: [0, 60], pbTilt: [-20, 20], pbLean: [0, 40], pbAuto: [0, 300], baseBook: [100, 230], baseToy: [60, 250] };
-    for (const [k, [lo, hi]] of Object.entries(nums)) if (b[k] !== undefined && Number.isFinite(Number(b[k]))) c[k] = Math.max(lo, Math.min(hi, Number(b[k])));
-    for (const k of ['allowed', 'title']) if (typeof b[k] === 'string') c[k] = mDomainValidation.cleanString(b[k]).slice(0, 400);
-    if (b.play && b.play.id) { const s = mSprites.sprFind(b.play.id); const v = s && (s.variants.includes(b.play.variant) ? b.play.variant : s.variants[0]); if (s) sjPush(s, v, { kind: 'catch', test: true }); }
-    if (b.catchCmd) { const r = sjParse(String(b.catchCmd).replace(/^!/, '').split(/\s+/).filter(Boolean)); if (!r || !r.v) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'No sprite/variant matches that.' }); sjCatch(r.s, r.v, 'dashboard'); }
-    if (b.showBook) { const s = (mSprites.spr.recent[0] && mSprites.sprFind(mSprites.spr.recent[0].id)) || mSprites.spr.sprites[0]; if (s) sjPush(s, '', { kind: 'peek' }); }
-    if (b.shuffle) sjMix();
-    if (b.turn) sjTurn(b.turn.sprite ? String(b.turn.sprite) : Number(b.turn.dir) || 1);
-    if (b.removeJar) { if (c.jarImage) { try { fs.unlinkSync(path.join(SJ_DIR, c.jarImage)); } catch (_e) {} } c.jarImage = ''; }
-    if (b.reset) c.epoch++;
-    mSprites.sprSave(); return mHttpResponse.sendJson(res, 200, { ok: true });
-  }
-  if (pathname === '/api/sprites/jar/sticker' && method === 'POST') {
-    const b = await mHttpBody.readBody(req), a = (sjArtScan()[String(b.id)] || {})[String(b.variant)];
-    if (!a) return mHttpResponse.sendJson(res, 404, { ok: false, error: 'No sticker art for that.' });
-    const m = /^data:image\/(webp|png);base64,(.+)$/.exec(String(b.dataUrl || ''));
-    if (!m) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Bad picture.' });
-    const buf = Buffer.from(m[2], 'base64'); if (buf.length > 3 * 1024 * 1024) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Too large.' });
-    for (const f of fs.readdirSync(SJ_STK_DIR)) if (f.startsWith(a.key + '-')) { try { fs.unlinkSync(path.join(SJ_STK_DIR, f)); } catch (_e) {} }
-    fs.writeFileSync(path.join(SJ_STK_DIR, a.thumb), buf);
-    return mHttpResponse.sendJson(res, 200, { ok: true });
-  }
-  if (pathname === '/api/sprites/jar/image' && method === 'POST') {
-    const b = await mHttpBody.readBody(req), c = sjCfg();
-    const m = /^data:image\/(png|webp|gif|jpeg|jpg);base64,(.+)$/.exec(String(b.dataUrl || ''));
-    if (!m) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Picture must be a PNG, WEBP, GIF, or JPG.' });
-    const buf = Buffer.from(m[2], 'base64'); if (buf.length > 12 * 1024 * 1024) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
-    if (c.jarImage) { try { fs.unlinkSync(path.join(SJ_DIR, c.jarImage)); } catch (_e) {} }
-    c.jarImage = `jar-${Date.now()}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`; fs.writeFileSync(path.join(SJ_DIR, c.jarImage), buf);
-    mSprites.sprSave(); return mHttpResponse.sendJson(res, 200, { ok: true });
-  }
-  return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown sprite jar route.' });
+    if (pathname === '/api/sprites/jar' && method === 'GET') {
+        const q = new URL(req.url, 'http://x').searchParams,
+            since = Number(q.get('since')) || 0;
+        return mHttpResponse.sendJson(res, 200, {
+            ...sjPublic(),
+            events: q.get('first') ? [] : sjEvents.filter((e) => e.id > since)
+        });
+    }
+    if (pathname === '/api/sprites/jar' && method === 'POST') {
+        const b = await mHttpBody.readBody(req),
+            c = sjCfg();
+        for (const k of [
+            'listen',
+            'visible',
+            'needPrefix',
+            'dashPlays',
+            'removeComplete',
+            'leaveCaught',
+            'baseCelebrate',
+            'bookOpen',
+            'catchOpens',
+            'avoidBook'
+        ])
+            if (typeof b[k] === 'boolean') c[k] = b[k];
+        if (['stickers', 'sprites'].includes(b.jarHolds)) c.jarHolds = b.jarHolds;
+        if (['jar', 'floor'].includes(b.mode)) c.mode = b.mode;
+        if (['propped', 'pop'].includes(b.bookStyle)) c.bookStyle = b.bookStyle; // propped = always on screen, leaning on the floor (2026-10-19)
+        if (['spooky', 'cute'].includes(b.bookTheme)) c.bookTheme = b.bookTheme; // floor = toys scattered along the bottom of the stream (2026-10-19)
+        const nums = {
+            jarX: [0, 95],
+            jarY: [0, 95],
+            jarW: [4, 60],
+            bookX: [10, 90],
+            bookY: [10, 90],
+            bookW: [20, 90],
+            bookSec: [3, 60],
+            inL: [0, 90],
+            inT: [0, 90],
+            inW: [10, 100],
+            inH: [10, 100],
+            spriteSize: [30, 250],
+            floorL: [0, 90],
+            floorR: [10, 100],
+            floorH: [3, 60],
+            floorB: [0, 60],
+            toySize: [30, 300],
+            pbX: [0, 80],
+            pbW: [10, 60],
+            pbB: [0, 60],
+            pbTilt: [-20, 20],
+            pbLean: [0, 40],
+            pbAuto: [0, 300],
+            baseBook: [100, 230],
+            baseToy: [60, 250]
+        };
+        for (const [k, [lo, hi]] of Object.entries(nums))
+            if (b[k] !== undefined && Number.isFinite(Number(b[k])))
+                c[k] = Math.max(lo, Math.min(hi, Number(b[k])));
+        for (const k of ['allowed', 'title'])
+            if (typeof b[k] === 'string') c[k] = mDomainValidation.cleanString(b[k]).slice(0, 400);
+        if (b.play && b.play.id) {
+            const s = mSprites.sprFind(b.play.id);
+            const v = s && (s.variants.includes(b.play.variant) ? b.play.variant : s.variants[0]);
+            if (s) sjPush(s, v, { kind: 'catch', test: true });
+        }
+        if (b.catchCmd) {
+            const r = sjParse(String(b.catchCmd).replace(/^!/, '').split(/\s+/).filter(Boolean));
+            if (!r || !r.v)
+                return mHttpResponse.sendJson(res, 400, {
+                    ok: false,
+                    error: 'No sprite/variant matches that.'
+                });
+            sjCatch(r.s, r.v, 'dashboard');
+        }
+        if (b.showBook) {
+            const s =
+                (mSprites.spr.recent[0] && mSprites.sprFind(mSprites.spr.recent[0].id)) ||
+                mSprites.spr.sprites[0];
+            if (s) sjPush(s, '', { kind: 'peek' });
+        }
+        if (b.shuffle) sjMix();
+        if (b.turn) sjTurn(b.turn.sprite ? String(b.turn.sprite) : Number(b.turn.dir) || 1);
+        if (b.removeJar) {
+            if (c.jarImage) {
+                try {
+                    fs.unlinkSync(path.join(SJ_DIR, c.jarImage));
+                } catch (_e) {}
+            }
+            c.jarImage = '';
+        }
+        if (b.reset) c.epoch++;
+        mSprites.sprSave();
+        return mHttpResponse.sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/sprites/jar/sticker' && method === 'POST') {
+        const b = await mHttpBody.readBody(req),
+            a = (sjArtScan()[String(b.id)] || {})[String(b.variant)];
+        if (!a)
+            return mHttpResponse.sendJson(res, 404, {
+                ok: false,
+                error: 'No sticker art for that.'
+            });
+        const m = /^data:image\/(webp|png);base64,(.+)$/.exec(String(b.dataUrl || ''));
+        if (!m) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Bad picture.' });
+        const buf = Buffer.from(m[2], 'base64');
+        if (buf.length > 3 * 1024 * 1024)
+            return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Too large.' });
+        for (const f of fs.readdirSync(SJ_STK_DIR))
+            if (f.startsWith(a.key + '-')) {
+                try {
+                    fs.unlinkSync(path.join(SJ_STK_DIR, f));
+                } catch (_e) {}
+            }
+        fs.writeFileSync(path.join(SJ_STK_DIR, a.thumb), buf);
+        return mHttpResponse.sendJson(res, 200, { ok: true });
+    }
+    if (pathname === '/api/sprites/jar/image' && method === 'POST') {
+        const b = await mHttpBody.readBody(req),
+            c = sjCfg();
+        const m = /^data:image\/(png|webp|gif|jpeg|jpg);base64,(.+)$/.exec(String(b.dataUrl || ''));
+        if (!m)
+            return mHttpResponse.sendJson(res, 400, {
+                ok: false,
+                error: 'Picture must be a PNG, WEBP, GIF, or JPG.'
+            });
+        const buf = Buffer.from(m[2], 'base64');
+        if (buf.length > 12 * 1024 * 1024)
+            return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Picture is too large.' });
+        if (c.jarImage) {
+            try {
+                fs.unlinkSync(path.join(SJ_DIR, c.jarImage));
+            } catch (_e) {}
+        }
+        c.jarImage = `jar-${Date.now()}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+        fs.writeFileSync(path.join(SJ_DIR, c.jarImage), buf);
+        mSprites.sprSave();
+        return mHttpResponse.sendJson(res, 200, { ok: true });
+    }
+    return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown sprite jar route.' });
 }
 
 Object.assign(exports, { handleSpriteJarApi, sjArtPublic, sjCfg, sjPush, sjChat });

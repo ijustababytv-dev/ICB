@@ -9,26 +9,30 @@ const TICKER_BOX = { left: 15.43, top: 55.68, width: 68.78, height: 12.97 };
 
 /** Render the framed ticker with escaped operator text and ES5 polling. */
 function renderTickerPage(query) {
-  const width = Math.max(300, Math.min(2400, Number(query.get('w')) || 900));
-  const height = Math.round(width * (941 / 1672));
-  const boxLeftPx = Math.round(width * (TICKER_BOX.left / 100));
-  const boxTopPx = Math.round(height * (TICKER_BOX.top / 100));
-  const boxWidthPx = Math.round(width * (TICKER_BOX.width / 100));
-  const boxHeightPx = Math.round(height * (TICKER_BOX.height / 100));
-  const fontSize = Math.round(boxHeightPx * 0.5);
-  const tickerSettings = mState.settings.ticker || {};
-  const rawText = mDomainValidation.cleanString(tickerSettings.text, 'Welcome to ijustababyTv');
-  const initialText = mDomainHtml.escapeHtml(rawText);
-  const initialSpeed = Number.isFinite(Number(tickerSettings.speed)) ? Number(tickerSettings.speed) : 90;
-  const initialPause = Number.isFinite(Number(tickerSettings.pause)) ? Number(tickerSettings.pause) : 1;
-  // Plain ES5 only, XHR poll, image in the static HTML - same rules as every other Meld overlay
-  // page in this project (see icb-master-handbook.md, "The overlay pattern that works in Meld").
-  // 2026-08-28: switched from a continuous two-copy scroll to a single pass at a time, per Baby's
-  // request - only one copy of the text exists, it travels once from fully off the right edge to
-  // fully off the left edge, waits `pause` seconds with the panel empty, then goes again. Speed
-  // and pause are both live-adjustable from the dashboard (see /api/ticker) and take effect on the
-  // very next pass without a page reload.
-  return `<!doctype html>
+    const width = Math.max(300, Math.min(2400, Number(query.get('w')) || 900));
+    const height = Math.round(width * (941 / 1672));
+    const boxLeftPx = Math.round(width * (TICKER_BOX.left / 100));
+    const boxTopPx = Math.round(height * (TICKER_BOX.top / 100));
+    const boxWidthPx = Math.round(width * (TICKER_BOX.width / 100));
+    const boxHeightPx = Math.round(height * (TICKER_BOX.height / 100));
+    const fontSize = Math.round(boxHeightPx * 0.5);
+    const tickerSettings = mState.settings.ticker || {};
+    const rawText = mDomainValidation.cleanString(tickerSettings.text, 'Welcome to ijustababyTv');
+    const initialText = mDomainHtml.escapeHtml(rawText);
+    const initialSpeed = Number.isFinite(Number(tickerSettings.speed))
+        ? Number(tickerSettings.speed)
+        : 90;
+    const initialPause = Number.isFinite(Number(tickerSettings.pause))
+        ? Number(tickerSettings.pause)
+        : 1;
+    // Plain ES5 only, XHR poll, image in the static HTML - same rules as every other Meld overlay
+    // page in this project (see icb-master-handbook.md, "The overlay pattern that works in Meld").
+    // 2026-08-28: switched from a continuous two-copy scroll to a single pass at a time, per Baby's
+    // request - only one copy of the text exists, it travels once from fully off the right edge to
+    // fully off the left edge, waits `pause` seconds with the panel empty, then goes again. Speed
+    // and pause are both live-adjustable from the dashboard (see /api/ticker) and take effect on the
+    // very next pass without a page reload.
+    return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -99,6 +103,5 @@ function renderTickerPage(query) {
 </script>
 </body></html>`;
 }
-
 
 Object.assign(exports, { renderTickerPage });

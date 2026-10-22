@@ -5,61 +5,72 @@ const mDomainHtml = require('../domain/html');
 
 /** Render the weekly artwork/checklist before JavaScript runs, preserving Meld compatibility. */
 function renderWeeklyPage(query) {
-  const view = mWeekly.weeklyView();
-  // Skin: assets/resources/tall.png, native 1024x1536 (2:3, "Path of the
-  // Briar" frame). v2 of this art dropped the divider lines and the corner
-  // emblem - just a title-bar cutout up top and open sky/vines below, which
-  // is what lets the checklist run at a readable size. Width drives
-  // everything; height always follows at width*1.5 so the frame is never
-  // stretched or squashed.
-  const width = Math.max(320, Number(query.get('w')) || 580);
-  const cols = Math.max(1, Math.min(3, Number(query.get('cols')) || 2));
-  const height = Math.round(width * 1.5);
-  // Type must scale with the COLUMN, not the whole widget, or a two-column
-  // layout renders everything at double size.
-  const unit = width / cols;
+    const view = mWeekly.weeklyView();
+    // Skin: assets/resources/tall.png, native 1024x1536 (2:3, "Path of the
+    // Briar" frame). v2 of this art dropped the divider lines and the corner
+    // emblem - just a title-bar cutout up top and open sky/vines below, which
+    // is what lets the checklist run at a readable size. Width drives
+    // everything; height always follows at width*1.5 so the frame is never
+    // stretched or squashed.
+    const width = Math.max(320, Number(query.get('w')) || 580);
+    const cols = Math.max(1, Math.min(3, Number(query.get('cols')) || 2));
+    const height = Math.round(width * 1.5);
+    // Type must scale with the COLUMN, not the whole widget, or a two-column
+    // layout renders everything at double size.
+    const unit = width / cols;
 
-  // Boxes measured directly off tall.png at its native 1024x1536 (see
-  // claude/icb-essence-checklist-skin.md in the project for how / re-measure
-  // if the art is ever re-exported). BAR_BOX has no carved slot in this art -
-  // it's placed in the open sky just under the title card.
-  const TITLE_BOX = { left: 20.02, top: 2.6, width: 63.48, height: 8.79 };
-  const BAR_BOX = { left: 6.84, top: 12.7, width: 86.43, height: 2.6 };
-  const CONTENT_BOX = { left: 6.35, top: 16.28, width: 87.4, height: 63.15 };
-  // cols=1 was tried and silently clipped the last 4 groups (overflow:
-  // hidden ate them with no visual warning) - cols=2 is the minimum safe
-  // default for all 24 items / 9 groups at this font size. Verified by
-  // rendering against real config + data and screenshotting before shipping.
+    // Boxes measured directly off tall.png at its native 1024x1536 (see
+    // claude/icb-essence-checklist-skin.md in the project for how / re-measure
+    // if the art is ever re-exported). BAR_BOX has no carved slot in this art -
+    // it's placed in the open sky just under the title card.
+    const TITLE_BOX = { left: 20.02, top: 2.6, width: 63.48, height: 8.79 };
+    const BAR_BOX = { left: 6.84, top: 12.7, width: 86.43, height: 2.6 };
+    const CONTENT_BOX = { left: 6.35, top: 16.28, width: 87.4, height: 63.15 };
+    // cols=1 was tried and silently clipped the last 4 groups (overflow:
+    // hidden ate them with no visual warning) - cols=2 is the minimum safe
+    // default for all 24 items / 9 groups at this font size. Verified by
+    // rendering against real config + data and screenshotting before shipping.
 
-  // Group the checklist the way Baby's in-game list is grouped. Without the
-  // headings, 24 lines is an unreadable wall.
-  const groups = [];
-  for (const item of view.items) {
-    const name = item.group || '';
-    let g = groups.find(x => x.name === name);
-    if (!g) { g = { name, items: [] }; groups.push(g); }
-    g.items.push(item);
-  }
+    // Group the checklist the way Baby's in-game list is grouped. Without the
+    // headings, 24 lines is an unreadable wall.
+    const groups = [];
+    for (const item of view.items) {
+        const name = item.group || '';
+        let g = groups.find((x) => x.name === name);
+        if (!g) {
+            g = { name, items: [] };
+            groups.push(g);
+        }
+        g.items.push(item);
+    }
 
-  const rowHtml = item => {
-    const detail = item.type === 'manual' ? ''
-      : ` <span class="c">${item.count}/${Number(item.target || 1)}</span>`;
-    return `      <tr class="${item.done ? 'done' : ''}" id="r_${mDomainHtml.escapeHtml(item.id)}">
+    const rowHtml = (item) => {
+        const detail =
+            item.type === 'manual'
+                ? ''
+                : ` <span class="c">${item.count}/${Number(item.target || 1)}</span>`;
+        return `      <tr class="${item.done ? 'done' : ''}" id="r_${mDomainHtml.escapeHtml(
+            item.id
+        )}">
         <td class="bx">${item.done ? '&#10003;' : '&#9633;'}</td>
         <td class="lb">${mDomainHtml.escapeHtml(item.label)}${detail}</td>
       </tr>`;
-  };
+    };
 
-  const body = groups.map(g => `  <div class="grp">
+    const body = groups
+        .map(
+            (g) => `  <div class="grp">
     ${g.name ? `<div class="gh">${mDomainHtml.escapeHtml(g.name)}</div>` : ''}
     <table><tbody>
 ${g.items.map(rowHtml).join('\n')}
     </tbody></table>
-  </div>`).join('\n');
+  </div>`
+        )
+        .join('\n');
 
-  const pct = view.total ? Math.round((view.completed / view.total) * 100) : 0;
+    const pct = view.total ? Math.round((view.completed / view.total) * 100) : 0;
 
-  return `<!doctype html>
+    return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">

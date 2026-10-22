@@ -13,9 +13,10 @@ const mConfig = require('../config');
 const NIGHT_CUTOFF_HOURS = 6;
 /** Group overnight stream activity using the existing six-hour local reporting offset. */
 function nightKey(date) {
-  const d = new Date(date.getTime() - NIGHT_CUTOFF_HOURS * 3600 * 1000);
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const d = new Date(date.getTime() - NIGHT_CUTOFF_HOURS * 3600 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 // Backup schedule (see backupGiveaway above). One right at startup, then
@@ -23,20 +24,36 @@ function nightKey(date) {
 
 /** Append nightly activity asynchronously; logging must not interrupt stream events. */
 function logActivity(entry) {
-  try {
-    const now = new Date();
-    fs.mkdirSync(mConfig.ACTIVITY_DIR, { recursive: true });
-    fs.appendFile(path.join(mConfig.ACTIVITY_DIR, `${nightKey(now)}.jsonl`), JSON.stringify({ at: now.toISOString(), ...entry }) + '\n', () => {});
-  } catch (_error) { /* a missed log line must never break the giveaway */ }
+    try {
+        const now = new Date();
+        fs.mkdirSync(mConfig.ACTIVITY_DIR, { recursive: true });
+        fs.appendFile(
+            path.join(mConfig.ACTIVITY_DIR, `${nightKey(now)}.jsonl`),
+            JSON.stringify({ at: now.toISOString(), ...entry }) + '\n',
+            () => {}
+        );
+    } catch (_error) {
+        /* a missed log line must never break the giveaway */
+    }
 }
+
 /** Read valid event records for a date-shaped report key, tolerating incomplete lines. */
 function readNight(key) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
-  const file = path.join(mConfig.ACTIVITY_DIR, `${key}.jsonl`);
-  if (!fs.existsSync(file)) return [];
-  return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean).map(line => {
-    try { return JSON.parse(line); } catch (_error) { return null; }
-  }).filter(Boolean);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
+    const file = path.join(mConfig.ACTIVITY_DIR, `${key}.jsonl`);
+    if (!fs.existsSync(file)) return [];
+    return fs
+        .readFileSync(file, 'utf8')
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .map((line) => {
+            try {
+                return JSON.parse(line);
+            } catch (_error) {
+                return null;
+            }
+        })
+        .filter(Boolean);
 }
 
 Object.assign(exports, { nightKey, logActivity, readNight });

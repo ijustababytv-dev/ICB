@@ -10,6 +10,8 @@
     "test:e2e": "node js/test/e2e.js",
     "test:browser": "node js/test/browser.js",
     "images:plan": "node js/tools/cloudinary-sync.js --dry-run",
-    "images:sync": "node js/tools/cloudinary-sync.js --upload"
+    "images:sync": "node js/tools/cloudinary-sync.js --upload",
+    "format:js": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node js/tools/format-javascript.js --write\"",
+    "format:check": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node js/tools/format-javascript.js --check\""
   }
 }

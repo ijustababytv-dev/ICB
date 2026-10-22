@@ -124,6 +124,8 @@ Keep HTML files together in an HTML folder.
 - Keep JavaScript/TypeScript or similar files in their own folder, but also use subfolders to organize them logically.
 - Never minify code files
 - Use 4 spaces for "tabbing out" code
+- Leave at least one blank line between function definitions, including before a function's documentation comment.
+- Run `npm run format:js` to apply the JavaScript style and `npm run format:check` to verify it. Keep vendor distributions unchanged.
 
 # Images
 

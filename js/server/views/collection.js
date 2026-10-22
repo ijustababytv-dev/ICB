@@ -4,19 +4,27 @@ const mDomainHtml = require('../domain/html');
 
 /** Ship collection artwork and slot positions in the initial HTML for Meld. */
 function renderCollectionCardPage(card, query) {
-  // Multi-slot 'collection' cards (e.g. Queen Ushindi Collection) have
-  // several independent blank boxes baked into one piece of art, each over
-  // its own material icon - so instead of one #box/#n pair like every other
-  // card, this renders one pair per slot, each positioned at that slot's own
-  // valueBox and polling the same /api/resource-trackers response.
-  const width = Math.max(120, Number(query.get('w')) || 620);
-  const slots = card.slots || [];
-  const boxDivs = slots.map(slot => {
-    const box = slot.valueBox || { left: 10, top: 70, width: 20, height: 15 };
-    return `<div class="box" style="left:${box.left}%;top:${box.top}%;width:${box.width}%;height:${box.height}%">` +
-      `<div class="inner" id="inner-${mDomainHtml.escapeHtml(slot.id)}"><span id="n-${mDomainHtml.escapeHtml(slot.id)}">${slot.count || 0}</span></div></div>`;
-  }).join('');
-  return `<!doctype html>
+    // Multi-slot 'collection' cards (e.g. Queen Ushindi Collection) have
+    // several independent blank boxes baked into one piece of art, each over
+    // its own material icon - so instead of one #box/#n pair like every other
+    // card, this renders one pair per slot, each positioned at that slot's own
+    // valueBox and polling the same /api/resource-trackers response.
+    const width = Math.max(120, Number(query.get('w')) || 620);
+    const slots = card.slots || [];
+    const boxDivs = slots
+        .map((slot) => {
+            const box = slot.valueBox || { left: 10, top: 70, width: 20, height: 15 };
+            return (
+                `<div class="box" style="left:${box.left}%;top:${box.top}%;width:${box.width}%;height:${box.height}%">` +
+                `<div class="inner" id="inner-${mDomainHtml.escapeHtml(
+                    slot.id
+                )}"><span id="n-${mDomainHtml.escapeHtml(slot.id)}">${
+                    slot.count || 0
+                }</span></div></div>`
+            );
+        })
+        .join('');
+    return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -34,12 +42,14 @@ function renderCollectionCardPage(card, query) {
 </head>
 <body>
 <div id="wrap">
-  <img src="/resource-art/${encodeURIComponent(card.image)}" alt="${mDomainHtml.escapeHtml(card.name)}">
+  <img src="/resource-art/${encodeURIComponent(card.image)}" alt="${mDomainHtml.escapeHtml(
+        card.name
+    )}">
   ${boxDivs}
 </div>
 <script>
 (function(){
-  var slotIds = ${JSON.stringify(slots.map(s => s.id))};
+  var slotIds = ${JSON.stringify(slots.map((s) => s.id))};
   function group(v){
     var s = String(v), out = '', c = 0;
     for (var i = s.length - 1; i >= 0; i--) {
@@ -74,7 +84,9 @@ function renderCollectionCardPage(card, query) {
   }
   function poll(){
     var x = new XMLHttpRequest();
-    x.open('GET', '/api/resource-trackers?src=${encodeURIComponent(card.id)}&_=' + new Date().getTime(), true);
+    x.open('GET', '/api/resource-trackers?src=${encodeURIComponent(
+        card.id
+    )}&_=' + new Date().getTime(), true);
     x.onreadystatechange = function(){
       if (x.readyState !== 4) { return; }
       if (x.status !== 200) { return; }

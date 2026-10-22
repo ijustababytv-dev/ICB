@@ -14,13 +14,13 @@ Updated 2026-10-22. The application is still one dependency-free Node server at 
 | `js/server/views/` | Server-rendered resource, weekly, and ticker overlays |
 | `js/server/background.js` | Explicit background-job scheduling; imports do not start timers |
 | `html/` | All dashboard and overlay HTML, including `html/wk/` |
-| `js/client/` | Browser scripts; unicorn-jar code is split by responsibility |
+| `js/client/` | Page startup scripts, with large features split into named subfolders |
 | `js/vendor/` | Existing local Matter.js and Meld Firehose distributions |
 | `css/` | Page styles |
 | `images/embedded/` | Images extracted from former inline data URLs; ordinary local files |
 | `assets/` | Existing operator-managed artwork and audio; still excluded from Git |
 | `js/bridge/` | Palia log bridge; its existing cursor stays in `bridge/` |
-| `js/tools/` | Standalone image inventory and Cloudinary sync; never started by the server |
+| `js/tools/` | Standalone image sync and JavaScript formatting commands; never started by the server |
 | `desktop-widgets/js/` | Electron code; its package and lockfile stay in `desktop-widgets/` |
 | `js/test/unit/` | Node built-in unit tests and structural guards |
 | `js/test/e2e.js`, `js/test/helpers/` | HTTP, persistence, log-reader, and asset integration tests |
@@ -34,6 +34,10 @@ Read the handbook, `CLAUDE.md`, and `RULES.md` first. Put business rules in smal
 Add unit tests for every new or changed business rule, covering relevant boundaries and failure cases. Feature tests that need persistence must point `ICB_CLEAN_DATA_DIR` at a fresh temporary folder before importing the feature. Never import `js/server/index.js` in a unit test: that entry point starts the server.
 
 Maintained JS, HTML, and CSS have a 500-line / 40 KB ceiling, enforced by `structure.test.js`. Split by responsibility rather than packing more statements onto each line. Existing vendor distributions are exempt. Preserve meaningful function comments and business-rule explanations.
+
+Browser feature files load before their page's startup script. Aniimo editing, dashboard panels, reports, signup controls, jar physics, drawing, and animation each have focused files. Private overlay state is passed to feature factories through explicit accessors so replacement state remains visible. Server API and chat modules use the same explicit context pattern; static options live separately from mutable state.
+
+JavaScript uses four-space indentation and a blank line between function definitions, including their documentation comments. `.editorconfig` and `.prettierrc.json` record the layout; `.gitattributes` keeps script line endings consistent across checkouts. The formatter uses pinned Prettier and Acorn tools through npm's external cache, adds function spacing, and rejects changes to the parsed program. It also formats local JavaScript utilities under `assets/`, while leaving vendor distributions and ignored-file tracking unchanged.
 
 ## Images and URLs
 
@@ -49,7 +53,9 @@ Use the existing batch launchers or `npm start`. No second production server and
 
 - `npm run test:unit`: isolated business rules, source syntax, file layout, size limits, local references, and import cycles.
 - `npm run test:e2e`: temporary port 8791, temporary state, synthetic log, restart persistence, all feature GET routes, and browser assets. It never uses live tracker state.
-- `npm run test:browser`: nine representative pages in a separate headless Chromium process. Set `ICB_TEST_CHROME` if Chromium is not in a standard location. Set `ICB_TEST_SCREENSHOTS` to a local output directory to retain screenshots.
+- `npm run test:browser`: 16 representative pages in a separate headless Chromium process, including Aniimo editing, walker animation, and giveaway drawing. Set `ICB_TEST_CHROME` if Chromium is not in a standard location. Set `ICB_TEST_SCREENSHOTS` to a local output directory to retain screenshots.
+- `npm run format:js`: format all maintained JavaScript, including function spacing; no application dependencies are added.
+- `npm run format:check`: verify formatting and preserve parsed behavior without writing files.
 - `npm test`: unit tests followed by end-to-end tests.
 
 Known existing asset issue at restructuring: `config/resource-trackers.json` references `assets/resources/poke_bowl.png`, which is absent in this checkout. End-to-end tests finish the remaining checks and then fail with the missing-art list. Restore the original artwork to that path; do not fabricate a replacement or suppress the assertion.

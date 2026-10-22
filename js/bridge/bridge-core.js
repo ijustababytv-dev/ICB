@@ -10,36 +10,37 @@
 // [2026.09.17-23.31.16:029][779]LogInventoryComponent: MULTICAST ITEM ADDED: [FItemInfo Amount=1 ItemType=DA_ItemType_Mineral_Bar_Palium]
 // Note: Unreal pads the frame counter with leading spaces (e.g. "[ 53]",
 // "[  5]"), so the frame field must tolerate leading whitespace.
-const LINE_PATTERN = /^\[(\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3})\]\[\s*(\d+)\]LogInventoryComponent:\s*(ITEM RECEIVED|ITEM ADDED|MULTICAST ITEM ADDED):\s*\[FItemInfo Amount=(\d+)\s+ItemType=([^\]]+)\]/;
+const LINE_PATTERN =
+    /^\[(\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3})\]\[\s*(\d+)\]LogInventoryComponent:\s*(ITEM RECEIVED|ITEM ADDED|MULTICAST ITEM ADDED):\s*\[FItemInfo Amount=(\d+)\s+ItemType=([^\]]+)\]/;
 
 // DA_ItemType_Currency_Echo_Amber -> itemtype_currency_echo_amber
 function tokenFromItemType(itemType) {
-  const stripped = itemType.replace(/^DA_ItemType_/i, '');
-  return 'itemtype_' + stripped.toLowerCase();
+    const stripped = itemType.replace(/^DA_ItemType_/i, '');
+    return 'itemtype_' + stripped.toLowerCase();
 }
 
 // Parse the Unreal timestamp format (2026.09.17-23.31.16:029) into a Date.
 function parseTimestamp(ts) {
-  const m = /^(\d{4})\.(\d{2})\.(\d{2})-(\d{2})\.(\d{2})\.(\d{2}):(\d{3})$/.exec(ts);
-  if (!m) return null;
-  const [, y, mo, d, h, mi, s, ms] = m;
-  return new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +s, +ms));
+    const m = /^(\d{4})\.(\d{2})\.(\d{2})-(\d{2})\.(\d{2})\.(\d{2}):(\d{3})$/.exec(ts);
+    if (!m) return null;
+    const [, y, mo, d, h, mi, s, ms] = m;
+    return new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +s, +ms));
 }
 
 // Parses one raw log line. Returns null if it's not a relevant inventory line.
 function parseLine(line) {
-  const m = LINE_PATTERN.exec(line);
-  if (!m) return null;
-  const [, ts, frame, kind, amountStr, itemType] = m;
-  return {
-    timestamp: ts,
-    date: parseTimestamp(ts),
-    frame: frame,
-    kind: kind, // ITEM RECEIVED | ITEM ADDED | MULTICAST ITEM ADDED
-    amount: parseInt(amountStr, 10),
-    itemType: itemType,
-    token: tokenFromItemType(itemType),
-  };
+    const m = LINE_PATTERN.exec(line);
+    if (!m) return null;
+    const [, ts, frame, kind, amountStr, itemType] = m;
+    return {
+        timestamp: ts,
+        date: parseTimestamp(ts),
+        frame: frame,
+        kind: kind, // ITEM RECEIVED | ITEM ADDED | MULTICAST ITEM ADDED
+        amount: parseInt(amountStr, 10),
+        itemType: itemType,
+        token: tokenFromItemType(itemType)
+    };
 }
 
 // Dedup strategy: a single real event can produce up to 3 broadcast lines
@@ -66,34 +67,34 @@ function parseLine(line) {
 // apart). A 200ms window comfortably merges the former and comfortably
 // keeps the latter distinct.
 class DedupTracker {
-  constructor(windowMs = 200) {
-    this.windowMs = windowMs;
-    this.seen = new Map(); // key -> lastSeenEpochMs
-  }
-
-  key(evt) {
-    return evt.token + '|' + evt.amount;
-  }
-
-  // Returns true if this event is a NEW real event (should be emitted),
-  // false if it's a duplicate broadcast of one already counted.
-  observe(evt) {
-    const k = this.key(evt);
-    const nowMs = evt.date ? evt.date.getTime() : Date.now();
-    const last = this.seen.get(k);
-    this.seen.set(k, nowMs);
-    if (last !== undefined && Math.abs(nowMs - last) <= this.windowMs) {
-      return false; // duplicate broadcast of the same real event
+    constructor(windowMs = 200) {
+        this.windowMs = windowMs;
+        this.seen = new Map(); // key -> lastSeenEpochMs
     }
-    return true;
-  }
 
-  // Prune old entries so the map doesn't grow forever during long tailing.
-  prune(nowMs, maxAgeMs = 60000) {
-    for (const [k, t] of this.seen) {
-      if (nowMs - t > maxAgeMs) this.seen.delete(k);
+    key(evt) {
+        return evt.token + '|' + evt.amount;
     }
-  }
+
+    // Returns true if this event is a NEW real event (should be emitted),
+    // false if it's a duplicate broadcast of one already counted.
+    observe(evt) {
+        const k = this.key(evt);
+        const nowMs = evt.date ? evt.date.getTime() : Date.now();
+        const last = this.seen.get(k);
+        this.seen.set(k, nowMs);
+        if (last !== undefined && Math.abs(nowMs - last) <= this.windowMs) {
+            return false; // duplicate broadcast of the same real event
+        }
+        return true;
+    }
+
+    // Prune old entries so the map doesn't grow forever during long tailing.
+    prune(nowMs, maxAgeMs = 60000) {
+        for (const [k, t] of this.seen) {
+            if (nowMs - t > maxAgeMs) this.seen.delete(k);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------
@@ -124,119 +125,152 @@ class DedupTracker {
 // follows each one has arrived before deciding.
 // ---------------------------------------------------------------------
 const GENERIC_LINE = /^\[(\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3})\]\[\s*\d+\](\w+):\s*(.*)$/;
-const INVENTORY_LINE = /^(ITEM RECEIVED|ITEM ADDED|MULTICAST ITEM ADDED):\s*\[FItemInfo Amount=(-?\d+)\s+ItemType=([^\]]+)\]/;
+const INVENTORY_LINE =
+    /^(ITEM RECEIVED|ITEM ADDED|MULTICAST ITEM ADDED):\s*\[FItemInfo Amount=(-?\d+)\s+ItemType=([^\]]+)\]/;
 const EARNED_STAT = /Updated value of stat ItemEarned_(\d+) to (\d+) for /;
 
 class OwnEventClassifier {
-  constructor(opts = {}) {
-    this.holdMs = opts.holdMs || 1500;
-    this.lineNo = 0;
-    this.pending = [];            // RECEIVED events waiting for their stat line
-    this.rcvIdx = [];             // line numbers of every RECEIVED line (recent)
-    this.statEvents = [];         // { idx, ms, id, value, prev } for her ItemEarned stat
-    this.statVal = new Map();     // stat id -> last value seen
-    this.lastLogMs = 0;
-    this.stats = { received: 0, movedNotEarned: 0, ignoredMulticast: 0, ignoredAdded: 0 };
-  }
-
-  // Feed one raw log line. Nothing is counted here - call flush() after.
-  feed(line) {
-    const idx = ++this.lineNo;
-    const g = GENERIC_LINE.exec(line);
-    if (!g) return;
-    const date = parseTimestamp(g[1]);
-    const ms = date ? date.getTime() : this.lastLogMs;
-    if (ms > this.lastLogMs) this.lastLogMs = ms;
-    const cat = g[2], msg = g[3];
-    if (cat === 'LogAccomplishmentsManager') {
-      const s = EARNED_STAT.exec(msg);
-      if (s) {
-        const value = parseInt(s[2], 10);
-        const prev = this.statVal.get(s[1]);
-        this.statVal.set(s[1], value);
-        this.statEvents.push({ idx, ms, id: s[1], value, prev });
-      }
-      return;
+    constructor(opts = {}) {
+        this.holdMs = opts.holdMs || 1500;
+        this.lineNo = 0;
+        this.pending = []; // RECEIVED events waiting for their stat line
+        this.rcvIdx = []; // line numbers of every RECEIVED line (recent)
+        this.statEvents = []; // { idx, ms, id, value, prev } for her ItemEarned stat
+        this.statVal = new Map(); // stat id -> last value seen
+        this.lastLogMs = 0;
+        this.stats = { received: 0, movedNotEarned: 0, ignoredMulticast: 0, ignoredAdded: 0 };
     }
-    if (cat !== 'LogInventoryComponent') return;
-    const m = INVENTORY_LINE.exec(msg);
-    if (!m) return;
-    const amount = parseInt(m[2], 10);
-    if (!(amount > 0)) return; // spends/removals (negative) are never "gained"
-    const evt = { timestamp: g[1], date, kind: m[1], amount, itemType: m[3], token: tokenFromItemType(m[3]), ms, idx };
-    if (evt.kind === 'ITEM ADDED') { this.stats.ignoredAdded++; return; }
-    if (evt.kind === 'MULTICAST ITEM ADDED') { this.stats.ignoredMulticast++; return; }
-    this.rcvIdx.push(idx);
-    this.pending.push(evt);
-  }
 
-  // For a RECEIVED line: did her ItemEarned stat go up right after it?
-  // Real gain:   stat "to 5913" | RECEIVED x7 | stat "to 5920"   (rises)
-  // Moved only:  stat "to 25401" | RECEIVED x30 | (no rise follows)
-  // true = earned, false = only moved, null = no stat lines around it
-  // (stat logging isn't always active) - unknown is counted.
-  _earned(evt) {
-    let prevRcv = -Infinity, nextRcv = Infinity;
-    for (const i of this.rcvIdx) {
-      if (i < evt.idx) prevRcv = i;
-      else if (i > evt.idx) { nextRcv = i; break; }
+    // Feed one raw log line. Nothing is counted here - call flush() after.
+    feed(line) {
+        const idx = ++this.lineNo;
+        const g = GENERIC_LINE.exec(line);
+        if (!g) return;
+        const date = parseTimestamp(g[1]);
+        const ms = date ? date.getTime() : this.lastLogMs;
+        if (ms > this.lastLogMs) this.lastLogMs = ms;
+        const cat = g[2],
+            msg = g[3];
+        if (cat === 'LogAccomplishmentsManager') {
+            const s = EARNED_STAT.exec(msg);
+            if (s) {
+                const value = parseInt(s[2], 10);
+                const prev = this.statVal.get(s[1]);
+                this.statVal.set(s[1], value);
+                this.statEvents.push({ idx, ms, id: s[1], value, prev });
+            }
+            return;
+        }
+        if (cat !== 'LogInventoryComponent') return;
+        const m = INVENTORY_LINE.exec(msg);
+        if (!m) return;
+        const amount = parseInt(m[2], 10);
+        if (!(amount > 0)) return; // spends/removals (negative) are never "gained"
+        const evt = {
+            timestamp: g[1],
+            date,
+            kind: m[1],
+            amount,
+            itemType: m[3],
+            token: tokenFromItemType(m[3]),
+            ms,
+            idx
+        };
+        if (evt.kind === 'ITEM ADDED') {
+            this.stats.ignoredAdded++;
+            return;
+        }
+        if (evt.kind === 'MULTICAST ITEM ADDED') {
+            this.stats.ignoredMulticast++;
+            return;
+        }
+        this.rcvIdx.push(idx);
+        this.pending.push(evt);
     }
-    let pre = null, post = null;
-    for (const s of this.statEvents) {
-      if (s.idx < evt.idx) {
-        if (s.idx > prevRcv && evt.ms - s.ms <= 5) pre = s;
-      } else if (s.idx > evt.idx) {
-        if (s.idx < nextRcv && s.ms - evt.ms <= 50) post = s;
-        break;
-      }
-    }
-    if (post) return post.prev === undefined ? null : post.value > post.prev;
-    if (pre) return false;
-    return null;
-  }
 
-  // Decide held events; returns the ones to count. force=true decides
-  // everything now (use when the log has gone quiet).
-  flush(force = false) {
-    const out = [];
-    const cutoff = this.lastLogMs - this.holdMs;
-    const keep = [];
-    for (const evt of this.pending) {
-      if (!force && evt.ms > cutoff) { keep.push(evt); continue; }
-      if (this._earned(evt) === false) { this.stats.movedNotEarned++; continue; }
-      evt.source = 'received';
-      this.stats.received++;
-      out.push(evt);
+    // For a RECEIVED line: did her ItemEarned stat go up right after it?
+    // Real gain:   stat "to 5913" | RECEIVED x7 | stat "to 5920"   (rises)
+    // Moved only:  stat "to 25401" | RECEIVED x30 | (no rise follows)
+    // true = earned, false = only moved, null = no stat lines around it
+    // (stat logging isn't always active) - unknown is counted.
+    _earned(evt) {
+        let prevRcv = -Infinity,
+            nextRcv = Infinity;
+        for (const i of this.rcvIdx) {
+            if (i < evt.idx) prevRcv = i;
+            else if (i > evt.idx) {
+                nextRcv = i;
+                break;
+            }
+        }
+        let pre = null,
+            post = null;
+        for (const s of this.statEvents) {
+            if (s.idx < evt.idx) {
+                if (s.idx > prevRcv && evt.ms - s.ms <= 5) pre = s;
+            } else if (s.idx > evt.idx) {
+                if (s.idx < nextRcv && s.ms - evt.ms <= 50) post = s;
+                break;
+            }
+        }
+        if (post) return post.prev === undefined ? null : post.value > post.prev;
+        if (pre) return false;
+        return null;
     }
-    this.pending = keep;
-    this._prune();
-    return out;
-  }
 
-  _prune() {
-    const old = this.lastLogMs - 60000;
-    this.statEvents = this.statEvents.filter(s => s.ms >= old);
-    const oldestPending = this.pending.length ? this.pending[0].idx : this.lineNo;
-    this.rcvIdx = this.rcvIdx.filter(i => i >= oldestPending - 5000);
-  }
+    // Decide held events; returns the ones to count. force=true decides
+    // everything now (use when the log has gone quiet).
+    flush(force = false) {
+        const out = [];
+        const cutoff = this.lastLogMs - this.holdMs;
+        const keep = [];
+        for (const evt of this.pending) {
+            if (!force && evt.ms > cutoff) {
+                keep.push(evt);
+                continue;
+            }
+            if (this._earned(evt) === false) {
+                this.stats.movedNotEarned++;
+                continue;
+            }
+            evt.source = 'received';
+            this.stats.received++;
+            out.push(evt);
+        }
+        this.pending = keep;
+        this._prune();
+        return out;
+    }
+
+    _prune() {
+        const old = this.lastLogMs - 60000;
+        this.statEvents = this.statEvents.filter((s) => s.ms >= old);
+        const oldestPending = this.pending.length ? this.pending[0].idx : this.lineNo;
+        this.rcvIdx = this.rcvIdx.filter((i) => i >= oldestPending - 5000);
+    }
 }
 
 // Formats a deduped event into a synthetic Palia-Assistant-style log line.
 // Example: 2026-09-20 02:15:33.123 -05:00 [INF] Inventory gained: itemtype_currency_echo_amber x20
 function formatEventLine(evt, tzOffset = '-05:00') {
-  const d = evt.date || new Date();
-  const pad = (n, w = 2) => String(n).padStart(w, '0');
-  const stamp = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ` +
-    `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.${pad(d.getUTCMilliseconds(), 3)}`;
-  return `${stamp} ${tzOffset} [INF] Inventory gained: ${evt.token} x${evt.amount}`;
+    const d = evt.date || new Date();
+    const pad = (n, w = 2) => String(n).padStart(w, '0');
+
+    const stamp =
+        `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ` +
+        `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.${pad(
+            d.getUTCMilliseconds(),
+            3
+        )}`;
+    return `${stamp} ${tzOffset} [INF] Inventory gained: ${evt.token} x${evt.amount}`;
 }
 
 module.exports = {
-  LINE_PATTERN,
-  tokenFromItemType,
-  parseTimestamp,
-  parseLine,
-  DedupTracker,
-  OwnEventClassifier,
-  formatEventLine,
+    LINE_PATTERN,
+    tokenFromItemType,
+    parseTimestamp,
+    parseLine,
+    DedupTracker,
+    OwnEventClassifier,
+    formatEventLine
 };
