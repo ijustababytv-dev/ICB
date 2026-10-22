@@ -2,6 +2,7 @@
 
 ## New Features
 
+- 2026-10-22: Added a separate Cloudinary download launcher. Restores new or changed images into assets, skips identical files, verifies downloads, and backs up replaced local images.
 - 2026-10-22: Added Cloudinary image comparison and sync commands. New and changed images upload; identical images are skipped, folders stay organized, and remote-only images are kept.
 - 2026-10-22: Uploaded and checksum-verified all 274 project images. Confirmed a repeat sync uploads nothing; added a double-click launcher and saved the image URLs locally.
 - 2026-10-16: Chat Avatars (ghost avatars for chatters), Sprite Jar + spooky sticker book with floor toys, Fortnite Sprites sticker art.

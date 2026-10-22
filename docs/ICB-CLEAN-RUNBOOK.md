@@ -16,6 +16,8 @@ Start with the existing batch launchers or `npm start` (`js/server/index.js`). S
 
 The existing `assets/resources/poke_bowl.png` file is missing in this checkout. The E2E suite reports that missing artwork after completing its remaining checks. Restoring the original file resolves that asset prerequisite.
 
+Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
+
 ## Historical status (verified 2026-08-14)
 
 - The Chrome dashboard now leads the whole workflow through a live "Run the system" panel (see "What to start"). It was rendered and driven through all five states in a real browser during verification, not just unit-tested.

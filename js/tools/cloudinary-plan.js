@@ -57,6 +57,12 @@ function buildPlan(root) {
             if (entry.name.startsWith('.') || ['backups', 'node_modules'].includes(entry.name))
                 continue;
             const file = path.join(directory, entry.name);
+            // Downloaded copies of images/docs already have Cloudinary IDs; do not upload duplicates.
+            if (
+                path.relative(root, file).split(path.sep).join('/').toLowerCase() ===
+                'assets/cloudinary'
+            )
+                continue;
             if (entry.isDirectory()) {
                 visit(file);
                 continue;
@@ -184,6 +190,7 @@ function compareImages(plan, remoteImages) {
 }
 
 module.exports = {
+    IMAGE_EXTENSIONS,
     buildPlan,
     extensionlessFormat,
     publicIdFor,

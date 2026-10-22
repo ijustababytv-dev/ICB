@@ -49,6 +49,8 @@ The public server maps `/control.html` to `html/control.html`, `/` to `html/hub.
 
 ## Running and checking
 
+`npm run images:download` retrieves ICB images into `assets/`, verifies their contents, skips identical files, and backs up replacements. Files from `images/` and `docs/` are copied under the reserved `assets/cloudinary/` folder; upload inventory excludes those copies to avoid duplicate IDs. `npm run images:download:plan` previews without writing files.
+
 Use the existing batch launchers or `npm start`. No second production server and no port change are needed. Code changes take effect after the next normal ICB restart. A source refactor must not restart an active stream without authorization.
 
 - `npm run test:unit`: isolated business rules, source syntax, file layout, size limits, local references, and import cycles.
