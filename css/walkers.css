@@ -1,0 +1,36 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #stage { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; pointer-events: none; }
+  .walker { position: absolute; left: 0; top: 0; will-change: transform; }
+  /* Only the picture flips - the name and bubbles stay readable. */
+  .walker .body { position: absolute; left: 0; bottom: 0; transform-origin: 50% 100%; }
+  .walker .body img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  /* Name look/position comes from the dashboard (see applyLook). */
+  .walker .name { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; line-height: 1.1; }
+  .bubble {
+    position: absolute; bottom: 100%; margin-bottom: 14px; left: 50%;
+    max-width: 380px; min-width: 60px; width: max-content;
+    font: 700 22px/1.25 "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #3a1446;
+    background: #fff; border: 3px solid #3a1446; border-radius: 20px; padding: 10px 14px;
+    box-shadow: 0 4px 0 rgba(58,20,70,.35); word-wrap: break-word; overflow-wrap: anywhere; text-align: left;
+    transform: translateX(-50%) scale(0); transform-origin: 50% 100%; transition: transform .22s cubic-bezier(.3,1.6,.6,1);
+  }
+  .bubble.show { transform: translateX(-50%) scale(1); }
+  .bubble::after {
+    content: ""; position: absolute; top: 100%; left: var(--tail, 50%); margin-left: -12px;
+    border: 12px solid transparent; border-top-color: #3a1446; border-bottom: 0;
+  }
+  .bubble.reminder { background: #fff4c9; border-color: #8a5a00; color: #5a3a00; }
+  .bubble.reminder::after { border-top-color: #8a5a00; }
+  .bubble img.emote { height: 1.6em; vertical-align: middle; margin: 0 1px; }
+  .zzz {
+    position: absolute; bottom: 100%; left: 60%; font: 900 30px/1 "Comic Sans MS", sans-serif; color: #b9c8ff;
+    text-shadow: 0 2px 3px rgba(0,0,0,.6); opacity: 0; transition: opacity .4s;
+  }
+  .zzz.show { opacity: 1; animation: zzz 2s ease-in-out infinite; }
+  @keyframes zzz { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-10px) rotate(8deg); } }
+  .spark { position: absolute; font-size: 22px; pointer-events: none; animation: spark 1.1s ease-out forwards; }
+  .heart { position: absolute; font-size: 24px; pointer-events: none; animation: heart 1.8s ease-out forwards; }
+  @keyframes heart { 0% { opacity: 0; transform: translate(0,0) scale(.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), -150px) scale(1.15); } }
+  .trail { position: absolute; width: 26px; height: 26px; border-radius: 50%; pointer-events: none; animation: trail .9s linear forwards; }
+  @keyframes trail { from { opacity: .85; transform: scale(1); } to { opacity: 0; transform: scale(.3); } }
+  @keyframes spark { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--dx), -70px) scale(.4); } }

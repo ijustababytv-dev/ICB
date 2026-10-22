@@ -1,0 +1,45 @@
+html,body{margin:0;padding:0;background:transparent;overflow:hidden;
+    font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",sans-serif}
+  #bar{
+    display:flex;align-items:stretch;justify-content:center;gap:14px;
+    padding:8px;
+  }
+  .card{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    min-width:140px;padding:14px 20px 16px;border-radius:18px;
+    background:rgba(40,10,60,0.38);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    backdrop-filter:blur(14px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.32);
+    box-shadow:0 0 0 1px rgba(150,60,220,0.22),
+               0 6px 20px rgba(30,0,50,0.4),
+               inset 0 1px 0 rgba(255,255,255,0.22);
+    opacity:0;transform:translateY(6px);
+    transition:opacity 0.3s ease, transform 0.3s ease;
+  }
+  .card.show{opacity:1;transform:translateY(0)}
+  .label{
+    margin:0;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+    color:#fff8ff;font-size:14px;line-height:1.1;text-align:center;white-space:nowrap;
+    text-shadow:0 0 8px rgba(255,255,255,0.8),0 0 16px rgba(210,140,255,0.75),0 2px 4px rgba(40,0,60,0.5);
+  }
+  .sublabel{
+    margin:0;font-weight:600;letter-spacing:0.03em;
+    color:#f1d9ff;font-size:10.5px;text-align:center;opacity:0.85;white-space:nowrap;
+    text-shadow:0 0 6px rgba(210,140,255,0.55);
+  }
+  .timerow{display:flex;align-items:baseline;gap:3px;margin-top:2px}
+  .clock{
+    font-size:26px;font-weight:700;color:#fff;
+    text-shadow:0 0 10px rgba(255,255,255,0.92),0 0 20px rgba(190,110,255,0.85);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .ampm{
+    font-size:12px;font-weight:700;color:#f1d9ff;opacity:0.85;
+    text-shadow:0 0 6px rgba(210,140,255,0.6);
+  }
+  .daybadge{
+    margin-top:1px;font-size:9.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+    color:#c9a8ff;opacity:0;white-space:nowrap;
+  }
+  .daybadge.show{opacity:0.8}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>News Ticker — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/newsticker-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>📰 <span>News Ticker</span></h1>
+      <div class="sub">A scrolling news bar along the bottom of your stream. Change it any time — it updates live.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="card">
+    <div class="url"><code>http://127.0.0.1:8790/newsticker.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+    <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer. Make it full-screen (the bar sits at the very bottom) or a thin strip across the bottom.</div>
+    <iframe class="preview" id="preview" src="/newsticker.html"></iframe>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Messages</h2>
+        <div id="msgs"></div>
+        <div class="row" style="margin-top:8px"><input type="text" id="newMsg" style="flex:1" maxlength="300" placeholder="Type a new message and press Add (emojis work 🦄)"><button onclick="addMsg()">+ Add</button></div>
+        <div class="row"><button class="btn-accent" onclick="saveMsgs()">Save messages</button></div>
+        <div class="note">One message at a time: each one scrolls all the way off the screen before the next ticked message comes in, over and over. Untick one to skip it without deleting it.</div>
+      </div>
+
+      <div class="card">
+        <h2>⚠️ Quick alert</h2>
+        <div class="alertbox">
+          <div class="row"><input type="text" id="alertText" style="flex:1" maxlength="300" placeholder="e.g. Party starts in 5 minutes! Meet at my house 🎉"></div>
+          <div class="row"><label>Show it for</label><select id="alertSec"><option value="30">30 seconds</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option><option value="900">15 minutes</option></select>
+            <input type="color" id="alertColor" value="#ff4655" title="Alert colour"></div>
+          <div class="row"><button class="btn-alert" onclick="sendAlert()">⚠️ Show alert now</button><button onclick="stopAlert()">Stop alert</button><span class="alive" id="alertLive"></span></div>
+          <div class="note">An alert takes over the whole bar (flashing, "⚠️ ALERT" label), then your normal messages come back by themselves.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Look</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the ticker on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showLabel"><span></span></label> Show the label on the left</div>
+        <div class="row"><label>Label</label><input type="text" id="label" maxlength="40" style="flex:1" placeholder="📰 NEWS"></div>
+        <input type="hidden" id="separator">
+        <div class="row"><label>Pause between</label><input type="range" id="gap" min="0" max="10" step="0.5"><span class="val" id="gapV"></span></div>
+        <div class="row"><label>Speed</label><input type="range" id="speed" min="20" max="400"><span class="val" id="speedV"></span></div>
+        <div class="row"><label>Text size</label><input type="range" id="font" min="16" max="80"><span class="val" id="fontV"></span></div>
+        <div class="row"><label>Bar see-through</label><input type="range" id="barOpacity" min="0" max="100"><span class="val" id="barOpacityV"></span></div>
+        <div class="row"><label>Colours</label>
+          <span class="note" style="margin:0">bar</span><input type="color" id="barColor">
+          <span class="note" style="margin:0">text</span><input type="color" id="textColor">
+          <span class="note" style="margin:0">label</span><input type="color" id="labelColor">
+          <span class="note" style="margin:0">label text</span><input type="color" id="labelText">
+          <span class="note" style="margin:0">accent</span><input type="color" id="accent"></div>
+        <div class="note">Changes save as you make them.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/newsticker-control.js"></script>
+</body>
+</html>

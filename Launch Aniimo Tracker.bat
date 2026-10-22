@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "APP=%~dp0Aniimo Tracker.html"
+set "APP=%~dp0html\Aniimo Tracker.html"
 set "EDGE=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
 if not exist "%EDGE%" set "EDGE=%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"
 if exist "%EDGE%" (

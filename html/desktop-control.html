@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Desktop Widgets — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/desktop-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>🖥️ <span>Desktop</span> Widgets</h1><div class="sub">Widgets on your own screen, on top of your game. Move, size and show/hide them from here.</div></div>
+  <div class="spacer"></div>
+  <span class="status" id="appStatus">Desktop app: not running</span>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div class="big-toggle" id="moveBox">
+        <label class="switch"><input type="checkbox" id="move" onchange="post({move:this.checked})"><span></span></label>
+        <div><b>Move mode</b><div class="note" style="margin:0">ON: drag the widgets on your screen with the mouse and use the pink corner to resize them. OFF: they're locked and your clicks go straight through to the game. Shortcut: <code>Ctrl+Alt+M</code>.</div></div>
+      </div>
+      <div class="switchrow" style="margin-top:12px"><label class="switch"><input type="checkbox" id="hideAll" onchange="post({hideAll:this.checked})"><span></span></label> Hide all widgets for now</div>
+    </div>
+    <div class="card">
+      <h2>🗺️ Your screen <span class="note" id="mapNote" style="font-weight:400"></span></h2>
+      <div id="map"></div>
+      <div class="note">Drag a box to move that widget. Drag its little corner to resize it. Click a box to select it.</div>
+    </div>
+    <div class="card">
+      <h2>➕ Add a widget</h2>
+      <div class="row"><label>Name</label><input type="text" id="addName" placeholder="Sashimi list" style="flex:1"></div>
+      <div class="row"><label>Link</label><input type="text" id="addUrl" list="known" placeholder="/sashimi-signin.html or any https:// link" style="flex:1"></div>
+      <datalist id="known">
+        <option value="/sashimi-signin.html">Sashimi Sign-Up</option>
+        <option value="/party.html?board=1">Party Board 1</option>
+        <option value="/party.html?board=spot">Party Spotlight</option>
+        <option value="/newsticker.html">News Ticker</option>
+        <option value="/eventtime.html">Event Time Converter</option>
+        <option value="/teams.html">Team Contest</option>
+        <option value="/worldclock.html">World Time Bar</option>
+        <option value="/timer.html">Stream Timer</option>
+        <option value="/poll.html">Badge Vote</option>
+        <option value="/walkers.html">Chat Unicorns</option>
+        <option value="/overlay.html">Trackers overlay</option>
+        <option value="/decor-overlay.html">Decor</option>
+        <option value="/webcam.html">My webcam</option>
+        <option value="/aniimo-quick.html">Aniimo quick checker</option>
+        <option value="/aniimo.html">Aniimo Dex progress</option>
+      </datalist>
+      <div class="row"><button class="btn-accent" onclick="addW()">Add widget</button><button onclick="addCam()">📷 Add my webcam</button><span class="note" id="addMsg"></span></div>
+      <div class="note">Tip: you can paste any widget link here, like the NeoStream one or a StreamElements/Streamlabs link.</div>
+    </div>
+    <div class="card">
+      <h2>❓ First time</h2>
+      <ol class="steps">
+        <li>Double-click <code>start-desktop-widgets.bat</code> in your ICB folder. The first time, it downloads what it needs (a minute or two).</li>
+        <li>A pink icon appears in your system tray (bottom right). The status at the top of this page turns green.</li>
+        <li>Set your game to <b>Borderless Windowed</b>. Widgets can't sit on top of a true fullscreen game.</li>
+      </ol>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🧩 Widgets</h2>
+      <div id="list"></div>
+    </div>
+  </div>
+</div>
+<script src="/js/client/desktop-control.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fortnite Sprites — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/sprites-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>🎮 <span>Fortnite</span> Sprites</h1><div class="sub" id="seasonLine">Tap a circle when you catch that sprite. Tap again to undo.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/sprite-jar-control.html"><button>🫙 Jar &amp; sticker book</button></a>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="two">
+  <div class="card">
+    <div class="stats">
+      <div><div class="big" id="pct">0%</div><div class="note">of everything</div></div>
+      <div><b id="done">0 / 0</b><div class="note">sprites + variants caught</div></div>
+      <div><b id="base">0 / 0</b><div class="note">sprites caught (Base)</div></div>
+      <div><b id="full">0</b><div class="note">fully complete</div></div>
+    </div>
+    <div class="pbar"><span id="pbar"></span></div>
+    <div class="chips" id="varChips"></div>
+  </div>
+  <div class="card">
+    <h2>🕘 Latest catches</h2>
+    <div class="recent" id="recent"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <input type="text" id="q" placeholder="Search a sprite…">
+    <select id="rar"><option value="">All rarities</option></select>
+    <select id="view"><option value="all">All sprites</option><option value="missing">Still need something</option><option value="full">Fully complete</option><option value="uncaught">Not caught yet</option></select>
+    <button class="btn-accent" onclick="editS(null)">＋ Add sprite</button>
+  </div>
+  <div class="note" id="shown" style="margin-bottom:8px"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="card">
+  <h2>⚙️ Season & backup</h2>
+  <div class="row"><label>Season</label><input type="text" id="season" style="flex:1"><button class="btn-sm" onclick="api('/api/sprites',{season:$('season').value}).then(load)">Save</button></div>
+  <div class="row"><label>New variant for every sprite</label><input type="text" id="newVar" placeholder="e.g. Snowy" style="flex:1"><button class="btn-sm" onclick="addVarAll()">Add</button></div>
+  <div class="row"><a href="/api/sprites/export"><button>Download backup</button></a><button onclick="newSeason()">🌟 Start a new season</button><span class="spacer"></span><button class="btn-danger" onclick="resetAll()">Reset all catches</button></div>
+  <div class="note">🖼️ Pictures: click a sprite's square to upload one, drag a picture onto its panel, or hover a panel and press <b>Ctrl+V</b> to paste a snip. "Start a new season" saves this season's list to a file and gives you a fresh page.</div>
+</div>
+
+<div class="modal" id="modal"><div class="card">
+  <h2 id="mTitle">Sprite</h2>
+  <div class="row"><label>Name</label><input type="text" id="mName" style="flex:1"></div>
+  <div class="row"><label>Rarity</label><select id="mRar"></select></div>
+  <div class="note">Variants, one per line (first one is the "caught it" one):</div>
+  <textarea id="mVars"></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn-accent" onclick="saveS()">Save</button><button onclick="closeM()">Cancel</button><span class="spacer"></span><button class="btn-danger" id="mDel" onclick="delS()">Remove sprite</button></div>
+</div></div>
+<input type="file" id="picFile" accept="image/*" hidden>
+
+<script src="/js/client/sprites-control.js"></script>
+</body>
+</html>

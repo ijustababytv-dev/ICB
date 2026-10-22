@@ -1,0 +1,13 @@
+.guide{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+    .step{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#0c182b}
+    .step-head{display:flex;align-items:center;gap:10px}
+    .badge{width:23px;height:23px;border-radius:50%;background:#213654;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+    .step.done{opacity:.62}
+    .step.done .badge{background:var(--green);color:#08111f}
+    .step.current{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
+    .step.current .badge{background:linear-gradient(90deg,var(--cyan),var(--violet));color:#08111f}
+    .step-label{font-weight:700}
+    .step-state{margin-left:auto;font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:800;flex:none}
+    .step.current .step-state{color:var(--cyan)}
+    .step-detail{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.55}
+    .step-detail code{color:var(--cyan);background:#081321;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px}

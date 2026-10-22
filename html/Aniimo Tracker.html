@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aniimo Catch & Variant Tracker</title>
+<link rel="stylesheet" href="../css/aniimo-tracker.css"></head><body><main>
+<section class="panel"><div class="eyebrow">Collection checklist</div><h1>✨ Aniimo Catch & Variant Tracker</h1><p class="muted">Track base catches, biome/weather forms, Prismana, and special mutations separately.</p>
+<div class="stats"><div><div class="big" id="percent">0%</div><div class="note">all tracked entries complete</div></div><div><strong id="progress">0 / 0 checked</strong><div class="note" id="remaining">Nothing checked yet</div></div></div><div class="bar"><span id="bar"></span></div>
+</section>
+<section class="panel"><div class="controls"><input id="search" type="search" placeholder="Search Aniimo or number…"><select id="element"><option>All elements</option><option>Fire</option><option>Water</option><option>Grass</option><option>Electric</option><option>Ice</option><option>Rock</option><option>Wind</option><option>Dark</option><option>Holy</option></select><select id="view"><option value="all">All Aniimo</option><option value="missing">Has unchecked entries</option><option value="caught">Fully checked</option></select></div>
+<div class="actions"><button class="primary" id="export">Download backup (.json)</button><button id="importBtn">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden><button id="csv">Download checklist (.csv)</button><button id="expand">Expand all</button><button id="reset">Reset all</button></div>
+<div class="note" id="shown"></div><div class="cards" id="list"></div>
+<p class="footer">Progress is saved in this browser on this device. Download a JSON backup to move progress between devices. This roster includes the tracker’s existing Aniimo list and published additional forms for form-bearing species; special mutation types are available as separate checkboxes for every Aniimo. Community sources and in-game naming may change, and this is not an official game tool.</p>
+</section></main>
+<script src="../js/client/aniimo-tracker.js"></script></body></html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bean Burger Sign-Up — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/beanburger-signup-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>🍔 <span>Bean Burger</span> Sign-Up</h1><div class="sub">Like Sesh, but on stream: an event card with its time in world time zones, a countdown, and roles chat signs up for with their own <code>!commands</code>.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+<div class="url"><span>Meld browser layer:</span><code>http://127.0.0.1:8790/beanburger-signup.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>📅 Event</h2>
+      <div class="row"><label>Live event</label><select id="evSel" onchange="api('/api/beanburger-signup',{live:this.value}).then(function(){ fillFor=''; load(); })"></select>
+        <button class="btn-sm" onclick="newEv()">＋ New</button><button class="btn-sm" onclick="copyEv()" title="Same details + roles, empty list">⧉ Copy</button><button class="btn-sm btn-danger" onclick="delEv()">Delete</button></div>
+      <div class="row"><label>Event name</label><input type="text" id="evName" style="flex:1" placeholder="Bean Burgers"></div>
+      <div class="row"><label>Game</label><input type="text" id="evGame" list="gameList" style="flex:1" placeholder="Palia"><datalist id="gameList"></datalist></div>
+      <div class="row" style="align-items:flex-start"><label>Description</label><textarea id="evDesc" class="desc" style="flex:1" placeholder="What to bring, where to meet… (optional)"></textarea></div>
+      <div class="row"><label>Starts</label><input type="date" id="evDate"><input type="time" id="evTime"><select id="evTz" style="flex:1"></select></div>
+      <div class="row"><label></label><button class="btn-accent" onclick="saveDetails()">💾 Save event details</button><button class="btn-sm" onclick="clearTime()">No time</button><span class="note" id="detSaved"></span></div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="open" onchange="set({open:this.checked})"><span></span></label> <b>Sign-ups open</b> &nbsp;<span class="note">(chat only signs up while this is on)</span></div>
+      <div class="row"><label>Max people</label><input type="number" id="max" min="0" max="200" style="width:90px" onchange="set({max:this.value})"><span class="note">for the whole event · 0 = no limit</span></div>
+    </div>
+    <div class="card">
+      <h2>🎭 Roles <span class="note" style="font-weight:400">(yours to set up)</span></h2>
+      <div class="note" style="margin-top:0">Each role gets its own chat command. Example: role <i>Fish Prep</i> with command <code>fish</code> → chat types <code>!fish Moon Pie</code>. Spots: 0 = unlimited; past the spots people go on a waitlist and move up when someone leaves. <b>No roles</b> = chat just types <code>!</code> + their name.</div>
+      <div class="rrow note" style="margin:8px 0 2px"><span>Role name</span><span>Command</span><span>Spots</span><span>Colour</span><span></span></div>
+      <div id="roles"></div>
+      <div id="clash"></div>
+      <div class="row" style="margin-top:6px"><button class="btn-sm" onclick="addRoleRow()">＋ Add role</button><span class="spacer"></span><button class="btn-accent" onclick="saveRoles()">💾 Save roles</button><span class="note" id="rolesSaved"></span></div>
+    </div>
+    <div class="card">
+      <h2>🌍 World times</h2>
+      <div class="switchrow" style="margin-top:0"><label class="switch"><input type="checkbox" id="showZones" onchange="set({showZones:this.checked})"><span></span></label> Show converted times on stream
+        &nbsp; <label class="switch"><input type="checkbox" id="showCountdown" onchange="set({showCountdown:this.checked})"><span></span></label> Countdown</div>
+      <div class="note">Tick the time zones to show. You can rename them (e.g. "Aussies").</div>
+      <div class="zgrid" id="zones"></div>
+      <div class="row" style="margin-top:8px"><label style="min-width:auto">Add another</label><input type="text" id="newTz" placeholder="e.g. Asia/Seoul" style="flex:1"><input type="text" id="newTzLabel" placeholder="Label" style="width:110px"><button class="btn-sm" onclick="addZone()">Add</button></div>
+    </div>
+    <div class="card">
+      <h2>➕ Add people yourself</h2>
+      <textarea id="guests" style="min-height:90px" placeholder="One name per line"></textarea>
+      <div class="row" style="margin-top:10px"><label style="min-width:auto">Role</label><select id="addRole"></select><button class="btn-accent" onclick="addGuests()">Add to list</button><span class="note" id="saved"></span></div>
+    </div>
+    <div class="card">
+      <h2>🚫 Not sign-ups</h2>
+      <div class="note" style="margin-top:0">For events <b>without roles</b>: these are never treated as a name. Your live party-role commands and team-contest item are skipped automatically, plus:</div>
+      <div class="note" id="builtin" style="font-family:Consolas,monospace"></div>
+      <div class="row" style="margin-top:8px"><label>Also ignore</label><input type="text" id="ignore" style="flex:1" placeholder="e.g. lurk, discord, clip" onchange="set({ignore:this.value})"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>📋 Signed up <span class="big" id="cnt" style="float:right"></span></h2>
+      <div id="list"></div>
+      <div class="row" style="margin-top:10px"><button class="btn-danger" onclick="clearList()">🗑 Clear list</button></div>
+      <div class="note">Click a name to fix its spelling. Arrows change the order. Use the dropdown to move someone to another role.</div>
+    </div>
+    <div class="card">
+      <h2>🧠 Remembered names <span class="note" id="remGame" style="font-weight:400"></span></h2>
+      <div class="note" style="margin-top:0">The first time someone signs up, ICB remembers their in-game name for that game. Next time they can just type the role command (or <code>!signup</code> on events without roles).</div>
+      <div class="remlist" id="rem"></div>
+    </div>
+    <div class="card">
+      <h2>⚙️ Settings</h2>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="visible" onchange="set({visible:this.checked})"><span></span></label> Show on stream</div>
+      <div class="note">Chat can type <code>!show burger</code> / <code>!hide burger</code> to put it on screen or take it off.</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="onDemand" onchange="set({onDemand:this.checked})"><span></span></label> <b>Hidden until chat asks</b> - pops up when chat types <code>!burger</code> or <code>!burgers</code> or <code>!beanburger</code></div>
+      <div class="row"><label>Stays up for</label><input type="number" id="showSec" min="5" max="600" style="width:80px" onchange="set({showSec:this.value})"> seconds
+        <label style="min-width:auto;margin-left:10px"><input type="checkbox" id="showOnSignup" onchange="set({showOnSignup:this.checked})"> Also pop up when someone signs up or leaves</label></div>
+      <div class="row"><button class="btn-sm" onclick="set({showNow:true})">👀 Show it now</button><button class="btn-sm" onclick="set({hideNow:true})">Hide it now</button><span class="note" id="shownLeft"></span></div>
+      <div class="row"><label>Title</label><input type="text" id="title" style="flex:1" onchange="set({title:this.value})"></div>
+      <div class="row"><label>Text size</label><input type="number" id="font" min="12" max="70" style="width:80px" onchange="set({font:this.value})">
+        <label style="min-width:auto">Columns</label><select id="cols" onchange="set({cols:this.value})"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      <div class="row"><label>Colours</label>
+        Accent <input type="color" id="accent" onchange="set({accent:this.value})">
+        Panel <input type="color" id="panelColor" onchange="set({panelColor:this.value})"></div>
+      <div class="row"><label>Panel see-through</label><input type="range" id="panelOpacity" min="0" max="100" onchange="set({panelOpacity:this.value})"></div>
+    </div>
+  </div>
+</div>
+<script src="/js/client/beanburger-signup-control.js"></script>
+</body>
+</html>

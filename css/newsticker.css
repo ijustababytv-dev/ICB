@@ -1,0 +1,12 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: stretch; overflow: hidden; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; font-weight: 800; transition: opacity .5s; border-top: 4px solid #b77cff; }
+  #bar.hidden { opacity: 0; }
+  #label { flex: none; display: flex; align-items: center; padding: 0 22px; font-weight: 900; white-space: nowrap; position: relative; z-index: 2; box-shadow: 6px 0 12px rgba(0,0,0,.35); }
+  #label.hide { display: none; }
+  #view { flex: 1; position: relative; overflow: hidden; }
+  #track { position: absolute; left: 0; top: 0; bottom: 0; display: flex; align-items: center; white-space: nowrap; will-change: transform; }
+  .copy { display: inline-block; white-space: nowrap; }
+  .msg { padding: 0 6px; text-shadow: 0 2px 0 rgba(0,0,0,.55); }
+  .sep { padding: 0 22px; opacity: .85; }
+  #bar.alert { animation: flash 1s steps(2) infinite; }
+  @keyframes flash { 50% { border-top-color: #ffffff; } }

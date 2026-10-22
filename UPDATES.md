@@ -11,11 +11,11 @@
 
 ## Improvements
 
+- 2026-10-22: Split the giant server into focused feature, route, and business-rule modules; organized HTML, scripts, styles, and local images while keeping existing URLs and launchers.
+- 2026-10-22: Added unit tests, headless browser checks, and guards against giant files, circular imports, and embedded base64 images. All future business rules require unit tests.
 - 2026-10-20: Renamed Event Sign-Up to Poke Bowl Sign-up and Party Sign-ups to Cake Sign-Ups.
-- 2026-10-13: Required unit tests for every business rule and test runs after all changes.
-- 2026-10-13: Made `RULES.md` mandatory before code changes and required regular GitHub commits and pushes, at least daily when there are changes.
-- 2026-10-13: Excluded assets and data backups from Git tracking while preserving all local files.
 
 ## Bug Fixes
 
-- 2026-10-13: Allowed `CLAUDE.md` to be tracked while keeping other Claude files ignored.
+- 2026-10-22: Updated stale tracker tests to validate prefix-based slots and intentional overlap between collection cards. End-to-end checks still report the existing missing `poke_bowl.png` artwork.
+- 2026-10-22: Static file serving now keeps server source and private state outside public paths.

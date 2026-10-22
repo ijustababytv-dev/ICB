@@ -4,7 +4,10 @@
   "private": true,
   "description": "Clean-room IJUSTABABY command center and read-only stream overlay",
   "scripts": {
-    "start": "node server.js",
-    "test:e2e": "node test/e2e.js"
+    "start": "node js/server/index.js",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test js/test/unit/*.test.js",
+    "test:e2e": "node js/test/e2e.js",
+    "test:browser": "node js/test/browser.js"
   }
 }

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Giveaway Control — ICB</title>
+<link rel="stylesheet" href="/css/giveaway-control.css">
+</head>
+<body>
+<h1>Giveaway Control <span class="health" id="health">connecting…</span></h1>
+<p class="sub">Live entrants, fluffy unicorn math, and drawings — feeds the on-stream overlays automatically.</p>
+<div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:0 0 16px;">
+  <div class="listener bad" id="listenerBadge" style="margin:0;"><span class="dot"></span><span id="listenerText">Checking the Meld listener…</span></div>
+  <a href="/giveaway-report.html" target="_blank" style="color:var(--accent); font-size:13px; font-weight:700; text-decoration:none; border:1px solid var(--panel-border); padding:8px 14px; border-radius:10px;">📄 Nightly report</a>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Entrants</h2>
+    <table>
+      <thead>
+        <tr><th>Viewer</th><th>Fluffy Unicorns <img class="uni-icon" src="/images/embedded/0335559507566291.png" alt=""></th><th>Breakdown</th><th>Sub info &amp; notes</th><th></th></tr>
+      </thead>
+      <tbody id="entrantsBody"><tr class="empty-row"><td colspan="5">No entries yet.</td></tr></tbody>
+    </table>
+
+  </div>
+
+  <div class="card">
+    <h2>Drawings</h2>
+    <div class="winner-toast" id="winnerToast"></div>
+    <div class="draw-row">
+      <button class="btn-plushie" onclick="draw('plushie')">🧸 Draw Plushie Winner</button>
+      <button class="btn-mystery" onclick="draw('mystery-outfit')">🎁 Draw Mystery Outfit Winner</button>
+    </div>
+    <p class="footer-note">The winner is picked fairly the instant you click, from everyone's full fluffy unicorn count. On stream the jar tips, its unicorns tumble out and mix like a lottery machine while the song plays, and the winner is revealed about 20 seconds before the song ends (about 1 min 20 s after your click). The song then plays out and fades. The name stays hidden here and on the Winners Circle until then.</p>
+    <p class="footer-note">Plushie winners stay eligible for future plushie drawings. Mystery Outfit winners are removed from future Mystery Outfit drawings only (still eligible for plushies).</p>
+
+    <div class="draw-row" style="margin-top:4px; align-items:center;">
+      <button class="btn-ghost" onclick="testDraw()">🧪 Test drawing (demo)</button>
+      <span class="save-status" id="testDrawStatus"></span>
+    </div>
+    <p class="footer-note">Runs the exact same show on the unicorn jar so you can show someone how it works, but the winner is always IJustABabyTv and nothing real gets touched — no entrant, no Winners Circle entry, nothing in the nightly report. Safe to click any time, even mid-stream.</p>
+
+    <div class="draw-row" style="margin-top:4px; align-items:center;">
+      <button class="btn-ghost" onclick="emptyJar()">🫙 Empty the jar</button>
+      <span class="save-status" id="jarStatus"></span>
+    </div>
+    <p class="footer-note">The unicorn jar starts empty on its own each stream day (6 AM cutoff) and fills with unicorns earned that stream. Everyone's full fluffy unicorn count still carries over and is what the drawings use. Use this button to empty the jar by hand (e.g. a second stream the same day).</p>
+
+    <h2 style="margin-top:18px;">Winners</h2>
+    <div class="winners-list" id="winnersList"><div style="color:var(--text-dim); font-size:13px;">None yet.</div></div>
+
+    <div class="draw-row" style="margin-top:18px;">
+      <button class="btn-ghost" onclick="resetWinnersOnly()">Reset winners only</button>
+      <button class="btn-danger" onclick="resetGiveaway()">Reset everything</button>
+    </div>
+    <p class="footer-note">"Reset winners only" clears the Winners Circle history and lets anyone who already won a Mystery Outfit be drawn for one again — entrants, fluffy unicorn counts, and sub info are untouched. "Reset everything" wipes all of it. Board text and rates are always kept.</p>
+  </div>
+</div>
+
+<div class="card give-card" id="giveCard">
+  <h2>Give fluffy unicorns <span class="breakdown">— add existing subs, gifted subs, bits, donations, bonuses, or fix a mistake</span></h2>
+  <div class="give-grid">
+    <div class="give-form">
+      <div class="field">
+        <label for="giveNames">Who</label>
+        <textarea id="giveNames" placeholder="One name, or several separated by commas or new lines&#10;e.g.  SparkleFan, unicornlover22, PaliaPal"></textarea>
+        <div class="hint">Capital letters don't matter — "bob" adds to the same person as "Bob". New names are added to the giveaway.</div>
+      </div>
+      <div class="field">
+        <label for="giveKind">What are you adding?</label>
+        <select id="giveKind" onchange="onKindChange()">
+          <option value="unicorns">Fluffy unicorns (plain)</option>
+          <option value="subMonths">Months subscribed</option>
+          <option value="giftedSubs">Gifted subs</option>
+          <option value="bits">Bits cheered</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="giveAmount" id="giveAmountLabel">How many fluffy unicorns each</label>
+        <div class="amount-row">
+          <input type="number" id="giveAmount" value="1" min="1" max="1000000" oninput="updateGivePreview()">
+          <button class="chip amt-chip" onclick="setGiveAmount(+this.textContent)">1</button>
+          <button class="chip amt-chip" onclick="setGiveAmount(+this.textContent)">2</button>
+          <button class="chip amt-chip" onclick="setGiveAmount(+this.textContent)">5</button>
+          <button class="chip amt-chip" onclick="setGiveAmount(+this.textContent)">10</button>
+        </div>
+        <div class="preview" id="givePreview"></div>
+      </div>
+      <div class="field">
+        <label for="giveReason">Reason</label>
+        <select id="giveReason">
+          <option>Already subbed</option>
+          <option>Gifted subs</option>
+          <option>Cheered bits</option>
+          <option>Donation</option>
+          <option>Bonus</option>
+          <option>Correction</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="draw-row" style="margin-bottom:0;">
+        <button class="btn-give" onclick="giveUnicorns(1)"><img src="/images/embedded/0335559507566291.png" alt="">Give</button>
+        <button class="btn-danger" onclick="giveUnicorns(-1)">Take away</button>
+      </div>
+      <div class="give-result" id="giveResult"></div>
+    </div>
+    <div>
+      <div class="field"><label>Added by hand</label></div>
+      <div class="log-list" id="giveLog"><div style="color:var(--text-dim); font-size:13px;">Nothing given by hand yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card text-card">
+  <h2>Backups <span class="breakdown">— automatic copies of everyone's fluffy unicorns, winners, and notes</span></h2>
+  <div class="draw-row" style="margin-bottom:10px; align-items:center;">
+    <button class="btn-ghost" onclick="backupNow()">💾 Back up now</button>
+    <button class="btn-ghost" onclick="loadBackups()">↻ Refresh list</button>
+    <span class="save-status" id="backupStatus"></span>
+  </div>
+  <div id="backupList" style="max-height:260px; overflow:auto; font-size:13px;"><div style="color:var(--text-dim);">Loading…</div></div>
+  <p class="footer-note">ICB saves a copy every 5 minutes (last ~12 hours kept), one per stream day (last 60 days), and one right before Reset everything, Reset winners only, Empty the jar, or a restore. Restoring puts the giveaway back exactly as it was at that moment — and saves a copy of the current state first, so a restore can always be undone. Files live in data\backups\giveaway.</p>
+</div>
+
+<div class="card text-card">
+  <h2>Blocked from the giveaway <span class="breakdown">— you and chat bots never earn or win</span></h2>
+  <div class="field">
+    <label for="blockedList">One name per line</label>
+    <textarea id="blockedList" style="min-height:140px;"></textarea>
+    <div class="hint">Capital letters don't matter. Saving removes anyone on this list from the giveaway right away, and they can't earn or be drawn. Kept when you Reset everything.</div>
+  </div>
+  <div class="draw-row" style="margin-top:10px; margin-bottom:0;">
+    <button class="btn-save" onclick="saveBlocked()">Save block list</button>
+    <span class="save-status" id="blockedStatus"></span>
+  </div>
+</div>
+
+<div class="card text-card">
+  <h2>Earning rates <span class="breakdown">— how many fluffy unicorns each thing is worth</span></h2>
+  <div class="rates-grid">
+    <div class="field"><label for="rChat">Per 10 min of chatting</label><input type="number" id="rChat" min="0" max="100"></div>
+    <div class="field"><label for="rSub">Per month subscribed</label><input type="number" id="rSub" min="0" max="100"></div>
+    <div class="field"><label for="rGift">Per gifted sub</label><input type="number" id="rGift" min="0" max="100"></div>
+    <div class="field"><label for="rBits">Bits for 1 fluffy unicorn</label><input type="number" id="rBits" min="1" max="100000"></div>
+  </div>
+  <div class="draw-row" style="margin-top:14px; margin-bottom:0;">
+    <button class="btn-save" onclick="saveRates()">Save rates</button>
+    <span class="save-status" id="ratesStatus"></span>
+  </div>
+  <p class="footer-note">Changing a rate re-counts everyone right away — live and hand-added — so it's always fair. Bits add up across cheers (60 + 50 bits = 110 = 1 unicorn at 100).</p>
+</div>
+
+<div class="card text-card">
+  <h2>Board text <span class="breakdown">— what viewers see on the two stream overlays</span></h2>
+  <div class="text-grid">
+    <div class="field">
+      <label for="dEntrantsTitle">Entrants board heading</label>
+      <input type="text" id="dEntrantsTitle" maxlength="500">
+    </div>
+    <div class="field">
+      <label for="dMaxRows">Viewers shown on entrants board</label>
+      <input type="number" id="dMaxRows" min="1" max="50">
+    </div>
+    <div class="field wide">
+      <label for="dEmptyMessage">Entrants board message when nobody has entered yet</label>
+      <input type="text" id="dEmptyMessage" maxlength="500">
+    </div>
+    <div class="field wide">
+      <label for="dTicker">Rotating reminder lines (one per line)</label>
+      <textarea id="dTicker"></textarea>
+      <div class="hint">Each line shows for 5 seconds, then the next. Leave it empty to hide the reminder line.</div>
+    </div>
+    <div class="field wide">
+      <label for="dPrizeLabel">Current prize name (shown on the winner banner &amp; Winners Circle)</label>
+      <input type="text" id="dPrizeLabel" maxlength="60" placeholder="Leave blank for the generic &quot;Plushie&quot; / &quot;Mystery Outfit&quot; wording">
+      <div class="hint">Set this before you draw, e.g. "Squishmallow Corgi" — each winner keeps whatever this said at the moment they won.</div>
+    </div>
+    <div class="field">
+      <label for="dWinnersTitle">Winners Circle heading</label>
+      <input type="text" id="dWinnersTitle" maxlength="500">
+    </div>
+    <div class="field">
+      <label for="dWinnersEmpty">Winners Circle message before the first draw</label>
+      <input type="text" id="dWinnersEmpty" maxlength="500">
+    </div>
+    <div class="field">
+      <label for="dJarSide">Unicorn jar position</label>
+      <select id="dJarSide">
+        <option value="left">Left side</option>
+        <option value="center">Middle</option>
+        <option value="right">Right side</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="dUnicornSize">Unicorn size in the jar</label>
+      <select id="dUnicornSize">
+        <option value="small">Small (bigger jar capacity, more room on screen)</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="dShowNames">Names on the unicorns</label>
+      <select id="dShowNames">
+        <option value="no">Hide names</option>
+        <option value="yes">Show each viewer's name on their unicorns</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="dMagic">Magic effects</label>
+      <select id="dMagic">
+        <option value="yes">Cloud with falling stars &amp; little rainbows</option>
+        <option value="no">Off (plain drops)</option>
+      </select>
+    </div>
+  </div>
+  <div class="draw-row" style="margin-top:14px; margin-bottom:0;">
+    <button class="btn-save" onclick="saveDisplay()">Save board text</button>
+    <button class="btn-ghost" onclick="restoreDisplayDefaults()">Restore defaults</button>
+    <span class="save-status" id="displayStatus"></span>
+  </div>
+  <p class="footer-note">Overlays pick up changes within a few seconds — no Meld reload needed. Board text is kept when you hit Reset everything.</p>
+</div>
+
+<script src="/js/client/giveaway-control.js"></script>
+</body>
+</html>

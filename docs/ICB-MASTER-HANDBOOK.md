@@ -267,11 +267,13 @@ broken — delete and rebuild it. If it goes blank, the page is at fault.
 
 ## Files
 
+**2026-10-22 restructuring:** HTML moved to `html/`, JavaScript to logical `js/` folders, styles to `css/`, and formerly embedded images to `images/embedded/`. Public URLs did not change. The file map below retains historical overlay notes; see `docs/ARCHITECTURE.md` for the current module map.
+
 | Path | Purpose |
 | --- | --- |
-| `server.js` | Everything. One file, no dependencies. |
-| `control.html` | The private Chrome dashboard |
-| `overlay.html` | Read-only Meld layer scaffold (skin wiring still pending) |
+| `js/server/` | Small feature, route, domain, and view modules; one dependency-free server. See `docs/ARCHITECTURE.md`. |
+| `html/control.html` | The private Chrome dashboard |
+| `html/overlay.html` | Read-only Meld layer scaffold (skin wiring still pending) |
 | `ticker.html` / `weekly.html` | Server-rendered overlay pages — the reference pattern |
 | `config/resource-trackers.json` | Cards: tokens, modes, value boxes |
 | `config/weekly-accomplishments.json` | The 21 weekly items and the week anchor |
@@ -279,7 +281,7 @@ broken — delete and rebuild it. If it goes blank, the page is at fault.
 | `data/*.json` | **THE REAL NUMBERS. Back these up.** |
 | `data/overlay-requests.json` | Diagnostic log of who asked for which overlay page |
 | `assets/resources/` | Resource card artwork |
-| `test/e2e.js` | The whole safety net |
+| `js/test/e2e.js` | The whole safety net |
 
 **Config owns definitions, state owns progress.** They are merged on load, so a token can be
 corrected without wiping a live count, and a new card appears without deleting the state file.
@@ -330,7 +332,7 @@ assertion that the script stays ES5.
 
 ## Diagnose "I can't see it on stream"
 
-1. **Is the new server actually running?** Compare `server.js`'s modified time against the boot
+1. **Is the new server actually running?** Compare the modified times of `js/server/` files against the boot
    time implied by the `data/*.json` write times. Deploying a file is not restarting the server —
    this exact confusion cost a round trip.
 2. **Read `data/overlay-requests.json`.** It shows every request for an overlay page with its

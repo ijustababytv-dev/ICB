@@ -1,0 +1,23 @@
+/* ICB port of Baby's Meld "ghost-stream-avatars". Full-screen transparent layer. */
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  #stage.hidden { display: none; }
+  .actor { position: absolute; bottom: 2vw; left: 50%; width: 20vw; margin-left: -10vw; text-align: center; pointer-events: none; transition: opacity .5s; }
+  .actor.leaving { opacity: 0; }
+  .bubble { display: inline-block; max-width: 14vw; min-width: 4vw; background: rgba(14, 11, 26, 0.94); border: 0.18vw solid #38bdf8; color: #fff;
+    font-family: 'Chewy', cursive, sans-serif; font-size: 1.45vw; line-height: 1.25; padding: 0.4vw 0.8vw; border-radius: 0.85vw;
+    margin-bottom: 0.45vw; word-wrap: break-word; position: relative; opacity: 0; -webkit-transform: scale(.6) translateY(.8vw); transform: scale(.6) translateY(.8vw);
+    transition: all .3s cubic-bezier(.175,.885,.32,1.275); }
+  .bubble.visible { opacity: 1; -webkit-transform: scale(1) translateY(0); transform: scale(1) translateY(0); }
+  .bubble:after { content: ''; position: absolute; bottom: -0.5vw; left: 50%; margin-left: -0.42vw; width: 0; height: 0;
+    border-left: 0.42vw solid transparent; border-right: 0.42vw solid transparent; border-top: 0.42vw solid var(--glow, #38bdf8); }
+  .bubble img { height: 1.5em; vertical-align: middle; margin: 0 .1em; }
+  .name { font-family: 'Fredoka', sans-serif; font-size: 1.3vw; font-weight: 700; color: #fff; letter-spacing: .03em; white-space: nowrap; padding: .1vw .4vw; margin-bottom: .2vw; }
+  .name.off { display: none; }
+  .visual { width: 5.6vw; height: 5.6vw; margin: 0 auto; position: relative; }
+  .visual img { width: 100%; height: 100%; display: block; }
+  .flip { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  @-webkit-keyframes joy { 0% { -webkit-transform: scale(1) translateY(0); } 30% { -webkit-transform: scale(1.15,.85) translateY(-.7vw); } 60% { -webkit-transform: scale(.9,1.1) translateY(-1.3vw); } 85% { -webkit-transform: scale(1.05,.95) translateY(-.2vw); } 100% { -webkit-transform: scale(1) translateY(0); } }
+  @keyframes joy { 0% { transform: scale(1) translateY(0); } 30% { transform: scale(1.15,.85) translateY(-.7vw); } 60% { transform: scale(.9,1.1) translateY(-1.3vw); } 85% { transform: scale(1.05,.95) translateY(-.2vw); } 100% { transform: scale(1) translateY(0); } }
+  .bouncing { -webkit-animation: joy .8s ease-in-out; animation: joy .8s ease-in-out; }

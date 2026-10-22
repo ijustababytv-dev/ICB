@@ -1,0 +1,9 @@
+html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
+ body{background:#00ff66;display:flex;align-items:center;justify-content:center}
+ .b{text-align:center;color:#00210d}
+ h1{font-size:6vw;margin:0;letter-spacing:.04em}
+ p{font-size:2.2vw;margin:.4em 0 0;font-weight:800}
+ .t{font-size:1.8vw;margin-top:1em;font-weight:800;color:#00380f}
+ .live{display:inline-block;width:1.6vw;height:1.6vw;border-radius:50%;background:#b30000;
+       animation:blink 1s infinite;vertical-align:middle;margin-right:.5vw}
+ @keyframes blink{50%{opacity:.15}}

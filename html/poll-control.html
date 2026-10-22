@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Badge Vote — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/poll-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🗳️ <span>Badge Vote</span></h1>
+      <div class="sub">Post badge pictures, let chat vote with <code>!vote</code>, then reveal the winner on stream.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="state closed" id="stateTag">closed</span>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>On stream</h2>
+        <div class="url"><span>Meld link</span><code id="link"></code><button onclick="copyLink()">Copy</button></div>
+        <div class="note" style="margin:0 0 10px">Add this as a full-screen browser layer in Meld. It stays invisible until you open voting (or show results).</div>
+        <label class="note" style="display:block;margin:0 0 4px">Question shown at the top</label>
+        <div class="row"><input type="text" id="title" maxlength="120" style="flex:1"><button onclick="saveTitle()">Save</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Badges to vote on</h2>
+        <div class="badges" id="badges"></div>
+        <div class="drop" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')" ondrop="event.preventDefault(); this.classList.remove('hover'); upload(event.dataTransfer.files)" onclick="this.nextElementSibling.click()">Drop badge pictures here (or click to pick) — each picture becomes a badge to vote on</div>
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="upload(this.files); this.value=''">
+        <div class="note">The number next to each badge is what chat types (<code>!vote 1</code>, <code>!vote 2</code>…). Use ▲ ▼ to change the order — the numbers follow. Pictures are saved in <code>ICB\assets\poll\</code>.</div>
+      </div>
+
+      <div class="card">
+        <h2>Test it</h2>
+        <div class="row">
+          <input type="text" id="testName" placeholder="Name (optional)" style="width:160px">
+          <input type="text" id="testText" placeholder="!vote 1 3" style="flex:1">
+          <button onclick="testVote()">🧪 Send test vote</button>
+        </div>
+        <div class="note">Pretends someone typed that in chat (voting has to be open). Remember to press Reset votes before the real thing.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Voting</h2>
+        <div class="row">
+          <label class="note" style="margin:0">Timer</label>
+          <input type="number" id="minutes" min="0" max="240" value="5" style="width:80px"><span class="note" style="margin:0">minutes (0 = no timer)</span>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn-accent" id="openBtn" onclick="openVoting()">▶ Open voting</button>
+          <button id="closeBtn" onclick="closeVoting()">⏹ Close voting</button>
+          <button class="btn-gold" onclick="reveal()">👑 Reveal winner</button>
+        </div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showResults" onchange="setting({ showResults: this.checked })"><span></span></label><span id="showText">Results hidden on stream</span></div>
+        <div class="row">
+          <label class="note" style="margin:0">Subscriber votes count</label>
+          <select id="subWeight" onchange="setting({ subWeight: Number(this.value) })"><option value="1">the same (1×)</option><option value="2">double (2×)</option><option value="3">triple (3×)</option></select>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn-danger" onclick="resetVotes()">🔄 Reset votes</button>
+          <span class="note" style="margin:0" id="timerText"></span>
+        </div>
+        <div class="note">Chat commands: <code>!vote 2</code> votes for badge 2 · <code>!vote 1 3 5</code> votes for several · <code>!unvote 2</code> takes a vote back. Everyone can vote for as many badges as they like, once each. Bots and names on your giveaway block list are ignored.</div>
+      </div>
+
+      <div class="card">
+        <h2>Live results <span class="note" id="totals" style="margin-left:6px"></span></h2>
+        <div class="res" id="results"></div>
+        <div class="note">You always see the results here, even when they're hidden on stream. "Points" counts subscriber votes extra.</div>
+      </div>
+
+      <div class="card">
+        <h2>Who voted</h2>
+        <div class="voters" id="voters"></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/poll-control.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Team Contest — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/teams-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🏆 <span>Team Contest</span></h1>
+      <div class="sub">Chat joins with <code>!team a</code>, then scores with <code>!cloth</code>, <code>!cloth +2</code>, <code>!cloth -1</code>.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="state" id="stateTag">…</span>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>On stream</h2>
+        <div class="url"><code id="ovUrl">http://127.0.0.1:8790/teams.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+        <div class="note" style="margin:-6px 0 10px">Add as a Meld browser layer, any size — the board scales to fit.</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the board on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="joinOpen"><span></span></label> Joining open (<code>!team a</code> works)</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="counting"><span></span></label> Scoring on (points count)</div>
+        <div class="row" style="margin-top:10px"><label>Board title</label><input type="text" id="title" style="flex:1" maxlength="120"></div>
+        <div class="row"><label>Names per team</label><input type="number" id="showPlayers" min="0" max="30" style="width:80px"><span class="note" style="margin:0">0 = totals only</span></div>
+      </div>
+
+      <div class="card">
+        <h2>What we're counting</h2>
+        <div class="row"><label>Chat command</label>!<input type="text" id="command" style="width:140px" maxlength="24" placeholder="cloth"></div>
+        <div class="row"><label>Also accept</label><input type="text" id="aliases" style="flex:1" placeholder="e.g. clothes, rag (optional)"></div>
+        <div class="row"><label>Name on board</label><input type="text" id="label" style="flex:1" maxlength="60" placeholder="Tattered Cloth"></div>
+        <div class="row"><label>Picture</label><select id="image" style="flex:1"></select></div>
+        <img class="thumb" id="thumb" alt="">
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showBanner"><span></span></label> Show the picture on the board (grand total goes in its box)</div>
+        <div class="row"><button class="btn-accent" onclick="saveItem()">Use this</button><button onclick="savePreset()">⭐ Save as quick pick</button></div>
+        <div class="note">Quick picks — click one to switch. Each item keeps its own points, so switching back brings them back.</div>
+        <div class="presets" id="presets"></div>
+      </div>
+
+      <div class="card">
+        <h2>Teams</h2>
+        <div class="row"><label>How many teams</label><select id="teamCount"></select></div>
+        <div id="teamRows"></div>
+        <div class="row"><button class="btn-accent" onclick="saveTeams()">Save teams</button></div>
+        <div class="note">Chat always types the letter (<code>!team a</code>); the board shows your name and color.</div>
+      </div>
+
+      <div class="card">
+        <h2>Test without chat</h2>
+        <div class="row"><input type="text" id="tName" placeholder="name" value="TestViewer" style="width:140px"><input type="text" id="tText" placeholder="!team a  or  !cloth +2" style="flex:1"><button onclick="sendTest()">Send</button></div>
+        <div class="note" id="tResult"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Teams &amp; points <span class="note" id="itemNote" style="font-weight:400"></span></h2>
+        <div id="board"></div>
+        <div class="row" style="margin-top:8px"><input type="text" id="addName" placeholder="add someone by hand" style="flex:1"><select id="addTeam"></select><button onclick="addPlayer()">Add</button></div>
+        <div class="note">People are locked to the team they join — use the dropdown to move someone. Points earned stay with the person.</div>
+      </div>
+
+      <div class="card">
+        <h2>Recent</h2>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card">
+        <h2>Start over</h2>
+        <div class="row">
+          <button class="btn-danger" onclick="resetPts('item')">Reset points (this item)</button>
+          <button class="btn-danger" onclick="resetPts('all')">Reset all points</button>
+          <button class="btn-danger" onclick="clearAll()">New contest (clear teams)</button>
+        </div>
+        <div class="note">Resetting points keeps everyone on their teams. "New contest" empties the teams too.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/teams-control.js"></script>
+</body>
+</html>

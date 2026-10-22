@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Countdowns — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/countdown-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>⏳ <span>Countdowns</span></h1><div class="sub">Your countdown timers for stream. Change the look, the size and what it says when time's up.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="cols">
+<div>
+  <div class="card">
+    <h2>Preview</h2>
+    <div class="prev" id="prev"><iframe id="pf"></iframe></div>
+    <div class="note" style="margin-top:8px">Add this as a full-screen Browser layer in Meld (1920×1080). It replaces your old Spark timer element.</div>
+    <div class="url" style="margin-top:6px"><input type="text" id="url" readonly><button onclick="copyUrl()">Copy</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Timer <span class="state" id="state">idle</span></h2>
+    <div class="big" id="left">--:--</div>
+    <div class="row">
+      <label>Minutes</label><input type="number" id="mins" min="0" max="1440" style="width:90px">
+      <button class="btn-go" onclick="startMins()">▶ Start</button>
+    </div>
+    <div class="chips" style="margin-bottom:8px">
+      <button class="chip" onclick="setMins(3)">3</button><button class="chip" onclick="setMins(5)">5</button><button class="chip" onclick="setMins(10)">10</button>
+      <button class="chip" onclick="setMins(15)">15</button><button class="chip" onclick="setMins(30)">30</button><button class="chip" onclick="setMins(60)">60</button>
+    </div>
+    <div class="row">
+      <label>Or count down to</label><input type="time" id="clock">
+      <select id="tz">
+        <option value="America/Chicago">Central (CST/CDT)</option><option value="America/New_York">Eastern</option><option value="America/Denver">Mountain</option>
+        <option value="America/Los_Angeles">Pacific</option><option value="Europe/London">UK</option><option value="Europe/Berlin">Central Europe</option>
+        <option value="Australia/Sydney">Sydney</option><option value="UTC">UTC</option>
+      </select>
+      <button class="btn-go" onclick="startClock()">▶ Start</button>
+    </div>
+    <div class="note">If that time already passed today, it counts down to tomorrow.</div>
+    <div class="row" style="margin-top:12px">
+      <button id="pauseBtn" onclick="pauseResume()">⏸ Pause</button>
+      <button onclick="act('addTime',{ms:60000})">+1 min</button><button onclick="act('addTime',{ms:300000})">+5 min</button><button onclick="act('addTime',{ms:-60000})">−1 min</button>
+      <button onclick="act('finish')">🎉 Time's up</button>
+      <button class="btn-danger" onclick="act('reset')">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>What it says</h2>
+    <div class="chips" style="margin-bottom:8px">
+      <button class="chip" onclick="preset('STREAM STARTS IN','GRAB A SNACK 🌸','✨ WE\'RE LIVE! ✨')">Stream starts in</button>
+      <button class="chip" onclick="preset('STARTING SOON','GET COMFY ☕','✨ HERE WE GO! ✨')">Starting soon</button>
+      <button class="chip" onclick="preset('BE RIGHT BACK','DON\'T GO ANYWHERE 💜','✨ I\'M BACK! ✨')">BRB</button>
+      <button class="chip" onclick="preset('JUST CHATTING','HANG OUT WITH US','✨ GAME TIME! ✨')">Just chatting</button>
+      <button class="chip" onclick="preset('FLOW TREE GROVE','CHARGING FLOW TREES 🌸','✨ THE GROVE IS OPEN! ✨')">Flow tree grove</button>
+    </div>
+    <div class="row"><label>Top badge</label><input type="text" data-k="heading"><input type="text" data-k="icon" style="flex:0 0 60px;min-width:0" title="Icon / emoji"></div>
+    <div class="row"><label>Line under it</label><input type="text" data-k="subheading"></div>
+    <div class="row"><label>When it's over</label><input type="text" data-k="endText"></div>
+    <div class="row"><label>Small line when over</label><input type="text" data-k="endSub" placeholder="(optional)"></div>
+    <div class="row"><label>Labels</label><input type="text" data-k="labelH" style="flex:1;min-width:70px"><input type="text" data-k="labelM" style="flex:1;min-width:70px"><input type="text" data-k="labelS" style="flex:1;min-width:70px"></div>
+    <div class="row"><label>Name (dashboard only)</label><input type="text" data-k="name"></div>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Theme</h2>
+    <div class="themes" id="themes"></div>
+    <div class="row" style="margin-top:10px"><label>Colours</label>
+      <input type="color" data-k="accent1" title="Glow 1"><input type="color" data-k="accent2" title="Glow 2"><input type="color" data-k="textColor" title="Numbers"><input type="color" data-k="plate" title="Background"></div>
+    <div class="note">Glow 1 · Glow 2 · Numbers · Background. Changing a colour makes it your own "Custom" theme.</div>
+    <div class="row"><label>Background see-through</label><input type="range" min="0" max="100" data-k="plateAlpha"><span class="val" data-v="plateAlpha" data-u="%"></span></div>
+    <div class="row"><label>Font</label><select data-k="font" id="fontSel"></select></div>
+  </div>
+
+  <div class="card">
+    <h2>Size & place</h2>
+    <div class="row"><label>Size</label><input type="range" min="20" max="400" step="5" data-k="scale"><span class="val" data-v="scale" data-u="%"></span></div>
+    <div class="row"><label>Across</label><input type="range" min="0" max="100" step="0.5" data-k="x"><span class="val" data-v="x" data-u="%"></span></div>
+    <div class="row"><label>Down</label><input type="range" min="0" max="100" step="0.5" data-k="y"><span class="val" data-v="y" data-u="%"></span></div>
+    <div class="row"><label>Quick spots</label><div class="grid9" id="grid9"></div></div>
+    <div class="row"><label>Show hours</label><select data-k="showHours"><option value="auto">Only when an hour or more is left</option><option value="always">Always</option><option value="never">Never (minutes go past 60)</option></select></div>
+    <div class="row"><label>Badge</label><label class="sw"><input type="checkbox" data-k="showBadge"><span></span></label>
+      <label style="min-width:0">Line</label><label class="sw"><input type="checkbox" data-k="showSub"><span></span></label>
+      <label style="min-width:0">Labels</label><label class="sw"><input type="checkbox" data-k="showLabels"><span></span></label></div>
+    <div class="row"><label>Pulse dot</label><label class="sw"><input type="checkbox" data-k="pulseDot"><span></span></label>
+      <label style="min-width:0">Float</label><label class="sw"><input type="checkbox" data-k="floaty"><span></span></label>
+      <label style="min-width:0">Glow border</label><label class="sw"><input type="checkbox" data-k="flowBorder"><span></span></label></div>
+  </div>
+
+  <div class="card">
+    <h2>Before & after</h2>
+    <div class="row"><label>When not running</label><select data-k="idleShow"><option value="dim">Show it faded</option><option value="zeros">Show 00:00</option><option value="hide">Hide it</option></select></div>
+    <div class="row"><label>Sparkles at the end</label><label class="sw"><input type="checkbox" data-k="celebrate"><span></span></label></div>
+    <div class="row"><label>Hide after it ends</label><input type="range" min="0" max="600" step="5" data-k="hideAfter"><span class="val" data-v="hideAfter" data-u="s"></span></div>
+    <div class="note">0 = the end message stays up until you reset.</div>
+  </div>
+
+  <div class="card">
+    <h2>More countdowns</h2>
+    <div class="row"><input type="text" id="newName" placeholder="e.g. BRB timer"><button onclick="addCd(false)">+ New</button><button onclick="addCd(true)">Copy this one</button></div>
+    <div class="note">Each countdown is its own Meld layer with its own link.</div>
+    <div class="row"><button class="btn-sm btn-danger" onclick="removeCd()">Delete this countdown</button></div>
+  </div>
+</div>
+</div>
+
+<script src="/js/client/countdown-control.js"></script>
+</body>
+</html>

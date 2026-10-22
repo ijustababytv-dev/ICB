@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Team Hunt — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/hunt-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>🎃 Team <span>Hunt</span></h1><div class="sub">Chat joins a team with <b>!team A</b>, then types <b>!cloth</b>, <b>!plushie</b>… when they find one. Each find is worth its own points.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="card">
+  <div class="toggles">
+    <div><label class="sw"><input type="checkbox" data-s="visible"><span></span></label> Show on stream</div>
+    <div><label class="sw"><input type="checkbox" data-s="joinOpen"><span></span></label> Joining open</div>
+    <div><label class="sw"><input type="checkbox" data-s="scoring"><span></span></label> Scoring on</div>
+    <div><label class="sw"><input type="checkbox" data-s="lockTeams"><span></span></label> Teams locked once joined</div>
+  </div>
+</div>
+
+<div class="cols">
+<div>
+  <div class="card">
+    <h2>Preview</h2>
+    <div class="prev" id="prev"><iframe id="pf" src="/hunt.html"></iframe></div>
+    <div class="note" style="margin-top:8px">Add as a full-screen Browser layer in Meld (1920×1080). It replaces your old Meld contest element.</div>
+    <div class="url" style="margin-top:6px"><input type="text" id="url" readonly><button onclick="copyUrl()">Copy</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Contest timer <span class="tag" id="tstate">idle</span></h2>
+    <div class="big" id="tleft">60:00</div>
+    <div class="row"><label>Minutes</label><input type="number" id="tmins" min="1" max="1440" style="width:90px"><button class="btn-go" onclick="timer('start')">▶ Start the hunt</button></div>
+    <div class="row">
+      <button id="tpause" onclick="timer(T.status === 'paused' ? 'resume' : 'pause')">⏸ Pause</button>
+      <button onclick="timer('add', 300000)">+5 min</button><button onclick="timer('add', -300000)">−5 min</button>
+      <button onclick="if(confirm('End the hunt now?'))timer('end')">🏁 End now</button>
+      <button class="btn-danger" onclick="timer('reset')">↺ Reset timer</button>
+    </div>
+    <div class="row"><label>Stop scoring when time's up</label><label class="sw"><input type="checkbox" data-s="stopAtEnd"><span></span></label></div>
+    <div class="note">When it ends the board shows the winning team with sparkles. Starting the timer turns scoring on.</div>
+  </div>
+
+  <div class="card">
+    <h2>What we're hunting</h2>
+    <div class="note">Chat types <b>!command</b> when they find one (<b>!cloth 2</b> = found 2, <b>!cloth -1</b> = oops, take one back). Change points any time — everyone's score updates.</div>
+    <table style="margin-top:8px"><thead><tr><th style="width:52px">Icon</th><th>Name</th><th style="width:110px">!command</th><th style="width:120px">Also works</th><th style="width:70px">Points</th><th style="width:130px">Picture</th><th></th></tr></thead><tbody id="items"></tbody></table>
+    <div class="row">
+      <button onclick="addItem()">+ Add item</button>
+      <span class="note">Quick add:</span>
+      <span class="chips">
+        <button class="btn-sm" onclick="addItem({icon:'🧵',label:'Tattered Cloth',command:'cloth',aliases:'cloths',pts:10})">🧵 Cloth</button>
+        <button class="btn-sm" onclick="addItem({icon:'🧸',label:'Plushie',command:'plushie',aliases:'plush, plushies',pts:8})">🧸 Plushie</button>
+        <button class="btn-sm" onclick="addItem({icon:'🍄',label:'Shmole Spores',command:'spore',aliases:'spores',pts:5})">🍄 Spores</button>
+        <button class="btn-sm" onclick="addItem({icon:'🦀',label:'Blue Crab',command:'crab',aliases:'crabs',pts:6})">🦀 Crab</button>
+        <button class="btn-sm" onclick="addItem({icon:'🐝',label:'Golden Glory Bee',command:'bee',aliases:'bees',pts:15})">🐝 Bee</button>
+      </span>
+    </div>
+    <div class="row"><button class="btn-accent" onclick="saveItems()">Save items</button><span class="note" id="itemsNote"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>Teams</h2>
+    <div class="note">As many as you want. Chat joins with <b>!team</b> + the letter (or the team's name).</div>
+    <table style="margin-top:8px"><thead><tr><th style="width:80px">!team</th><th>Name</th><th style="width:56px">Colour</th><th></th></tr></thead><tbody id="teams"></tbody></table>
+    <div class="row"><button onclick="addTeam()">+ Add team</button><button class="btn-accent" onclick="saveTeams()">Save teams</button><span class="note" id="teamsNote"></span></div>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Players <span class="tag" id="pcount">0</span></h2>
+    <div class="row"><input type="text" id="addName" placeholder="Add someone by hand" style="flex:1"><select id="addTeam"></select><button onclick="addPlayer()">+ Add</button></div>
+    <div class="plist" id="players"><div class="note">Nobody yet.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Recent</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card">
+    <h2>Look</h2>
+    <div class="row"><label>Title</label><input type="text" data-s="title" style="flex:1"></div>
+    <div class="row"><label>Line under it</label><input type="text" data-s="subtitle" style="flex:1"></div>
+    <div class="row"><label>Theme</label><select data-l="theme"><option value="spooky">Spooky neon</option><option value="pink">Cute pink</option><option value="palia">Palia gold</option><option value="clean">Clean dark</option></select></div>
+    <div class="row"><label>Width</label><input type="range" min="20" max="100" step="0.5" data-l="width"><span class="val" data-v="width" data-u="%"></span></div>
+    <div class="row"><label>Size</label><input type="range" min="20" max="250" step="5" data-l="scale"><span class="val" data-v="scale" data-u="%"></span></div>
+    <div class="row"><label>Across</label><input type="range" min="0" max="100" step="0.5" data-l="x"><span class="val" data-v="x" data-u="%"></span></div>
+    <div class="row"><label>Down</label><input type="range" min="0" max="100" step="0.5" data-l="y"><span class="val" data-v="y" data-u="%"></span></div>
+    <div class="row"><label>Players shown per team</label><input type="range" min="0" max="30" data-l="showPlayers"><span class="val" data-v="showPlayers"></span></div>
+    <div class="toggles" style="margin-top:6px">
+      <div><label class="sw"><input type="checkbox" data-l="showTimer"><span></span></label> Timer</div>
+      <div><label class="sw"><input type="checkbox" data-l="showLegend"><span></span></label> Points list</div>
+      <div><label class="sw"><input type="checkbox" data-l="showBar"><span></span></label> Team bar</div>
+      <div><label class="sw"><input type="checkbox" data-l="showTicker"><span></span></label> Latest activity</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Test & tools</h2>
+    <div class="row"><input type="text" id="tName" value="TestViewer" style="width:130px"><input type="text" id="tText" value="!team a" style="flex:1"><button onclick="test()">Send as chat</button></div>
+    <div class="note" id="tOut"></div>
+    <div class="row"><label>Ignore these</label><input type="text" data-s="ignore" style="flex:1"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn-danger" onclick="if(confirm('Set everyone back to 0 points? (Teams stay)'))post({reset:'points'})">Reset points</button>
+      <button class="btn-danger" onclick="if(confirm('Start a brand new contest? Removes all players and points.'))post({reset:'all'})">New contest (clear everyone)</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="/js/client/hunt-control.js"></script>
+</body>
+</html>

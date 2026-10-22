@@ -5,12 +5,18 @@
 ICB Clean is the one local server for the Chrome command center, Palia Assistant tracker state, and the read-only Meld overlay. Its project folder is:
 
 ```text
-C:\Users\mrsch\Documents\ChatGPT\ICB-Clean
+C:\Users\aleis\OneDrive\Documents\GitHub\ICB
 ```
 
 It is intentionally separate from the legacy `C:\Users\mrsch\Documents\ChatGPT\ICB` project and `C:\StreamLive`. Do not start, edit, or troubleshoot those older projects as part of normal ICB Clean use.
 
-## Current status (verified 2026-08-14)
+## Source and tests (2026-10-22)
+
+Start with the existing batch launchers or `npm start` (`js/server/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
+
+The existing `assets/resources/poke_bowl.png` file is missing in this checkout. The E2E suite reports that missing artwork after completing its remaining checks. Restoring the original file resolves that asset prerequisite.
+
+## Historical status (verified 2026-08-14)
 
 - The Chrome dashboard now leads the whole workflow through a live "Run the system" panel (see "What to start"). It was rendered and driven through all five states in a real browser during verification, not just unit-tested.
 
@@ -211,7 +217,7 @@ If reconciliation has not been completed, enter all three current in-game totals
 | Value box position | Directly underneath the resource title |
 | Default status | Required for future standard resource trackers unless Baby explicitly overrides it |
 
-The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `test/e2e.js` asserts the standard, so it cannot be changed silently.
+The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `js/test/e2e.js` asserts the standard, so it cannot be changed silently.
 
 Two rules worth repeating here because they are the easy ones to get wrong:
 

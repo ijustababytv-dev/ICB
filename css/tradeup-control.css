@@ -1,0 +1,23 @@
+:root { color-scheme: dark; }
+  body { margin: 0; padding: 20px; background: #14101f; color: #eee; font-family: Arial, Helvetica, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 16px; }
+  h2 { font-size: 15px; margin: 0 0 10px; color: #cbb8ff; }
+  .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; max-width: 1200px; }
+  .panel { background: #1e1830; border: 1px solid #3a2f57; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  button { background: #4a3a80; color: #fff; border: none; border-radius: 6px; padding: 10px 16px; margin: 3px 6px 3px 0; cursor: pointer; font-size: 14px; }
+  button:hover { background: #5c4aa0; }
+  button:disabled { background: #333; color: #777; cursor: not-allowed; }
+  button.danger { background: #7a2a2a; }
+  button.danger:hover { background: #952f2f; }
+  button.big { font-size: 18px; padding: 14px 24px; }
+  .status-row { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+  .status-row div { background: #14101f; border-radius: 6px; padding: 6px 10px; }
+  .status-row b { color: #ffd94a; }
+  #reveal { font-size: 15px; margin: 12px 0; min-height: 20px; }
+  #log { font-size: 12px; max-height: 160px; overflow-y: auto; background: #14101f; border-radius: 6px; padding: 8px; }
+  #log div { padding: 2px 0; border-bottom: 1px solid #2a2340; }
+  label { display: block; font-size: 12px; margin: 8px 0 3px; color: #bbb; }
+  input[type=text], input[type=number], select { width: 100%; box-sizing: border-box; background: #14101f; border: 1px solid #3a2f57; color: #eee; border-radius: 6px; padding: 6px 8px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  td, th { padding: 4px 6px; border-bottom: 1px solid #2a2340; text-align: left; }
+  img.thumb { width: 32px; height: 32px; object-fit: contain; background: #000; border-radius: 4px; }

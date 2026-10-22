@@ -60,3 +60,9 @@ npm.cmd run test:e2e
 ```
 
 For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR`. Normal use searches the standard Palia Assistant log directories.
+
+## Project structure and tests
+
+The server starts at `js/server/index.js`. HTML is in `html/`, scripts in `js/`, styles in `css/`, and local extracted images in `images/embedded/`. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+
+Run `npm run test:unit` and `npm run test:e2e` after changes; `npm run test:browser` checks representative pages in an isolated headless browser. Every new or changed business rule needs unit tests. The E2E suite currently reports the pre-existing missing `assets/resources/poke_bowl.png` file.

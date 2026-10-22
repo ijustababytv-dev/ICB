@@ -1,0 +1,169 @@
+(function () {
+  var stage = document.getElementById('stage');
+  var S = { visible: true, maxAvatars: 25, size: 100, speed: 100, bubbleSec: 7, showNames: true, textSize: 100, bottom: 2, leftEdge: 5, rightEdge: 95, idleMin: 0 };
+  var COLORS = ['#38bdf8', '#c084fc', '#34d399', '#fbbf24', '#f43f5e', '#22d3ee'];
+  var actors = {}, order = [], last = 0, epoch = null, started = false;
+
+  function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function clean(s) {
+    return String(s || '').replace(/&#0*39;/g, "'").replace(/&apos;/gi, "'").replace(/&#8217;|&rsquo;|&lsquo;|&#8216;/gi, "'")
+      .replace(/&#0*34;|&quot;/gi, '"').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&amp;/gi, '&');
+  }
+  function glow(el, c) {
+    el.style.setProperty('--glow', c);
+  }
+
+  function Actor(name, img) {
+    this.name = name; this.key = name.toLowerCase();
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)] || '#38bdf8';
+    var L = S.leftEdge, R = S.rightEdge; if (R - L < 5) { R = L + 5; }
+    this.left = rnd(L, R);
+    this.lift = rnd(0, 1.5);
+    this.dir = Math.random() < .5 ? 1 : -1;
+    this.base = rnd(0.022, 0.04);
+    this.bob = Math.random() * Math.PI * 2; this.bobSpeed = rnd(2.2, 2.9);
+    this.nextTurn = now() + rnd(5000, 11000);
+    this.lastSeen = Date.now();
+    this.build(img);
+  }
+  Actor.prototype.build = function (img) {
+    var el = this.el = document.createElement('div'); el.className = 'actor';
+    glow(el, this.color);
+    this.bubbleEl = document.createElement('div'); this.bubbleEl.className = 'bubble';
+    this.bubbleEl.style.borderColor = this.color; this.bubbleEl.style.boxShadow = '0 0 0.8vw ' + this.color;
+    var bw = document.createElement('div'); bw.appendChild(this.bubbleEl);
+    this.nameEl = document.createElement('div'); this.nameEl.className = 'name'; this.nameEl.textContent = this.name;
+    var c = this.color;
+    this.nameEl.style.textShadow = '-0.09vw -0.09vw 0 #000, 0.09vw -0.09vw 0 #000, -0.09vw 0.09vw 0 #000, 0.09vw 0.09vw 0 #000, 0 0 0.5vw ' + c + ', 0 0 1.1vw ' + c;
+    this.visEl = document.createElement('div'); this.visEl.className = 'visual';
+    this.visEl.style.filter = 'drop-shadow(0 0 0.7vw ' + c + ')';
+    this.imgWrap = document.createElement('div');
+    this.imgEl = document.createElement('img'); this.imgEl.alt = '';
+    if (img) this.imgEl.src = img;
+    this.imgWrap.appendChild(this.imgEl); this.visEl.appendChild(this.imgWrap);
+    el.appendChild(bw); el.appendChild(this.nameEl); el.appendChild(this.visEl);
+    stage.appendChild(el);
+    this.style();
+  };
+  Actor.prototype.style = function () {
+    var k = S.size / 100, t = S.textSize / 100;
+    this.visEl.style.width = this.visEl.style.height = (5.6 * k) + 'vw';
+    this.nameEl.style.fontSize = (1.3 * t) + 'vw';
+    this.nameEl.className = S.showNames ? 'name' : 'name off';
+    this.bubbleEl.style.fontSize = (1.45 * t) + 'vw';
+    this.bubbleEl.style.maxWidth = (14 * Math.max(1, t)) + 'vw';
+  };
+  Actor.prototype.setImg = function (img) { if (img && this.imgEl.getAttribute('src') !== img) this.imgEl.src = img; };
+  Actor.prototype.bounce = function () {
+    var v = this.visEl, self = this;
+    v.className = 'visual'; void v.offsetWidth; v.className = 'visual bouncing';
+    clearTimeout(this.bt); this.bt = setTimeout(function () { self.visEl.className = 'visual'; }, 850);
+  };
+  Actor.prototype.say = function (parts) {
+    var b = this.bubbleEl, self = this, any = false;
+    if (typeof parts === 'string') parts = [{ t: 'text', v: parts }];
+    b.innerHTML = '';
+    for (var i = 0; i < (parts || []).length; i++) {
+      var p = parts[i];
+      if (p.t === 'emote' && p.url) { var im = document.createElement('img'); im.src = p.url; b.appendChild(im); any = true; }
+      else if (p.v) { var s = clean(p.v); if (s.replace(/\s/g, '')) any = true; b.appendChild(document.createTextNode(s)); }
+    }
+    this.bounce();
+    if (!any) return;
+    b.className = 'bubble visible';
+    clearTimeout(this.st); this.st = setTimeout(function () { self.bubbleEl.className = 'bubble'; }, S.bubbleSec * 1000);
+  };
+  Actor.prototype.step = function (dt, t) {
+    var L = S.leftEdge, R = Math.max(S.rightEdge, L + 5), sp = this.base * (S.speed / 100) * (dt / 16.67);
+    if (t > this.nextTurn) { if (Math.random() < .45) this.dir = -this.dir; this.nextTurn = t + rnd(5000, 11000); }
+    this.left += sp * this.dir;
+    if (this.left < L) { this.left = L; this.dir = 1; } else if (this.left > R) { this.left = R; this.dir = -1; }
+    this.bob += (dt / 1000) * this.bobSpeed;
+    var y = Math.sin(this.bob) * 0.4 * (S.size / 100), tilt = Math.sin(this.bob * .5) * 3.5;
+    this.el.style.left = this.left + '%';
+    this.el.style.bottom = (S.bottom + this.lift + y) + 'vw';
+    this.imgWrap.style.transform = 'rotate(' + tilt.toFixed(2) + 'deg)' + (this.dir < 0 ? ' scaleX(-1)' : '');
+  };
+  Actor.prototype.remove = function () {
+    var el = this.el; el.className = 'actor leaving';
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 600);
+  };
+
+  function get(name, img) {
+    var k = name.toLowerCase(), a = actors[k];
+    if (!a) {
+      a = actors[k] = new Actor(name, img); order.push(k);
+      while (order.length > S.maxAvatars) { var old = order.shift(); if (actors[old]) { actors[old].remove(); delete actors[old]; } }
+    } else {
+      a.setImg(img);
+      order.splice(order.indexOf(k), 1); order.push(k);
+    }
+    a.lastSeen = Date.now();
+    return a;
+  }
+  function clearAll() { for (var k in actors) { if (actors.hasOwnProperty(k)) actors[k].remove(); } actors = {}; order = []; }
+  function each(fn) { for (var k in actors) { if (actors.hasOwnProperty(k)) fn(actors[k]); } }
+
+  function handle(ev) {
+    if (ev.kind === 'wave') { each(function (a) { a.bounce(); }); return; }
+    if (!ev.name) return;
+    var a = get(ev.name, ev.avatar);
+    if (ev.kind === 'chat') a.say(ev.parts || []);
+    else if (ev.kind === 'pick' || ev.kind === 'cheer') {
+      a.say(ev.text || '');
+      if (ev.all) each(function (o) { if (o !== a) setTimeout(function () { o.bounce(); }, Math.random() * 400); });
+    }
+  }
+
+  function apply(d) {
+    var ks = ['visible', 'maxAvatars', 'size', 'speed', 'bubbleSec', 'showNames', 'textSize', 'bottom', 'leftEdge', 'rightEdge', 'idleMin'];
+    var changed = false;
+    for (var i = 0; i < ks.length; i++) if (d[ks[i]] !== undefined && d[ks[i]] !== S[ks[i]]) { S[ks[i]] = d[ks[i]]; changed = true; }
+    if (d.colors && d.colors.length) COLORS = d.colors;
+    stage.className = S.visible ? '' : 'hidden';
+    if (changed) {
+      each(function (a) { a.style(); });
+      while (order.length > S.maxAvatars) { var old = order.shift(); if (actors[old]) { actors[old].remove(); delete actors[old]; } }
+    }
+    if (epoch !== null && d.epoch !== epoch) clearAll();
+    epoch = d.epoch;
+  }
+
+  function poll() {
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/avatars' + (started ? '?since=' + last : '?first=1') + '&t=' + Date.now(), true);
+    x.timeout = 4000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      if (x.status === 200) {
+        try {
+          var d = JSON.parse(x.responseText);
+          apply(d);
+          if (!started) { last = d.last || 0; started = true; }
+          else if (d.last < last) { last = d.last; }        // server restarted
+          var evs = d.events || [];
+          for (var i = 0; i < evs.length; i++) { if (evs[i].id > last) { last = evs[i].id; try { handle(evs[i]); } catch (e) {} } }
+        } catch (e) {}
+      }
+      setTimeout(poll, 900);
+    };
+    x.send();
+  }
+
+  // Idle clean-up: avatars who haven't chatted for idleMin minutes walk off (0 = stay).
+  setInterval(function () {
+    if (!S.idleMin) return;
+    var cut = Date.now() - S.idleMin * 60000;
+    for (var i = order.length - 1; i >= 0; i--) { var k = order[i]; if (actors[k] && actors[k].lastSeen < cut) { actors[k].remove(); delete actors[k]; order.splice(i, 1); } }
+  }, 10000);
+
+  var prev = now();
+  function frame() {
+    var t = now(), dt = Math.min(100, t - prev); prev = t;
+    if (S.visible && stage.clientWidth > 0) each(function (a) { a.step(dt, t); });
+    (window.requestAnimationFrame || function (f) { setTimeout(f, 16); })(frame);
+  }
+  frame();
+  poll();
+})();

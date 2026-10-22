@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Decor Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/decor-control.css">
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1>🍂 ICB <span>Decor</span> Dashboard</h1>
+      <div class="sub">Seasonal screen decorations — separate from your trackers. Use the one "everything" layer below, or give an effect its own Meld layer.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+    <button class="btn-danger" onclick="allOff()">Turn everything off</button>
+  </div>
+
+  <div class="card allcard">
+    <h2>🎬 One Meld layer for everything</h2>
+    <div class="url"><span>Meld link</span><code id="allLink"></code><button class="btn-small" onclick="copy(ORIGIN + '/decor/all.html')">Copy</button></div>
+    <div class="note">Add this link to Meld <b>once</b> as a full-screen browser layer. It shows every effect that's switched on. To change between leaves, ghosts or anything else, flip the switches below or press <b>▶ Show only this one</b> on the effect you want. (Each effect's own link still works too, if you'd rather have separate layers. Don't use both for the same effect or it shows twice.)</div>
+  </div>
+
+  <div class="card">
+    <h2>🖼️ Picture library</h2>
+    <div class="note" style="margin:0 0 10px">Every picture you've added, from every effect, in one place. Click an effect's name under a picture to send that picture into it (click again to take it out) — no need to upload the same picture twice. Highlighted pictures are in use somewhere.</div>
+    <div class="presets" style="margin-bottom:10px">
+      <input type="search" id="libSearch" placeholder="Search pictures…" oninput="renderLibrary()" style="flex:1;min-width:160px">
+      <select id="libShow" onchange="renderLibrary()" style="background:var(--panel2,#1b1430);color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px">
+        <option value="all">Show all</option><option value="used">Only in use</option><option value="unused">Only not in use</option>
+      </select>
+    </div>
+    <div class="lib" id="library"></div>
+    <div class="drop" style="margin-top:10px" ondragover="event.preventDefault(); this.classList.add('hover')" ondragleave="this.classList.remove('hover')"
+         ondrop="event.preventDefault(); this.classList.remove('hover'); uploadLibrary(event.dataTransfer.files)" onclick="this.nextElementSibling.click()">Drop pictures here to add them to the library (or click to pick files)</div>
+    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadLibrary(this.files); this.value=''">
+    <div class="note">New library pictures are saved in <code>ICB\assets\decor\misc\</code>. Pictures you drop on an effect card below still go into that effect's own folder, and show up here too.</div>
+  </div>
+
+  <div class="card">
+    <h2>Presets</h2>
+    <div class="presets" id="presets"></div>
+    <div class="presets" style="margin-top:10px;">
+      <input type="text" id="presetName" placeholder="Name this look, e.g. Cozy fall" maxlength="40">
+      <button onclick="savePreset()">💾 Save current look</button>
+    </div>
+    <div class="note">A preset remembers every effect's on/off, amount, speed, size, see-through and which art is ticked. Saving with an existing name updates it.</div>
+  </div>
+
+  <div class="effects" id="effects"></div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>Add a new effect</h2>
+    <div class="presets">
+      <input type="text" id="newName" placeholder="e.g. Snowflakes" maxlength="40">
+      <select id="newType" style="background:var(--panel2,#1b1430);color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px">
+        <option value="fall">🍂 Falls down</option><option value="float">👻 Floats up</option><option value="fly">🦇 Flies across</option>
+      </select>
+      <button class="btn-accent" onclick="addEffect()">＋ Add effect</button>
+    </div>
+    <div class="note">Every effect gets its own art folder and its own Meld link, and shows up on the "everything" layer. Pick how it moves: falls down (leaves, snow, candy corn), floats up (ghosts, bubbles, hearts) or flies across (bats, butterflies, clouds). You can change the motion any time.</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/decor-control.js"></script>
+</body>
+</html>

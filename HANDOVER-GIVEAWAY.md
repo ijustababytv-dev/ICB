@@ -1,3 +1,5 @@
+> Source layout updated 2026-10-22: giveaway state and backups are in `js/server/giveaway/`; routes are in `js/server/routes/giveaway*.js`; pages are in `html/`; browser scripts are in `js/client/` (the jar has its own `unicorn-jar/` folder). Images formerly embedded as base64 are local files in `images/embedded/`. URLs are unchanged. See `docs/ARCHITECTURE.md`; older references below to root `server.js` describe the pre-refactor layout.
+
 # ICB Fluffy Unicorn Giveaway — Handover for the next developer
 
 Owner: Baby (Twitch streamer "IJustABabyTv"). Project folder on her PC:

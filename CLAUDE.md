@@ -23,7 +23,7 @@ decisions **without Baby having to explain them again**. Read it first. Keep it 
 - Full spec: [`docs/ICB-TRACKER-SKIN-STANDARD.md`](docs/ICB-TRACKER-SKIN-STANDARD.md)
 - Machine-readable source of truth: [`config/tracker-skin-standard.json`](config/tracker-skin-standard.json)
 - Served live at `GET /api/tracker-skin-standard`
-- Enforced by assertions in `test/e2e.js` — break the standard, break the build
+- Enforced by assertions in `js/test/e2e.js` — break the standard, break the build
 
 When Baby asks for a new tracker, **assume this standard automatically. Do not ask what size
 the skin should be, and do not ask for the card geometry — it is confirmed.**
@@ -108,6 +108,13 @@ synthetic test fixture. **When in doubt about log behaviour, read a real log** a
 `%LOCALAPPDATA%\PaliaAssistant\logs\app-*.log`.
 
 ---
+
+## Source layout (2026-10-22)
+
+- The former 7,089-line root server has been split into `js/server/`; start with `npm start` or the existing launchers. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+- HTML is in `html/`, browser scripts in `js/client/`, styles in `css/`, and former base64 images in `images/embedded/`. URLs remain unchanged. Keep image hosting local until Baby provides her cloud decision.
+- Every new or changed business rule requires unit tests. Run `npm run test:unit` and `npm run test:e2e`; run `npm run test:browser` after browser code changes.
+- Maintained JS/HTML/CSS must stay within 500 lines and 40 KB. Structure tests enforce this and reject embedded base64 image assets.
 
 ## Current state
 

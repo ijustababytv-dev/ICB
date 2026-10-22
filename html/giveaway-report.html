@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stream Report — ijustababyTV</title>
+<link rel="stylesheet" href="/css/giveaway-report.css">
+</head>
+<body>
+<div class="toolbar">
+  <label for="night">Night</label>
+  <select id="night"></select>
+  <button class="b-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <label style="display:flex; gap:6px; align-items:center; color:#f3e8ff; font-size:12px;"><input type="checkbox" id="printLong"> Include full chat log &amp; transcript when printing</label>
+  <button class="b-csv" onclick="downloadCsv()">⬇ Download spreadsheet (CSV)</button>
+  <span class="spacer"></span>
+  <a href="/giveaway-control.html">← Giveaway dashboard</a>
+</div>
+<div class="page" id="page"><div class="empty-night">Loading…</div></div>
+
+<script src="/js/client/giveaway-report.js"></script>
+</body>
+</html>

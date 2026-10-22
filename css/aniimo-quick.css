@@ -1,0 +1,17 @@
+html, body { margin: 0; height: 100%; background: transparent; font: 14px/1.35 "Segoe UI", system-ui, sans-serif; color: #f3f6ff; overflow: hidden; }
+  #box { position: absolute; left: 4px; top: 4px; right: 4px; bottom: 4px; background: rgba(16,21,34,.92); border: 2px solid #7dd3fc; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; box-sizing: border-box; }
+  #top { display: flex; align-items: center; margin-bottom: 8px; }
+  #top b { flex: 1; font-size: 15px; } #top span { color: #86efac; font-weight: 800; }
+  input { width: 100%; box-sizing: border-box; font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid #34425b; background: #0c1220; color: #fff; }
+  #res { flex: 1; overflow: auto; margin-top: 8px; }
+  .a { background: #151e2f; border-radius: 10px; padding: 8px; margin-bottom: 6px; border-left: 4px solid var(--c); }
+  .a .n { font-weight: 800; }
+  .a img { float: right; width: 40px; height: 40px; object-fit: contain; margin-left: 6px; } .a .m { color: #aab6ce; font-size: 12px; margin-left: 6px; }
+  .v { display: inline-block; margin: 4px 4px 0 0; padding: 3px 9px; border-radius: 9px; background: #222c40; cursor: pointer; font-size: 12.5px; user-select: none; }
+  .v.on { background: #1e5b3f; color: #b6f7cf; }
+  .v img { width: 18px; height: 18px; object-fit: contain; vertical-align: middle; margin-right: 4px; }
+  .v.last { outline: 2px solid #ffd166; }
+  #hint { font-size: 12px; color: #ffd166; margin-top: 6px; display: none; }
+  .v:hover { outline: 1px solid #7dd3fc; }
+  #recent { font-size: 12px; color: #aab6ce; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { color: #aab6ce; padding: 8px; }

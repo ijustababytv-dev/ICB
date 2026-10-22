@@ -1,0 +1,32 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #wrap { position: absolute; left: 0; top: 0; transform-origin: 0 0; padding: 10px; }
+  #panel { width: 620px; border-radius: 22px; border: 3px solid #ff8fd8; padding: 16px 18px 12px; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; box-shadow: 0 8px 26px rgba(0,0,0,.45); transition: opacity .4s; }
+  #panel.hidden { opacity: 0; }
+  #head { overflow: hidden; margin-bottom: 4px; }
+  #title { float: left; font-weight: 900; font-size: 1.25em; text-shadow: 0 2px 0 rgba(0,0,0,.5); }
+  #count { float: right; font-weight: 900; font-size: 1.1em; padding: 2px 14px; border-radius: 999px; color: #1b0f2a; margin-top: 3px; }
+  #ev { font-weight: 700; opacity: .85; font-size: .8em; margin-bottom: 8px; }
+  #list { }
+  .g { display: inline-block; vertical-align: top; box-sizing: border-box; padding: 3px 4px; }
+  .gi { border-radius: 12px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.12); padding: 4px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; transition: background .4s, border-color .4s; }
+  .gi .n { display: inline-block; min-width: 1.6em; text-align: center; border-radius: 8px; margin-right: 8px; padding: 0 5px; font-weight: 900; color: #1b0f2a; }
+  .gi .by { font-size: .62em; opacity: .85; margin-left: 6px; font-weight: 700; }
+  .gi.here .chk { float: right; margin-left: 6px; }
+  .gi.pop { animation: pop .9s ease-out; }
+  @keyframes pop { 0% { transform: scale(1); } 30% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  #foot { margin-top: 8px; text-align: center; font-weight: 800; font-size: .78em; opacity: .9; }
+  #foot b { padding: 0 8px; border-radius: 8px; color: #1b0f2a; }
+  .empty { opacity: .7; text-align: center; padding: 10px; }
+  #evname { font-weight: 900; font-size: 1.05em; margin-top: 2px; }
+  #desc { opacity: .85; font-size: .72em; font-weight: 700; margin: 2px 0 6px; white-space: pre-wrap; }
+  #when { margin: 6px 0 4px; overflow: hidden; }
+  #when .main { float: left; font-weight: 900; font-size: .9em; }
+  #when .cd { float: right; font-weight: 900; font-size: .8em; padding: 1px 12px; border-radius: 999px; color: #1b0f2a; }
+  #zones { margin: 2px -3px 8px; }
+  .z { display: inline-block; margin: 3px; padding: 2px 9px; border-radius: 10px; background: rgba(255,255,255,.1); font-size: .66em; font-weight: 800; white-space: nowrap; }
+  .z b { opacity: .75; font-weight: 700; margin-right: 5px; }
+  .role { margin-top: 6px; }
+  .rh { font-weight: 900; font-size: .82em; padding: 2px 10px; border-radius: 10px; margin: 0 0 3px; overflow: hidden; }
+  .rh .cmd { float: right; font-size: .85em; opacity: .9; }
+  .wl { font-size: .62em; font-weight: 900; opacity: .8; margin: 4px 4px 0; text-transform: uppercase; letter-spacing: 1px; }
+  .gi.wait { opacity: .6; border-style: dashed; }

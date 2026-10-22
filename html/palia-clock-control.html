@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Palia Clock — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/palia-clock-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>🕰️ Palia <span>Clock</span></h1><div class="sub">In-game Palia time on stream, with alarms at Palia times. One Palia day = one real hour; a Palia hour = 2.5 real minutes.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="cols">
+<div>
+  <div class="card">
+    <div class="note">Right now in Palia</div>
+    <div class="clock" id="now">--:--</div>
+    <div class="note" id="nowSub"></div>
+    <div class="row"><label class="sw"><input type="checkbox" data-s="visible"><span></span></label> Show on stream</div>
+  </div>
+
+  <div class="card">
+    <h2>Alarms <span class="note">(Palia time — they ring every Palia day unless "once")</span></h2>
+    <div id="alarms"></div>
+    <div class="row"><button onclick="addAlarm()">+ Add alarm</button>
+      <span class="chips">
+        <button class="btn-sm" onclick="addAlarm('06:00','A new day in Palia!','🌅')">🌅 6 AM</button>
+        <button class="btn-sm" onclick="addAlarm('12:00','Noon in Palia','☀️')">☀️ Noon</button>
+        <button class="btn-sm" onclick="addAlarm('18:00','Evening in Palia','🌇')">🌇 6 PM</button>
+        <button class="btn-sm" onclick="addAlarm('21:00','Night time','🌙')">🌙 9 PM</button>
+        <button class="btn-sm" onclick="addAlarm('00:00','Midnight','🕛')">🕛 Midnight</button>
+      </span></div>
+    <div class="row"><button class="btn-accent" onclick="saveAlarms()">Save alarms</button><span class="note" id="aNote"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>Quick Palia timer</h2>
+    <div class="row"><label>Ring in</label><input type="number" id="qh" value="2" min="0.25" max="24" step="0.25" style="width:90px"><span class="note">Palia hours</span>
+      <input type="text" id="ql" placeholder="What for? e.g. Check the crops" style="flex:1"><button class="btn-accent" onclick="quick()">Start</button></div>
+    <div class="note" id="qNote">1 Palia hour = 2.5 real minutes.</div>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Preview</h2>
+    <div class="prev" id="prev"><iframe id="pf" src="/palia-clock.html"></iframe></div>
+    <div class="note" style="margin-top:8px">Add as a full-screen Browser layer in Meld (1920×1080):</div>
+    <div class="url" style="margin-top:6px"><input type="text" id="url" readonly><button onclick="copyUrl()">Copy</button></div>
+    <div class="row"><button onclick="api('/api/paliaclock',{test:{label:'Test alarm!'}})">🔔 Test alarm</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Look & sound</h2>
+    <div class="row"><label>Title</label><input type="text" data-s="title" style="flex:1"></div>
+    <div class="row"><label>Theme</label><select data-l="theme"><option value="night">Night sky</option><option value="palia">Palia gold</option><option value="pink">Cute pink</option><option value="glass">Glass</option></select></div>
+    <div class="row"><label>Size</label><input type="range" min="20" max="400" step="5" data-l="scale"><span class="val" data-v="scale" data-u="%"></span></div>
+    <div class="row"><label>Across</label><input type="range" min="0" max="100" step="0.5" data-l="x"><span class="val" data-v="x" data-u="%"></span></div>
+    <div class="row"><label>Down</label><input type="range" min="0" max="100" step="0.5" data-l="y"><span class="val" data-v="y" data-u="%"></span></div>
+    <div class="toggles">
+      <div><label class="sw"><input type="checkbox" data-l="show24h"><span></span></label> 24-hour</div>
+      <div><label class="sw"><input type="checkbox" data-l="showReal"><span></span></label> Real time line</div>
+      <div><label class="sw"><input type="checkbox" data-l="showDayBar"><span></span></label> Day bar</div>
+      <div><label class="sw"><input type="checkbox" data-l="showNext"><span></span></label> Next alarm</div>
+    </div>
+    <div class="row"><label>Alarm shows for</label><input type="range" min="2" max="60" data-s="bannerSec"><span class="val" data-v="bannerSec" data-u="s"></span></div>
+    <div class="row"><label>Chime sound</label><label class="sw"><input type="checkbox" data-s="sound"><span></span></label>
+      <input type="range" min="0" max="100" data-s="volume"><span class="val" data-v="volume" data-u="%"></span></div>
+    <div class="note">Meld plays the chime only if the browser layer's audio is on.</div>
+  </div>
+</div>
+</div>
+
+<script src="/js/client/palia-clock-control.js"></script>
+</body>
+</html>

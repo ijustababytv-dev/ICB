@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chat Avatars — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/chat-avatars-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>👻 Chat <span>Avatars</span></h1><div class="sub">Your Meld sprite avatars, now run by ICB. Chatters show up walking along the bottom of your stream.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/" style="color:var(--dim)">← Hub</a>
+</div>
+
+<div class="cols">
+<div>
+  <div class="card">
+    <h2>On stream</h2>
+    <div class="row"><label>Show on stream</label><label class="sw"><input type="checkbox" data-k="visible"><span></span></label></div>
+    <div class="note">Add this as a full-screen Browser layer in Meld (1920×1080). It replaces your old Meld element.</div>
+    <div class="url" style="margin-top:8px"><input type="text" id="url" readonly><button onclick="copyUrl()">Copy</button></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn-accent" onclick="api('/api/avatars',{wave:true})">👋 Wave all</button>
+      <button class="btn-danger" onclick="if(confirm('Clear everyone off the screen?'))api('/api/avatars',{clear:true})">Clear all</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Look</h2>
+    <div class="row"><label>Most avatars</label><input type="range" min="1" max="60" data-k="maxAvatars"><span class="val" data-v="maxAvatars"></span></div>
+    <div class="row"><label>Avatar size</label><input type="range" min="30" max="300" step="5" data-k="size"><span class="val" data-v="size" data-u="%"></span></div>
+    <div class="row"><label>Walk speed</label><input type="range" min="0" max="400" step="10" data-k="speed"><span class="val" data-v="speed" data-u="%"></span></div>
+    <div class="row"><label>Text size</label><input type="range" min="50" max="250" step="5" data-k="textSize"><span class="val" data-v="textSize" data-u="%"></span></div>
+    <div class="row"><label>Height from bottom</label><input type="range" min="0" max="40" step="0.5" data-k="bottom"><span class="val" data-v="bottom"></span></div>
+    <div class="row"><label>Left edge</label><input type="range" min="0" max="90" data-k="leftEdge"><span class="val" data-v="leftEdge" data-u="%"></span></div>
+    <div class="row"><label>Right edge</label><input type="range" min="10" max="100" data-k="rightEdge"><span class="val" data-v="rightEdge" data-u="%"></span></div>
+    <div class="row"><label>Show names</label><label class="sw"><input type="checkbox" data-k="showNames"><span></span></label></div>
+    <div class="row"><label>Leave after quiet</label><input type="range" min="0" max="120" step="5" data-k="idleMin"><span class="val" data-v="idleMin" data-u=" min"></span></div>
+    <div class="note">0 min = they stay until the list is full.</div>
+    <div class="row"><label>Glow colours</label><input type="text" data-k="colors" placeholder="#38bdf8, #c084fc"></div>
+    <div class="colors" id="sw"></div>
+  </div>
+
+  <div class="card">
+    <h2>Chat</h2>
+    <div class="row"><label>Speech bubbles</label>
+      <span class="seg" id="bub"><button data-b="all">All chat</button><button data-b="commands">Only !say</button><button data-b="off">Off</button></span></div>
+    <div class="row"><label>Bubble time</label><input type="range" min="2" max="30" data-k="bubbleSec"><span class="val" data-v="bubbleSec" data-u="s"></span></div>
+    <div class="row"><label>Say commands</label><input type="text" data-k="sayCmds"></div>
+    <div class="note">"!say hello" shows just "hello". Other !commands make the avatar appear with no bubble.</div>
+    <div class="row"><label>Let chat pick (!avatar sonic)</label><label class="sw"><input type="checkbox" data-k="pickCmd"><span></span></label></div>
+    <div class="row"><label>Ignore these</label></div>
+    <textarea data-k="ignore"></textarea>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Alerts</h2>
+    <div class="row"><label class="sw"><input type="checkbox" data-k="subOn"><span></span></label><label style="min-width:60px">Sub</label><input type="text" data-k="subMsg"></div>
+    <div class="row"><label class="sw"><input type="checkbox" data-k="followOn"><span></span></label><label style="min-width:60px">Follow</label><input type="text" data-k="followMsg"></div>
+    <div class="row"><label class="sw"><input type="checkbox" data-k="raidOn"><span></span></label><label style="min-width:60px">Raid</label><input type="text" data-k="raidMsg"></div>
+    <div class="row"><label class="sw"><input type="checkbox" data-k="bitsOn"><span></span></label><label style="min-width:60px">Bits</label><input type="text" data-k="bitsMsg"></div>
+    <div class="row"><label>Everyone bounces on a sub</label><label class="sw"><input type="checkbox" data-k="bounceAllOnSub"><span></span></label></div>
+    <div class="note">{n} = raid viewers or bits. Raids always make everyone bounce.</div>
+  </div>
+
+  <div class="card">
+    <h2>Test</h2>
+    <div class="row"><input type="text" id="tName" placeholder="Name" value="TestViewer" style="flex:0 0 140px;min-width:0"><input type="text" id="tText" placeholder="Message" value="Hi Baby! 👋"><button onclick="test()">Send</button></div>
+    <div class="row">
+      <button class="btn-sm" onclick="tEv('sub')">Test sub</button><button class="btn-sm" onclick="tEv('follow')">Test follow</button>
+      <button class="btn-sm" onclick="tEv('raid')">Test raid</button><button class="btn-sm" onclick="tEv('bits')">Test bits</button>
+      <button class="btn-sm" onclick="crowd()">Fill with 8 chatters</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Avatars <span class="note" id="poolNote"></span></h2>
+    <div class="note" style="margin-bottom:8px">Click a picture to turn it on or off. Off avatars aren't handed out to new chatters. Hover for ✕ to remove. Drop or paste a picture to add one.</div>
+    <div class="pool" id="pool"></div>
+    <input type="file" id="file" accept="image/*" multiple style="display:none">
+  </div>
+
+  <div class="card">
+    <h2>Chatters</h2>
+    <div class="note" style="margin-bottom:6px">Give someone a set avatar. 📌 = picked by you or by them with !avatar.</div>
+    <div id="chatters"><div class="note">Nobody has chatted since ICB started.</div></div>
+  </div>
+</div>
+</div>
+
+<script src="/js/client/chat-avatars-control.js"></script>
+</body>
+</html>

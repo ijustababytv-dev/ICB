@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steam Achievements — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/steam-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🏅 <span>Steam Achievements</span></h1>
+      <div class="sub">Reads your Aniimo achievements from Steam (official, allowed) — pop-up on stream when you unlock one.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="pill" id="status">…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>1 · Connect to Steam</h2>
+        <ol class="steps">
+          <li>Get your free key: open <a href="https://steamcommunity.com/dev/apikey" target="_blank">steamcommunity.com/dev/apikey</a>, sign in, type <code>localhost</code> as the domain, tick the box, press <b>Register</b>, and copy the <b>Key</b>.</li>
+          <li>Copy your Steam profile link (Steam → click your name → Profile → right-click → <b>Copy Page URL</b>).</li>
+          <li>Make achievements visible: Steam profile → <b>Edit Profile → Privacy Settings → Game details: Public</b>.</li>
+        </ol>
+        <div class="row"><label>Steam API key</label><input type="password" id="apiKey" style="flex:1" placeholder="paste the 32-character key" autocomplete="off"></div>
+        <div class="row"><label>Steam profile</label><input type="text" id="steamId" style="flex:1" placeholder="https://steamcommunity.com/id/yourname"></div>
+        <div class="row"><label>Game</label><input type="text" id="appId" style="width:120px"><span class="note" style="margin:0">4126040 = Aniimo (other Steam games work too)</span></div>
+        <div class="row"><button class="btn-accent" onclick="connect()">Save &amp; check now</button><button onclick="checkNow()">Check again</button></div>
+        <div class="err" id="err"></div>
+        <div class="note" id="keyNote"></div>
+        <div class="note">Your key stays on your computer in ICB — the stream overlays never see it.</div>
+      </div>
+
+      <div class="card">
+        <h2>2 · On stream</h2>
+        <div class="url"><b>Pop-up</b><code>http://127.0.0.1:8790/steam.html?view=popup</code><button class="btn-sm" onclick="cp('popup')">Copy</button></div>
+        <div class="url"><b>Progress</b><code>http://127.0.0.1:8790/steam.html?view=progress</code><button class="btn-sm" onclick="cp('progress')">Copy</button></div>
+        <div class="url"><b>Art card</b><code>http://127.0.0.1:8790/steam.html?view=card</code><button class="btn-sm" onclick="cp('card')">Copy</button></div>
+        <div class="note" style="margin-bottom:10px">Pop-up layer: full screen or a wide strip at the top. Add <code>?view=cardpop</code> for your art card + pop-ups in one layer.</div>
+        <div class="row"><label>Progress title</label><input type="text" id="progressTitle" style="flex:1" maxlength="80"></div>
+        <div class="row"><label>Pop-up shows for</label><input type="number" id="popupSec" min="3" max="30" style="width:80px"> seconds</div>
+        <div class="row"><label>Check Steam every</label><input type="number" id="pollSec" min="30" max="600" style="width:80px"> seconds</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showRarity"><span></span></label> Show "Only X% of players have this"</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="enabled"><span></span></label> Checking Steam is on</div>
+        <div class="row"><button class="btn-accent" onclick="saveOpts()">Save</button></div>
+        <div class="note">Steam usually shows a new achievement within a minute or two of unlocking it in game.</div>
+        <iframe class="preview" src="/steam.html?view=both"></iframe>
+      </div>
+
+      <div class="card">
+        <h2>3 · Your art card <span class="note" style="margin:0">(optional)</span></h2>
+        <div class="row"><label>Card picture</label><select id="cardImage" style="flex:1"></select></div>
+        <img class="thumb" id="thumb" alt="">
+        <div class="row"><label>Number box (%)</label>
+          L <input type="number" id="bl" style="width:70px" step="0.1"> T <input type="number" id="bt" style="width:70px" step="0.1">
+          W <input type="number" id="bw" style="width:70px" step="0.1"> H <input type="number" id="bh" style="width:70px" step="0.1"></div>
+        <div class="row"><button class="btn-accent" onclick="saveCard()">Save card</button></div>
+        <div class="note">Drop your card art in <b>assets\resources</b> like the Palia cards, pick it here — ask Claude to measure the number box for you.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Progress <span class="note" id="lastCheck" style="margin:0"></span></h2>
+        <div class="big" id="count">— / —</div>
+        <div class="ach" id="ach"></div>
+        <div class="note">Press <b>Test</b> on any achievement to see its pop-up on stream.</div>
+      </div>
+      <div class="card" id="statsCard" style="display:none">
+        <h2>Steam stats for this game</h2>
+        <div class="note" style="margin:0 0 8px">Tick up to 6 to show on the Progress widget. You can rename them.</div>
+        <div id="stats"></div>
+        <div class="row" style="margin-top:8px"><button class="btn-accent" onclick="saveStats()">Save stats</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/steam-control.js"></script>
+</body>
+</html>

@@ -12,7 +12,9 @@ Their collection progress is stored locally in that browser profile and is not a
 Use the tracker's Download backup (.json) and Import backup controls to transfer progress.
 
 CONTENTS
-- Aniimo Tracker.html: the complete offline tracker, with embedded data, styling, and scripts.
+- html/Aniimo Tracker.html: the offline tracker page.
+- js/client/aniimo-tracker.js and css/aniimo-tracker.css: its local script and stylesheet.
+Keep these folders together when copying the portable tracker.
 - Launch Aniimo Tracker.bat: opens it in an app-style window on Windows with Edge or Chrome.
 
 NOTE

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cake Sign-Ups — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/party-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🎂 <span>Cake Sign-Ups</span></h1>
+      <div class="sub">Chat signs up for a role with <code>!tomato TheirPaliaName</code> · <code>!leave</code> drops out · a different role swaps them.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Events</h2>
+        <div class="row"><select id="evPick" style="flex:1"></select><span class="live" id="liveTag">not live</span></div>
+        <div class="row">
+          <select id="putBoard"><option value="1">Board 1</option><option value="2">Board 2</option><option value="3">Board 3</option><option value="4">Board 4</option><option value="5">Board 5</option><option value="6">Board 6</option><option value="7">Board 7</option></select>
+          <button class="btn-accent" id="makeLive" onclick="makeLive()">📺 Put on this board</button>
+          <button id="takeOff" onclick="takeOff()">Take off stream</button>
+          <button onclick="newEvent(false)">+ New event</button>
+          <button onclick="newEvent(true)">⧉ Copy this event</button>
+          <button class="btn-danger" onclick="delEvent()">Delete</button>
+        </div>
+        <div class="note">Up to <b>7 events</b> can be live at once — one per board. Only events on a board take sign-ups from chat. "Copy" keeps the roles but starts with no sign-ups.</div>
+      </div>
+
+      <div class="card">
+        <h2>Event details</h2>
+        <div class="row"><label>Name</label><input type="text" id="title" style="flex:1" maxlength="80" placeholder="Overprep Party"></div>
+        <div class="row"><label>When</label><input type="text" id="when" style="flex:1" maxlength="80" placeholder="Sat Oct 10 · 7 PM CDT"></div>
+        <div class="row"><label>Details</label><input type="text" id="subtitle" style="flex:1" maxlength="140" placeholder="optional, e.g. Meet at my house · bring 50 crops"></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="open"><span></span></label> Sign-ups open</div>
+        <div class="cd">
+          <div class="row" style="margin-bottom:4px"><b>⏰ Party countdown</b><span class="note" style="margin:0" id="cdLive"></span></div>
+          <div class="row"><label>Party at</label><input type="time" id="startTime" step="300" style="font-size:18px">
+            <button class="btn-sm" onclick="atTime(18)">6 PM</button><button class="btn-sm" onclick="atTime(19)">7 PM</button><button class="btn-sm" onclick="atTime(20)">8 PM</button><button class="btn-sm" onclick="atTime(21)">9 PM</button></div>
+          <div class="note" style="margin:-4px 0 8px">Just pick a time — it's today, or tomorrow if that time has already passed. Then press <b>Start countdown</b>.</div>
+          <div class="row"><label>Exact date</label><input type="datetime-local" id="startAt"><button class="btn-sm" onclick="cdIn(15)">+15 min</button><button class="btn-sm" onclick="cdIn(30)">+30 min</button><button class="btn-sm" onclick="cdIn(60)">+1 hr</button></div>
+          <div class="row"><label>Turn yellow</label><input type="number" id="warnMin" min="1" max="120" style="width:70px"> minutes before, if not signed in</div>
+          <div class="row"><button class="btn-accent" onclick="saveCountdown()">Start countdown</button><button onclick="clearCountdown()">Stop countdown</button><button onclick="resetCheckins()">Reset sign-ins</button></div>
+          <div class="note">Chat signs in at the party with <code>!here</code> → name turns <b style="color:#7fc0ff">blue</b>. Not signed in: <b style="color:#ffe66d">yellow</b> when the countdown is in its last minutes, <b style="color:#ff9aa3">red</b> once it hits zero. You can also tap <b>Sign in</b> next to anyone below.</div>
+        </div>
+        <div class="row"><button class="btn-accent" onclick="saveDetails()">Save details</button></div>
+      </div>
+
+      <div class="card">
+        <h2>🎨 Board look <span class="note" style="margin:0">(your own art for this party)</span></h2>
+        <div class="row"><label>Background</label><select id="bgImage" style="flex:1"></select><label class="btn-sm upl">⬆ Upload<input type="file" accept="image/*" onchange="uploadArt(this,'bgImage')" hidden></label></div>
+        <img class="artthumb" id="bgThumb" alt="">
+        <div class="row"><label>Picture fit</label><select id="bgFit"><option value="cover">Fill the whole board (may crop edges)</option><option value="contain">Show the whole picture</option></select></div>
+        <div class="row"><label>Title banner</label><select id="titleImage" style="flex:1"></select><label class="btn-sm upl">⬆ Upload<input type="file" accept="image/*" onchange="uploadArt(this,'titleImage')" hidden></label></div>
+        <img class="artthumb" id="titleThumb" alt="">
+        <div class="note" style="margin:-4px 0 8px">A title banner picture replaces the pink title text (great for a logo or lettering you made).</div>
+        <div class="row"><label>Dark panel</label><input type="range" id="panel" min="0" max="100" style="flex:1"><span id="panelV" class="note" style="margin:0;width:44px"></span></div>
+        <div class="row"><label>Role cards</label><input type="range" id="roleCards" min="0" max="100" style="flex:1"><span id="roleCardsV" class="note" style="margin:0;width:44px"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="border"><span></span></label> White border around the board</div>
+        <div class="row"><button class="btn-accent" onclick="saveLook()">Save look</button><button onclick="saveLook(true)">Use this look for ALL parties</button></div>
+        <div class="note">Best background size: <b>1500 × 900</b> (any size works). Lower "Dark panel" to let more of your art show; keep some darkness so names stay readable. You can also drop pictures into the <b>assets\party</b> folder.</div>
+      </div>
+
+      <div class="card">
+        <h2>Roles <span class="note" style="margin:0">(any kind — overprep, cooking, helpers, anything)</span></h2>
+        <div class="hdr"><span>Emoji</span><span>Role name</span><span>Chat command</span><span>Spots</span><span></span></div>
+        <div id="roles"></div>
+        <div class="row" style="margin-top:8px"><button onclick="addRole()">+ Add role</button><button class="btn-accent" onclick="saveRoles()">Save roles</button></div>
+        <datalist id="groupList"><option>Overprep</option><option>Cooking</option><option>Fire / Stoves</option><option>Helpers</option><option>Gatherers</option><option>Hosts</option></datalist>
+        <div class="note">Roles with the same <b>Section</b> are grouped together on stream (e.g. all Overprep roles, then Cooking). <b>Must bring</b> shows under the role so chat knows what to bring.<br>Removing a role also removes the people signed up for it. When a role is full, extra people go on its waitlist and move up automatically if someone leaves.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>On stream</h2>
+        <div class="note" style="margin:0 0 8px">Add each board you use as its own Meld layer. Pick which event is on each board here or in Events.</div>
+        <div id="boards"></div>
+        <div class="spotbox">
+          <div class="row" style="margin-bottom:4px"><b>📣 Spotlight board</b><span class="note now" id="spotNow" style="margin:0"></span></div>
+          <div class="url"><code>http://127.0.0.1:8790/party.html?board=spot</code><button class="btn-sm" onclick="copyUrl('spot')">Copy</button></div>
+          <div class="note" style="margin:0 0 8px">One layer that shows your live boards one after another. A viewer types <code>!party 3</code> to bring Board 3 up so they can sign up.</div>
+          <div class="row"><label>Switch every</label><input type="number" id="spotRotate" min="5" max="300" style="width:70px"> sec &nbsp; <label style="min-width:0">!party shows it for</label><input type="number" id="spotHold" min="10" max="600" style="width:70px"> sec</div>
+          <div class="switchrow"><label class="switch"><input type="checkbox" id="spotChat"><span></span></label> Chat can use <code>!party #</code></div>
+          <div class="row"><button class="btn-accent" onclick="saveSpot()">Save spotlight</button></div>
+        </div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the sign-up board on stream</div>
+        <div class="spotbox">
+          <div class="switchrow" style="margin-top:0"><label class="switch"><input type="checkbox" id="onDemand"><span></span></label> <b>Hidden until chat asks</b></div>
+          <div class="note" style="margin:0 0 6px">Boards stay invisible until chat types <code>!show</code> / <code>!party</code> (all live boards) or <code>!show 3</code> / <code>!party 3</code> (just Board 3).</div>
+          <div class="row"><label>Stays up for</label><input type="number" id="showSec" min="5" max="600" style="width:80px"> seconds
+            <label style="min-width:auto;margin-left:10px"><input type="checkbox" id="showOnSignup"> Pop up when someone signs up</label></div>
+          <div class="row"><button class="btn-sm" onclick="act('/api/party/settings', { showNow: 'all' }, 'Showing all boards')">👀 Show all now</button><button class="btn-sm" onclick="act('/api/party/settings', { hideNow: true }, 'Hidden')">Hide now</button></div>
+        </div>
+        <div class="note" style="margin:6px 0">Chat can type <code>!show cake</code> / <code>!hide cake</code> to put all the boards on screen or take them off. <b id="chatHid" style="color:#ffe66d"></b></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showTwitch"><span></span></label> Also show Twitch names (small) next to Palia names</div>
+      </div>
+
+      <div class="card">
+        <h2>Who's signed up <span class="note" id="countNote" style="margin:0"></span></h2>
+        <div id="signups"></div>
+        <div class="row" style="margin-top:8px">
+          <input type="text" id="addTwitch" placeholder="Twitch name" style="width:130px">
+          <input type="text" id="addPalia" placeholder="Palia name" style="width:130px">
+          <select id="addRole"></select><button onclick="addPerson()">Add</button>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button onclick="copyList()">📋 Copy list (for Discord)</button>
+          <button onclick="foldAll(true)">▸ Fold all on stream</button>
+          <button onclick="foldAll(false)">▾ Open all on stream</button>
+          <button class="btn-danger" onclick="clearSignups()">Clear sign-ups</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Test without chat <span class="note" style="margin:0">(all live boards)</span></h2>
+        <div class="row"><input type="text" id="tName" value="TestViewer" style="width:130px"><input type="text" id="tText" placeholder="!tomato BabyPalia   or   !leave" style="flex:1"><button onclick="sendTest()">Send</button></div>
+        <div class="note" id="tResult"></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/party-control.js"></script>
+</body>
+</html>

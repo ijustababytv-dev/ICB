@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stream Timer — control</title>
+<link rel="stylesheet" href="/css/timer-control.css">
+</head>
+<body>
+
+  <h1>Stream Timer</h1>
+  <p class="lede">Controls the <code>timer.html</code> overlay layer live — nothing here needs a page reload on the Meld side.</p>
+
+  <div class="grid">
+    <div>
+
+      <div class="card">
+        <h2>Heading &amp; subheading</h2>
+        <div class="chips" id="headingChips"></div>
+        <label for="heading">Heading text</label>
+        <input type="text" id="heading" maxlength="60" placeholder="STARTING SOON">
+        <label for="subheading">Subheading text (optional)</label>
+        <input type="text" id="subheading" maxlength="80" placeholder="grab a drink, we'll be right back">
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>When it ends</h2>
+        <div class="tabs">
+          <div class="tab active" id="tabDuration">Duration</div>
+          <div class="tab" id="tabClock">Target time</div>
+        </div>
+
+        <div id="paneDuration">
+          <div class="durrow">
+            <button type="button" class="durbtn" data-add="3">+3 min</button>
+            <button type="button" class="durbtn" data-add="5">+5 min</button>
+            <button type="button" class="durbtn" data-add="10">+10 min</button>
+            <button type="button" class="durbtn" data-add="15">+15 min</button>
+            <button type="button" class="durbtn" data-add="30">+30 min</button>
+          </div>
+          <div class="durval">
+            <input type="number" id="minutes" min="0" max="720" value="0">
+            <span>minutes from now</span>
+            <button type="button" id="clearMinutes">clear</button>
+          </div>
+        </div>
+
+        <div id="paneClock" style="display:none">
+          <label for="clockTime">Target clock time</label>
+          <div class="clockrow">
+            <input type="time" id="clockTime">
+            <select id="clockZone">
+              <option value="America/Chicago">Central (CT)</option>
+              <option value="America/New_York">Eastern (ET)</option>
+              <option value="America/Denver">Mountain (MT)</option>
+              <option value="America/Los_Angeles">Pacific (PT)</option>
+              <option value="America/Anchorage">Alaska (AKT)</option>
+              <option value="Pacific/Honolulu">Hawaii (HST)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+          <p style="font-size:12px;color:var(--text-faint);margin:-6px 0 12px">
+            Rolls to tomorrow automatically if that time has already passed today.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Actions</h2>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btnStart">Start / Update Timer</button>
+          <button type="button" class="btn btn-warn" id="btnTimesUp">Time's Up!</button>
+          <button type="button" class="btn btn-ghost" id="btnReset">Reset (00:00)</button>
+        </div>
+        <div class="sync" id="syncRow"><div class="led"></div><span id="syncText">connecting…</span></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Live preview</h2>
+        <div class="preview-outer">
+          <div id="pv-plate">
+            <div id="pv-headrow">
+              <div id="pv-dot"></div>
+              <p id="pv-heading">STARTING SOON</p>
+            </div>
+            <p id="pv-subheading" style="display:none"></p>
+            <div id="pv-digits">
+              <div class="pv-db" id="pv-mm">00</div>
+              <span style="color:#fff8ff;opacity:.7;font-weight:700">:</span>
+              <div class="pv-db" id="pv-ss">00</div>
+            </div>
+            <div id="pv-celebrate">&#10024; LET'S GOOOO &#10024;</div>
+          </div>
+          <div id="pv-idle" style="display:none">Overlay is hidden (idle)</div>
+        </div>
+      </div>
+
+      <a class="link-back" href="/control.html">&larr; back to main dashboard</a>
+    </div>
+  </div>
+
+<script src="/js/client/timer-control.js"></script>
+</body>
+</html>

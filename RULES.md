@@ -72,6 +72,8 @@ When writing code:
 - Separate business logic from infrastructure.
 - Keep side effects at the edges when practical.
 - Make code easy to test.
+- Every new or changed business rule must have unit tests for expected behavior and relevant edge cases. Add regression coverage when fixing a rule. Run `npm run test:unit` and `npm run test:e2e` after every task, including documentation or configuration changes.
+- Keep maintained JavaScript, HTML, and CSS files at or below 500 lines and 40 KB. Split by responsibility before reaching those limits; do not compress code to evade them. Unmodified vendor distributions are exempt.
 - Handle errors explicitly.
 - Validate input at system boundaries.
 - Use logging instead of print statements in application code.
@@ -120,3 +122,7 @@ Keep HTML files together in an HTML folder.
 # JavaScript
 
 Keep JavaScript/TypeScript or similar files in their own folder, but also use subfolders to organize them logically.
+
+# Images
+
+Store image assets as local files and refer to their URLs through ICB. Never embed base64 image assets in scripts, HTML, or CSS. A future cloud image location will be chosen by Baby; do not introduce a cloud provider or upload images without that direction.

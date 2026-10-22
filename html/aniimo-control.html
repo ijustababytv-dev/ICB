@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aniimo Dex — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/aniimo-control.css">
+</head>
+<body>
+<div class="top">
+  <div><h1>✨ <span>Aniimo</span> Dex</h1><div class="sub">Catch & variant checklist - saved in ICB, with a stream overlay, new-catch pop-ups and chat <code>!need</code> look-ups.</div></div>
+  <div class="spacer"></div>
+  <span class="health" id="health">connecting…</span>
+  <a href="/hub.html"><button>🏠 Hub</button></a>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div class="stats">
+        <div><div class="big" id="pct">0%</div><div class="note" style="margin:0">of all forms & specials</div></div>
+        <div><b id="done">0 / 0</b><div class="note" style="margin:0">forms checked</div></div>
+        <div><b id="basic">0 / 0</b><div class="note" style="margin:0">Aniimo caught (Basic Form)</div></div>
+        <div><b id="full">0</b><div class="note" style="margin:0">fully complete</div></div>
+      </div>
+      <div class="pbar"><span id="pbar"></span></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🕘 Latest checks</h2>
+      <div class="recent" id="recent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <input type="text" id="q" placeholder="Search Aniimo name or number…">
+    <select id="el"><option value="">All elements</option></select>
+    <select id="view"><option value="all">All Aniimo</option><option value="missing">Still need something</option><option value="full">Fully complete</option><option value="uncaught">Not caught yet</option></select>
+    <button id="expand" onclick="expandAll()">Expand all</button>
+  </div>
+  <div class="note" id="shown"></div>
+  <div class="cards" id="list"></div>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>📺 On stream</h2>
+      <div class="url"><span>Meld layer:</span><code>http://127.0.0.1:8790/aniimo.html</code><button class="btn-sm" onclick="cp('/aniimo.html')">Copy</button></div>
+      <div class="note" style="margin-top:-6px">Want the parts in different spots? Make separate layers with <code>?part=panel</code>, <code>?part=popup</code> and <code>?part=lookup</code> on the end.</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="visible" onchange="set({visible:this.checked})"><span></span></label> Show on stream</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="showElements" onchange="set({showElements:this.checked})"><span></span></label> Show progress per element</div>
+      <div class="switchrow"><label class="switch"><input type="checkbox" id="chat" onchange="set({chat:this.checked})"><span></span></label> Chat look-ups: <code>!need Emberpup</code> (what you still need) and <code>!dex</code> (overall)</div>
+      <div class="row"><label>Title</label><input type="text" id="title" style="flex:1" onchange="set({title:this.value})"></div>
+      <div class="row"><label>New-catch pop-up</label><input type="number" id="popupSec" min="2" max="60" style="width:70px" onchange="set({popupSec:this.value})"> seconds
+        <label style="min-width:auto;margin-left:10px">Look-up</label><input type="number" id="lookupSec" min="4" max="60" style="width:70px" onchange="set({lookupSec:this.value})"> seconds</div>
+      <div class="row"><label>Colours</label>Accent <input type="color" id="accent" onchange="set({accent:this.value})"> Panel <input type="color" id="panelColor" onchange="set({panelColor:this.value})">
+        <label style="min-width:auto">See-through</label><input type="range" id="panelOpacity" min="0" max="100" onchange="set({panelOpacity:this.value})"></div>
+      <div class="row"><button class="btn-sm" onclick="set({lookupDex:true})">Show overall progress now</button><button class="btn-sm" onclick="set({hideNow:true})">Hide pop-ups now</button></div>
+      <div class="note">Tip: each Aniimo card below has a 📺 button to show what you still need for it on stream.</div>
+    </div>
+    <div class="card">
+      <h2>⚡ Quick checker (over your game)</h2>
+      <div class="url"><span>Link:</span><code>http://127.0.0.1:8790/aniimo-quick.html</code><button class="btn-sm" onclick="cp('/aniimo-quick.html')">Copy</button></div>
+      <div class="note" style="margin-top:-6px">A small search-and-tick panel. In <b>Desktop Widgets</b>, add this link and switch on <b>Clickable</b> for it so you can tick catches without leaving the game.</div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>✏️ Edit the list</h2>
+      <div class="row"><button class="btn-accent" onclick="editA(null)">＋ Add an Aniimo</button></div>
+      <div class="row"><label>Add a form to every Aniimo</label><input type="text" id="formAll" placeholder="e.g. Shiny mutation" style="flex:1"><button class="btn-sm" onclick="addFormAll()">Add</button></div>
+      <div class="row"><label>Rename a form everywhere</label><input type="text" id="rnFrom" list="formList" placeholder="old name" style="flex:1"><input type="text" id="rnTo" placeholder="new name" style="flex:1"><button class="btn-sm" onclick="renameForm()">Rename</button></div>
+      <datalist id="formList"></datalist>
+      <div class="note">📷 <b>Form photos:</b> every form has a 📷 - click it and paste a snip of the form you just caught or hatched (it ticks the form too). You can also drop a photo straight onto a form.</div>
+      <div class="note">🖼️ <b>Pictures:</b> drag a picture onto any card, or open ✏️ and paste a snip (Win+Shift+S, then Ctrl+V). You can also drop files into <code>ICB\assets\aniimo</code> named by number or name (e.g. <code>001.png</code> or <code>Emberpup.png</code>).</div>
+      <div class="note">To change one Aniimo, use the ✏️ on its card. The starting list came from your friend's tracker (community info - the game may differ).</div>
+    </div>
+    <div class="card">
+      <h2>💾 Backup</h2>
+      <div class="row"><a href="/api/aniimo/export"><button>Download backup (.json)</button></a><button onclick="$('imp').click()">Import backup</button><input type="file" id="imp" accept=".json" hidden><button onclick="csv()">Download checklist (.csv)</button></div>
+      <div class="note">Import works with an ICB backup <b>or</b> a backup from your friend's Aniimo Tracker ("Download backup" there). Imports only add checks, they never remove any.</div>
+      <div class="row" style="margin-top:10px"><button class="btn-danger" onclick="resetAll()">Reset all checks</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="card">
+  <h2 id="mTitle">Aniimo</h2>
+  <div class="pic" id="picBox"><div id="mPic" class="th big">?</div><div>
+    <button class="btn-sm" onclick="$('picFile').click()">🖼️ Upload picture</button> <button class="btn-sm btn-danger" id="mRemove" onclick="removePic()">Remove</button>
+    <input type="file" id="picFile" accept="image/*" hidden>
+    <div class="note">Or snip it with <b>Win + Shift + S</b> and press <b>Ctrl + V</b> here, or drag a picture in. See-through edges are trimmed and big pictures shrunk for you.</div>
+  </div></div>
+  <div class="note" id="picNew" style="display:none">Save this Aniimo first, then open ✏️ again to add a picture.</div>
+  <div class="row"><label>Name</label><input type="text" id="mName" style="flex:1"></div>
+  <div class="row"><label>Number</label><input type="text" id="mNum" style="width:110px"><label style="min-width:auto">Element</label><input type="text" id="mEl" list="elList" placeholder="Fire / Dark" style="flex:1"></div>
+  <datalist id="elList"></datalist>
+  <div class="note">Forms & specials - one per line:</div>
+  <textarea id="mVars"></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn-accent" onclick="saveA()">Save</button><button onclick="closeM()">Cancel</button><span class="spacer"></span><button class="btn-danger" id="mDel" onclick="delA()">Remove this Aniimo</button></div>
+</div></div>
+
+<div class="modal" id="fmodal"><div class="card">
+  <h2 id="fTitle">Form photo</h2>
+  <div class="pic"><div class="fbig" id="fBig">📷</div><div>
+    <div class="note" style="margin-top:0">Caught or hatched this form? Snip it with <b>Win + Shift + S</b> and press <b>Ctrl + V</b> here - or drag a picture in, or:</div>
+    <div class="row" style="margin-top:8px"><button class="btn-sm" onclick="$('fFile').click()">🖼️ Upload photo</button><button class="btn-sm btn-danger" id="fRemove" onclick="removeForm()">Remove</button></div>
+    <div class="row"><button class="btn-sm" id="fMain" onclick="formAsMain()">⭐ Use as this Aniimo's main picture</button></div>
+    <label class="note" style="display:block;margin-top:8px"><input type="checkbox" id="fTick" checked> Tick this form when I add its photo</label>
+    <div class="note" id="fState"></div>
+    <input type="file" id="fFile" accept="image/*" hidden>
+  </div></div>
+  <div class="row"><span class="spacer"></span><button onclick="closeForm()">Done</button></div>
+</div></div>
+
+<script src="/js/client/aniimo-control.js"></script>
+</body>
+</html>

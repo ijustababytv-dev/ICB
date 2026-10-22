@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ICB Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/hub.css">
+</head>
+<body>
+  <header>
+    <h1>✨ <span>ICB Home</span></h1>
+    <div class="spacer"></div>
+    <span class="clock" id="clock"></span>
+    <span class="health" id="health">connecting…</span>
+  </header>
+  <p class="sub">Every ICB dashboard in one place. Drag the tiles into whatever order helps you find things fastest — it's saved.
+     <span class="startcount" id="startcount"></span></p>
+
+  <div class="rz" id="rz">
+    <div class="rz-head">
+      <h2>🎲 Title &amp; Go-Live Randomizer</h2>
+      <div class="rz-games" id="rzGames"></div>
+      <div class="spacer"></div>
+      <button class="rz-roll" onclick="rzRoll()">🎲 Randomize</button>
+    </div>
+    <div class="rz-out">
+      <div class="rz-box" id="rzTitleBox">
+        <div class="rz-label">📺 Stream title <span class="spacer"></span><span class="rz-count" id="rzTitleCount"></span></div>
+        <div class="rz-text" id="rzTitle" contenteditable="true" spellcheck="true" oninput="rzEdited()"></div>
+        <div class="rz-btns">
+          <button class="sm" onclick="rzCopy('title')">📋 Copy title</button>
+          <button class="sm" onclick="rzRoll('title')">🎲 New title</button>
+          <button class="sm" id="rzLockTitle" onclick="rzLock('title')">🔓 Keep this one</button>
+        </div>
+      </div>
+      <div class="rz-box" id="rzGoliveBox">
+        <div class="rz-label">📣 Go-live message <span class="spacer"></span><span class="rz-count" id="rzGoliveCount"></span></div>
+        <div class="rz-text" id="rzGolive" contenteditable="true" spellcheck="true" oninput="rzEdited()"></div>
+        <div class="rz-btns">
+          <button class="sm" onclick="rzCopy('golive')">📋 Copy message</button>
+          <button class="sm" onclick="rzRoll('golive')">🎲 New message</button>
+          <button class="sm" id="rzLockGolive" onclick="rzLock('golive')">🔓 Keep this one</button>
+          <button class="sm" onclick="rzCopy('both')">📋 Copy both</button>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:8px">Press 🎲 Randomize for a fresh title and go-live message — it won't repeat your last few. "Keep this one" stops that side from changing when you randomize. You can also click into either box and tweak the words before copying.</div>
+    <details class="rz-edit">
+      <summary>✏️ Add or change titles and go-live messages</summary>
+      <div class="rz-lists">
+        <div><label for="rzTitles">Stream titles for <span class="rzGameName"></span> — one per line (<span id="rzTitlesN">0</span>)</label><textarea id="rzTitles" placeholder="One title per line"></textarea></div>
+        <div><label for="rzGolives">Go-live messages for <span class="rzGameName"></span> — one per line (<span id="rzGolivesN">0</span>)</label><textarea id="rzGolives" placeholder="One message per line"></textarea></div>
+      </div>
+      <div class="note" style="margin-top:6px">In go-live messages, <code>{title}</code> becomes the picked title and <code>{link}</code> becomes your channel link. Twitch titles can be up to 140 characters — the counter turns red if a title is too long.</div>
+      <div class="form" style="margin-top:10px">
+        <input type="text" id="rzLink" placeholder="Your channel link, e.g. https://twitch.tv/yourname" style="flex:1;min-width:240px">
+        <button class="btn" onclick="rzSave()">💾 Save lists</button>
+      </div>
+      <div class="form" style="margin-top:10px">
+        <input type="text" id="rzNewGame" placeholder="Add another game, e.g. Horse Life" maxlength="40">
+        <button class="btn" onclick="rzAddGame()">＋ Add game</button>
+        <button class="btn" onclick="rzRenameGame()">✏️ Rename this game</button>
+        <button class="btn" onclick="rzDeleteGame()">🗑️ Delete this game</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="check" id="check">
+    <div class="check-head">
+      <h2>🩺 Connection check</h2>
+      <span class="summary warn" id="checkSummary">checking…</span>
+      <div class="spacer"></div>
+      <span class="startcount" id="checkTime"></span>
+      <button class="sm" onclick="copyReport()">📋 Copy status report</button>
+    </div>
+    <div class="rows" id="checkRows"></div>
+    <div class="note">Updates by itself every 5 seconds. Click <b>How to fix</b> under anything that isn't green. <b>Copy status report</b> copies all of this as text you can paste to Claude or anyone helping you.</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="card guide">
+    <h2>🛠 Troubleshooting guide</h2>
+    <details><summary>The giveaway dashboard says "Meld listener is NOT running"</summary><ol>
+      <li>Look at the <b>Meld chat listener</b> line in Connection check at the top of this page. If it's red, the listener layer isn't loaded in Meld.</li>
+      <li>In Meld, the layer <code>http://127.0.0.1:8790/giveaway-listener.html</code> must be in the scene you're on, with its eye turned on. The address must be exactly that.</li>
+      <li>Right-click the layer in Meld and choose reload. Within 10 seconds the line should turn green.</li>
+      <li>If ICB itself was restarted, the listener reconnects by itself within a few seconds. If it doesn't, reload the layer.</li>
+      <li><b>Layer is on, address is right, reloading does nothing, and it's still red?</b> Meld has stopped running its local layers (this happened 2026-09-30 — walkers and leaves froze too). Fully close Meld (check the tray by the clock) and open it again. That fixed it. If you're live and can't restart, ask Claude about running the listener as a Meld element instead.</li>
+      <li>Keep <b>one</b> listener per scene you stream in — never two in the same scene, or subs/gifts/bits can count twice.</li>
+    </ol></details>
+    <details><summary>Meld says "disconnected from server"</summary><ol>
+      <li>That's Meld's own connection, not ICB. No chat can reach ICB until Meld reconnects.</li>
+      <li>Close Meld completely (check the tray by the clock) and open it again. Make sure you're still signed in to Twitch in Meld.</li>
+      <li>Check your internet. If Meld still won't connect, check Meld's Discord or X in case their servers are down.</li>
+      <li>Once Meld is connected, press <b>↻ Reload the listener</b> here (or reload the layer in Meld).</li>
+    </ol></details>
+    <details><summary>Listener is green but chat doesn't show up (no unicorns, no chat entries)</summary><ol>
+      <li>Type a test message in your Twitch chat, then watch the <b>Chat reaching ICB</b> line. It should say "last chat a few seconds ago".</li>
+      <li>If it doesn't change, Meld isn't getting your Twitch chat. Check the Twitch connection in Meld's settings and sign in again if needed, then reload the listener.</li>
+      <li>If chat arrives but no Chat Unicorn appears: only subscribers get one automatically. Tick the person (or yourself) on the Chat Unicorns dashboard.</li>
+    </ol></details>
+    <details><summary>An overlay isn't showing on stream</summary><ol>
+      <li>Find it under <b>Overlays in Meld</b>. If it says "not open", Meld hasn't loaded that layer. Add it, turn its eye on, or reload it.</li>
+      <li>If it says "open" but you can't see it, it's loaded but hidden. It may be under another layer, sized wrong (should be 1920×1080 for full-screen overlays), or turned off on its own dashboard.</li>
+      <li>Most dashboards have a 🧪 Test button. Press it while you watch Meld.</li>
+    </ol></details>
+    <details><summary>Nothing works / every line is red</summary><ol>
+      <li>ICB is probably not running. Open the ICB folder (<code>Documents\GitHub\ICB</code>) and double-click <code>restart-icb-clean.bat</code>.</li>
+      <li>Wait until this page says <b>connected</b> at the top right. Then reload the layers in Meld (the listener first).</li>
+    </ol></details>
+    <details><summary>Palia trackers aren't counting</summary><ol>
+      <li>Palia Assistant must be running while you play. The trackers read its log file.</li>
+      <li>The <b>Palia log reader</b> line shows "live" while the log keeps changing. It goes quiet a few minutes after you stop playing, which is normal.</li>
+    </ol></details>
+    <details><summary>After Claude sends an update</summary><ol>
+      <li>If <code>server.js</code> changed: run <code>restart-icb-clean.bat</code>.</li>
+      <li>If only a page changed: reload that layer in Meld, or refresh the dashboard tab.</li>
+    </ol></details>
+  </div>
+
+  <div class="card">
+    <h2>Add your own link</h2>
+    <div class="form">
+      <input type="text" id="cIcon" placeholder="🔗" maxlength="4" style="width:64px;text-align:center">
+      <input type="text" id="cName" placeholder="Name, e.g. Twitch Dashboard" maxlength="60" style="flex:1;min-width:200px">
+      <input type="text" id="cUrl" placeholder="https://dashboard.twitch.tv/…  or  /some-page.html" style="flex:2;min-width:260px">
+      <button class="btn" onclick="addCustom()">＋ Add tile</button>
+    </div>
+    <div class="note">Works for any website (Twitch, Meld help, your Discord) or any ICB page. Your own tiles can be edited ✎ or removed ✕; the built-in ones can't be removed.</div>
+  </div>
+
+  <div class="card">
+    <h2>Opening pages when ICB starts</h2>
+    <div class="note" style="margin-top:0">Tick <b>Open when ICB starts</b> on any tile. When you run <code>start-icb-clean.bat</code> or <code>restart-icb-clean.bat</code>, Chrome opens ICB Home plus every ticked page, each in its own tab. Clicking <b>Open</b> on a tile again reuses the tab it opened before, instead of stacking up duplicates.</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/hub.js"></script>
+</body>
+</html>

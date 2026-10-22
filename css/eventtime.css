@@ -1,0 +1,21 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  #box { position: absolute; left: 0; top: 0; transform-origin: 0 0; padding: 14px; font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", sans-serif; color: #fff; transition: opacity .4s; }
+  #box.hidden { opacity: 0; }
+  .card { background: rgba(28,14,40,.86); border: 4px solid rgba(255,255,255,.85); border-radius: 26px; padding: 14px 20px 16px; box-shadow: 0 8px 0 rgba(58,20,70,.45); }
+  .title { text-align: center; font-size: 40px; font-weight: 900; line-height: 1.1; padding: 6px 26px; margin: 0 auto 6px; border-radius: 18px; display: table;
+    background: linear-gradient(90deg, rgba(120,40,150,.95), rgba(220,80,170,.95)); text-shadow: 0 3px 0 #3a1446; }
+  .subtitle { text-align: center; font-size: 22px; font-weight: 800; color: #ffd6f2; margin-bottom: 4px; }
+  .cd { text-align: center; font-size: 22px; font-weight: 800; color: #ffe66d; margin-bottom: 8px; text-shadow: 0 2px 0 #000; }
+  .zones { display: flex; justify-content: center; }
+  .zones.column { flex-direction: column; }
+  .zone { background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.35); border-radius: 18px; padding: 8px 16px; text-align: center; min-width: 150px; }
+  .zones.row .zone + .zone { margin-left: 12px; }
+  .zones.column .zone + .zone { margin-top: 8px; }
+  .zones.column .zone { display: flex; align-items: center; text-align: left; min-width: 0; }
+  .zones.column .zone .lab { width: 120px; }
+  .zones.column .zone .day { flex: 1; margin-right: 14px; }
+  .lab { font-size: 22px; font-weight: 900; color: #ff9fe0; letter-spacing: .5px; }
+  .day { font-size: 20px; font-weight: 800; color: #d9ccff; }
+  .tm { font-size: 34px; font-weight: 900; line-height: 1.05; text-shadow: 0 3px 0 rgba(0,0,0,.5); white-space: nowrap; }
+  .zone.home { border-color: #ffe66d; background: rgba(255,230,109,.14); }
+  .empty { text-align: center; font-size: 22px; opacity: .8; padding: 8px; }
