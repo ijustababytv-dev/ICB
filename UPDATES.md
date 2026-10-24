@@ -5,7 +5,6 @@
 - 2026-10-22: Added a separate Cloudinary download launcher. Restores new or changed images into assets, skips identical files, verifies downloads, and backs up replaced local images.
 - 2026-10-22: Added Cloudinary image comparison and sync commands. New and changed images upload; identical images are skipped, folders stay organized, and remote-only images are kept.
 - 2026-10-22: Uploaded and checksum-verified all 274 project images. Confirmed a repeat sync uploads nothing; added a double-click launcher and saved the image URLs locally.
-- 2026-10-16: Chat Avatars (ghost avatars for chatters), Sprite Jar + spooky sticker book with floor toys, Fortnite Sprites sticker art.
 - 2026-10-17: Countdowns dashboard and overlay (themes, end text, size).
 - 2026-10-18: Team Hunt contest (unlimited !team teams, custom hunt items with points).
 - 2026-10-19: Palia Clock with Palia-time alarms and a quick Palia timer.
@@ -14,6 +13,7 @@
 
 ## Improvements
 
+- 2026-10-24: Audited server growth: commit 2963b96 restored the old root server, now 7,217 lines; the modular server remains 195 lines. Sprite TV and Poke Bowl check-in additions need migration before removing the duplicate. Existing structure tests detect the regression.
 - 2026-10-22: Formatted all maintained JavaScript with four-space indentation and blank lines between functions. Split files that exceeded the size limits, added repeatable formatting commands, and expanded browser checks to 16 pages.
 - 2026-10-22: Split the giant server into focused feature, route, and business-rule modules; organized HTML, scripts, styles, and local images while keeping existing URLs and launchers.
 - 2026-10-22: Added unit tests, headless browser checks, and guards against giant files, circular imports, and embedded base64 images. All future business rules require unit tests.
