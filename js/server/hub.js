@@ -19,6 +19,13 @@ const mEvents = require('./events');
 const HUB_FILE = path.join(mConfig.DATA_DIR, 'hub.json');
 const HUB_BUILTIN = [
     {
+        id: 'spritetv',
+        icon: '📺',
+        name: 'Sprite TV',
+        url: '/sprite-tv-control.html',
+        desc: 'Retro TV showing caught sprites, manual picks, and slideshows'
+    },
+    {
         id: 'trackers',
         icon: '📊',
         name: 'Tracker Command Center',

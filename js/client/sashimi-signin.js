@@ -187,7 +187,14 @@
                 ' to sign up · ' +
                 b('!leave') +
                 ' to drop out';
-        var key = JSON.stringify([ev && ev.guests, ev && ev.roles, ev && ev.id, d.cols, ac, d.checkedIn]);
+        var key = JSON.stringify([
+            ev && ev.guests,
+            ev && ev.roles,
+            ev && ev.id,
+            d.cols,
+            ac,
+            d.checkedIn
+        ]);
         if (key !== lastKey) {
             lastKey = key;
             seen.__now = {};
@@ -246,7 +253,12 @@
                 }
             } else {
                 for (i2 = 0; i2 < gs.length; i2++)
-                    h += guestHtml({ name: gs[i2].name, pos: gs[i2].n, checkedIn: gs[i2].checkedIn }, wPct, ac, false);
+                    h += guestHtml(
+                        { name: gs[i2].name, pos: gs[i2].n, checkedIn: gs[i2].checkedIn },
+                        wPct,
+                        ac,
+                        false
+                    );
                 h = h ? '<div style="margin:0 -4px">' + h + '</div>' : '';
             }
             seen = seen.__now;

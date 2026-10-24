@@ -20,11 +20,12 @@ You are comfortable handling software engineering, infrastructure, automation, r
 - Never turn a simple task into a framework, process, or overbuilt system.
 - Never store secrets in memory.
 - Never log, print, commit, or expose secrets.
+- These rules apply to every human contributor and AI tool. Read `AGENTS.md` and `UPDATES.md` as well, and re-read them when another contributor changes them. `CLAUDE.md` contains pointers only; do not maintain a second set of rules there.
 
 # Summarizing Work
 
 - Summarize what you've done in UPDATES.md. I want to have 3 sections: New Features, Improvements, and Bug Fixes. Each time work is completed, document what was done in UPDATES.md.
-- Keep these updates as simple, short summaries of the work compeleted. We love simplicity.
+- Keep these updates as simple, short summaries of the work completed. We love simplicity.
 - Remove anything from UPDATES.md that is older than 7 days.
 - UPDATES.md will be passed to someone else at some point, so they're aware of the work completed.
 
@@ -86,6 +87,25 @@ When helping with non-technical tasks:
 - Stay pragmatic.
 - Focus on usefulness and execution.
 - Avoid emotional analysis or therapy-style responses.
+
+# Architecture: no monolithic files
+
+- **Never create, restore, or generate a root `server.js`**, even a forwarding stub. The only production entry point is `js/server/index.js`; launchers and `npm start` must use it.
+- `js/server/server.js` is composition and lifecycle wiring only. New feature state, handlers, rendering, parsing, and business rules belong in focused modules. A file must have one coherent responsibility even when it is below the size limit.
+- Maintained JavaScript, TypeScript, HTML, and CSS must each stay at or below **500 lines and 40 KB (40,960 bytes)**. Split before reaching either limit. Never compress code, remove useful whitespace/comments, hide code in ignored/state/artwork folders, or concatenate/evaluate modules to evade this policy.
+- Keep HTML under `html/`, styles under `css/`, and scripts under logical `js/` folders. Page markup must load separate scripts; do not rebuild a large inline application in HTML. Tests and tools follow the same size limits.
+- Only the two existing, unchanged distributions `js/vendor/matter.min.js` and `js/vendor/meld-firehose.js` are exempt from size limits. Their contents are checksum-verified. Do not add custom code to vendor files, create new exemptions, or raise thresholds to accommodate a feature. A deliberate dependency update must review its provenance and update its checksum explicitly.
+- Before removing a duplicate, compare it with the active implementation and migrate newer behavior with tests. Never overwrite current modules from a historical monolith or backup. Retired copies may live only in ignored backups and must never be loaded by the application.
+- Install the repository hook with `npm run setup:hooks` in each checkout. It checks the complete **staged snapshot**, so an unstaged fix cannot conceal an invalid commit. `npm install` also installs the hook through `prepare`.
+- Run `npm run check:structure` and `npm run format:check` before completing work. Unit tests and `.github/workflows/source-policy.yml` also enforce the policy. Never disable checks, use `--no-verify`, weaken tests, or expand exclusions merely to get a commit through. GitHub branch protection, if configured by the repository owner, should require the Source policy check.
+- Rules cannot replace review: keep modules focused and inspect diffs for duplicate implementations even when all automatic checks pass.
+
+# Verification and delivery
+
+- Every new or changed business rule requires unit tests for expected behavior, edge cases, and regressions. Put pure rules in domain modules where practical; test side effects separately with temporary state.
+- Run `npm run test:unit` and `npm run test:e2e` after every task, including documentation/configuration changes. Also run `npm run test:browser` after browser changes. Report failures accurately; do not fabricate missing artwork or suppress assertions.
+- Use only isolated test state and browser profiles. Follow `AGENTS.md` for the single production server, live-state backups, Meld compatibility, and the prohibition on controlling the user's PC.
+- Commit and push all pending project changes when a coherent task is complete, and at least daily when there are changes. Respect `.gitignore`, preserve other contributors' work, and exclude secrets.
 
 # Code Documentation Rules
 

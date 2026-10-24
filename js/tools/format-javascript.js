@@ -91,7 +91,12 @@ function projectScripts(root) {
 
     assets(path.join(root, 'assets'));
     return [...new Set(files)]
-        .filter((file) => /\.[cm]?js$/.test(file) && !file.startsWith('js/vendor/'))
+        .filter(
+            (file) =>
+                /\.[cm]?js$/.test(file) &&
+                !file.startsWith('js/vendor/') &&
+                fs.existsSync(path.join(root, file))
+        )
         .sort();
 }
 

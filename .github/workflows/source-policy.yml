@@ -1,0 +1,17 @@
+name: Source policy
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  source-policy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm run check:structure
+      - run: npm run test:unit
+      - run: npm run format:check
+      # Full E2E/browser tests require local, intentionally untracked operator artwork.
+      # Agents must also run those locally; this job does not weaken their assertions.

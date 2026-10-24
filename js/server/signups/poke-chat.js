@@ -1,4 +1,5 @@
 'use strict';
+const { checkInViewer } = require('../domain/signup-checkins');
 /** createPokeChat keeps related operations together and reads shared state at call time. */
 module.exports = function createPokeChat(context) {
     function sashiChat(sender, parts) {
@@ -16,6 +17,15 @@ module.exports = function createPokeChat(context) {
         const ev = context.sashiEv();
         if (!ev) return '';
         const key = twitch.toLowerCase();
+        // Attendance stays available after signups close; repeated chat commands are idempotent.
+        if (/^!(here|checkin|signin)$/i.test(text)) {
+            const result = checkInViewer(ev, twitch);
+            if (result.changed) {
+                context.sashiPop();
+                context.sashiSave();
+            }
+            return result.reply;
+        }
         // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
         if (/^!(show|event)$/i.test(text)) {
             if (context.sashi.onDemand && context.sashi.visible) {

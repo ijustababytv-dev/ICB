@@ -24,6 +24,7 @@ const backups = require('./giveaway/backups');
 const signupCommands = require('./signups/commands');
 
 backups.connectGiveaway(() => mGiveawayState.giveaway);
+const disconnectSpriteTv = require('./sprite-tv').connectSpriteUpdates();
 signupCommands.connectSignups(
     require('./signups/poke'),
     require('./signups/burger'),
@@ -182,6 +183,7 @@ heartbeat.unref();
 
 /** Stop timers and connected streams before closing the sole HTTP listener. */
 function shutdown() {
+    disconnectSpriteTv();
     stopBackgroundJobs();
     clearInterval(giveawayBackupTimer);
     clearInterval(weeklyTimer);

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Sprite TV — ICB</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/css/sprite-tv-control.css" />
+    </head>
+    <body>
+        <div class="top">
+            <div>
+                <h1>📺 Sprite <span>TV</span></h1>
+                <div class="sub">
+                    Retro CRT showing the last sprite caught. Position this Meld layer over your
+                    little TV screen.
+                </div>
+            </div>
+            <div class="spacer"></div>
+            <span class="health" id="health">connecting…</span>
+            <a href="/hub.html"><button>🏠 Hub</button></a>
+        </div>
+
+        <div class="cols">
+            <div>
+                <!-- currently showing -->
+                <div class="card">
+                    <h2>Now showing</h2>
+                    <div class="showing-now" id="nowShowing">
+                        <div class="note">Nothing yet — catch a sprite!</div>
+                    </div>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkVisible" /><span></span
+                        ></label>
+                        Show on stream
+                    </div>
+                </div>
+
+                <!-- what to show -->
+                <div class="card">
+                    <h2>What to show</h2>
+                    <div class="row">
+                        <label>Mode</label>
+                        <select id="selMode">
+                            <option value="last">Last caught (auto)</option>
+                            <option value="pinned">Pick a sprite</option>
+                        </select>
+                    </div>
+                    <div id="pickArea" style="display:none;">
+                        <div class="note" style="margin-bottom:6px;">Pick a sprite:</div>
+                        <div class="sprite-pick" id="spritePick"></div>
+                        <div class="var-pills" id="varPills"></div>
+                    </div>
+                </div>
+
+                <!-- display toggles -->
+                <div class="card">
+                    <h2>Display</h2>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkName" /><span></span
+                        ></label>
+                        Show name
+                    </div>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkVariant" /><span></span
+                        ></label>
+                        Show variant
+                    </div>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkRarity" /><span></span
+                        ></label>
+                        Rarity colour on name
+                    </div>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkBars" /><span></span
+                        ></label>
+                        Colour bars when idle (no sprite yet)
+                    </div>
+                    <div class="row">
+                        <label>Text position</label>
+                        <select id="selTextPos">
+                            <option value="bottom">Bottom</option>
+                            <option value="top">Top</option>
+                            <option value="overlay">Over image</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- broadcast slideshow -->
+                <div class="card">
+                    <h2>📡 Broadcast Slideshow</h2>
+                    <div class="note" style="margin-bottom:10px;">
+                        After idle bars show for a bit, the TV interrupts with a slideshow cycling
+                        through sprites.
+                    </div>
+                    <div class="row">
+                        <label class="sw"
+                            ><input type="checkbox" id="chkSlideshow" /><span></span
+                        ></label>
+                        Enable slideshow
+                    </div>
+                    <div id="ssSettings">
+                        <div class="row">
+                            <label class="sw"
+                                ><input type="checkbox" id="chkInterrupt" /><span></span
+                            ></label>
+                            Show interrupt banner
+                        </div>
+                        <div class="row">
+                            <label>Sprites</label>
+                            <select id="selPool">
+                                <option value="caught">Caught sprites</option>
+                                <option value="uncaught">Uncaught (missing!)</option>
+                                <option value="all">All sprites</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <label>Delay (sec)</label
+                            ><input type="range" min="1" max="120" id="rngDelay" /><span
+                                class="val"
+                                id="valDelay"
+                            ></span>
+                        </div>
+                        <div class="row">
+                            <label>Per sprite (sec)</label
+                            ><input type="range" min="2" max="60" id="rngInterval" /><span
+                                class="val"
+                                id="valInterval"
+                            ></span>
+                        </div>
+                        <div class="row">
+                            <label>Banner text</label
+                            ><input type="text" id="txtMessage" style="flex:1;" maxlength="120" />
+                        </div>
+                        <div class="row">
+                            <label>Sub-text</label
+                            ><input
+                                type="text"
+                                id="txtSubMessage"
+                                style="flex:1;"
+                                maxlength="120"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <!-- sizing -->
+                <div class="card">
+                    <h2>Size & timing</h2>
+                    <div class="row">
+                        <label>Text size</label
+                        ><input type="range" min="50" max="200" id="rngTextSize" /><span
+                            class="val"
+                            id="valTextSize"
+                        ></span>
+                    </div>
+                    <div class="row">
+                        <label>Image size</label
+                        ><input type="range" min="30" max="200" id="rngImgSize" /><span
+                            class="val"
+                            id="valImgSize"
+                        ></span>
+                    </div>
+                    <div class="row">
+                        <label>Flash (ms)</label
+                        ><input type="range" min="0" max="2000" step="50" id="rngFlash" /><span
+                            class="val"
+                            id="valFlash"
+                        ></span>
+                    </div>
+                    <div class="row">
+                        <label>Static (ms)</label
+                        ><input type="range" min="0" max="2000" step="20" id="rngStatic" /><span
+                            class="val"
+                            id="valStatic"
+                        ></span>
+                    </div>
+                </div>
+
+                <!-- preview -->
+                <div class="card">
+                    <h2>Preview</h2>
+                    <div class="prev" id="prevWrap">
+                        <iframe id="prevFrame" src="/sprite-tv.html"></iframe>
+                    </div>
+                    <div class="url">
+                        <input
+                            type="text"
+                            id="meldUrl"
+                            readonly
+                            value="http://127.0.0.1:8790/sprite-tv.html"
+                        /><button class="btn-sm">Copy</button>
+                    </div>
+                    <div class="note">
+                        Add this URL as a Meld layer, sized and positioned over your TV screen.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="/js/client/sprite-tv-control.js"></script>
+    </body>
+</html>

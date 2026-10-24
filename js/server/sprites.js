@@ -80,6 +80,14 @@ function sprLoad() {
 
 let spr = sprLoad();
 let sprPopup = null;
+const saveListeners = new Set();
+
+/** Subscribe collaborators to saved collection changes without importing those features here. */
+function onSave(listener) {
+    saveListeners.add(listener);
+    return () => saveListeners.delete(listener);
+}
+
 const sprKey = (id, v) => `${id}|${v}`;
 
 const sprFind = (id) => spr.sprites.find((s) => s.id === String(id));
@@ -203,6 +211,7 @@ function sprPublic() {
 function sprSave() {
     mStorage.writeJson(SPR_FILE, spr);
     mEvents.broadcast('sprites', sprPublic());
+    for (const listener of saveListeners) listener();
 }
 
 /** Add or remove one valid sprite variant while maintaining recent catches and popup state. */
@@ -237,6 +246,7 @@ function sprSet(id, v, on) {
 
 Object.assign(exports, {
     sprKey,
+    onSave,
     sprImg,
     sprStats,
     sprSet,

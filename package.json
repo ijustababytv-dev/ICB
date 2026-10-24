@@ -4,6 +4,9 @@
   "private": true,
   "description": "Clean-room IJUSTABABY command center and read-only stream overlay",
   "scripts": {
+    "check:structure": "node js/tools/check-source.js",
+    "setup:hooks": "node js/tools/install-hooks.js",
+    "prepare": "node js/tools/install-hooks.js",
     "start": "node js/server/index.js",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test js/test/unit/*.test.js",

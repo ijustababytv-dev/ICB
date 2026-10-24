@@ -226,7 +226,7 @@ Two rules worth repeating here because they are the easy ones to get wrong:
 - **The value box is blank in the artwork.** Never bake `1234`, `10,122`, `x1234` or any placeholder count into a skin. ICB draws the live number on top of that blank area at runtime.
 - **2048 × 768 is the master size, not the display size.** The overlay may scale skins down proportionally; the 8:3 ratio must be preserved. Never stretch, crop, or letterbox to a different ratio.
 
-**Card geometry is confirmed** (2026-08-14, from Baby's Tracker Card Master Template). All tracker cards follow it exactly — coordinates are master pixels, origin top-left:
+**Master template geometry is confirmed** (2026-08-14, from Baby's Tracker Card Master Template). This guides new artwork; runtime boxes are measured per skin as described below. Coordinates are master pixels, origin top-left:
 
 | Zone | x | y | width | height |
 | --- | ---: | ---: | ---: | ---: |
@@ -238,7 +238,7 @@ Corner radius 64. Both zones centred on x = 1024. Keep key text and artwork insi
 
 **Value boxes are per-skin.** The zone table above is design guidance for new artwork. Each real card declares its own value box in `skins.cards[].valueBox` in the config, measured from the artwork and verified visually; ICB renders the live value into whichever card is showing. Cards do not need matching box positions — that was attempted and abandoned because image generation cannot hit pixel targets. Still mandatory per card: canvas exactly 2048 × 768, blank value box, PNG with transparent corners.
 
-The card set lives in `C:\Users\mrsch\Desktop\00TRACKER IMAGES00`. 16 cards are registered; Amber Echo, Infected Essence and Sweet Leaf are mapped to the three live resources, and the rest are art for future trackers.
+Use the current skin configuration and `config/resource-trackers.json` for card mappings and local artwork paths. Do not depend on an old desktop folder or a historical card count.
 
 A layout guide at true master size is provided at `docs/tracker-skin-template.svg` — open it in a browser or art tool as a reference. It is a guide, not a skin.
 
@@ -256,10 +256,18 @@ For every new tracker, record and verify:
 4. The server definition, API output, SSE update, persistence behavior, and automated test.
 5. The Browser-layer URL and any cache-busting version used by Meld.
 
-Named future trackers not yet built: **Gold Ore, Palium, Celebration Cakes.**
+Gold Ore, Palium, and Celebration Cakes are implemented. Inspect the current resource configuration before planning another tracker.
 
 Whoever builds the tracker package updates this runbook as part of that work. The Chrome dashboard remains the private control surface; Meld remains a read-only visual consumer.
 
 ## Future integrations
 
 Any MCP, Streamer.bot, Discord, or scene-control integration must be a separate adapter and must not become another competing state server.
+
+## Contributor setup and source policy
+
+Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`; re-read them after another contributor makes changes. `CLAUDE.md` contains pointers only. The handbook is a historical method record.
+
+Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `js/server/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
+
+After any changes, run `npm run check:structure`, `npm run format:check`, `npm run test:unit`, and `npm run test:e2e`; run `npm run test:browser` after browser changes. Tests use temporary state and port 8791. Do not restart the live server or control the user's desktop for verification. Record failures honestly, update `UPDATES.md`, then commit and push the coherent project work.

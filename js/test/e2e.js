@@ -15,6 +15,10 @@ const {
     listenForSseEvent
 } = require('./helpers/e2e-harness');
 const { verifyFeatureRoutes } = require('./helpers/feature-smoke');
+const {
+    verifyRestoredFeatures,
+    verifyRestoredPersistence
+} = require('./helpers/restored-features');
 
 function value2(rt, id) {
     return rt.cards.find((c) => c.id === id).count;
@@ -28,6 +32,7 @@ async function main() {
         assert.equal(health.port, port);
         assert.equal(health.readerState, 'needs-reconciliation');
         await verifyFeatureRoutes(json, `http://127.0.0.1:${port}`);
+        await verifyRestoredFeatures(json, listenForSseEvent);
 
         const page = await fetch(`http://127.0.0.1:${port}/control.html`);
         assert.equal(page.status, 200);
@@ -415,6 +420,7 @@ async function main() {
         startServer();
         const restartedHealth = await waitForHealth();
         assert.equal(restartedHealth.version, '0.1.0-clean');
+        await verifyRestoredPersistence(json);
         result = await json('/api/state');
         assert.equal(result.payload.settings.countdown.heading, 'CLEAN TEST');
         assert.equal(result.payload.settings.stream.title, 'Test stream');

@@ -1,6 +1,8 @@
 # ICB Master Handbook
 
-**The one document to read if everything is forgotten.**
+**Historical method and failure record.** Current instructions live in [../AGENTS.md](../AGENTS.md)
+and [../RULES.md](../RULES.md); recent completed work lives in [../UPDATES.md](../UPDATES.md).
+Read those first. Do not restore old file layouts or treat dated plans below as current status.
 
 This is the complete record of the IJUSTABABY Control Bridge: what it is, how it was built, the
 method used to build it, every hard-won lesson, and step-by-step recipes for adding to it.
@@ -15,7 +17,7 @@ working on stream.
 > plush-specific tables, file map entries, API routes, and the "Add a plushie" recipe no longer
 > reflect the code. Anything plush that comes back is a new deliberate build.
 
-If you are a new AI session: read this first, then `CLAUDE.md`. If you are Baby: **Part 1 is for
+If you are a new AI session: read this after `AGENTS.md`, `RULES.md`, and `UPDATES.md`. If you are Baby: **Part 1 is for
 you**, the rest is for whoever is doing the building.
 
 ---
@@ -28,7 +30,8 @@ you**, the rest is for whoever is doing the building.
 A little program that runs on your own computer. It reads the file Palia Assistant writes while you
 play, notices when you pick something up, and shows the count on your stream.
 
-Nothing goes to the internet. Nothing costs money. It only runs while you have it open.
+The overlays use the local server and local artwork. Optional integrations and the Cloudinary
+image sync contact external services; their availability and costs depend on the chosen service.
 
 ## Turning it on, in order
 
@@ -273,7 +276,7 @@ broken — delete and rebuild it. If it goes blank, the page is at fault.
 | --- | --- |
 | `js/server/` | Small feature, route, domain, and view modules; one dependency-free server. See `docs/ARCHITECTURE.md`. |
 | `html/control.html` | The private Chrome dashboard |
-| `html/overlay.html` | Read-only Meld layer scaffold (skin wiring still pending) |
+| `html/overlay.html` | Read-only Meld layer; current skin wiring is implemented |
 | `ticker.html` / `weekly.html` | Server-rendered overlay pages — the reference pattern |
 | `config/resource-trackers.json` | Cards: tokens, modes, value boxes |
 | `config/weekly-accomplishments.json` | The 21 weekly items and the week anchor |
@@ -370,7 +373,7 @@ Every one of these was a real failure that cost real time.
 | Bar looked washed out | Heavy greyscale on unfound items, designed for cut-out icons but applied to full scene art | Gentle dimming instead |
 | Test failed mysteriously | A leftover dev server was squatting on the test port | Kill stray servers before blaming the code |
 
-## Still open
+## Historical open items (verify current code before acting)
 
 - The two cooking rules in the weekly tracker are `verified: false` until Baby cooks three dishes
   back to back and the log is read — a dish pulled from storage currently looks identical to a
@@ -378,9 +381,9 @@ Every one of these was a real failure that cost real time.
 - Gathering boards and quest boards are **designed but not built** — see
   `ICB-TRACKER-SYSTEM-DESIGN.md`. The quest board rule Baby stated: a board is automatic **only** if
   its profile name is one of her own characters; everything else is manual, permanently.
-- **No version control.** Nothing is in git, so a clobbered file has no history. Worth fixing.
-- 10 resource cards still exist at the wrong canvas size (1672×941 instead of 2048×768) from the
-  older skin standard.
+- The project now uses Git and GitHub. Preserve history and follow the current commit/push rules.
+- Use the current skin tests and artwork inventory to identify missing or invalid cards; the old
+  canvas-size count is obsolete.
 
 ## Facts about Palia's logs, learned the hard way
 

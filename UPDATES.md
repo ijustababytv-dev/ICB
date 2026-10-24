@@ -13,7 +13,10 @@
 
 ## Improvements
 
-- 2026-10-24: Audited server growth: commit 2963b96 restored the old root server, now 7,217 lines; the modular server remains 195 lines. Sprite TV and Poke Bowl check-in additions need migration before removing the duplicate. Existing structure tests detect the regression.
+- 2026-10-24: Removed the restored 7,217-line root server after migrating Sprite TV and Poke Bowl attendance into focused modules. Retired duplicate root pages while preserving the modular sprite jar.
+- 2026-10-24: Added an installed pre-commit guard and GitHub source checks for the 500-line / 40 KB limits, source folders, unchanged vendor files, and the root-server ban. Added regression tests, including a rejected oversized test commit.
+- 2026-10-24: Consolidated useful standing instructions into AGENTS.md and RULES.md. CLAUDE.md now only directs readers to those files and UPDATES.md, including after changes by Aleister V.M. Removed obsolete feature-status claims and conflicting skin geometry guidance.
+- 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 - 2026-10-22: Formatted all maintained JavaScript with four-space indentation and blank lines between functions. Split files that exceeded the size limits, added repeatable formatting commands, and expanded browser checks to 16 pages.
 - 2026-10-22: Split the giant server into focused feature, route, and business-rule modules; organized HTML, scripts, styles, and local images while keeping existing URLs and launchers.
 - 2026-10-22: Added unit tests, headless browser checks, and guards against giant files, circular imports, and embedded base64 images. All future business rules require unit tests.
@@ -21,5 +24,6 @@
 
 ## Bug Fixes
 
+- 2026-10-24: Connected Sprite TV and Poke Bowl check-ins to the active modular server, with unit and integration coverage. Fixed slideshow roster lookup, ownership checks, cancellation/retry behavior, and the Sprite TV copy-link binding.
 - 2026-10-22: Updated stale tracker tests to validate prefix-based slots and intentional overlap between collection cards. End-to-end checks still report the existing missing `poke_bowl.png` artwork.
 - 2026-10-22: Static file serving now keeps server source and private state outside public paths.

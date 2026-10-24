@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { launchBrowser } = require('./helpers/headless-browser');
+const { verifySpriteTvPage, verifySignupPage } = require('./helpers/feature-browser');
 const {
     port,
     temp,
@@ -26,6 +27,10 @@ async function main() {
             'giveaway-entrants',
             'unicorn-jar',
             'sprite-jar',
+            'sprite-tv-control',
+            'sprite-tv',
+            'sashimi-signin-control',
+            'sashimi-signin',
             'party-control',
             'beanburger-signup-control',
             'flowtree-signup-control',
@@ -106,9 +111,21 @@ async function main() {
                 );
             }
             assert.deepEqual(page.errors, [], `${name}: interaction and animation errors`);
+            if (name === 'sprite-tv' || name === 'sprite-tv-control')
+                await verifySpriteTvPage(page, json, name === 'sprite-tv');
+            if (name === 'sashimi-signin' || name === 'sashimi-signin-control')
+                await verifySignupPage(page, json, name === 'sashimi-signin');
+            assert.deepEqual(page.errors, [], `${name}: migrated feature interactions`);
             if (
                 process.env.ICB_TEST_SCREENSHOTS &&
-                ['control', 'giveaway-control', 'unicorn-jar'].includes(name)
+                [
+                    'control',
+                    'giveaway-control',
+                    'unicorn-jar',
+                    'sprite-tv-control',
+                    'sprite-tv',
+                    'sashimi-signin-control'
+                ].includes(name)
             ) {
                 fs.mkdirSync(process.env.ICB_TEST_SCREENSHOTS, { recursive: true });
                 await page.screenshot(path.join(process.env.ICB_TEST_SCREENSHOTS, name + '.png'));

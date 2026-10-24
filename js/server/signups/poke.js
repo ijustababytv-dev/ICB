@@ -176,11 +176,13 @@ function sashiPublic() {
                       name: g.name,
                       twitch: g.twitch || '',
                       at: g.at || 0,
-                      role: g.role || ''
+                      role: g.role || '',
+                      checkedIn: g.checkedIn || 0
                   }))
               }
             : null,
         total: ev ? ev.guests.length : 0,
+        checkedIn: ev ? ev.guests.filter((g) => g.checkedIn).length : 0,
         now: Date.now()
     };
 }

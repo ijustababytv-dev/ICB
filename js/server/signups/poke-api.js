@@ -1,4 +1,5 @@
 'use strict';
+const { setCheckin, resetCheckins } = require('../domain/signup-checkins');
 /** createPokeApi keeps related operations together and reads shared state at call time. */
 module.exports = function createPokeApi(context) {
     async function handleSashiApi(req, res, pathname, method) {
@@ -197,6 +198,8 @@ module.exports = function createPokeApi(context) {
                                 ? b.setRole.role
                                 : '';
                     }
+                    if (b.checkin && b.checkin.n) setCheckin(ev, b.checkin.n, b.checkin.on);
+                    if (b.resetCheckins) resetCheckins(ev);
                     if (b.clear) ev.guests = [];
                 }
                 if (b.forget && b.forget.game && b.forget.twitch) {

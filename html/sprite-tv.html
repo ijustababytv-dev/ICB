@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Last Sprite Found</title>
+        <link rel="stylesheet" href="/css/sprite-tv.css" />
+    </head>
+    <body>
+        <div id="tv">
+            <!-- Color bars -->
+            <div id="idle">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div id="idle-label">AWAITING SIGNAL</div>
+            </div>
+
+            <!-- Sprite display -->
+            <div id="content" style="display:none;">
+                <img id="sprite-img" src="" alt="" />
+                <div id="text-wrap">
+                    <div id="sprite-name"></div>
+                    <div id="sprite-variant"></div>
+                </div>
+            </div>
+
+            <!-- Broadcast interrupt banner -->
+            <div id="interrupt">
+                <div id="int-icon">📡</div>
+                <div id="int-msg">WE INTERRUPT THIS BROADCAST...</div>
+                <div id="int-sub">HAVE YOU SEEN THESE SPRITES?</div>
+            </div>
+
+            <!-- Slideshow counter -->
+            <div id="ss-counter"></div>
+
+            <!-- Static noise -->
+            <div id="noise"></div>
+        </div>
+
+        <script src="/js/client/sprite-tv.js"></script>
+    </body>
+</html>

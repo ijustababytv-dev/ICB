@@ -27,6 +27,7 @@ const mAvatars = require('../avatars');
 const mCountdowns = require('../countdowns');
 const mPaliaClock = require('../palia-clock');
 const mHunt = require('../hunt');
+const mSpriteTv = require('../sprite-tv');
 const mRoutesActivity = require('../routes/activity');
 const mRoutesGiveawayEvents = require('../routes/giveaway-events');
 const mRoutesGiveawayDraws = require('../routes/giveaway-draws');
@@ -38,6 +39,8 @@ const mHttpResponse = require('./response');
 async function handleApi(req, res, url) {
     const method = req.method || 'GET';
     const pathname = url.pathname.replace(/\/$/, '') || '/';
+    if (pathname === '/api/sprite-tv' || pathname === '/api/sprite-tv/slideshow')
+        return mSpriteTv.handleSpriteTvApi(req, res, pathname, method);
     if (['/api/health', '/api/diagnostics', '/api/tracker-skin-standard'].includes(pathname))
         return mRoutesSystem.handleSystemApi(req, res, url);
     if (pathname === '/api/weekly' || pathname.startsWith('/api/weekly/'))

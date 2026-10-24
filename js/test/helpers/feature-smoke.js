@@ -37,6 +37,8 @@ async function verifyFeatureRoutes(json, origin) {
         'sprites',
         'sprites/admin',
         'sprites/jar',
+        'sprite-tv',
+        'sprite-tv/slideshow',
         'avatars',
         'avatars/admin',
         'countdowns',
