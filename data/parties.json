@@ -82,27 +82,11 @@
       ],
       "signups": [
         {
-          "key": "dylans__babygirl",
-          "twitch": "Dylans__Babygirl",
-          "palia": "Dylans__Babygirl",
-          "role": "r8",
-          "at": 1791933235119,
-          "checkedIn": null
-        },
-        {
           "key": "wonderlilyes",
           "twitch": "wonderlilyes",
           "palia": "wonderlilyes",
           "role": "r10",
           "at": 1791933278186,
-          "checkedIn": null
-        },
-        {
-          "key": "someadj_kitty",
-          "twitch": "someadj_kitty",
-          "palia": "Kitty Kira",
-          "role": "r11",
-          "at": 1791933284926,
           "checkedIn": null
         },
         {
@@ -143,14 +127,6 @@
           "palia": "Freya oreo",
           "role": "r8",
           "at": 1792013930978,
-          "checkedIn": null
-        },
-        {
-          "key": "granny2shoes5011",
-          "twitch": "granny2shoes5011",
-          "palia": "pilycat",
-          "role": "r11",
-          "at": 1792015858989,
           "checkedIn": null
         },
         {

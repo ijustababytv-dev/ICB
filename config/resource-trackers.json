@@ -677,7 +677,7 @@
       ],
       "direction": "gained",
       "mode": "countdown",
-      "startAt": 50,
+      "startAt": 98,
       "visible": true,
       "countEvents": true,
       "valueBox": {

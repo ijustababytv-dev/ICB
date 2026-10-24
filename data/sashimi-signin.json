@@ -18,27 +18,28 @@
       "freyaoreo": "freyaoreo",
       "haley_please_hush": "Haleyplzhush",
       "catmomma1997": "catmomma1997",
-      "granny2shoes5011": "granny2shoes5011",
+      "granny2shoes5011": "pilycat",
       "wonderlilyes": "Nova Hazelwood",
       "nightshifter71": "nightshifter71",
       "razordomme": "RazorDom",
       "itsmisscupcake": "MissCupcake",
       "dylans__babygirl": "Dylans__Babygirl",
       "geckotryhard": "geckotryhard",
-      "froggyswowttv": "froggyswowttv",
       "4kayslayz": "4KaySlayz",
       "kjdragon2018": "kjdragon2018",
       "bunnybliss_": "bunnybliss_",
-      "sammiileigh": "sammiileigh",
       "voxdawnbringer": "VoxDawnbringer",
       "ijustababytv": "IJustABabyTv",
-      "someadj_kitty": "someadj_kitty",
+      "someadj_kitty": "poke hide",
       "railgunxxc": "Railgunxxc",
       "echoaurelia": "EchoAurelia",
       "heidiialaa": "heidiialaa",
       "missjocey": "MissJocey",
       "jax_juniper": "jax_juniper",
-      "talvirhornshoal": "TalvirHornshoal"
+      "talvirhornshoal": "TalvirHornshoal",
+      "i_just_a_layla": "hidepoke",
+      "sammiileigh": "sammiileigh",
+      "pinnaclepyrenees": "pinnaclepyrenees"
     }
   },
   "rseq": 21,
@@ -230,7 +231,113 @@
     {
       "id": "e8",
       "name": "PPA Sign-Up Overprep !poke",
-      "guests": [],
+      "guests": [
+        {
+          "n": 1,
+          "name": "Haleyplzhush",
+          "twitch": "haley_please_hush",
+          "at": 1792706262515,
+          "role": "r18"
+        },
+        {
+          "n": 2,
+          "name": "IJustABabyTv",
+          "twitch": "IJustABabyTv",
+          "at": 1792724824322,
+          "role": "r11"
+        },
+        {
+          "n": 3,
+          "name": "catmomma1997",
+          "twitch": "catmomma1997",
+          "at": 1792724903226,
+          "role": "r14"
+        },
+        {
+          "n": 4,
+          "name": "I_just_a_Layla",
+          "twitch": "I_just_a_Layla",
+          "at": 1792782220860,
+          "role": "r12"
+        },
+        {
+          "n": 5,
+          "name": "VoxDawnbringer",
+          "twitch": "VoxDawnbringer",
+          "at": 1792782368781,
+          "role": "r15"
+        },
+        {
+          "n": 6,
+          "name": "kjdragon2018",
+          "twitch": "kjdragon2018",
+          "at": 1792783598128,
+          "role": "r17"
+        },
+        {
+          "n": 7,
+          "name": "froggyswowttv",
+          "twitch": "froggyswowttv",
+          "at": 1792793231813,
+          "role": "r20"
+        },
+        {
+          "n": 8,
+          "name": "Granny",
+          "twitch": "",
+          "at": 1792796272484,
+          "role": "r19"
+        },
+        {
+          "n": 9,
+          "name": "sammiileigh",
+          "twitch": "sammiileigh",
+          "at": 1792797737075,
+          "role": "r13"
+        },
+        {
+          "n": 10,
+          "name": "pinnaclepyrenees",
+          "twitch": "pinnaclepyrenees",
+          "at": 1792798721866,
+          "role": "r20"
+        },
+        {
+          "n": 11,
+          "name": "EchoAurelia",
+          "twitch": "EchoAurelia",
+          "at": 1792798894960,
+          "role": "r20"
+        },
+        {
+          "n": 12,
+          "name": "Railgunxxc",
+          "twitch": "Railgunxxc",
+          "at": 1792800506356,
+          "role": "r13"
+        },
+        {
+          "n": 13,
+          "name": "Dylans__Babygirl",
+          "twitch": "Dylans__Babygirl",
+          "at": 1792800553742,
+          "role": "r13"
+        },
+        {
+          "n": 14,
+          "name": "kitty Kira",
+          "twitch": "someadj_kitty",
+          "at": 1792800559867,
+          "role": "r13"
+        },
+        {
+          "n": 15,
+          "name": "4KaySlayz",
+          "twitch": "4KaySlayz",
+          "at": 1792800576903,
+          "role": "r13"
+        }
+      ],
       "roles": [
         {
           "id": "r11",
@@ -299,12 +406,12 @@
           "id": "r20",
           "label": "OverPrep-tomato, onion or garlic",
           "cmd": "op",
-          "spots": 0,
+          "spots": 20,
           "color": "#ff8fd8"
         }
       ],
       "desc": "If you sign-up on PPA, do not sign up here on LIVE!",
-      "date": "2026-10-16",
+      "date": "2026-10-23",
       "time": "19:00",
       "tz": "America/Chicago",
       "game": "Palia"

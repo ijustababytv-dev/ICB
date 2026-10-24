@@ -19,7 +19,7 @@
       "done": false
     },
     "cook-10": {
-      "count": 0,
+      "count": 10,
       "done": false
     },
     "cook-star-3": {
@@ -198,5 +198,5 @@
     ]
   },
   "lastResetAt": "2026-10-19T19:48:13.601Z",
-  "updatedAt": "2026-10-22T18:42:13.483Z"
+  "updatedAt": "2026-10-24T00:11:29.967Z"
 }

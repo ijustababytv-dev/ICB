@@ -81,7 +81,8 @@
 
     function guestHtml(g, wPct, ac, wait) {
         var id = D.event.id + ':' + g.name.toLowerCase(),
-            pop = !seen[id] && !first;
+            pop = !seen[id] && !first,
+            here = !!g.checkedIn;
         seen.__now[id] = 1;
         return (
             '<div class="g" style="width:' +
@@ -89,15 +90,17 @@
             '"><div class="gi' +
             (pop ? ' pop' : '') +
             (wait ? ' wait' : '') +
+            (here ? ' here' : '') +
             '" style="' +
             (pop ? 'border-color:' + ac : '') +
             '">' +
             '<span class="n" style="background:' +
-            ac +
+            (here ? '#2ecc40' : ac) +
             '">' +
             g.pos +
             '</span>' +
             esc(g.name) +
+            (here ? '<span class="chk">✅</span>' : '') +
             '</div></div>'
         );
     }
@@ -184,7 +187,7 @@
                 ' to sign up · ' +
                 b('!leave') +
                 ' to drop out';
-        var key = JSON.stringify([ev && ev.guests, ev && ev.roles, ev && ev.id, d.cols, ac]);
+        var key = JSON.stringify([ev && ev.guests, ev && ev.roles, ev && ev.id, d.cols, ac, d.checkedIn]);
         if (key !== lastKey) {
             lastKey = key;
             seen.__now = {};
@@ -210,7 +213,7 @@
                         main = '',
                         wait = '';
                     for (i2 = 0; i2 < mine.length; i2++) {
-                        g = { name: mine[i2].name, pos: i2 + 1 };
+                        g = { name: mine[i2].name, pos: i2 + 1, checkedIn: mine[i2].checkedIn };
                         if (R.spots && i2 >= R.spots) {
                             g.pos = i2 - R.spots + 1;
                             wait += guestHtml(g, wPct, col, true);
@@ -243,7 +246,7 @@
                 }
             } else {
                 for (i2 = 0; i2 < gs.length; i2++)
-                    h += guestHtml({ name: gs[i2].name, pos: gs[i2].n }, wPct, ac, false);
+                    h += guestHtml({ name: gs[i2].name, pos: gs[i2].n, checkedIn: gs[i2].checkedIn }, wPct, ac, false);
                 h = h ? '<div style="margin:0 -4px">' + h + '</div>' : '';
             }
             seen = seen.__now;

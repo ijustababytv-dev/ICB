@@ -4917,8 +4917,8 @@ function sashiPublic() {
     zones: sashi.zones.filter(z => z.on).map(z => ({ label: z.label, tz: z.tz })),
     event: ev ? { id: ev.id, name: ev.name, game: ev.game, desc: ev.desc, date: ev.date, time: ev.time, tz: ev.tz, start: sashiEpoch(ev),
       roles: ev.roles.map(r => ({ id: r.id, label: r.label, cmd: r.cmd, spots: r.spots || 0, color: r.color || '' })),
-      guests: ev.guests.map(g => ({ n: g.n, name: g.name, twitch: g.twitch || '', at: g.at || 0, role: g.role || '' })) } : null,
-    total: ev ? ev.guests.length : 0, now: Date.now() };
+      guests: ev.guests.map(g => ({ n: g.n, name: g.name, twitch: g.twitch || '', at: g.at || 0, role: g.role || '', checkedIn: g.checkedIn || 0 })) } : null,
+    total: ev ? ev.guests.length : 0, checkedIn: ev ? ev.guests.filter(g => g.checkedIn).length : 0, now: Date.now() };
 }
 function sashiSave() { writeJson(SASHI_FILE, sashi); broadcast('sashimi', sashiPublic()); }
 const sashiPop = () => { if (sashi.onDemand && sashi.showOnSignup !== false) sashiShowUntil = Math.max(sashiShowUntil, Date.now() + (sashi.showSec || 30) * 1000); };
@@ -4961,6 +4961,14 @@ function sashiChat(sender, parts) {
   const key = twitch.toLowerCase();
   // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
   if (/^!(show|event)$/i.test(text)) { if (sashi.onDemand && sashi.visible) { sashiReveal(); return 'Showing the event sign-up'; } return ''; }
+  // "!here" / "!checkin" / "!signin" marks the chatter as checked in (name turns green on overlay).
+  if (/^!(here|checkin|signin)$/i.test(text)) {
+    const mine = ev.guests.find(g => g.twitch && g.twitch.toLowerCase() === key);
+    if (!mine) return `${twitch} isn't signed up`;
+    if (mine.checkedIn) return `${mine.name} is already checked in`;
+    mine.checkedIn = Date.now(); sashiPop(); sashiSave();
+    return `${mine.name} is here ✅`;
+  }
   // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
   // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
   if (/^!leave$/i.test(text)) {
@@ -5083,6 +5091,8 @@ async function handleSashiApi(req, res, pathname, method) {
           if (i >= 0 && j >= 0 && j < ev.guests.length) { const t = ev.guests[i]; ev.guests[i] = ev.guests[j]; ev.guests[j] = t; sashiRenumber(ev); } }
         if (b.rename && b.rename.n) { const g = ev.guests.find(x => x.n === Number(b.rename.n)); const nn = sashiCleanName(b.rename.name); if (g && nn) { g.name = nn; sashiRemember(ev, g.twitch, nn); } }
         if (b.setRole && b.setRole.n) { const g = ev.guests.find(x => x.n === Number(b.setRole.n)); if (g) g.role = ev.roles.some(r => r.id === b.setRole.role) ? b.setRole.role : ''; }
+        if (b.checkin && b.checkin.n) { const g = ev.guests.find(x => x.n === Number(b.checkin.n)); if (g) g.checkedIn = typeof b.checkin.on === 'boolean' ? (b.checkin.on ? Date.now() : null) : (g.checkedIn ? null : Date.now()); }
+        if (b.resetCheckins) for (const g of ev.guests) g.checkedIn = null;
         if (b.clear) ev.guests = [];
       }
       if (b.forget && b.forget.game && b.forget.twitch) { const m = sashi.names[sashiGameKey(b.forget.game)]; if (m) delete m[String(b.forget.twitch).toLowerCase()]; }

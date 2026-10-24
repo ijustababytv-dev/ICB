@@ -257,6 +257,14 @@ function forget(tw) {
         set({ forget: { game: S.event.game, twitch: tw } });
 }
 
+function checkin(n) {
+    ev({ checkin: { n: n } });
+}
+
+function resetCheckins() {
+    if (confirm('Reset all check-ins? Everyone will show as not here.')) ev({ resetCheckins: true });
+}
+
 function clearList() {
     if (confirm("Remove everyone from this event's list?")) ev({ clear: true });
 }
@@ -375,6 +383,7 @@ function load() {
                 $('addRole').value = keep;
             }
             $('cnt').textContent = d.max ? d.total + ' / ' + d.max : d.total;
+            $('checkedCnt').textContent = d.checkedIn ? d.checkedIn + ' / ' + d.total + ' here' : '';
             $('builtin').textContent = (d.builtinIgnore || [])
                 .map(function (x) {
                     return '!' + x;
@@ -385,7 +394,7 @@ function load() {
                     ? e.guests
                           .map(function (g) {
                               return (
-                                  '<div class="gl"><span class="n">' +
+                                  '<div class="gl' + (g.checkedIn ? ' gl-here' : '') + '"><span class="n">' +
                                   g.n +
                                   '</span><span><a href="#" style="color:inherit;text-decoration:none" onclick="rn(' +
                                   g.n +
@@ -406,7 +415,9 @@ function load() {
                                   (g.twitch ? esc(g.twitch) + ' · ' : '✍️ added by you · ') +
                                   tm(g.at) +
                                   '</span>' +
-                                  '<span><button class="btn-sm" onclick="mv(' +
+                                  '<span><button class="btn-sm' + (g.checkedIn ? ' btn-here' : '') + '" onclick="checkin(' +
+                                  g.n +
+                                  ')" title="' + (g.checkedIn ? 'Undo check-in' : 'Check in') + '">' + (g.checkedIn ? '✅' : '⬜') + '</button> <button class="btn-sm" onclick="mv(' +
                                   g.n +
                                   ',-1)">↑</button> <button class="btn-sm" onclick="mv(' +
                                   g.n +

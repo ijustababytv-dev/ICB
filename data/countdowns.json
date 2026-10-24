@@ -3,9 +3,9 @@
     {
       "id": "main",
       "name": "Main countdown",
-      "heading": "FORTNITE",
-      "subheading": "",
-      "endText": "✨ SPRITE HUNT ✨",
+      "heading": "Palia",
+      "subheading": "Poke Bowls",
+      "endText": "Let's Get Cooking",
       "endSub": "",
       "icon": "✨",
       "theme": "spooky",
@@ -32,12 +32,12 @@
       "hideAfter": 0,
       "idleShow": "zeros",
       "lastMinutes": 24,
-      "lastTime": "18:00",
+      "lastTime": "19:00",
       "lastTz": "America/Chicago",
       "status": "done",
-      "endsAt": 1792537200000,
+      "endsAt": 1792800000000,
       "leftMs": 0,
-      "doneAt": 1792537200000
+      "doneAt": 1792800000000
     }
   ]
 }
