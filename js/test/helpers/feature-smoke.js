@@ -43,6 +43,7 @@ async function verifyFeatureRoutes(json, origin) {
         'avatars/admin',
         'countdowns',
         'paliaclock',
+        'oceanfish',
         'hunt',
         'hunt/admin',
         'randomizer',

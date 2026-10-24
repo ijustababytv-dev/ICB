@@ -192,6 +192,13 @@ const HUB_BUILTIN = [
         name: 'Chat Unicorns',
         url: '/walkers-control.html',
         desc: "Chatters' unicorns hopping along the bottom - who gets one, reminders"
+    },
+    {
+        id: 'oceanfish',
+        icon: '🐟',
+        name: 'Ocean Fish',
+        url: '/ocean-fish-control.html',
+        desc: 'Ocean waves and jumping fish overlay - several fish pictures, group jumps, sparkles'
     }
 ];
 const HUB_DEFAULT_STARTUP = ['trackers']; // what the .bat opened before the hub existed

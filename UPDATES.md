@@ -2,6 +2,7 @@
 
 ## New Features
 
+- 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 - 2026-10-22: Added a separate Cloudinary download launcher. Restores new or changed images into assets, skips identical files, verifies downloads, and backs up replaced local images.
 - 2026-10-22: Added Cloudinary image comparison and sync commands. New and changed images upload; identical images are skipped, folders stay organized, and remote-only images are kept.
 - 2026-10-22: Uploaded and checksum-verified all 274 project images. Confirmed a repeat sync uploads nothing; added a double-click launcher and saved the image URLs locally.
@@ -25,6 +26,7 @@
 
 ## Bug Fixes
 
+- 2026-10-24: Merged the restored Ocean Fish stash onto the modular-layout changes. Resolved conflicts in the API router and Poke Bowl dashboard handler, kept the tested `signup-checkins` attendance code, and removed a duplicate `!here` handler. Split the overlay to meet the 500-line limit and added unit, smoke, and browser coverage.
 - 2026-10-24: Connected Sprite TV and Poke Bowl check-ins to the active modular server, with unit and integration coverage. Fixed slideshow roster lookup, ownership checks, cancellation/retry behavior, and the Sprite TV copy-link binding.
 - 2026-10-22: Updated stale tracker tests to validate prefix-based slots and intentional overlap between collection cards. End-to-end checks still report the existing missing `poke_bowl.png` artwork.
 - 2026-10-22: Static file serving now keeps server source and private state outside public paths.

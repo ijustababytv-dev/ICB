@@ -40,7 +40,9 @@ async function main() {
             'hunt-control',
             'sprites-control',
             'tradeup-board',
-            'walkers'
+            'walkers',
+            'ocean-fish-control',
+            'ocean-fish'
         ];
         for (const name of pages) {
             const page = await browser.newPage();

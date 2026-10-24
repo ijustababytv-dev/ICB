@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ocean Fish — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/ocean-fish-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🐟 <span>Ocean Fish</span></h1>
+      <div class="sub">Ocean waves and jumping fish overlay — wave style, fish image, jump timing, sparkles</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="card">
+    <div class="url"><code>http://127.0.0.1:8790/ocean-fish.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+    <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer. Use full-screen — the waves sit along the bottom.</div>
+    <iframe class="preview" id="preview" src="/ocean-fish.html"></iframe>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div>
+      <div class="card">
+        <h2>Visibility</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible" onchange="save()"><span></span></label> Show overlay on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="onDemand" onchange="save()"><span></span></label> On-demand mode (hidden until triggered)</div>
+        <div class="row" id="onDemandOpts" style="display:none">
+          <label>Show for</label><input type="range" id="showSec" min="5" max="600" step="5" oninput="slid();saveLater()"><span class="val" id="showSecV"></span>
+        </div>
+        <div class="switchrow" id="showOnJumpRow" style="display:none"><label class="switch"><input type="checkbox" id="showOnJump" onchange="save()"><span></span></label> Auto-show when fish jumps</div>
+        <div class="row" id="showHideRow" style="display:none">
+          <button class="btn-accent" onclick="post({showNow:true},'Shown!')">👁️ Show now</button>
+          <button onclick="post({hideNow:true},'Hidden')">Hide now</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Fish</h2>
+        <div class="row"><label>Size</label><input type="range" id="fishSize" min="40" max="300" oninput="slid();saveLater()"><span class="val" id="fishSizeV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="autoJump" onchange="save()"><span></span></label> Auto-jump</div>
+        <div class="row"><label>Jump height</label><input type="range" id="jumpHeight" min="10" max="70" oninput="slid();saveLater()"><span class="val" id="jumpHeightV"></span></div>
+        <div class="row"><label>Jump speed</label><input type="range" id="jumpSpeed" min="4" max="25" oninput="slid();saveLater()"><span class="val" id="jumpSpeedV"></span></div>
+        <div class="row"><label>Jump every</label><input type="range" id="jumpEvery" min="3" max="60" oninput="slid();saveLater()"><span class="val" id="jumpEveryV"></span></div>
+        <div class="row"><label>Fish per jump</label><input type="range" id="jumpCount" min="1" max="8" oninput="slid();saveLater()"><span class="val" id="jumpCountV"></span></div>
+        <div class="row"><label>Time between</label><input type="range" id="jumpSpread" min="0" max="30" oninput="slid();saveLater()"><span class="val" id="jumpSpreadV"></span></div>
+        <div class="row"><label>Timing variety</label><input type="range" id="variety" min="0" max="10" oninput="slid();saveLater()"><span class="val" id="varietyV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="splash" onchange="save()"><span></span></label> Splash effect</div>
+        <div class="row">
+          <label>Direction</label>
+          <select id="directions" onchange="save()">
+            <option value="both">Both ways</option>
+            <option value="left">Always left</option>
+            <option value="right">Always right</option>
+          </select>
+        </div>
+        <div class="row"><button class="btn-accent" onclick="post({jumpNow:true},'Jump!')">🐟 Jump now!</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Fish pictures</h2>
+        <div class="row">
+          <label>Each jump uses</label>
+          <select id="pick" onchange="save()">
+            <option value="random">a random fish</option>
+            <option value="order">the next fish in the list</option>
+          </select>
+        </div>
+        <div id="fishList"></div>
+        <div class="addbox">
+          <div class="row"><input type="file" id="fishFile" accept="image/png,image/jpeg,image/webp,image/gif" multiple onchange="uploadFish()"></div>
+          <div class="row"><input type="text" id="fishUrl" style="flex:1" placeholder="…or paste a picture link"><button class="btn-sm" onclick="loadFishUrl()">Add</button></div>
+        </div>
+        <div class="note">Pick several pictures at once if you like. PNGs with a see-through background look best. Untick a fish to rest it without deleting it. If a fish swims backwards, tick "Faces left". Size changes that one fish only, on top of the main Size slider.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+      <div class="card">
+        <h2>Waves</h2>
+        <div class="row"><label>Wave speed</label><input type="range" id="waveSpeed" min="1" max="25" oninput="slid();saveLater()"><span class="val" id="waveSpeedV"></span></div>
+        <div class="row"><label>Wave height</label><input type="range" id="waveHeight" min="4" max="20" oninput="slid();saveLater()"><span class="val" id="waveHeightV"></span></div>
+        <div class="row"><label>Sparkles</label><input type="range" id="sparkles" min="0" max="150" oninput="slid();saveLater()"><span class="val" id="sparklesV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="gold" onchange="save()"><span></span></label> Gold trim on waves</div>
+      </div>
+
+      <div class="card">
+        <h2>Background</h2>
+        <div class="bg-row">
+          <label class="bgopt"><input type="radio" name="bg" value="0" onchange="save()"><span class="swatch" style="background:#0a1628"></span> Dark</label>
+          <label class="bgopt"><input type="radio" name="bg" value="1" onchange="save()"><span class="swatch" style="background:#0c2340"></span> Navy</label>
+          <label class="bgopt"><input type="radio" name="bg" value="2" onchange="save()"><span class="swatch" style="background:#00ff00"></span> Chroma</label>
+          <label class="bgopt"><input type="radio" name="bg" value="3" onchange="save()"><span class="swatch" style="background:repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0/12px 12px"></span> Transparent</label>
+        </div>
+        <div class="note">Transparent is the default — the waves float over whatever is behind them in Meld.</div>
+      </div>
+
+      <div class="card">
+        <h2>Quick reference</h2>
+        <div class="note" style="margin:0;font-size:13px;line-height:1.55">
+          <strong>Overlay URL:</strong> <code>http://127.0.0.1:8790/ocean-fish.html</code><br>
+          <strong>API:</strong> GET/POST <code>/api/oceanfish</code><br>
+          <strong>SSE channel:</strong> <code>oceanfish</code><br>
+          Changes save automatically and update the overlay live.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/ocean-fish-control.js"></script>
+</body>
+</html>

@@ -28,6 +28,7 @@ const mCountdowns = require('../countdowns');
 const mPaliaClock = require('../palia-clock');
 const mHunt = require('../hunt');
 const mSpriteTv = require('../sprite-tv');
+const mOceanFish = require('../ocean-fish');
 const mRoutesActivity = require('../routes/activity');
 const mRoutesGiveawayEvents = require('../routes/giveaway-events');
 const mRoutesGiveawayDraws = require('../routes/giveaway-draws');
@@ -97,6 +98,8 @@ async function handleApi(req, res, url) {
         return mPaliaClock.handlePaliaClockApi(req, res, pathname, method);
     if (pathname === '/api/hunt' || pathname.startsWith('/api/hunt/'))
         return mHunt.handleHuntApi(req, res, pathname, method);
+    if (pathname === '/api/oceanfish')
+        return mOceanFish.handleOceanFishApi(req, res, pathname, method);
     if (pathname.startsWith('/api/activity/'))
         return mRoutesActivity.handleActivityApi(req, res, url);
     if (['/api/giveaway/state', '/api/giveaway/event', '/api/giveaway/manual'].includes(pathname))
