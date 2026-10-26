@@ -5,6 +5,8 @@ const mGiveawayState = require('../giveaway/state');
 const mHttpBody = require('../http/body');
 const mDomainValidation = require('../domain/validation');
 const mAvatars = require('../avatars');
+const mStreamFrame = require('../stream-frame');
+const mNeonChat = require('../neon-chat');
 const mGiveawayActivity = require('../giveaway/activity');
 
 /** Handle giveaway events requests; reject unmatched paths. */
@@ -35,6 +37,12 @@ async function handleGiveawayEventsApi(req, res, url) {
         try {
             if (type !== 'chat') mAvatars.avEvent(type, username, body);
         } catch (_error) {}
+        // The animated overlay reacts to follows, subs, gifts, bits and raids (never throws).
+        // Blocked names (bots, test accounts) do not set it off.
+        if (type !== 'chat' && !(username && mGiveawayState.isBlocked(username))) {
+            mStreamFrame.frameEvent(type, username, body);
+            mNeonChat.neonChatEvent(type, username, body); // highlighted line in Neon Chat
+        }
         const blocked = username && mGiveawayState.isBlocked(username);
         // Report-only events: no unicorns, just the nightly log.
         if (type === 'follow') {

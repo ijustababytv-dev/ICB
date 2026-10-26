@@ -10,8 +10,8 @@
   },
   "reader": {
     "state": "offline",
-    "file": "C:\\Users\\mrsch\\AppData\\Local\\PaliaAssistant\\logs\\app-bridge-20261024.log",
-    "fileModifiedAt": "2026-10-24T14:50:07.525Z",
+    "file": "C:\\Users\\mrsch\\AppData\\Local\\PaliaAssistant\\logs\\app-bridge-20261025.log",
+    "fileModifiedAt": "2026-10-25T22:35:02.532Z",
     "lastEvent": {
       "at": "2026-10-20T01:13:46.673Z",
       "line": "2026-10-20 01:13:43.317 -05:00 [INF] Inventory gained: itemtype_currency_echo_amber x6",
@@ -32,7 +32,7 @@
     "reconciledAt": "2026-08-14T18:20:17.896Z",
     "reconciledBy": "operator"
   },
-  "updatedAt": "2026-10-24T15:00:08.402Z",
+  "updatedAt": "2026-10-25T22:45:03.161Z",
   "migration": {
     "source": "C:\\Users\\mrsch\\Documents\\ChatGPT\\ICB\\data\\palia.json",
     "sourceLastUpdateAt": "2026-08-12T18:56:40.839Z",

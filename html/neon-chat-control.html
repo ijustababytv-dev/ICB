@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Neon Chat — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/neon-chat-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>💬 <span>Neon Chat</span></h1>
+      <div class="sub">A chat box in your synthwave overlay style. It is its own Meld layer, so you size and place it wherever you like.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="url"><code>http://127.0.0.1:8790/neon-chat.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+        <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer (try 420 × 560 to start), then move and resize the layer. The neon box always fills the layer.</div>
+        <div class="previewWrap"><iframe class="preview chat" id="preview" src="/neon-chat.html"></iframe></div>
+        <div class="tests" style="margin-top:10px">
+          <button class="btn-accent" onclick="post({testMessage:true},'Test message sent')">💬 Test message</button>
+          <button onclick="testEvent('follow')">Test follow</button>
+          <button onclick="testEvent('sub')">Test sub</button>
+          <button onclick="testEvent('gifts')">Test gifts</button>
+          <button onclick="testEvent('bits')">Test bits</button>
+          <button onclick="testEvent('raid')">Test raid</button>
+          <button onclick="post({clear:true},'Chat cleared')">🧹 Clear chat</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Look</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the chat on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showFrame"><span></span></label> Neon box</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="frameOnlyWithChat"><span></span></label> Hide the box when nobody is chatting</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showTitle"><span></span></label> Title at the top <input type="text" id="title" maxlength="30" style="margin-left:8px;width:140px"></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="sparkles"><span></span></label> Twinkles on the frame</div>
+        <div class="row"><label>Background</label><input type="color" id="bgColor">
+          <button class="btn-sm" onclick="setTransparent()">See-through</button>
+          <button class="btn-sm" onclick="setSolid()">Solid</button></div>
+        <div class="row"><label>Background strength</label><input type="range" id="bgOpacity" min="0" max="100"><span class="val" id="bgOpacityV"></span></div>
+        <div class="row"><label>Text size</label><input type="range" id="textSize" min="12" max="48"><span class="val" id="textSizeV"></span></div>
+        <div class="row"><label>Neon glow</label><input type="range" id="glow" min="0" max="100"><span class="val" id="glowV"></span></div>
+        <div class="row"><label>Colour shift</label><input type="range" id="hueShift" min="-180" max="180"><span class="val" id="hueShiftV"></span></div>
+        <div class="row"><label>Name lettering</label><select id="nameFont"><option value="script">Brush script (like your logo)</option><option value="bold">Bold</option></select></div>
+      </div>
+
+      <div class="card">
+        <h2>Messages</h2>
+        <div class="row"><label>Messages shown</label><input type="range" id="maxMessages" min="1" max="30"><span class="val" id="maxMessagesV"></span></div>
+        <div class="row"><label>Messages stay</label><input type="range" id="fadeSec" min="0" max="600" step="5"><span class="val" id="fadeSecV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="newestOnTop"><span></span></label> Newest message at the top</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="hideCommands"><span></span></label> Hide !commands</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="hideMe"><span></span></label> Hide /me lines (like your timed ad announcements)</div>
+        <div class="row" style="display:block"><label>Hide these accounts (bots), separated by commas</label><textarea id="hideNames" placeholder="e.g. streamelements, nightbot"></textarea></div>
+      </div>
+
+      <div class="card">
+        <h2>Name colours</h2>
+        <div class="row"><label>Your name</label><input type="text" id="streamerName" maxlength="40" style="width:180px"></div>
+        <div class="roles">
+          <span>You</span><span>Mods</span><span>VIPs</span><span>Subs</span><span>Everyone else</span>
+          <input type="color" id="c_streamer"><input type="color" id="c_mod"><input type="color" id="c_vip"><input type="color" id="c_sub"><input type="color" id="c_viewer" value="#ffb36b">
+        </div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="viewerNeon"><span></span></label> Everyone else gets a mix of neon colours instead</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="useTwitchColors"><span></span></label> Use their own Twitch name colour when known</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showBadges"><span></span></label> Show ★ / MOD / VIP / SUB tags</div>
+        <div class="note">Mod, VIP and sub tags and Twitch colours need the updated chat listener: refresh the listener layer in Meld after restarting ICB.</div>
+      </div>
+
+      <div class="card">
+        <h2>Stream event lines</h2>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="e_follow"> Follows</label>
+          <label class="chk"><input type="checkbox" id="e_sub"> Subs</label>
+          <label class="chk"><input type="checkbox" id="e_gifts"> Gifted subs</label>
+          <label class="chk"><input type="checkbox" id="e_bits"> Bits</label>
+          <label class="chk"><input type="checkbox" id="e_raid"> Raids</label>
+        </div>
+        <div class="note">Shown in the chat as a glowing line, e.g. "🎁 Moon gifted 5 subs!"</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/neon-chat-control.js"></script>
+</body>
+</html>

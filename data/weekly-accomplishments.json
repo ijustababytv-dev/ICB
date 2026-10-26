@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "weekStart": "2026-10-19T04:00:00.000Z",
+  "weekStart": "2026-10-26T04:00:00.000Z",
   "progress": {
     "friends-cook": {
       "count": 0,
@@ -19,7 +19,7 @@
       "done": false
     },
     "cook-10": {
-      "count": 10,
+      "count": 0,
       "done": false
     },
     "cook-star-3": {
@@ -27,11 +27,11 @@
       "done": false
     },
     "forage-30": {
-      "count": 17,
+      "count": 0,
       "done": false
     },
     "trees-10": {
-      "count": 1,
+      "count": 0,
       "done": false
     },
     "magic-trees-10": {
@@ -63,7 +63,7 @@
       "done": false
     },
     "hunt-30": {
-      "count": 1,
+      "count": 0,
       "done": false
     },
     "hunt-magical-5": {
@@ -71,7 +71,7 @@
       "done": false
     },
     "mine-20": {
-      "count": 12,
+      "count": 0,
       "done": false
     },
     "mine-silver-gold-10": {
@@ -88,7 +88,7 @@
     }
   },
   "previous": {
-    "weekStart": "2026-10-12T04:00:00.000Z",
+    "weekStart": "2026-10-19T04:00:00.000Z",
     "progress": [
       {
         "id": "friends-cook",
@@ -122,17 +122,17 @@
       },
       {
         "id": "forage-30",
-        "count": 12,
+        "count": 17,
         "done": false
       },
       {
         "id": "trees-10",
-        "count": 10,
+        "count": 1,
         "done": false
       },
       {
         "id": "magic-trees-10",
-        "count": 10,
+        "count": 0,
         "done": false
       },
       {
@@ -167,7 +167,7 @@
       },
       {
         "id": "hunt-30",
-        "count": 0,
+        "count": 1,
         "done": false
       },
       {
@@ -177,7 +177,7 @@
       },
       {
         "id": "mine-20",
-        "count": 0,
+        "count": 12,
         "done": false
       },
       {
@@ -197,6 +197,6 @@
       }
     ]
   },
-  "lastResetAt": "2026-10-19T19:48:13.601Z",
-  "updatedAt": "2026-10-24T19:01:10.344Z"
+  "lastResetAt": "2026-10-26T04:00:28.477Z",
+  "updatedAt": "2026-10-26T04:00:28.479Z"
 }

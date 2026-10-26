@@ -1,14 +1,14 @@
 {
   "move": true,
   "hideAll": false,
-  "seq": 12,
+  "seq": 16,
   "widgets": [
     {
       "id": "w10",
       "name": "My webcam",
       "url": "http://127.0.0.1:8790/webcam.html?mirror=1&shape=round&border=ff8fd8&bw=4",
-      "x": 3363,
-      "y": -959,
+      "x": 1267,
+      "y": -746,
       "w": 231,
       "h": 276,
       "opacity": 100,
@@ -17,13 +17,13 @@
       "locked": false
     },
     {
-      "id": "w11",
+      "id": "w15",
       "name": "Widget",
-      "url": "http://127.0.0.1:8790/sashimi-signin.html",
-      "x": 2010,
-      "y": -1002,
-      "w": 222,
-      "h": 84,
+      "url": "http://127.0.0.1:8790/countdown.html?id=main",
+      "x": 1427,
+      "y": -301,
+      "w": 385,
+      "h": 222,
       "opacity": 100,
       "zoom": 100,
       "on": true,

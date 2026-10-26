@@ -44,6 +44,8 @@ async function verifyFeatureRoutes(json, origin) {
         'countdowns',
         'paliaclock',
         'oceanfish',
+        'streamframe',
+        'neonchat',
         'hunt',
         'hunt/admin',
         'randomizer',

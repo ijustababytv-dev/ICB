@@ -2,6 +2,12 @@
 
 ## New Features
 
+- 2026-10-25: Akwinduu Chapaa tracker card (`/akwinduu-chapaa.html`): counts down from 100, 1 per cook line of `itemtype_c_dinner_salisburychapaa` (the game's internal name for it).
+- 2026-10-25: Meaty Stir Fry tracker card (`/meaty-stir-fry.html`): counts down from 100, 1 per cook line of `itemtype_c_stirfry` (confirmed from a real cook; Spicy Stir Fry is separate and not counted).
+- 2026-10-25: Pumpkin Pie tracker card (`/pumpkin-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_pumpkinpie` (confirmed from a real cook in her log).
+- 2026-10-25: Apple Pie tracker card (`/apple-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_dessert_pie_apple` (token confirmed in her logs; no real cook line seen yet, so spot-check the first time it moves).
+- 2026-10-25: Neon Chat (tile on ICB Home): a chat box in the synthwave overlay style as its own Meld layer she sizes and places. Shows emotes, role colours and ★/MOD/VIP/SUB tags, hides !commands, bots and optionally /me lines, fades old messages, and can show follows, subs, gifts, bits and raids as glowing lines. The chat listener now also passes each chatter's badge names and name colour.
+- 2026-10-25: Animated Overlay (tile on ICB Home): her synthwave overlay with a neon glow pulse and flicker, a light that runs along the real neon tubes round the camera and game frames, sun shimmer, twinkling stars and sparkles, colour shift, a power-on intro, and reactions to follows, subs, gifted subs, bits and raids (from the Meld listener; blocked names ignored). Overlay is ES5 and polls every two seconds; art lives in `assets/stream-frame/`.
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 - 2026-10-22: Added a separate Cloudinary download launcher. Restores new or changed images into assets, skips identical files, verifies downloads, and backs up replaced local images.
 - 2026-10-22: Added Cloudinary image comparison and sync commands. New and changed images upload; identical images are skipped, folders stay organized, and remote-only images are kept.
@@ -14,6 +20,7 @@
 
 ## Improvements
 
+- 2026-10-25: Neon Chat background colour and strength on the dashboard, with See-through and Solid buttons (strength 0 = only the neon frame shows).
 - 2026-10-24: Updated README.md as the project overview and quick start, corrected stale port and documentation guidance, and added README reading instructions to CLAUDE.md and AGENTS.md.
 - 2026-10-24: Removed the restored 7,217-line root server after migrating Sprite TV and Poke Bowl attendance into focused modules. Retired duplicate root pages while preserving the modular sprite jar.
 - 2026-10-24: Added an installed pre-commit guard and GitHub source checks for the 500-line / 40 KB limits, source folders, unchanged vendor files, and the root-server ban. Added regression tests, including a rejected oversized test commit.
@@ -26,6 +33,7 @@
 
 ## Bug Fixes
 
+- 2026-10-24: Re-measured the Sashimi value box for the new `SASHIMI_NEW.png` art (1774 x 887) so the count sits in the blank panel. Only that card's `valueBox` in `config/resource-trackers.json` changed.
 - 2026-10-24: Merged the restored Ocean Fish stash onto the modular-layout changes. Resolved conflicts in the API router and Poke Bowl dashboard handler, kept the tested `signup-checkins` attendance code, and removed a duplicate `!here` handler. Split the overlay to meet the 500-line limit and added unit, smoke, and browser coverage.
 - 2026-10-24: Connected Sprite TV and Poke Bowl check-ins to the active modular server, with unit and integration coverage. Fixed slideshow roster lookup, ownership checks, cancellation/retry behavior, and the Sprite TV copy-link binding.
 - 2026-10-22: Updated stale tracker tests to validate prefix-based slots and intentional overlap between collection cards. End-to-end checks still report the existing missing `poke_bowl.png` artwork.

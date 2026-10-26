@@ -42,7 +42,11 @@ async function main() {
             'tradeup-board',
             'walkers',
             'ocean-fish-control',
-            'ocean-fish'
+            'ocean-fish',
+            'stream-frame-control',
+            'stream-frame',
+            'neon-chat-control',
+            'neon-chat'
         ];
         for (const name of pages) {
             const page = await browser.newPage();

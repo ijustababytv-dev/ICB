@@ -1,0 +1,45 @@
+/* Neon Chat overlay: a cut-corner neon box like the synthwave overlay frames. The box fills
+   the whole Meld layer, so Baby sizes and places it by resizing the layer. */
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif; color: #fff; }
+#wrap { position: absolute; inset: 14px; }
+#box { position: absolute; inset: 0; transition: opacity .6s; }
+#box.hidden, .glass.hidden { opacity: 0; }
+/* The glass sits outside #box so the neon glow (a filter on #box) never tints it. */
+.cut { position: absolute; clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+/* The frame lines are rings (outer cut-corner shape with the inner shape cut out), so the
+   middle can be see-through. --t is the ring thickness, --ci the inner corner size. */
+.ring { position: absolute; clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c), var(--c) 0, calc(var(--t) + var(--ci)) var(--t), var(--t) calc(var(--t) + var(--ci)), var(--t) calc(100% - var(--t) - var(--ci)), calc(var(--t) + var(--ci)) calc(100% - var(--t)), calc(100% - var(--t) - var(--ci)) calc(100% - var(--t)), calc(100% - var(--t)) calc(100% - var(--t) - var(--ci)), calc(100% - var(--t)) calc(var(--t) + var(--ci)), calc(100% - var(--t) - var(--ci)) var(--t), calc(var(--t) + var(--ci)) var(--t)); }
+.frame { inset: 0; --c: 26px; --t: 3px; --ci: 25px; background: linear-gradient(90deg, #ff3fd0, #ff9a3d, #ffd36b, #ff6fa8, #ff3fd0); background-size: 300% 100%; animation: flow 7s linear infinite; }
+.gap { inset: 3px; --c: 25px; --t: 4px; --ci: 23px; background: rgba(26, 6, 38, .9); }
+.line { inset: 7px; --c: 23px; --t: 2px; --ci: 22px; background: linear-gradient(180deg, #ffb36b, #ff7a3d 50%, #ff3fd0); background-size: 100% 300%; animation: flowv 9s linear infinite; }
+.glass { inset: 9px; transition: opacity .6s; --c: 22px; background: linear-gradient(180deg, rgba(36, 6, 54, .86), rgba(18, 3, 32, .9)); }
+@keyframes flow { from { background-position: 0% 0; } to { background-position: 300% 0; } }
+@keyframes flowv { from { background-position: 0 0%; } to { background-position: 0 300%; } }
+
+#title { position: absolute; top: 14px; left: 0; right: 0; text-align: center; font-weight: 800; letter-spacing: .3em; color: #ffd9f4; font-size: 15px; text-shadow: 0 0 6px #ff3fd0, 0 0 14px #ff3fd0; }
+#title .stripes { display: inline-block; width: 34px; height: 9px; margin: 0 10px 1px; vertical-align: middle; background: repeating-linear-gradient(115deg, #ffb33b 0 4px, transparent 4px 8px); filter: drop-shadow(0 0 4px #ff9a3d); }
+
+#list { position: absolute; left: 22px; right: 22px; top: 22px; bottom: 20px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; gap: .45em; }
+#list.withTitle { top: 46px; }
+/* When lines overflow, the oldest fade away at the edge instead of being cut off sharply. */
+#list.overflow { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 2.2em); mask-image: linear-gradient(to bottom, transparent 0, #000 2.2em); }
+#list.newestTop.overflow { -webkit-mask-image: linear-gradient(to top, transparent 0, #000 2.2em); mask-image: linear-gradient(to top, transparent 0, #000 2.2em); }
+#list.newestTop { justify-content: flex-start; }
+
+.msg { position: relative; padding: .25em .4em .3em .7em; border-left: 3px solid var(--nc); background: linear-gradient(90deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)); animation: slidein .45s ease-out, flicker .7s linear; transition: opacity .8s, transform .8s; }
+.msg.out { opacity: 0; transform: translateX(-12px); }
+.name { font-weight: 700; color: var(--nc); text-shadow: 0 0 6px var(--nc), 0 0 14px var(--nc); line-height: 1.15; }
+.name.script { font-family: "Brush Script MT", "Segoe Script", cursive; font-weight: 400; font-size: 1.3em; letter-spacing: .02em; }
+.badge { display: inline-block; font-family: "Segoe UI", Arial, sans-serif; font-size: .55em; font-weight: 800; letter-spacing: .12em; padding: .15em .45em; margin-right: .45em; border-radius: 4px; vertical-align: .3em; color: #1a0626; background: var(--nc); box-shadow: 0 0 8px var(--nc); }
+.text { line-height: 1.3; word-wrap: break-word; overflow-wrap: anywhere; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
+.text img { height: 1.5em; vertical-align: middle; margin: 0 .1em; }
+
+.event { text-align: center; border: 1px solid rgba(255, 211, 107, .7); border-left-width: 1px; border-radius: 4px; padding: .4em .5em; background: linear-gradient(90deg, rgba(255, 63, 208, .22), rgba(255, 154, 61, .22)); box-shadow: 0 0 12px rgba(255, 120, 200, .45), inset 0 0 12px rgba(255, 180, 90, .25); font-weight: 700; color: #fff4d6; text-shadow: 0 0 8px #ff9a3d; }
+.event .icon { margin-right: .35em; }
+
+@keyframes slidein { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes flicker { 0%, 12%, 24% { filter: brightness(1.8); } 6%, 18% { filter: brightness(.4); } 30%, 100% { filter: none; } }
+
+#sparks span { position: absolute; color: #fff3d6; text-shadow: 0 0 6px #ffd36b, 0 0 12px #ff6fd8; animation: twinkle 2.4s ease-in-out infinite; pointer-events: none; }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }

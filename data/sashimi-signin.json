@@ -29,7 +29,7 @@
       "kjdragon2018": "kjdragon2018",
       "bunnybliss_": "bunnybliss_",
       "voxdawnbringer": "VoxDawnbringer",
-      "ijustababytv": "IJustABabyTv",
+      "ijustababytv": "ppa",
       "someadj_kitty": "poke hide",
       "railgunxxc": "Railgunxxc",
       "echoaurelia": "EchoAurelia",
@@ -335,6 +335,13 @@
           "name": "4KaySlayz",
           "twitch": "4KaySlayz",
           "at": 1792800576903,
+          "role": "r13"
+        },
+        {
+          "n": 16,
+          "name": "bunnybliss_",
+          "twitch": "bunnybliss_",
+          "at": 1792878703871,
           "role": "r13"
         }
       ],

@@ -15,7 +15,7 @@
     "dragons-beard-peat": 0,
     "apples": 0,
     "meat": 57,
-    "sashimi": 91,
+    "sashimi": 100,
     "ramen-plush": 0,
     "golden-glory-bee": 0,
     "fish-stew": 93,
@@ -28,7 +28,11 @@
     "highland-shark": 0,
     "tattered-cloth": 7,
     "shmole-spores": 15,
-    "poke-bowl": 98
+    "poke-bowl": 98,
+    "apple-pie": 17,
+    "pumpkin-pie": 12,
+    "meaty-stir-fry": 20,
+    "akwinduu-chapaa": 15
   },
   "secondaryCounts": {
     "ramen-plush": 0
@@ -128,9 +132,13 @@
     "banshee-beetle": true,
     "tattered-cloth": true,
     "shmole-spores": true,
-    "blue-crab": true
+    "blue-crab": true,
+    "apple-pie": true,
+    "pumpkin-pie": true,
+    "meaty-stir-fry": true,
+    "akwinduu-chapaa": true
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
   "lastResetAt": "2026-10-11T18:51:41.644Z",
-  "updatedAt": "2026-10-24T19:01:10.339Z"
+  "updatedAt": "2026-10-25T21:56:46.754Z"
 }

@@ -239,15 +239,15 @@
       ],
       "direction": "gained",
       "mode": "countdown",
-      "startAt": 91,
+      "startAt": 100,
       "visible": true,
       "_note": "UPDATED 2026-09-21: starOnly REMOVED. Since the Palia log bridge went live (see icb-palia-log-bridge.md), this card stopped counting anything - diagnosed by reading the raw game log directly: Palia's own LogInventoryComponent lines only ever carry 'Amount=N ItemType=X', no star/quality marker at all, in any line, for any item (checked broadly, not just this token). The bridge can never produce the '(1*)' marker starOnly requires, so the filter always failed and the countdown froze at startAt. Safe to remove because this card's own original note already established every real Sashimi cook is star-quality anyway ('every real Sashimi cook produces exactly 3 star Sashimi in one line') - starOnly was never excluding any real event for this token, so dropping it changes nothing about which events count, only unfreezes it. Redone 2026-09-06 note below is otherwise unchanged/historical.",
       "_note_2026_09_06": "Redone 2026-09-06. Baby reported the countdown \"did not track the Eldershark\" the day before - diagnosed by reading the real log directly (app-20260905.log): the OLD design watched raw 'itemtype_fish_eldershark (1*) lost' lines, but that day's log also had large unrelated Eldershark sell-off/consumption events (x100, x10, x5 batches) that had nothing to do with cooking Sashimi specifically - by the time she actually cooked Sashimi, the pool had long since floored at 0, so it looked broken. Root cause: the tracker was watching the wrong signal (any Eldershark leaving inventory) instead of the actual Sashimi-cooking output. Fixed by switching to the real, directly-verified cooking-output token instead: 'Inventory gained: itemtype_c_sashimi (1*) x3' (verified in app-20260905.log, 19:01 - every real Sashimi cook produces exactly 3 star Sashimi in one line). Now counts down using the same 'count events, not quantity' mechanic as Ramen Plush's 'Ramen Cooked' secondary count (Baby's own words: 'I want it to countdown the way that the Ramen tracker counts up... 1 Sashimi for each 3 I get when I cook a dish... if I cook 1 dish only 1 counts') - server.js's countEvents flag (previously secondary-count-only) was extended to primary countdown cards for this. startAt is 100 per Baby's explicit confirmation ('if we cook 100 then it starts at 100') - 100 cook events = up to 300 actual Sashimi before it hits 0, matching how she thinks about the pool (in cooks, not raw fish or raw dish count). starOnly stays true (only 1-star Sashimi count, same as before). No more token overlap with Fish Stew (which still watches raw itemtype_fish_eldershark) since Sashimi now watches the cooked-output token instead.",
       "valueBox": {
-        "left": 26.2,
-        "top": 56,
-        "width": 57.72,
-        "height": 31.99
+        "left": 28.07,
+        "top": 64.15,
+        "width": 44.14,
+        "height": 22.32
       },
       "countEvents": true
     },
@@ -951,6 +951,86 @@
           }
         }
       ]
+    },
+    {
+      "id": "apple-pie",
+      "name": "Apple Pie",
+      "image": "Apple_Pie.png",
+      "tokens": [
+        "itemtype_c_dessert_pie_apple"
+      ],
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 30,
+      "visible": true,
+      "countEvents": true,
+      "_note_2026_10_25": "Built 2026-10-25. Baby: 'I need a few trackers for palia... the first is apple pie' and chose 'Count down from a number' (no number given, so startAt 100 like Sashimi; she can change it with the batch-size control on control.html). Token 'itemtype_c_dessert_pie_apple' confirmed in her real Palia Assistant logs (app-20260818..20260919: 629 mentions) - but only inside 'Primary gained/lost' full-inventory resync lines, never as a real 'Inventory gained' delta, and it has not appeared in any bridge log since 2026-09-20 (no pie cooked since then). So like Veggie Chili this is wired on the confirmed real token without a real cook line observed yet: worth spot-checking the first time it moves. Same mechanic as Celebration Cake: direction 'gained' + countEvents, so one cook/batch line drops the countdown by exactly 1 whatever the stack size; selling/eating pies (Inventory lost) never touches it. No starOnly (the bridge never writes star markers). Art Apple_Pie.png is 1774x887 (not the 2048x768 standard, same as the new Sashimi art); value box measured by dark+flat detection and checked with an overlay.",
+      "valueBox": {
+        "left": 29.26,
+        "top": 61.78,
+        "width": 50,
+        "height": 25.37
+      }
+    },
+    {
+      "id": "pumpkin-pie",
+      "name": "Pumpkin Pie",
+      "image": "Pumpkin_Pie.png",
+      "tokens": [
+        "itemtype_c_pumpkinpie"
+      ],
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 30,
+      "visible": true,
+      "countEvents": true,
+      "_note_2026_10_25": "Built 2026-10-25. Baby: 'NOW NEED A PUMPKIN PIE TRACKER' and chose 'Count down from 100'. Token did not appear in any older log (Palia Assistant or game), so she cooked one for us: confirmed live in app-bridge-20261025.log as 'Inventory gained: itemtype_c_pumpkinpie x3' (game log: ITEM RECEIVED Amount=3 ItemType=DA_ItemType_C_Pumpkinpie, 18:49:57). Note the token is 'pumpkinpie', NOT 'dessert_pie_pumpkin' like Apple Pie's 'itemtype_c_dessert_pie_apple' - never guess these. Same mechanic as Apple Pie / Celebration Cake: direction 'gained' + countEvents, one cook line (x3) drops the countdown by exactly 1; eating/selling (Inventory lost) never touches it. Art Pumpkin_Pie.png is 1672x941; value box measured by dark+flat detection and overlay-checked.",
+      "valueBox": {
+        "left": 32.95,
+        "top": 55.47,
+        "width": 46.83,
+        "height": 18.38
+      }
+    },
+    {
+      "id": "meaty-stir-fry",
+      "name": "Meaty Stir Fry",
+      "image": "Meaty_Stir_Fry.png",
+      "tokens": [
+        "itemtype_c_stirfry"
+      ],
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 30,
+      "visible": true,
+      "countEvents": true,
+      "_note_2026_10_25": "Built 2026-10-25. Baby: 'now make one for Meaty Stir Fry'. Token confirmed from a real cook she did right after the Pumpkin Pie test: app-bridge-20261025.log 18:52:01 'Inventory gained: itemtype_c_stirfry x2' (game log ITEM RECEIVED Amount=2 ItemType=DA_ItemType_C_StirFry). Spicy Stir Fry is a different item (itemtype_c_spicystirfry) and does NOT count here. No counting style given this time; built the same as her last two choices (Apple Pie, Pumpkin Pie): countdown from 100, direction 'gained' + countEvents so one cook line (x2) drops it by exactly 1; eating/selling never touches it. Art Meaty_Stir_Fry.png 1672x941; value box measured by dark+flat detection and overlay-checked.",
+      "valueBox": {
+        "left": 32.36,
+        "top": 69.61,
+        "width": 36.42,
+        "height": 18.28
+      }
+    },
+    {
+      "id": "akwinduu-chapaa",
+      "name": "Akwinduu Chapaa",
+      "image": "Akwinduu_Chapaa.png",
+      "tokens": [
+        "itemtype_c_dinner_salisburychapaa"
+      ],
+      "direction": "gained",
+      "mode": "countdown",
+      "startAt": 30,
+      "visible": true,
+      "countEvents": true,
+      "_note_2026_10_25": "Built 2026-10-25. Baby: 'now Akwinduu Chapaa'. The game's internal name for Akwinduu Chapaa is itemtype_c_dinner_salisburychapaa (display name differs - never guess from it). Evidence: she cooked it at 18:54:10 in the same tracker-making run as Pumpkin Pie and Meaty Stir Fry ('Inventory gained: itemtype_c_dinner_salisburychapaa x3', game log DA_ItemType_C_Dinner_SalisburyChapaa), her card art shows the Salisbury-style chapaa patties with mushroom gravy, and it is the only chapaa dish in any of her logs (14 real x3 cook lines since Aug 29). Same as her other dish cards: countdown from 100, direction 'gained' + countEvents, one cook line (x3) drops it by exactly 1. Art Akwinduu_Chapaa.png 1855x848; value box measured by dark+flat detection and overlay-checked.",
+      "valueBox": {
+        "left": 28.95,
+        "top": 64.27,
+        "width": 42.8,
+        "height": 20.4
+      }
     }
   ]
 }

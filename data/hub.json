@@ -1,5 +1,7 @@
 {
   "order": [
+    "neonchat",
+    "streamframe",
     "spritetv",
     "ftsignup",
     "bbsignup",
@@ -31,7 +33,8 @@
     "poll",
     "steam",
     "eventtime",
-    "paliaclock"
+    "paliaclock",
+    "oceanfish"
   ],
   "startup": [],
   "custom": [

@@ -199,6 +199,20 @@ const HUB_BUILTIN = [
         name: 'Ocean Fish',
         url: '/ocean-fish-control.html',
         desc: 'Ocean waves and jumping fish overlay - several fish pictures, group jumps, sparkles'
+    },
+    {
+        id: 'streamframe',
+        icon: '🌴',
+        name: 'Animated Overlay',
+        url: '/stream-frame-control.html',
+        desc: 'Your synthwave overlay with neon glow, a running light, sun shimmer, sparkles, and reactions to follows, subs, bits and raids'
+    },
+    {
+        id: 'neonchat',
+        icon: '💬',
+        name: 'Neon Chat',
+        url: '/neon-chat-control.html',
+        desc: 'Chat box in the synthwave overlay style - its own Meld layer you size and place, with emotes, role colours and event lines'
     }
 ];
 const HUB_DEFAULT_STARTUP = ['trackers']; // what the .bat opened before the hub existed

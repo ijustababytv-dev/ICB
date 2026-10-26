@@ -16,6 +16,7 @@ const mAvatars = require('../avatars');
 const mSpriteJar = require('../sprite-jar');
 const mHunt = require('../hunt');
 const mParty = require('../party');
+const mNeonChat = require('../neon-chat');
 const mHttpResponse = require('../http/response');
 const fs = require('node:fs');
 const mConfig = require('../config');
@@ -37,6 +38,7 @@ async function handleActivityApi(req, res, url) {
         } catch (_error) {}
         // Chat Unicorns: every chat message (sender + text + emote pictures).
         if (kind === 'chat' && body.data && typeof body.data.sender === 'string') {
+            mNeonChat.neonChatRelay(body.data, mWalkers.walkerParts(body.data)); // never throws
             try {
                 mWalkers.walkerChat(body.data.sender, mWalkers.walkerParts(body.data), false);
             } catch (_error) {}

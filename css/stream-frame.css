@@ -1,0 +1,7 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+#stage { position: absolute; inset: 0; }
+#art, #fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+#art { object-fit: fill; }
+.layer, .layer canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; opacity: 0; }
+.layer canvas { opacity: 1; }
+.blend { }

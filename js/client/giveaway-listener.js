@@ -46,6 +46,56 @@
         }
     }
 
+    // Neon Chat (2026-10-25): keep the chatter's badge names and name colour for chat lines.
+    // Only short text values are copied (never pictures); unknown shapes are simply skipped.
+    function senderInfoOf(user) {
+        var info = { badges: [], color: '' };
+        if (!user || typeof user !== 'object') {
+            return info;
+        }
+        var colorKeys = ['color', 'colour', 'name_color', 'display_color', 'chat_color'];
+        for (var c = 0; c < colorKeys.length; c++) {
+            var v = user[colorKeys[c]];
+            if (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) {
+                info.color = v;
+                break;
+            }
+        }
+        var lists = [user.badges, user.roles, user.role];
+        for (var l = 0; l < lists.length; l++) {
+            var list = lists[l];
+            if (typeof list === 'string') {
+                list = [list];
+            }
+            if (!list || typeof list.length !== 'number') {
+                continue;
+            }
+            for (var i = 0; i < list.length && info.badges.length < 10; i++) {
+                var b = list[i];
+                var name =
+                    typeof b === 'string'
+                        ? b
+                        : b && (b.name || b.title || b.set_id || b.id || b.type || '');
+                if (typeof name === 'string' && name) {
+                    info.badges.push(name.slice(0, 40));
+                }
+            }
+        }
+        var flags = {
+            is_moderator: 'moderator',
+            is_mod: 'moderator',
+            is_vip: 'vip',
+            is_subscriber: 'subscriber',
+            is_broadcaster: 'broadcaster'
+        };
+        for (var f in flags) {
+            if (flags.hasOwnProperty(f) && user[f] === true) {
+                info.badges.push(flags[f]);
+            }
+        }
+        return info;
+    }
+
     function usernameOf(user) {
         if (!user) {
             return '';
@@ -298,9 +348,17 @@
             if (!wrapped || !wrapped.type || SKIP_RAW[wrapped.type]) {
                 return;
             }
+            var data = compact(wrapped.event, 0, wrapped.type);
+            if (wrapped.type === 'chat' && data && wrapped.event) {
+                try {
+                    data.senderInfo = senderInfoOf(wrapped.event.sender);
+                } catch (e) {
+                    /* chat still relays without badges */
+                }
+            }
             post('/api/activity/raw', {
                 kind: wrapped.type,
-                data: compact(wrapped.event, 0, wrapped.type)
+                data: data
             });
         });
 

@@ -3,9 +3,9 @@
     {
       "id": "main",
       "name": "Main countdown",
-      "heading": "Palia",
-      "subheading": "Legendary Sashimi",
-      "endText": "Let's Get Cooking",
+      "heading": "Aniimo",
+      "subheading": "RV Upgrade Timer",
+      "endText": "RV Completed",
       "endSub": "",
       "icon": "✨",
       "theme": "flowtree",
@@ -32,12 +32,12 @@
       "hideAfter": 0,
       "idleShow": "zeros",
       "lastMinutes": 24,
-      "lastTime": "19:00",
+      "lastTime": "22:30",
       "lastTz": "America/Chicago",
-      "status": "running",
-      "endsAt": 1792886400000,
+      "status": "done",
+      "endsAt": 1792985400000,
       "leftMs": 0,
-      "doneAt": 1792800000000
+      "doneAt": 1792985400000
     }
   ]
 }

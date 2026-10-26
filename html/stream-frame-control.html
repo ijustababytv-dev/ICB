@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Animated Overlay — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/stream-frame-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🌴 <span>Animated Overlay</span></h1>
+      <div class="sub">Your synthwave overlay with neon glow, a running light, sun shimmer and sparkles, plus reactions to follows, subs, gifts, bits and raids.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="card">
+    <div class="url"><code>http://127.0.0.1:8790/stream-frame.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+    <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer at 1920 × 1080, full screen, <b>above</b> your camera and game captures (the camera and game show through the holes).</div>
+    <iframe class="preview" id="preview" src="/stream-frame.html"></iframe>
+    <div class="note warn" id="artWarn" style="display:none">The overlay picture file is missing. Upload it below.</div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Show</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show the overlay on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="introOnLoad"><span></span></label> Power-on flicker when the overlay loads</div>
+        <div class="row"><button class="btn-accent" onclick="post({intro:true},'Powering on ⚡')">⚡ Power on now</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Neon glow</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="glow"><span></span></label> Glow pulse</div>
+        <div class="row"><label>Glow strength</label><input type="range" id="glowStrength" min="0" max="100"><span class="val" id="glowStrengthV"></span></div>
+        <div class="row"><label>Pulse speed</label><input type="range" id="glowSpeed" min="2" max="30"><span class="val" id="glowSpeedV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="flicker"><span></span></label> Neon flicker now and then</div>
+        <div class="row"><label>Flickers a minute</label><input type="range" id="flickerRate" min="0" max="10"><span class="val" id="flickerRateV"></span></div>
+      </div>
+
+      <div class="card">
+        <h2>Running light</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="chaser"><span></span></label> Light running round the camera and game frames</div>
+        <div class="row"><label>Colour</label><input type="color" id="chaserColor">
+          <select id="chaserCount"><option value="1">1 light</option><option value="2">2 lights (opposite ways)</option></select></div>
+        <div class="row"><label>Speed</label><input type="range" id="chaserSpeed" min="2" max="40"><span class="val" id="chaserSpeedV"></span></div>
+        <div class="row"><label>Trail length</label><input type="range" id="chaserLength" min="5" max="60"><span class="val" id="chaserLengthV"></span></div>
+        <details><summary>Fine-tune where the light runs</summary>
+          <div class="row"><label>Distance from hole</label><input type="range" id="chaserOffset" min="-80" max="80"><span class="val" id="chaserOffsetV"></span></div>
+          <div class="row"><label>Corner cut</label><input type="range" id="chamfer" min="0" max="80"><span class="val" id="chamferV"></span></div>
+          <div class="note">The light only shows on the neon tubes, so it follows every bend. Only change these if you swap in different overlay art.</div>
+        </details>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Sky &amp; sun</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="sun"><span></span></label> Sun shimmer and glow</div>
+        <div class="row"><label>Shimmer</label><input type="range" id="sunShimmer" min="0" max="100"><span class="val" id="sunShimmerV"></span></div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="stars"><span></span></label> Twinkling sky stars</div>
+        <div class="row"><label>Twinkle</label><input type="range" id="starTwinkle" min="0" max="100"><span class="val" id="starTwinkleV"></span></div>
+        <div class="row"><label>Sparkles</label><input type="range" id="sparkles" min="0" max="100"><span class="val" id="sparklesV"></span></div>
+        <details><summary>Sun position (only for different art)</summary>
+          <div class="row"><label>Across</label><input type="range" id="sunX" min="0" max="1000"><span class="val" id="sunXV"></span></div>
+          <div class="row"><label>Down</label><input type="range" id="sunY" min="0" max="1000"><span class="val" id="sunYV"></span></div>
+          <div class="row"><label>Size</label><input type="range" id="sunR" min="10" max="300"><span class="val" id="sunRV"></span></div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Colour</h2>
+        <div class="row"><label>Colours</label>
+          <select id="colorMode"><option value="off">As drawn</option><option value="fixed">Shifted</option><option value="cycle">Slow rainbow cycle</option></select></div>
+        <div class="row"><label>Shift</label><input type="range" id="hueShift" min="-180" max="180"><span class="val" id="hueShiftV"></span></div>
+        <div class="row"><label>Cycle time</label><input type="range" id="cycleSpeed" min="1" max="60"><span class="val" id="cycleSpeedV"></span></div>
+      </div>
+
+      <div class="card">
+        <h2>Stream reactions</h2>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="r_follow"> Follow</label>
+          <label class="chk"><input type="checkbox" id="r_sub"> Sub</label>
+          <label class="chk"><input type="checkbox" id="r_gifts"> Gifted subs</label>
+          <label class="chk"><input type="checkbox" id="r_bits"> Bits</label>
+          <label class="chk"><input type="checkbox" id="r_raid"> Raid</label>
+        </div>
+        <div class="row"><label>Reaction size</label><input type="range" id="reactionStrength" min="2" max="20"><span class="val" id="reactionStrengthV"></span></div>
+        <div class="tests">
+          <button onclick="test('follow')">Test follow</button>
+          <button onclick="test('sub')">Test sub</button>
+          <button onclick="test('gifts')">Test 5 gifts</button>
+          <button onclick="test('bits')">Test 500 bits</button>
+          <button onclick="test('raid')">Test raid</button>
+        </div>
+        <div class="note">Follow: quick flash and a fast light. Sub / gifts: bright glow and a sparkle burst. Bits: sparkles fall from the top. Raid: rainbow wave, sun flare and fast lights. Bigger gifts, cheers and raids give bigger reactions.</div>
+      </div>
+
+      <div class="card">
+        <h2>Overlay picture</h2>
+        <div class="row"><span class="note" style="margin:0">Using: <b id="artName">—</b></span></div>
+        <div class="row"><input type="file" id="artFile" accept="image/png,image/webp" onchange="uploadArt()"></div>
+        <div class="note">PNG or WEBP with see-through camera and game holes, ideally 1920 × 1080. Saved in your assets\stream-frame folder (kept off GitHub).</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="/js/client/stream-frame-control.js"></script>
+</body>
+</html>

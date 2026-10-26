@@ -29,6 +29,8 @@ const mPaliaClock = require('../palia-clock');
 const mHunt = require('../hunt');
 const mSpriteTv = require('../sprite-tv');
 const mOceanFish = require('../ocean-fish');
+const mStreamFrame = require('../stream-frame');
+const mNeonChat = require('../neon-chat');
 const mRoutesActivity = require('../routes/activity');
 const mRoutesGiveawayEvents = require('../routes/giveaway-events');
 const mRoutesGiveawayDraws = require('../routes/giveaway-draws');
@@ -100,6 +102,10 @@ async function handleApi(req, res, url) {
         return mHunt.handleHuntApi(req, res, pathname, method);
     if (pathname === '/api/oceanfish')
         return mOceanFish.handleOceanFishApi(req, res, pathname, method);
+    if (pathname === '/api/streamframe')
+        return mStreamFrame.handleStreamFrameApi(req, res, pathname, method);
+    if (pathname === '/api/neonchat')
+        return mNeonChat.handleNeonChatApi(req, res, pathname, method, url);
     if (pathname.startsWith('/api/activity/'))
         return mRoutesActivity.handleActivityApi(req, res, url);
     if (['/api/giveaway/state', '/api/giveaway/event', '/api/giveaway/manual'].includes(pathname))
