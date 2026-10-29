@@ -213,6 +213,13 @@ const HUB_BUILTIN = [
         name: 'Neon Chat',
         url: '/neon-chat-control.html',
         desc: 'Chat box in the synthwave overlay style - its own Meld layer you size and place, with emotes, role colours and event lines'
+    },
+    {
+        id: 'turnline',
+        icon: '🔁',
+        name: 'Turn Line',
+        url: '/turn-line-control.html',
+        desc: 'Viewers sign up with !turn to take turns starting the same dish - current person green, finished red, Done button for the next'
     }
 ];
 const HUB_DEFAULT_STARTUP = ['trackers']; // what the .bat opened before the hub existed

@@ -17,6 +17,7 @@ const mSpriteJar = require('../sprite-jar');
 const mHunt = require('../hunt');
 const mParty = require('../party');
 const mNeonChat = require('../neon-chat');
+const mTurnLine = require('../turn-line');
 const mHttpResponse = require('../http/response');
 const fs = require('node:fs');
 const mConfig = require('../config');
@@ -55,7 +56,11 @@ async function handleActivityApi(req, res, url) {
                     mWalkers.walkerParts(body.data)
                 );
             } catch (_error) {}
-            if (!shDone) {
+            let tlDone = false; // "!turn" joins the Turn Line; the sign-ups below would read it as a name
+            try {
+                tlDone = mTurnLine.turnLineChat(body.data.sender, mWalkers.walkerParts(body.data));
+            } catch (_error) {}
+            if (!shDone && !tlDone) {
                 try {
                     mSignupsPoke.sashiChat(body.data.sender, mWalkers.walkerParts(body.data));
                 } catch (_error) {}

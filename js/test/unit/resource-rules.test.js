@@ -112,6 +112,44 @@ test('parallel collection cards each track their own independent progress', () =
     assert.equal(a.slots[0].count, 4);
     assert.equal(b.slots[0].count, 4);
 });
+test('countdown slots count down one per cook line, only on their direction, never below zero', () => {
+    const value = card({
+        direction: 'gained',
+        eventSource: 'inventory',
+        tokens: [],
+        slots: [
+            {
+                id: 'gumbo',
+                tokens: ['itemtype_c_crabgumbo'],
+                mode: 'countdown',
+                countEvents: true,
+                startAt: 2,
+                count: 2
+            },
+            {
+                id: 'rice',
+                tokens: ['itemtype_c_crabfriedrice'],
+                mode: 'countdown',
+                startAt: 10,
+                count: 10
+            },
+            { id: 'plain', tokens: ['itemtype_c_crabpotpie'], count: 0 }
+        ]
+    });
+    scan(value, 'Inventory gained: itemtype_c_crabgumbo x3');
+    scan(value, 'Inventory gained: itemtype_c_crabfriedrice x4');
+    scan(value, 'Inventory gained: itemtype_c_crabpotpie x2');
+    assert.deepEqual(
+        value.slots.map((x) => x.count),
+        [1, 6, 2]
+    );
+    scan(value, 'Inventory lost: itemtype_c_crabgumbo x1');
+    scan(value, 'Lockbox gained: itemtype_c_crabgumbo x1');
+    assert.equal(value.slots[0].count, 1);
+    scan(value, 'Inventory gained: itemtype_c_crabgumbo x1');
+    scan(value, 'Inventory gained: itemtype_c_crabgumbo x1');
+    assert.equal(value.slots[0].count, 0);
+});
 test('login resets preserve lifetime, countdown, and secondary counts; undo is one-use', () => {
     const state = {
         cards: [

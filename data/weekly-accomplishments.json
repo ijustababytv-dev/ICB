@@ -19,7 +19,7 @@
       "done": false
     },
     "cook-10": {
-      "count": 0,
+      "count": 10,
       "done": false
     },
     "cook-star-3": {
@@ -27,15 +27,15 @@
       "done": false
     },
     "forage-30": {
-      "count": 0,
+      "count": 19,
       "done": false
     },
     "trees-10": {
-      "count": 0,
+      "count": 10,
       "done": false
     },
     "magic-trees-10": {
-      "count": 0,
+      "count": 10,
       "done": false
     },
     "furniture-common-5": {
@@ -198,5 +198,5 @@
     ]
   },
   "lastResetAt": "2026-10-26T04:00:28.477Z",
-  "updatedAt": "2026-10-26T04:00:28.479Z"
+  "updatedAt": "2026-10-29T11:39:49.857Z"
 }

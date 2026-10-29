@@ -122,7 +122,13 @@ function applyResourceEvent(resourceTrackers, line) {
             for (const token of slot.tokens || []) qty += mDomainLogParser.quantityFor(line, token);
             if (slot.tokenPrefix) qty += mDomainLogParser.quantityForPrefix(line, slot.tokenPrefix);
             if (!qty) continue;
-            slot.count = Math.max(0, (slot.count || 0) + sign * qty);
+            if (slot.mode === 'countdown') {
+                // Countdown slot (2026-10-29, the three crab dish boxes on one card): each
+                // matching cook line takes 1 off (countEvents) or the stack size off, never up.
+                slot.count = Math.max(0, (slot.count || 0) - (slot.countEvents ? 1 : qty));
+            } else {
+                slot.count = Math.max(0, (slot.count || 0) + sign * qty);
+            }
             changed = true;
         }
     }

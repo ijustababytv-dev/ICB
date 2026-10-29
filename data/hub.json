@@ -1,5 +1,7 @@
 {
   "order": [
+    "trackers",
+    "turnline",
     "neonchat",
     "streamframe",
     "spritetv",
@@ -15,7 +17,6 @@
     "desktop",
     "c1790719767680",
     "timer",
-    "trackers",
     "giveaway",
     "newsticker",
     "teams",

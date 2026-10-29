@@ -154,7 +154,7 @@ async function handleResourcesApi(req, res, url) {
         // material tracked on the card gets its own adjust/set, same shape as
         // every other per-card route, just addressed by card id AND slot id.
         const match = pathname.match(
-            /^\/api\/resource-trackers\/([a-z0-9-]+)\/slot\/([a-z0-9-]+)\/(adjust|set)$/i
+            /^\/api\/resource-trackers\/([a-z0-9-]+)\/slot\/([a-z0-9-]+)\/(adjust|set|set-start)$/i
         );
         if (match && ['POST', 'PUT'].includes(method)) {
             const card = mResources.findResourceCard(match[1].toLowerCase());
@@ -176,6 +176,37 @@ async function handleResourcesApi(req, res, url) {
                     error: 'No slot with that id on this card.'
                 });
             const body = await mHttpBody.readBody(req);
+            if (match[3] === 'set-start') {
+                // Countdown slots only: change this box's batch size and restock it now,
+                // saved to config/resource-trackers.json so it survives a restart.
+                const startAt = Math.trunc(Number(body.startAt));
+                if (slot.mode !== 'countdown' || !Number.isFinite(startAt) || startAt < 0)
+                    return mHttpResponse.sendJson(res, 400, {
+                        ok: false,
+                        error: 'Send a whole number of 0 or more for a countdown box.'
+                    });
+                slot.startAt = startAt;
+                slot.count = startAt;
+                try {
+                    const cfg = JSON.parse(fs.readFileSync(mResources.RESOURCE_CARDS_FILE, 'utf8'));
+                    const def = (cfg.cards || []).find((c) => c.id === card.id);
+                    const defSlot = def && (def.slots || []).find((s) => s.id === slot.id);
+                    if (defSlot) {
+                        defSlot.startAt = startAt;
+                        fs.writeFileSync(
+                            mResources.RESOURCE_CARDS_FILE,
+                            JSON.stringify(cfg, null, 2)
+                        );
+                    }
+                } catch (_error) {
+                    /* live change still applies even if the config write fails */
+                }
+                mResources.broadcastResourceTrackers();
+                return mHttpResponse.sendJson(res, 200, {
+                    ok: true,
+                    resourceTrackers: mResources.resourceTrackersView()
+                });
+            }
             const value = Number(match[3] === 'adjust' ? body.delta : body.value);
             if (!Number.isFinite(value))
                 return mHttpResponse.sendJson(res, 400, {
@@ -212,7 +243,8 @@ async function handleResourcesApi(req, res, url) {
                     error: `${card.name} doesn't have slots.`
                 });
             }
-            for (const slot of card.slots) slot.count = 0;
+            for (const slot of card.slots)
+                slot.count = slot.mode === 'countdown' ? Number(slot.startAt) || 0 : 0;
             mResources.broadcastResourceTrackers();
             return mHttpResponse.sendJson(res, 200, {
                 ok: true,

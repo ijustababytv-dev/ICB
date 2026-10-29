@@ -56,7 +56,7 @@
   "stream": {
     "title": "",
     "category": "Palia",
-    "goLiveMessage": "UNICORN_GOAL:716:10:1000:0"
+    "goLiveMessage": "UNICORN_GOAL:718:10:1000:0"
   },
   "ticker": {
     "text": "✨For Real-Time Updates Follow Me On Twitter & Instagram✨",
@@ -78,6 +78,7 @@
       "log"
     ],
     "trackerOrder": [
+      "crab-dishes",
       "poke-bowl",
       "bean-burger",
       "sashimi",
@@ -111,9 +112,19 @@
       "banshee-beetle",
       "tattered-cloth",
       "shmole-spores",
-      "blue-crab"
+      "blue-crab",
+      "apple-pie",
+      "pumpkin-pie",
+      "meaty-stir-fry",
+      "akwinduu-chapaa",
+      "vampire-crab",
+      "king-crab",
+      "stripeshell-snail"
     ],
-    "trackerHidden": []
+    "trackerHidden": [
+      "queen-ushindi-collection",
+      "long-tracker"
+    ]
   },
-  "updatedAt": "2026-10-25T21:33:57.457Z"
+  "updatedAt": "2026-10-29T11:30:10.502Z"
 }

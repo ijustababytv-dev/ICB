@@ -1,27 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-25T21:07:29.973Z",
+  "updatedAt": "2026-10-29T11:35:09.764Z",
   "requests": [
     {
-      "at": "2026-10-25T21:07:29.973Z",
-      "kind": "page:apple-pie",
-      "url": "/apple-pie.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) icb-desktop-widgets/1.3.0 Chrome/130.0.6723.137 Electron/33.2.1 Safari/537.36",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-25T21:03:12.525Z",
-      "kind": "page:sashimi",
-      "url": "/sashimi.html",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) icb-desktop-widgets/1.3.0 Chrome/130.0.6723.137 Electron/33.2.1 Safari/537.36",
-      "referer": null,
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"
-    },
-    {
-      "at": "2026-10-25T19:04:35.954Z",
-      "kind": "page:akwinduu-chapaa",
-      "url": "/akwinduu-chapaa.html",
+      "at": "2026-10-29T11:35:09.764Z",
+      "kind": "page:crab-dishes",
+      "url": "/crab-dishes.html",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Meld/0.10.7.7",
       "referer": null,
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exch"

@@ -31,6 +31,7 @@ const mSpriteTv = require('../sprite-tv');
 const mOceanFish = require('../ocean-fish');
 const mStreamFrame = require('../stream-frame');
 const mNeonChat = require('../neon-chat');
+const mTurnLine = require('../turn-line');
 const mRoutesActivity = require('../routes/activity');
 const mRoutesGiveawayEvents = require('../routes/giveaway-events');
 const mRoutesGiveawayDraws = require('../routes/giveaway-draws');
@@ -106,6 +107,8 @@ async function handleApi(req, res, url) {
         return mStreamFrame.handleStreamFrameApi(req, res, pathname, method);
     if (pathname === '/api/neonchat')
         return mNeonChat.handleNeonChatApi(req, res, pathname, method, url);
+    if (pathname === '/api/turnline')
+        return mTurnLine.handleTurnLineApi(req, res, pathname, method);
     if (pathname.startsWith('/api/activity/'))
         return mRoutesActivity.handleActivityApi(req, res, url);
     if (['/api/giveaway/state', '/api/giveaway/event', '/api/giveaway/manual'].includes(pathname))

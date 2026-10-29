@@ -474,9 +474,44 @@
     "vampire|Base": 1792692093861,
     "vampire|Trick or Treat": 1792692097254,
     "honey|Loot Hacker": 1792692104155,
-    "one-wish-willow|Gold": 1792692108577
+    "one-wish-willow|Gold": 1792692108577,
+    "jonesy|Bounty Hunter": 1793042801797,
+    "crash-bandicoot|Bounty Hunter": 1793042844372,
+    "tails|Trick or Treat": 1793044942802,
+    "overshield|Bounty Hunter": 1793045038280,
+    "one-wish-willow|Loot Hacker": 1793045540678
   },
   "recent": [
+    {
+      "id": "one-wish-willow",
+      "name": "One Wish Willow",
+      "variant": "Loot Hacker",
+      "at": 1793045540678
+    },
+    {
+      "id": "overshield",
+      "name": "Overshield",
+      "variant": "Bounty Hunter",
+      "at": 1793045038280
+    },
+    {
+      "id": "tails",
+      "name": "Tails",
+      "variant": "Trick or Treat",
+      "at": 1793044942802
+    },
+    {
+      "id": "crash-bandicoot",
+      "name": "Crash Bandicoot",
+      "variant": "Bounty Hunter",
+      "at": 1793042844372
+    },
+    {
+      "id": "jonesy",
+      "name": "Jonesy",
+      "variant": "Bounty Hunter",
+      "at": 1793042801797
+    },
     {
       "id": "one-wish-willow",
       "name": "One Wish Willow",
@@ -626,36 +661,6 @@
       "name": "Adventure",
       "variant": "Bounty Hunter",
       "at": 1792691901150
-    },
-    {
-      "id": "jonesy",
-      "name": "Jonesy",
-      "variant": "Loot Hacker",
-      "at": 1792691893497
-    },
-    {
-      "id": "jonesy",
-      "name": "Jonesy",
-      "variant": "Trick or Treat",
-      "at": 1792691890677
-    },
-    {
-      "id": "killswitch",
-      "name": "Killswitch",
-      "variant": "Bounty Hunter",
-      "at": 1792464800526
-    },
-    {
-      "id": "onigiri",
-      "name": "Onigiri",
-      "variant": "Cheat Master",
-      "at": 1792463067533
-    },
-    {
-      "id": "tails",
-      "name": "Tails",
-      "variant": "Gold",
-      "at": 1792462711750
     }
   ],
   "popupSec": 8,

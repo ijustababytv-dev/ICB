@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Turn Line — ICB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/turn-line-control.css">
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>🔁 <span>Turn Line</span></h1>
+      <div class="sub">Viewers sign up to take turns starting the same dish. Green = their turn, red = finished.</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="health" id="health">connecting…</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>The line</h2>
+        <div class="row">
+          <button class="btn-good big" id="doneBtn" onclick="act({done:true})">✔ Done - next person</button>
+          <button onclick="act({undo:true})">↩ Undo</button>
+          <button onclick="act({skip:true})">⏭ Skip to back</button>
+        </div>
+        <div class="queue" id="queue"></div>
+        <div class="row">
+          <input type="text" id="addName" placeholder="Add a name" maxlength="40" onkeydown="if(event.key==='Enter')addName()">
+          <button class="btn-accent" onclick="addName()">Add</button>
+        </div>
+        <div class="row">
+          <button onclick="act({newRound:true},'New round')">🔄 New round (everyone waits again)</button>
+          <button onclick="if(confirm('Remove everyone from the line?'))act({clear:true},'Line cleared')">🧹 Clear line</button>
+        </div>
+        <div class="note">Chat: viewers type <b id="cmdShow">!turn</b> to join and <b>!leave</b> to leave. The first person in line turns green automatically. The 10 starts are not counted - press Done when they finish.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="url"><code>http://127.0.0.1:8790/turn-line.html</code><button class="btn-sm" onclick="copyUrl()">Copy</button></div>
+        <div class="note" style="margin:-4px 0 8px">Add as a Meld browser layer (try 420 × 420 to start), then move and resize it. It is see-through unless you pick a background below.</div>
+        <div class="previewWrap"><iframe class="preview turn" id="preview" src="/turn-line.html"></iframe></div>
+      </div>
+      <div class="card">
+        <h2>Settings</h2>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="visible"><span></span></label> Show on stream</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="open"><span></span></label> Chat sign-ups open</div>
+        <div class="switchrow"><label class="switch"><input type="checkbox" id="showHeader"><span></span></label> Show the title and dish line</div>
+        <div class="row"><label>Title</label><input type="text" id="title" maxlength="40"></div>
+        <div class="row"><label>Dish name</label><input type="text" id="dish" maxlength="40" placeholder="e.g. Fish Stew"></div>
+        <div class="row"><label>Starts each</label><input type="number" id="turnsEach" min="1" max="99" style="width:80px"> <span class="note">shown on screen only</span></div>
+        <div class="row"><label>Chat word</label><input type="text" id="joinWord" maxlength="20" style="width:120px"></div>
+        <div class="row"><label>Text size</label><input type="range" id="font" min="14" max="60"><span class="val" id="fontV"></span></div>
+        <div class="row"><label>Background</label>
+          <select id="bgMode"><option value="none">None (see-through)</option><option value="color">Color panel</option><option value="image">Picture</option></select>
+        </div>
+        <div class="row"><label>Panel color</label><input type="color" id="bgColor"></div>
+        <div class="row"><label>Picture</label>
+          <select id="bgImage"></select>
+          <select id="bgFit"><option value="cover">Fill (crop)</option><option value="contain">Fit inside</option><option value="stretch">Stretch</option></select>
+        </div>
+        <div class="row"><label>Place a picture</label><input type="file" id="bgFile" accept="image/png,image/jpeg,image/webp,image/gif"><button onclick="uploadBg()">Upload</button></div>
+        <div class="note">Uploaded or dropped-in pictures live in the <b>assets/turn-line</b> folder (local only, not on GitHub). Strength applies to the color panel and the picture.</div>
+        <div class="row"><label>Strength</label><input type="range" id="bgOpacity" min="0" max="100"><span class="val" id="bgOpacityV"></span></div>
+        <div class="row"><label>Corners</label><input type="range" id="bgRadius" min="0" max="60"><span class="val" id="bgRadiusV"></span></div>
+        <div class="row"><label>Colors</label>
+          <span class="note">Your turn</span><input type="color" id="goColor">
+          <span class="note">Finished</span><input type="color" id="doneColor">
+          <span class="note">Waiting</span><input type="color" id="waitColor">
+          <span class="note">Title</span><input type="color" id="accent">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+<script src="/js/client/turn-line-control.js"></script>
+</body>
+</html>

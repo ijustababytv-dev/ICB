@@ -1,0 +1,28 @@
+{
+  "visible": true,
+  "open": true,
+  "showHeader": true,
+  "title": "Rotational Vampire Feast",
+  "dish": "",
+  "turnsEach": 10,
+  "font": 15,
+  "joinWord": "turn",
+  "goColor": "#3ddc84",
+  "doneColor": "#ff4d5e",
+  "waitColor": "#ffffff",
+  "accent": "#ff8fd8",
+  "bgMode": "color",
+  "bgColor": "#24063a",
+  "bgOpacity": 85,
+  "bgRadius": 18,
+  "bgImage": "",
+  "bgFit": "cover",
+  "seq": 1,
+  "people": [
+    {
+      "id": 1,
+      "name": "ijustababyTv",
+      "state": "go"
+    }
+  ]
+}

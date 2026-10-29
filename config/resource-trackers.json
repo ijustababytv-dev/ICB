@@ -677,7 +677,7 @@
       ],
       "direction": "gained",
       "mode": "countdown",
-      "startAt": 98,
+      "startAt": 100,
       "visible": true,
       "countEvents": true,
       "valueBox": {
@@ -1031,6 +1031,122 @@
         "width": 42.8,
         "height": 20.4
       }
+    },
+    {
+      "id": "vampire-crab",
+      "name": "Vampire Crab",
+      "image": "Vampire_Crab.png",
+      "tokens": [
+        "itemtype_bug_crabr"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "lifetime",
+      "visible": true,
+      "_note_2026_10_29": "Built 2026-10-29. Baby: 'need a tracker for Vampire Crabs', chose 'Count up each crab caught'. Token confirmed: she took a Vampire Crab out of storage on request and the game log showed 'ITEM RECEIVED: Amount=1 ItemType=DA_ItemType_Bug_CrabR' (00:22:24, right as WBP_PlayerStorageModal closed) -> bridge token itemtype_bug_crabr, also seen as real catches on 2026-09-24 ('Inventory gained: itemtype_bug_crabr x2/x1'). The bridge correctly SKIPPED that storage withdrawal (ItemEarned stat did not rise = moved, not earned), so only real catches count. Counts every crab (quantity, no countEvents): a x2 catch line adds 2. lifetime mode = never resets on its own; manual +/-/Reset on control.html. Not to be confused with itemtype_bug_crabc (another crab) or the Bahari blue/king crabs. Art Vampire_Crab.png 2048x768 (house standard); value box measured by dark+flat detection and overlay-checked.",
+      "valueBox": {
+        "left": 34.28,
+        "top": 56.64,
+        "width": 33.2,
+        "height": 19.14
+      }
+    },
+    {
+      "id": "king-crab",
+      "name": "King Crab",
+      "image": "King_Crab.png",
+      "tokens": [
+        "itemtype_bug_az3_crab_king"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "lifetime",
+      "visible": true,
+      "_note_2026_10_29": "Built 2026-10-29. Baby: 'make a tracker for King Crabs itemtype_bug_az3_crab_king' (token supplied by her; same Bahari crab family as itemtype_bug_az3_crab_blue). Counting style not stated, so it matches Vampire Crab / Blue Crab: counts up every King Crab caught (quantity, no countEvents), lifetime = never resets on its own, manual +/-/Reset on control.html. Inventory lines only; storage withdrawals are skipped by the bridge. Blue Crab card does not count this token and this card does not count blue crabs. Art King_Crab.png 1536x1024; value box measured by dark+flat detection and overlay-checked (blank navy panel inside the gold frame).",
+      "valueBox": {
+        "left": 29.23,
+        "top": 68.95,
+        "width": 41.67,
+        "height": 14.94
+      }
+    },
+    {
+      "id": "stripeshell-snail",
+      "name": "Stripeshell Snail",
+      "image": "Stripeshell_Snail.png",
+      "tokens": [
+        "itemtype_bug_snailr"
+      ],
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "lifetime",
+      "visible": true,
+      "_note_2026_10_29": "Built 2026-10-29. Baby: 'itemtype_bug_snailr create a tracker for the stripshell snail'; first art misspelled the name, so she made new art (Stripeshell_Snail.png, 1774x887). Token supplied by her. Counting style not stated, so it matches the crab cards: counts up every Stripeshell Snail caught (quantity, no countEvents), lifetime = never resets on its own, manual +/-/Reset on control.html. Inventory lines only; storage withdrawals are skipped by the bridge. Value box measured by dark+flat detection and overlay-checked.",
+      "valueBox": {
+        "left": 37.15,
+        "top": 64.71,
+        "width": 47.8,
+        "height": 18.94
+      }
+    },
+    {
+      "id": "crab-dishes",
+      "name": "Vampire Crab Dishes",
+      "image": "Crab_Dishes.png",
+      "direction": "gained",
+      "eventSource": "inventory",
+      "visible": true,
+      "_note_2026_10_29": "Built 2026-10-29. Baby: 'instead of 3 different widgets in meld can we put all 3 dish trackers into this one art card'. One slots card replacing the three single cards crab-gumbo / crab-fried-rice / crab-pot-pie (their config was removed and saved in the project doc claude/icb-crab-dishes-tracker.md; their art files are still in assets/resources). Each box is a COUNTDOWN slot (new 2026-10-29: slot mode 'countdown' + startAt + countEvents): one 'Inventory gained' cook line of its token takes exactly 1 off, whatever the stack size; Inventory lost, Lockbox and Primary lines never count. Boxes snap back to startAt when ICB restarts, same as countdown cards; startAt 30 matches the values Baby had set on the three old cards (change per box with 'Set & restock' on control.html). Tokens: itemtype_c_crabgumbo, itemtype_c_crabfriedrice, itemtype_c_crabpotpie (none seen in her logs yet, spot-check each the first time it moves). Art Crab_Dishes.png 2043x770; three boxes found by dark+flat detection and overlay-checked.",
+      "slots": [
+        {
+          "id": "gumbo",
+          "label": "Crab Gumbo",
+          "tokens": [
+            "itemtype_c_crabgumbo"
+          ],
+          "mode": "countdown",
+          "startAt": 30,
+          "countEvents": true,
+          "valueBox": {
+            "left": 6.85,
+            "top": 72.08,
+            "width": 21,
+            "height": 15.71
+          }
+        },
+        {
+          "id": "rice",
+          "label": "Spicy Crab Fried Rice",
+          "tokens": [
+            "itemtype_c_crabfriedrice"
+          ],
+          "mode": "countdown",
+          "startAt": 30,
+          "countEvents": true,
+          "valueBox": {
+            "left": 39.99,
+            "top": 72.08,
+            "width": 20.46,
+            "height": 15.71
+          }
+        },
+        {
+          "id": "potpie",
+          "label": "Crab Pot Pie",
+          "tokens": [
+            "itemtype_c_crabpotpie"
+          ],
+          "mode": "countdown",
+          "startAt": 30,
+          "countEvents": true,
+          "valueBox": {
+            "left": 72.54,
+            "top": 72.08,
+            "width": 21,
+            "height": 15.71
+          }
+        }
+      ]
     }
   ]
 }

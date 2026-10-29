@@ -46,6 +46,7 @@ async function verifyFeatureRoutes(json, origin) {
         'oceanfish',
         'streamframe',
         'neonchat',
+        'turnline',
         'hunt',
         'hunt/admin',
         'randomizer',

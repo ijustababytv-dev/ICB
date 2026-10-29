@@ -74,7 +74,10 @@ function loadResourceTrackers() {
                 ? {
                       slots: def.slots.map((slot) => ({
                           ...slot,
-                          count: Number((slotCounts[def.id] || {})[slot.id]) || 0
+                          count:
+                              slot.mode === 'countdown'
+                                  ? Number(slot.startAt) || 0
+                                  : Number((slotCounts[def.id] || {})[slot.id]) || 0
                       }))
                   }
                 : {

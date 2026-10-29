@@ -10,7 +10,7 @@
     "jadium": 2,
     "flint": 0,
     "clay": 0,
-    "coral": 0,
+    "coral": 5,
     "emerald-moss": 0,
     "dragons-beard-peat": 0,
     "apples": 0,
@@ -28,11 +28,17 @@
     "highland-shark": 0,
     "tattered-cloth": 7,
     "shmole-spores": 15,
-    "poke-bowl": 98,
-    "apple-pie": 17,
-    "pumpkin-pie": 12,
-    "meaty-stir-fry": 20,
-    "akwinduu-chapaa": 15
+    "poke-bowl": 100,
+    "apple-pie": 30,
+    "pumpkin-pie": 30,
+    "meaty-stir-fry": 30,
+    "akwinduu-chapaa": 30,
+    "vampire-crab": 58,
+    "king-crab": 12,
+    "stripeshell-snail": 14,
+    "crab-gumbo": 30,
+    "crab-fried-rice": 30,
+    "crab-pot-pie": 30
   },
   "secondaryCounts": {
     "ramen-plush": 0
@@ -42,16 +48,16 @@
       "ash-wood": 46,
       "stone": 287,
       "whitestone": 37,
-      "silk-thread": 155,
+      "silk-thread": 414,
       "jadium-ore": 183
     },
     "long-tracker": {
       "ash-wood": 46,
-      "amber-echo": 13231,
+      "amber-echo": 14107,
       "jadium-ore": 183,
       "gold-ore": 31,
       "iron-ore": 178,
-      "bugs": 1315
+      "bugs": 1808
     },
     "ore-vs-kitsuu": {
       "jadium-ore": 183,
@@ -75,8 +81,13 @@
       "plushies": 2
     },
     "blue-crab": {
-      "crabs": 495,
+      "crabs": 501,
       "plushies": 1
+    },
+    "crab-dishes": {
+      "gumbo": 30,
+      "rice": 30,
+      "potpie": 30
     }
   },
   "previous": {
@@ -136,9 +147,13 @@
     "apple-pie": true,
     "pumpkin-pie": true,
     "meaty-stir-fry": true,
-    "akwinduu-chapaa": true
+    "akwinduu-chapaa": true,
+    "vampire-crab": true,
+    "king-crab": true,
+    "stripeshell-snail": true,
+    "crab-dishes": true
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
   "lastResetAt": "2026-10-11T18:51:41.644Z",
-  "updatedAt": "2026-10-25T21:56:46.754Z"
+  "updatedAt": "2026-10-29T11:39:49.854Z"
 }

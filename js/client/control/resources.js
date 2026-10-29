@@ -31,40 +31,63 @@ function rtRender() {
                         // dashboard card, N independent materials each with its own −/+/Reset,
                         // plus a single "Reset All" for after a full turn-in.
                         const rows = (c.slots || [])
-                            .map(
-                                (
-                                    slot
-                                ) => `<div class="rt-btns" style="justify-content:space-between">
+                            .map((slot) =>
+                                slot.mode === 'countdown'
+                                    ? `<div class="rt-btns" style="justify-content:space-between">
           <span style="min-width:150px">${(
               slot.count || 0
           ).toLocaleString()} <span class="muted" style="font-size:12px">${phEsc(
-                                    slot.label || slot.id
-                                )}</span></span>
+                                          slot.label || slot.id
+                                      )} left (batch ${slot.startAt || 0})</span></span>
+          <span>
+            <button data-rtslot="${phEsc(c.id)}/${phEsc(slot.id)}" data-d="-1">−</button>
+            <button data-rtslot="${phEsc(c.id)}/${phEsc(slot.id)}" data-d="1">+</button>
+            <input type="number" min="0" id="slotStart-${phEsc(c.id)}-${phEsc(
+                                          slot.id
+                                      )}" placeholder="${slot.startAt || 0}" style="width:70px">
+            <button class="secondary" data-rtslotstart="${phEsc(c.id)}/${phEsc(
+                                          slot.id
+                                      )}">Set &amp; restock</button>
+          </span>
+        </div>`
+                                    : `<div class="rt-btns" style="justify-content:space-between">
+          <span style="min-width:150px">${(
+              slot.count || 0
+          ).toLocaleString()} <span class="muted" style="font-size:12px">${phEsc(
+                                          slot.label || slot.id
+                                      )}</span></span>
           <span>
             <button data-rtslot="${phEsc(c.id)}/${phEsc(slot.id)}" data-d="-1">−</button>
             <button data-rtslot="${phEsc(c.id)}/${phEsc(slot.id)}" data-d="1">+</button>
             <button class="secondary" data-rtslotreset="${phEsc(c.id)}/${phEsc(
-                                    slot.id
-                                )}" data-rtresetname="${phEsc(
-                                    slot.label || slot.id
-                                )}">Reset</button>
+                                          slot.id
+                                      )}" data-rtresetname="${phEsc(
+                                          slot.label || slot.id
+                                      )}">Reset</button>
           </span>
         </div>`
                             )
                             .join('');
+                        const hasCountdown = (c.slots || []).some((s) => s.mode === 'countdown');
                         return `<div class="rt">
       <img src="/resource-art/${encodeURIComponent(
           c.image
       )}" alt="" onerror="this.style.display='none'">
       <div class="rt-meta">
         <div class="rt-url">/${phEsc(c.id)}.html</div>
-        <div class="rt-life">NEVER AUTO-RESETS · manual reset only, per material</div>
+        <div class="rt-life">${
+            hasCountdown
+                ? 'COUNTDOWN · each box restocks to its batch size when ICB restarts'
+                : 'NEVER AUTO-RESETS · manual reset only, per material'
+        }</div>
       </div>
       <div class="rt-v" style="font-size:16px;line-height:1.6;display:block">${rows}</div>
       <div class="rt-btns">
         <button class="secondary" data-rtslotsreset="${phEsc(c.id)}" data-rtresetname="all ${
                             (c.slots || []).length
-                        } counts on ${phEsc(c.name)}">Reset All</button>
+                        } counts on ${phEsc(c.name)}">${
+                            hasCountdown ? 'Restock All' : 'Reset All'
+                        }</button>
       </div>
     </div>`;
                     }

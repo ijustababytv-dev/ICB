@@ -3,9 +3,9 @@
     {
       "id": "main",
       "name": "Main countdown",
-      "heading": "Aniimo",
-      "subheading": "RV Upgrade Timer",
-      "endText": "RV Completed",
+      "heading": "Palia",
+      "subheading": "Spooky Vampire Crab Feast",
+      "endText": "Start Cooking!",
       "endSub": "",
       "icon": "✨",
       "theme": "flowtree",
@@ -32,12 +32,12 @@
       "hideAfter": 0,
       "idleShow": "zeros",
       "lastMinutes": 24,
-      "lastTime": "22:30",
+      "lastTime": "19:00",
       "lastTz": "America/Chicago",
-      "status": "done",
-      "endsAt": 1792985400000,
+      "status": "running",
+      "endsAt": 1793318400000,
       "leftMs": 0,
-      "doneAt": 1792985400000
+      "doneAt": 1793232000000
     }
   ]
 }

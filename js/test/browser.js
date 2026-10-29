@@ -46,7 +46,9 @@ async function main() {
             'stream-frame-control',
             'stream-frame',
             'neon-chat-control',
-            'neon-chat'
+            'neon-chat',
+            'turn-line-control',
+            'turn-line'
         ];
         for (const name of pages) {
             const page = await browser.newPage();

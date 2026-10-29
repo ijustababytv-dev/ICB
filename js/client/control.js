@@ -315,6 +315,17 @@ document.addEventListener('click', async (e) => {
                 `/api/resource-trackers/${b.dataset.rtslotreset.replace('/', '/slot/')}/set`,
                 { value: 0 }
             );
+    } else if (b.dataset.rtslotstart) {
+        const [cardId, slotId] = b.dataset.rtslotstart.split('/');
+        const inp = document.getElementById(`slotStart-${cardId}-${slotId}`);
+        if (!inp || inp.value === '' || Number(inp.value) < 0) {
+            if (inp) inp.focus();
+            return;
+        }
+        const out = await rtCall(`/api/resource-trackers/${cardId}/slot/${slotId}/set-start`, {
+            startAt: Number(inp.value)
+        });
+        if (out && out.ok) inp.value = '';
     } else if (b.dataset.rtslotsreset) {
         if (confirm(`Reset ${b.dataset.rtresetname || 'this'} to 0? This cannot be undone.`))
             await rtCall(

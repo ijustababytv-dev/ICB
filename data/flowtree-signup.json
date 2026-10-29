@@ -14,7 +14,7 @@
   "showZones": true,
   "showCountdown": true,
   "rseq": 2,
-  "onDemand": true,
+  "onDemand": false,
   "showSec": 60,
   "showOnSignup": true,
   "zones": [
@@ -106,16 +106,51 @@
       "guests": [
         {
           "n": 1,
-          "name": "IJustABabyTv",
-          "twitch": "IJustABabyTv",
-          "at": 1792528967229,
+          "name": "Nova Hazelwood",
+          "twitch": "wonderlilyes",
+          "at": 1793131047543,
           "role": "r1"
         },
         {
           "n": 2,
-          "name": "Nova Hazelwood",
-          "twitch": "wonderlilyes",
-          "at": 1792529511209,
+          "name": "IJustABabyTv",
+          "twitch": "IJustABabyTv",
+          "at": 1793131058498,
+          "role": "r1"
+        },
+        {
+          "n": 3,
+          "name": "kjdragon2018",
+          "twitch": "kjdragon2018",
+          "at": 1793134889409,
+          "role": "r1"
+        },
+        {
+          "n": 4,
+          "name": "someadj_kitty",
+          "twitch": "someadj_kitty",
+          "at": 1793134891188,
+          "role": "r1"
+        },
+        {
+          "n": 5,
+          "name": "bunnybliss_",
+          "twitch": "bunnybliss_",
+          "at": 1793134964562,
+          "role": "r1"
+        },
+        {
+          "n": 6,
+          "name": "I_just_a_Layla",
+          "twitch": "I_just_a_Layla",
+          "at": 1793139996026,
+          "role": "r1"
+        },
+        {
+          "n": 7,
+          "name": "MissCupcake",
+          "twitch": "ItsMissCupcake",
+          "at": 1793140859532,
           "role": "r1"
         }
       ],
@@ -129,7 +164,7 @@
         }
       ],
       "desc": "",
-      "date": "2026-10-20",
+      "date": "2026-10-27",
       "time": "18:00",
       "tz": "America/Chicago",
       "game": "Palia"
