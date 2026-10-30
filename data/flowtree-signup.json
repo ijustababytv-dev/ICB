@@ -106,48 +106,41 @@
       "guests": [
         {
           "n": 1,
-          "name": "Nova Hazelwood",
-          "twitch": "wonderlilyes",
-          "at": 1793131047543,
-          "role": "r1"
-        },
-        {
-          "n": 2,
           "name": "IJustABabyTv",
           "twitch": "IJustABabyTv",
           "at": 1793131058498,
           "role": "r1"
         },
         {
-          "n": 3,
+          "n": 2,
           "name": "kjdragon2018",
           "twitch": "kjdragon2018",
           "at": 1793134889409,
           "role": "r1"
         },
         {
-          "n": 4,
+          "n": 3,
           "name": "someadj_kitty",
           "twitch": "someadj_kitty",
           "at": 1793134891188,
           "role": "r1"
         },
         {
-          "n": 5,
+          "n": 4,
           "name": "bunnybliss_",
           "twitch": "bunnybliss_",
           "at": 1793134964562,
           "role": "r1"
         },
         {
-          "n": 6,
+          "n": 5,
           "name": "I_just_a_Layla",
           "twitch": "I_just_a_Layla",
           "at": 1793139996026,
           "role": "r1"
         },
         {
-          "n": 7,
+          "n": 6,
           "name": "MissCupcake",
           "twitch": "ItsMissCupcake",
           "at": 1793140859532,

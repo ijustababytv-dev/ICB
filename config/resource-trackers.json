@@ -1121,7 +1121,7 @@
             "itemtype_c_crabfriedrice"
           ],
           "mode": "countdown",
-          "startAt": 30,
+          "startAt": 15,
           "countEvents": true,
           "valueBox": {
             "left": 39.99,
@@ -1137,7 +1137,7 @@
             "itemtype_c_crabpotpie"
           ],
           "mode": "countdown",
-          "startAt": 30,
+          "startAt": 13,
           "countEvents": true,
           "valueBox": {
             "left": 72.54,

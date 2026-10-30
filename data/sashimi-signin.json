@@ -39,7 +39,8 @@
       "pinnaclepyrenees": "pinnaclepyrenees",
       "ijustababytv": "IJustABabyTv",
       "someadj_kitty": "someadj_kitty",
-      "i_just_a_layla": "I_just_a_Layla"
+      "i_just_a_layla": "I_just_a_Layla",
+      "ladymo": "ladymo"
     }
   },
   "rseq": 21,
@@ -234,115 +235,45 @@
       "guests": [
         {
           "n": 1,
-          "name": "Haleyplzhush",
-          "twitch": "haley_please_hush",
-          "at": 1792706262515,
-          "role": "r18"
-        },
-        {
-          "n": 2,
           "name": "IJustABabyTv",
           "twitch": "IJustABabyTv",
-          "at": 1792724824322,
+          "at": 1793308476706,
           "role": "r11"
         },
         {
-          "n": 3,
-          "name": "catmomma1997",
-          "twitch": "catmomma1997",
-          "at": 1792724903226,
-          "role": "r14"
-        },
-        {
-          "n": 4,
-          "name": "I_just_a_Layla",
-          "twitch": "I_just_a_Layla",
-          "at": 1792782220860,
-          "role": "r12"
-        },
-        {
-          "n": 5,
-          "name": "VoxDawnbringer",
-          "twitch": "VoxDawnbringer",
-          "at": 1792782368781,
-          "role": "r15"
-        },
-        {
-          "n": 6,
-          "name": "kjdragon2018",
-          "twitch": "kjdragon2018",
-          "at": 1792783598128,
-          "role": "r17"
-        },
-        {
-          "n": 7,
-          "name": "froggyswowttv",
-          "twitch": "froggyswowttv",
-          "at": 1792793231813,
-          "role": "r20"
-        },
-        {
-          "n": 8,
-          "name": "Granny",
-          "twitch": "",
-          "at": 1792796272484,
+          "n": 2,
+          "name": "sammiileigh",
+          "twitch": "sammiileigh",
+          "at": 1793308503877,
           "role": "r19"
         },
         {
-          "n": 9,
-          "name": "sammiileigh",
-          "twitch": "sammiileigh",
-          "at": 1792797737075,
-          "role": "r13"
+          "n": 3,
+          "name": "Nova Hazelwood",
+          "twitch": "wonderlilyes",
+          "at": 1793308530198,
+          "role": "r15"
         },
         {
-          "n": 10,
-          "name": "pinnaclepyrenees",
-          "twitch": "pinnaclepyrenees",
-          "at": 1792798721866,
-          "role": "r20"
+          "n": 4,
+          "name": "ladymo",
+          "twitch": "ladymo",
+          "at": 1793308685500,
+          "role": "r17"
         },
         {
-          "n": 11,
-          "name": "EchoAurelia",
-          "twitch": "EchoAurelia",
-          "at": 1792798894960,
-          "role": "r20"
+          "n": 5,
+          "name": "catmomma1997",
+          "twitch": "catmomma1997",
+          "at": 1793308697242,
+          "role": "r17"
         },
         {
-          "n": 12,
-          "name": "Railgunxxc",
-          "twitch": "Railgunxxc",
-          "at": 1792800506356,
-          "role": "r13"
-        },
-        {
-          "n": 13,
-          "name": "Dylans__Babygirl",
-          "twitch": "Dylans__Babygirl",
-          "at": 1792800553742,
-          "role": "r13"
-        },
-        {
-          "n": 14,
-          "name": "kitty Kira",
-          "twitch": "someadj_kitty",
-          "at": 1792800559867,
-          "role": "r13"
-        },
-        {
-          "n": 15,
-          "name": "4KaySlayz",
-          "twitch": "4KaySlayz",
-          "at": 1792800576903,
-          "role": "r13"
-        },
-        {
-          "n": 16,
-          "name": "bunnybliss_",
-          "twitch": "bunnybliss_",
-          "at": 1792878703871,
-          "role": "r13"
+          "n": 6,
+          "name": "VoxDawnbringer",
+          "twitch": "VoxDawnbringer",
+          "at": 1793310813851,
+          "role": "r12"
         }
       ],
       "roles": [
@@ -408,17 +339,10 @@
           "cmd": "g",
           "spots": 1,
           "color": "#bda8b6"
-        },
-        {
-          "id": "r20",
-          "label": "OverPrep-tomato, onion or garlic",
-          "cmd": "op",
-          "spots": 20,
-          "color": "#ff8fd8"
         }
       ],
-      "desc": "If you sign-up on PPA, do not sign up here on LIVE!",
-      "date": "2026-10-23",
+      "desc": "",
+      "date": "2026-10-30",
       "time": "19:00",
       "tz": "America/Chicago",
       "game": "Palia"

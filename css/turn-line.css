@@ -12,7 +12,7 @@ body { font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif; color: #fff; 
 .row { display: flex; align-items: center; gap: .45em; padding: .08em 0; font-weight: 700; line-height: 1.25; text-shadow: 0 0 6px rgba(0, 0, 0, .95), 0 2px 3px #000, 0 0 2px #000; }
 .row .n { min-width: 1.4em; text-align: right; opacity: .7; font-size: .7em; }
 .row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row .tag { font-size: .55em; font-weight: 800; letter-spacing: .08em; opacity: .95; }
+.row .tag { font-size: .6em; font-weight: 800; opacity: .9; }
 .row.wait { color: var(--wait, #fff); }
 .row.go { color: var(--go, #3ddc84); font-size: 1.12em; text-shadow: 0 0 10px var(--go, #3ddc84), 0 0 4px rgba(0, 0, 0, .95), 0 2px 3px #000; }
 .row.done { color: var(--done, #ff4d5e); }

@@ -1,6 +1,6 @@
 {
   "visible": true,
-  "label": "📰 NEWS",
+  "label": "📰 ijustababyTv News",
   "showLabel": true,
   "separator": "✦",
   "speed": 102,
@@ -15,7 +15,7 @@
   "messages": [
     {
       "id": "m4",
-      "text": "Sign up for Bundle Board Cooking 👉 !ppa",
+      "text": "Still time to sign up for tonight's Poke Bowls! !show Poke",
       "on": true
     }
   ],

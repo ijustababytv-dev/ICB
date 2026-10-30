@@ -24,6 +24,14 @@
         bg.style.backgroundSize = d.bgFit === 'stretch' ? '100% 100%' : d.bgFit;
     }
 
+    /** 1 -> 1st, 2 -> 2nd, 3 -> 3rd, 11 -> 11th, 21 -> 21st. */
+    function ordinal(n) {
+        var last = n % 10;
+        var teen = n % 100 >= 11 && n % 100 <= 13;
+        if (teen || last === 0 || last > 3) return n + 'th';
+        return n + (last === 1 ? 'st' : last === 2 ? 'nd' : 'rd');
+    }
+
     /** Draw the title, the dish line and every name in line. */
     function render(d) {
         var sig =
@@ -70,13 +78,11 @@
             html +=
                 '<div class="row ' +
                 esc(p.state) +
-                '"><span class="n">' +
-                (i + 1) +
-                '</span><span class="nm">' +
+                '"><span class="nm">' +
                 esc(p.name) +
-                '</span>' +
-                (p.state === 'go' ? '<span class="tag">YOUR TURN</span>' : '') +
-                '</div>';
+                '</span><span class="tag">' +
+                ordinal(i + 1) +
+                '</span></div>';
         }
         document.getElementById('list').innerHTML =
             html || '<div class="empty">Nobody in line yet</div>';

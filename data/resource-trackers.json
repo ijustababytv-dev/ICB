@@ -10,9 +10,9 @@
     "jadium": 2,
     "flint": 0,
     "clay": 0,
-    "coral": 5,
+    "coral": 8,
     "emerald-moss": 0,
-    "dragons-beard-peat": 0,
+    "dragons-beard-peat": 1,
     "apples": 0,
     "meat": 57,
     "sashimi": 100,
@@ -33,7 +33,7 @@
     "pumpkin-pie": 30,
     "meaty-stir-fry": 30,
     "akwinduu-chapaa": 30,
-    "vampire-crab": 58,
+    "vampire-crab": 99,
     "king-crab": 12,
     "stripeshell-snail": 14,
     "crab-gumbo": 30,
@@ -48,7 +48,7 @@
       "ash-wood": 46,
       "stone": 287,
       "whitestone": 37,
-      "silk-thread": 414,
+      "silk-thread": 549,
       "jadium-ore": 183
     },
     "long-tracker": {
@@ -57,7 +57,7 @@
       "jadium-ore": 183,
       "gold-ore": 31,
       "iron-ore": 178,
-      "bugs": 1808
+      "bugs": 1861
     },
     "ore-vs-kitsuu": {
       "jadium-ore": 183,
@@ -86,8 +86,8 @@
     },
     "crab-dishes": {
       "gumbo": 30,
-      "rice": 30,
-      "potpie": 30
+      "rice": 15,
+      "potpie": 13
     }
   },
   "previous": {
@@ -155,5 +155,5 @@
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
   "lastResetAt": "2026-10-11T18:51:41.644Z",
-  "updatedAt": "2026-10-29T11:39:49.854Z"
+  "updatedAt": "2026-10-30T17:28:02.359Z"
 }
