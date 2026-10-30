@@ -2,6 +2,7 @@
 
 Date: 2026-10-30. Status: proposed implementation; this document changes no runtime behavior.
 
+
 ## Recommendation
 
 Keep ICB, Palia log reading, chat commands, and Meld overlays running locally.
@@ -20,6 +21,7 @@ both reliable offline collection and zero local storage.
 
 This plan covers stream activity and reporting. Migrating tracker totals,
 settings, authentication, or all other feature persistence is separate work.
+
 
 ## Current behavior and scope
 
@@ -40,6 +42,7 @@ Removing the archive must preserve live event handling. The application still
 needs message text briefly to process commands and display Neon Chat. Keep it
 only in the bounded live display buffer; exclude it from storage, retries,
 diagnostic request dumps, cloud requests, and exports.
+
 
 ## What to retain
 
@@ -76,6 +79,7 @@ support in stream totals without inventing a viewer or changing giveaway eligibi
 Preserve unknown values as unknown. Do not convert bits to cash or combine amounts
 in different currencies. Capture tips only when an actual source event supplies them.
 
+
 ## What to stop retaining
 
 - Chat bodies, fragments, emote URLs, badges, colors, avatars, and transcripts.
@@ -89,6 +93,7 @@ state changes only when useful for diagnostics. Audience charts and viewer-list
 history are outside this minimal report; remove those report sections rather than
 leaving misleading zero values. Do not upload Palia source logs or bridge event
 files: those remain local inputs to the trackers, outside this activity archive.
+
 
 ## Store summaries separately from event history
 
@@ -113,6 +118,7 @@ database transaction. Reports read summary tables directly, without scanning or
 replaying logs. Use the compact event table only for supporter/correction details.
 Report actual ticket deltas at the time of award, rather than recalculating history
 using today's giveaway rates. Summary rows survive event-history cleanup.
+
 
 ## Collection, delivery, and duplicate protection
 
@@ -144,6 +150,7 @@ as current. Bound the outbox by count/bytes and show a clear collection fault if
 full; never silently discard supporter records. Errors must omit request bodies,
 chat text, passwords, and connection secrets.
 
+
 ## Retention and migration
 
 Retain daily summaries until deliberately deleted by the owner. Initially retain
@@ -170,6 +177,7 @@ JSONL writes. Remove full chat, transcripts, generic event timelines, and raw ex
 paths. Keep old files in the existing private backup until an explicit cleanup;
 this planning task does not delete or migrate anything. Explain that older backups
 may still contain historical chat text.
+
 
 ## Implementation order and acceptance checks
 

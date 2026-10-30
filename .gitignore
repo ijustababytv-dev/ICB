@@ -34,3 +34,14 @@ dist/
 *.tmp
 tmp/
 CLOUD-UPGRADE.md
+LOGGING-ADJUST.md
+
+# Terraform local state, plans, provider downloads, and private inputs
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log

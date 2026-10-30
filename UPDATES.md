@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-30: Added Terraform for a micro AWS PostgreSQL database, public VPC/subnets, internet-accessible PostgreSQL firewall, password authentication, mandatory TLS, backups, and deployment instructions. Infrastructure has not been applied.
+
 - 2026-10-29: Vampire Crab Dishes tracker card (`/crab-dishes.html`): Crab Gumbo, Spicy Crab Fried Rice and Crab Pot Pie as three countdown boxes on one art card (replaces the three separate cards). Each box takes 1 off per cook line of its dish. Collection cards can now have countdown boxes, with a per-box 'Set & restock' on the Tracker Command Center.
 - 2026-10-29: Vampire Crab Pot Pie tracker card (`/crab-pot-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_crabpotpie` (token from her; no real cook line seen yet, so spot-check the first time it moves).
 - 2026-10-29: Spicy Vampire Crab Fried Rice tracker card (`/crab-fried-rice.html`): counts down from 100, 1 per cook line of `itemtype_c_crabfriedrice` (token from her; no real cook line seen yet, so spot-check the first time it moves).

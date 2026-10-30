@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (ignored), then customize non-secret settings.
+aws_region    = "us-east-1"
+db_identifier = "baby-icb"
+
+# Requested public access; replace with ["YOUR.PUBLIC.IP/32"] to restrict later.
+allowed_ipv4_cidrs = ["0.0.0.0/0"]
+
+# Supply db_password privately, never in this file.
+db_password_version       = 1
+deletion_protection       = true
+final_snapshot_identifier = "baby-icb-final"
