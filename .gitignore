@@ -29,3 +29,8 @@ dist/
 /assets/
 /data/backups/
 /backups/
+
+# temp files
+*.tmp
+tmp/
+CLOUD-UPGRADE.md
