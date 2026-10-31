@@ -20,8 +20,11 @@ Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md)
 
 ## Optional cloud database infrastructure
 
-`terraform/` defines a small AWS RDS PostgreSQL database and its dedicated public
-network. See [the Terraform instructions](../terraform/README.md) for deployment,
+`terraform/` defines a small AWS RDS PostgreSQL database, its public network, and
+Step 1 foundations (private release bucket, service secret, IAM, HTTP API, logs,
+and alarms). Lambda/routes stay disabled until a real Express release and verified
+SQL bootstrap are supplied. See [the Terraform instructions](../terraform/README.md)
+for the two deployment phases,
 TLS connections, credential handling, cost controls, and deliberate removal.
 Applying infrastructure does not migrate ICB data or connect the local application.
 The local server and log reader continue to run normally; no restart is needed

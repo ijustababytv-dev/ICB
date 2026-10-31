@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Added Step 1 Terraform foundations for API Gateway, gated Express Lambda deployment, private versioned releases, scoped IAM, a write-only service secret, logs/alarms, and automatic DB endpoint configuration. No AWS resources applied; real API code and SQL bootstrap remain prerequisites.
+
 - 2026-10-30: Added Terraform for a micro AWS PostgreSQL database, public VPC/subnets, internet-accessible PostgreSQL firewall, password authentication, mandatory TLS, backups, and deployment instructions. Infrastructure has not been applied.
 
 - 2026-10-29: Vampire Crab Dishes tracker card (`/crab-dishes.html`): Crab Gumbo, Spicy Crab Fried Rice and Crab Pot Pie as three countdown boxes on one art card (replaces the three separate cards). Each box takes 1 off per cook line of its dish. Collection cards can now have countdown boxes, with a per-box 'Set & restock' on the Tracker Command Center.

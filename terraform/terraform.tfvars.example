@@ -12,3 +12,9 @@ allowed_ipv4_cidrs = ["0.0.0.0/0"]
 db_password_version       = 1
 deletion_protection       = true
 final_snapshot_identifier = "baby-icb-final"
+
+# Phase A: foundations only. See README.md Phase B before enabling the real API.
+activity_api_enabled = false
+
+# Optional existing SNS topics for alarms; defaults to CloudWatch-only.
+# alarm_action_arns = ["arn:aws:sns:us-east-1:123456789012:operations"]
