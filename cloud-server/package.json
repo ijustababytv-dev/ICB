@@ -7,6 +7,9 @@
     "start": "node src/activity/bootstrap.js",
     "test": "node --test test/*.test.js",
     "migrate": "node tools/migrate.js",
+    "schema:create": "node tools/schema.js",
+    "schema:grants": "node tools/schema.js --grants",
+    "schema:check": "node tools/schema-check.js",
     "account": "node tools/account.js",
     "maintenance": "node tools/maintenance.js",
     "build": "python tools/build.py"

@@ -1,0 +1,1 @@
+GRANT SELECT,INSERT,UPDATE ON TABLE viewers TO icb_service;

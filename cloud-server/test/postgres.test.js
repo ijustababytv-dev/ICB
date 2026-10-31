@@ -3,8 +3,6 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const format = require('pg-format');
-const fs = require('node:fs');
-const path = require('node:path');
 const { adminDatabase, databaseAdapter } = require('../tools/admin-db');
 const { migrate } = require('../tools/migrate');
 const { provisionAccount } = require('../tools/account');
@@ -12,6 +10,7 @@ const { createApp } = require('../src/activity/app');
 const { reportingDay } = require('../src/activity/reporting-day');
 const { ingest } = require('../src/activity/ingest');
 const { maintain } = require('../tools/maintenance');
+const { applyGrants } = require('../tools/schema');
 
 test(
     'PostgreSQL transactions, isolation, replay, cleanup, state and authentication',
@@ -29,9 +28,20 @@ test(
             await migrate(pool);
             if (process.env.ICB_TEST_SERVICE_PASSWORD) {
                 await admin.query(format('GRANT USAGE ON SCHEMA %I TO icb_service', schema));
-                await pool.query(
-                    fs.readFileSync(path.resolve(__dirname, '../../database/grants.sql'), 'utf8')
+                await applyGrants(pool);
+                const privileges = await pool.query(
+                    "SELECT has_table_privilege('icb_service',$1,'INSERT') AS accounts_insert,has_table_privilege('icb_service',$2,'SELECT') AS ledger_read,has_table_privilege('icb_service',$3,'INSERT') AS receipt_insert",
+                    [
+                        schema + '.accounts',
+                        schema + '.schema_migrations',
+                        schema + '.activity_receipts'
+                    ]
                 );
+                assert.deepEqual(privileges.rows[0], {
+                    accounts_insert: false,
+                    ledger_read: false,
+                    receipt_insert: true
+                });
                 service = adminDatabase({
                     ...process.env,
                     ICB_DB_SCHEMA: schema,

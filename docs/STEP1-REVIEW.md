@@ -14,7 +14,8 @@ usernames work. The password is not in source, logs, or browser token storage.
   relay, minimal count aggregation, bounded durable outbox, and account-bound sync.
 - `ui/`: existing dashboards/overlays with preserved URLs, cloud sign-in/status,
   and daily summary reports/CSV. No transcript or raw-event export remains.
-- `database/`: versioned SQL migrations, limited grants, the saved-state allowlist,
+- `database/`: one SQL file per table/index/role, separate permissions and upgrade
+  migrations, the saved-state allowlist,
   administrative environment helper, and actual backup/restore commands.
 - `data/`: remains local for live feature state, recovery, and the minimal outbox;
   it is now ignored/untracked. Existing files and historical private backups were

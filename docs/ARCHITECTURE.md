@@ -73,7 +73,8 @@ Known existing asset issue at restructuring: `local-server/config/resource-track
 
 `cloud-server/src/activity/` owns Express, authentication, ingestion, SQL and report
 DTOs. Its package/lockfile are independent of the local app. `database/` owns
-versioned migrations, grants, the state allowlist, public RDS CA certificates, and
+per-object definitions in `tables/`, `indexes/`, and `roles/`, table permissions,
+ordered upgrade-only migrations, the state allowlist, public RDS CA certificates, and
 backup/recovery commands. `cloud-server/tools/` provides explicit administrative
 commands; none run on Lambda cold start.
 

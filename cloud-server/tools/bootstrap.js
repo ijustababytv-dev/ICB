@@ -4,6 +4,7 @@ const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { adminDatabase } = require('./admin-db');
 const { migrate } = require('./migrate');
+const { executeGroup, applyGrants } = require('./schema');
 
 /** Bootstrap separate SQL roles and preserve their generated credentials only in ignored local env files. */
 async function main() {
@@ -29,7 +30,14 @@ async function main() {
                 "SELECT set_config('icb.migration_password',$1,false),set_config('icb.service_password',$2,false)",
                 [migrationPassword, servicePassword]
             );
-            await client.query(fs.readFileSync(path.join(root, 'database/bootstrap.sql'), 'utf8'));
+            await client.query('BEGIN');
+            try {
+                await executeGroup(client, 'bootstrap');
+                await client.query('COMMIT');
+            } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
+            }
         } finally {
             client.release();
         }
@@ -48,7 +56,7 @@ async function main() {
         });
         try {
             await migrate(migration);
-            await migration.query(fs.readFileSync(path.join(root, 'database/grants.sql'), 'utf8'));
+            await applyGrants(migration);
         } finally {
             await migration.end();
         }

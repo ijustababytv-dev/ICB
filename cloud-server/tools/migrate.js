@@ -3,30 +3,47 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { adminDatabase } = require('./admin-db');
+const { definition, withSchemaLock, installBaseline } = require('./schema');
 
-/** Apply ordered, checksum-checked SQL under an advisory lock; never run on Lambda startup. */
+/** Create missing fresh schemas from tables/, then apply only unapplied, checksum-checked deltas. */
 async function migrate(pool, directory = path.resolve(__dirname, '../../database/migrations')) {
-    const client = await pool.connect();
-    try {
-        await client.query('SELECT pg_advisory_lock(19770731)');
-        await client.query(
-            'CREATE TABLE IF NOT EXISTS schema_migrations(version text PRIMARY KEY,sha256 text NOT NULL,applied_at timestamptz NOT NULL DEFAULT now())'
-        );
-        for (const file of fs
-            .readdirSync(directory)
-            .filter((name) => /^\d{3}[-a-z0-9]*\.sql$/.test(name))
-            .sort()) {
+    const baseline = definition();
+    const files = fs
+        .readdirSync(directory)
+        .filter((name) => /^\d{3}[-a-z0-9]*\.sql$/.test(name))
+        .sort();
+    const sources = new Map(
+        files.map((file) => {
             const sql = fs.readFileSync(path.join(directory, file), 'utf8');
-            const hash = createHash('sha256').update(sql).digest('hex');
-            const previous = await client.query(
-                'SELECT sha256 FROM schema_migrations WHERE version=$1',
-                [file]
-            );
-            if (previous.rowCount) {
-                if (previous.rows[0].sha256 !== hash)
-                    throw new Error('Applied migration checksum changed: ' + file);
-                continue;
-            }
+            return [file, { sql, hash: createHash('sha256').update(sql).digest('hex') }];
+        })
+    );
+    const expected = { ...baseline.covers };
+    for (const [file, source] of sources) {
+        if (expected[file] && expected[file] !== source.hash)
+            throw new Error('Covered migration checksum changed: ' + file);
+        expected[file] = source.hash;
+    }
+    return withSchemaLock(pool, async (client) => {
+        const ledger = await client.query("SELECT to_regclass('schema_migrations') AS ledger");
+        if (!ledger.rows[0].ledger) await installBaseline(client);
+        const previous = await client.query('SELECT version,sha256 FROM schema_migrations');
+        const applied = new Map(previous.rows.map((row) => [row.version, row.sha256]));
+        for (const [version, hash] of applied) {
+            if (version === baseline.baseline_id) continue;
+            if (!expected[version])
+                throw new Error('Missing source for applied migration: ' + version);
+            if (expected[version] !== hash)
+                throw new Error('Applied migration checksum changed: ' + version);
+        }
+        for (const version of Object.keys(baseline.covers)) {
+            if (!applied.has(version) && !sources.has(version))
+                throw new Error(
+                    'Incomplete legacy schema; recover the original migration release before upgrading.'
+                );
+        }
+        for (const [file, { sql, hash }] of sources) {
+            if (applied.has(file)) continue;
             await client.query('BEGIN');
             try {
                 await client.query(sql);
@@ -40,18 +57,15 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
                 throw error;
             }
         }
-    } finally {
-        await client.query('SELECT pg_advisory_unlock(19770731)');
-        client.release();
-    }
+    });
 }
 
-/** Run private administrative migrations and report only a generic success/failure. */
+/** Administrative migrations never run on Lambda cold starts or restart the local server. */
 async function main() {
     const pool = adminDatabase();
     try {
         await migrate(pool);
-        console.info('Database migrations applied.');
+        console.info('Database definition and migration history verified.');
     } finally {
         await pool.end();
     }
@@ -59,7 +73,7 @@ async function main() {
 
 if (require.main === module)
     main().catch(() => {
-        console.error('Migration failed; inspect migration version and database access.');
+        console.error('Schema migration failed; inspect version history and database access.');
         process.exitCode = 1;
     });
 module.exports = { migrate };
