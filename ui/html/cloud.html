@@ -1,27 +1,55 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="/js/client/local-api.js"></script>
+    <script src="/js/client/local-api.js"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ICB Cloud account</title>
-    <link rel="stylesheet" href="/css/giveaway-report.css">
+    <title>Cloud sign-in &mdash; ICB</title>
+    <link rel="stylesheet" href="/css/hub.css">
+    <link rel="stylesheet" href="/css/cloud.css">
+<link rel="stylesheet" href="/css/page-navigation.css">
 </head>
 <body>
-    <main class="page">
-        <h1>Cloud account</h1>
-        <p><a href="/">ICB Home</a> · <a href="/giveaway-report.html">Daily reports</a></p>
-        <p>Sign in to save activity counts and feature backups to your account. Sign in again after restarting ICB.</p>
-        <form id="login">
-            <p><label>Username <input id="username" name="username" autocomplete="username" value="ijustababytv" required></label></p>
-            <p><label>Password <input id="password" name="password" type="password" autocomplete="current-password" required></label></p>
-            <button type="submit">Sign in</button>
-            <button id="logout" type="button">Sign out</button>
-        </form>
-        <p id="result" role="status"></p>
-        <pre id="cloudStatus" aria-live="polite">Checking cloud status...</pre>
-        <p>Live giveaway balances and Palia tracking continue locally. Cloud reports contain counts and support totals; chat wording is not archived.</p>
+<nav class="icb-page-nav" aria-label="Page navigation (top)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a><a class="icb-account-link" href="/cloud.html" aria-current="page">Cloud sign-in</a></nav>
+    <main class="account-page">
+        <div class="eyebrow">ICB account</div>
+        <h1>Cloud sign-in</h1>
+        <p class="intro">Sign in to load your saved settings, trackers and stream tools. Your account keeps your data together across computers.</p>
+        <div class="account-grid">
+            <section class="card" aria-labelledby="signinTitle">
+                <h2 id="signinTitle">Welcome back</h2>
+                <form id="login">
+                    <label for="username">Username</label>
+                    <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="ijustababytv" required aria-describedby="usernameHint">
+                    <div class="note" id="usernameHint">Uppercase and lowercase usernames work the same.</div>
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required>
+                    <div class="actions">
+                        <button id="signin" class="primary" type="submit">Sign in</button>
+                        <button id="logout" type="button" hidden>Sign out</button>
+                    </div>
+                </form>
+                <p id="result" role="status" aria-live="polite"></p>
+                <p class="note">Sign in again after restarting ICB. Your password is cleared from this form after each attempt.</p>
+            </section>
+            <section class="card" aria-labelledby="statusTitle">
+                <h2 id="statusTitle">Account &amp; sync</h2>
+                <div id="cloudStatus" role="status" aria-live="polite">
+                    <p class="account-state" id="accountState">Checking account&hellip;</p>
+                    <dl>
+                        <dt>Cloud connection</dt><dd id="connectionState">Checking&hellip;</dd>
+                        <dt>Pending uploads</dt><dd id="pendingUploads">&mdash;</dd>
+                        <dt>Uploads needing attention</dt><dd id="quarantinedUploads">&mdash;</dd>
+                        <dt>Uncounted provider events</dt><dd id="uncountedEvents">&mdash;</dd>
+                        <dt>Last upload confirmed</dt><dd class="wide-detail" id="lastAck">&mdash;</dd>
+                    </dl>
+                </div>
+                <p><a href="/giveaway-report.html">Open daily activity reports &rarr;</a></p>
+                <p class="note">Cloud reports store activity counts and support totals. Chat messages are not archived. Palia log reading and overlay rendering run on this computer.</p>
+            </section>
+        </div>
     </main>
     <script src="/js/client/cloud-auth.js"></script>
+<nav class="icb-page-nav" aria-label="Page navigation (bottom)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a><a class="icb-account-link" href="/cloud.html" aria-current="page">Cloud sign-in</a></nav>
 </body>
 </html>

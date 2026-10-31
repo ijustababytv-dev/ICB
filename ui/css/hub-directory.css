@@ -1,0 +1,32 @@
+.page-directory { margin: 0 0 24px; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.page-directory h2 { margin: 0; font-size: 20px; }
+.page-directory h3 { margin: 18px 0 10px; font-size: 15px; }
+.page-directory p { color: var(--dim); margin: 8px 0 16px; }
+.page-directory .page-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.page-directory a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    max-width: 100%;
+    padding: 9px 13px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel2);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.page-directory a:hover { border-color: var(--accent); background: #352345; }
+.page-directory a:focus-visible { outline: 3px solid var(--accent2); outline-offset: 3px; }
+.page-directory a.page-signin { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1b0f2a; border-color: transparent; font-weight: 800; }
+.page-directory details { margin-top: 20px; }
+.page-directory summary { cursor: pointer; color: var(--accent); font-weight: 700; padding: 6px 0; }
+.page-directory details .page-buttons { margin-top: 12px; }
+.page-directory .directory-status { font-size: 13px; margin-bottom: 0; }
+@media (max-width: 600px) {
+    body { padding: 14px; }
+    .page-directory { padding: 16px; }
+    .page-directory .page-buttons > a { flex: 1 1 140px; }
+}

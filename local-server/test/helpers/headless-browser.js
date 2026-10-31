@@ -116,6 +116,14 @@ async function launchBrowser() {
             failures,
             navigate: (url) => send('Page.navigate', { url }, sessionId),
 
+            /** Resize only this isolated test target for responsive layout checks. */
+            setViewport: (width, height) =>
+                send(
+                    'Emulation.setDeviceMetricsOverride',
+                    { width, height, deviceScaleFactor: 1, mobile: false },
+                    sessionId
+                ),
+
             evaluate: async (expression) => {
                 const result = await send(
                     'Runtime.evaluate',

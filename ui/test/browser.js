@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { operatorPages, verifyNavigation } = require('./navigation');
 const { launchBrowser } = require('../../local-server/test/helpers/headless-browser');
 const {
     verifySpriteTvPage,
@@ -58,7 +59,8 @@ async function main() {
             'turn-line-control',
             'turn-line'
         ];
-        for (const name of pages) {
+        const allPages = [...new Set([...pages, ...operatorPages()])];
+        for (const name of allPages) {
             const page = await browser.newPage();
             await page.navigate(`http://127.0.0.1:${port}/${encodeURIComponent(name)}.html`);
             await page.evaluate('new Promise(function(resolve) { setTimeout(resolve, 1800); })');
@@ -69,6 +71,7 @@ async function main() {
                 [],
                 `${name}: missing code, styles, or extracted images`
             );
+            await verifyNavigation(page, name);
             if (name === 'unicorn-jar') {
                 const state = await page.evaluate(
                     '({ engine: !!window.ICBJar.engine, width: window.ICBJar.canvas.width, imageLoaded: window.ICBJar.UNI.complete && window.ICBJar.UNI.naturalWidth > 0 })'
@@ -136,6 +139,8 @@ async function main() {
             if (
                 process.env.ICB_TEST_SCREENSHOTS &&
                 [
+                    'hub',
+                    'cloud',
                     'control',
                     'giveaway-control',
                     'unicorn-jar',
@@ -150,7 +155,7 @@ async function main() {
             await page.close();
         }
         console.log(
-            `Headless browser checks passed: ${pages.length} dashboards/overlays; no user desktop or browser session used.`
+            `Headless browser checks passed: ${allPages.length} dashboards/overlays; no user desktop or browser session used.`
         );
     } finally {
         if (browser) await browser.close();

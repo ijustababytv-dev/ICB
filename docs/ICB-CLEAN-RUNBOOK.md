@@ -21,7 +21,10 @@ Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md)
 ## Cloud feature operation
 
 The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
-After the next normal restart, open **Cloud account** on ICB Home (`/cloud.html`).
+Open **Cloud sign-in** on ICB Home (`/cloud.html`) or from the navigation at the
+top or bottom of any operator dashboard. Home's page directory also links every
+dashboard, stream overlay, resource card and connection tool. These navigation
+links are deliberately absent from Meld overlays.
 Sign in as `ijustababytv` with the supplied password; username case is ignored.
 Sessions stay in Node memory, so sign in again after a restart. No live server was
 restarted as part of implementation.

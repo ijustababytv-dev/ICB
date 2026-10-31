@@ -6,14 +6,15 @@
 <title>Desktop Widgets — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/css/desktop-control.css">
+<link rel="stylesheet" href="/css/page-navigation.css">
 </head>
 <body>
+<nav class="icb-page-nav" aria-label="Page navigation (top)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a><a class="icb-account-link" href="/cloud.html">Cloud sign-in</a></nav>
 <div class="top">
   <div><h1>🖥️ <span>Desktop</span> Widgets</h1><div class="sub">Widgets on your own screen, on top of your game. Move, size and show/hide them from here.</div></div>
   <div class="spacer"></div>
   <span class="status" id="appStatus">Desktop app: not running</span>
   <span class="health" id="health">connecting…</span>
-  <a href="/hub.html"><button>🏠 Hub</button></a>
 </div>
 
 <div class="grid">
@@ -71,5 +72,6 @@
   </div>
 </div>
 <script src="/js/client/desktop-control.js"></script>
+<nav class="icb-page-nav" aria-label="Page navigation (bottom)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a><a class="icb-account-link" href="/cloud.html">Cloud sign-in</a></nav>
 </body>
 </html>

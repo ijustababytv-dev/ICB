@@ -24,6 +24,11 @@ http://127.0.0.1:8790/control.html
 
 This dashboard is for you, off stream. Do not add `control.html` as a Meld layer.
 
+Home has a page directory above the stream-title randomizer, with buttons for every
+dashboard and expandable groups for overlays, resource cards and connection tools.
+Every operator page has **← ICB Home** and **Cloud sign-in** links at the top and
+bottom. Open `/cloud.html` to sign in; stream overlays keep their navigation-free layout.
+
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
 
 Before any future update, run `backup-icb-clean-state.bat` to make a timestamped copy of the clean state files.
