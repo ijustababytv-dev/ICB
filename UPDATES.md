@@ -22,6 +22,8 @@
 
 ## Improvements
 
+- 2026-10-31: Rewrote the local, ignored logging plan as technical implementation steps grouped by feature. No runtime or infrastructure changes.
+
 - 2026-10-30: Stopped tracking LOGGING-ADJUST.md; the ignored local copy remains available.
 
 - 2026-10-30: Added LOGGING-ADJUST.md with a proposed minimal activity model, separate summaries, PostgreSQL delivery, and migration checks. Runtime behavior is unchanged.
