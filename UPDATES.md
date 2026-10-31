@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Added planned steps for SQL-object upgrade tooling, per-feature authority/protocol cutovers, consistent state feeds, and worker delivery/execution failures to the ignored Step 2 checklist.
+
 - 2026-10-31: Added a checkbox to every numbered step of the ignored Step 2 plan, with instructions to mark whole steps complete only after verification.
 
 - 2026-10-31: Added database/schemas/icb.sql and explicit schema permission/rebuild support; one creation file per schema.
@@ -33,6 +35,8 @@
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 
 ## Improvements
+
+- 2026-10-31: Reviewed Step 2 against today's deployed icb schema, per-object SQL layout, existing authentication/reporting, recovery snapshots, outbox, and AWS limits. Reused completed foundations and preserved the Step 1 acceptance gate; no runtime or AWS changes.
 
 - 2026-10-31: Clarified Step 1 implementation/deployment completion versus pending local cutover, real-stream acceptance, and usage/cost measurements. Kept Step 2 gated on that acceptance.
 
@@ -71,6 +75,8 @@
 - 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 
 ## Bug Fixes
+
+- 2026-10-31: Corrected Step 2 assumptions about raw Palia parsing, chat-window award inputs, stale snapshot writers, worker Web Adapter startup, and duplicate awards during cutover. Kept all unimplemented steps unchecked.
 
 - 2026-10-31: Corrected the Step 1 review's stale test count and completion wording; existing missing-artwork E2E failures remain explicit.
 
