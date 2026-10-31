@@ -22,6 +22,8 @@
 
 ## Improvements
 
+- 2026-10-31: Added a local, ignored Step 2 plan for moving live rules and saved feature state to Lambda/PostgreSQL after all Step 1 work is complete. Internet is an operating requirement.
+
 - 2026-10-31: Updated the ignored logging plan to use Express on Lambda with pg and pg-format, explicit SQL, and no ORM.
 
 - 2026-10-31: Rewrote the local, ignored logging plan as technical implementation steps grouped by feature. No runtime or infrastructure changes.

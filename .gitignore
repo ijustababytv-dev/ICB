@@ -35,6 +35,7 @@ dist/
 tmp/
 CLOUD-UPGRADE.md
 LOGGING-ADJUST.md
+LOGGING-ADJUST-STEP2.md
 
 # Terraform local state, plans, provider downloads, and private inputs
 **/.terraform/
