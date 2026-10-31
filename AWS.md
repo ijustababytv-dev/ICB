@@ -1,0 +1,193 @@
+# AWS operations and credentials
+
+Updated 2026-10-31. This is the operator guide for ICB's current AWS setup.
+Terraform under [terraform/](terraform/README.md) defines infrastructure;
+[database/](database/README.md) holds SQL object definitions and recovery tools.
+Do not put credential values in this document.
+
+## Replace the Steam API key
+
+Use ICB's Steam dashboard. No Terraform apply, Lambda deployment or local server
+restart is needed to change the key.
+
+1. Start ICB normally if it is not already running. Open
+   [Cloud account](http://127.0.0.1:8790/cloud.html) and sign into the ICB account
+   whose Steam integration you want to update.
+2. Open [Steam Achievements](http://127.0.0.1:8790/steam-control.html).
+3. Paste the replacement **32-character Steam Web API key** into **Steam API key**
+   under **1 · Connect to Steam**. This is an API key, not your Steam password.
+   Keep **Game** unchanged. Leave the **Steam profile** input blank to retain
+   the saved profile; only enter a profile when deliberately changing accounts.
+4. Click **Save & check now**. The key input clears after a successful save;
+   subsequent reads show a saved/configured indicator, not the key itself.
+5. Make sure **Checking Steam is on** is enabled under **2 · On stream**. If you
+   change that switch, click that section's **Save** button.
+6. Keep ICB running and signed in. Allow roughly one to two minutes for the
+   scheduled worker, then confirm **last checked** advances, the achievement
+   list/progress loads and no **Steam problem** error appears. The immediate
+   save/check toast acknowledges queued work; it does not prove Steam accepted
+   the new key. **Check again** queues another check, subject to a 30-second
+   minimum refresh interval and provider-error backoff.
+
+Manage the key through [Steam's API key page](https://steamcommunity.com/dev/apikey).
+ICB uses a standard user Web API key; a Steamworks publisher key is unnecessary.
+[Valve's authentication documentation](https://partner.steamgames.com/doc/webapi_overview/auth)
+describes these key types. The configured Steam profile's game details must be
+public for the achievement/stat integration to work.
+
+If a save reports a stale edit, reload the Steam dashboard and retry from its
+current settings. A concurrent operator may have saved a newer version. If a
+check was queued but no result arrives, check the account's signed-in status,
+the enabled switch, the key/profile and game-details privacy setting before
+investigating the worker in AWS.
+
+### Where the key goes
+
+```text
+Steam dashboard -> local Node proxy -> authenticated Express API
+                                      |-> Secrets Manager: key value
+                                      |-> PostgreSQL: secret ARN + version ID
+Scheduled Lambda -> exact secret version -> Steam Web API -> SQL results
+Local shared feed -> Steam dashboard and Meld overlays
+```
+
+The secret name is `baby-icb-postgres-integrations/<owner-uuid>/steam` for the
+current stack. `icb.integration_secrets` stores its ARN and `credential_version`;
+the key value is not stored in PostgreSQL feature settings or returned to overlays.
+ICB accounts have separate owner UUIDs and separate integration secrets.
+
+**Do not rotate this key by editing Secrets Manager directly.** The worker reads
+the exact version recorded in PostgreSQL, rather than simply following AWS's
+`AWSCURRENT` label. The dashboard's save updates both references, advances the
+Steam feature revision and queues work. Stale credential edits are rejected;
+an old request retry cannot restore a superseded or removed key.
+
+Do not put the Steam key in `local-server/.env`, `terraform/.env`, Lambda
+environment variables or Git. The input necessarily passes through the local
+browser/Node process during submission; the durable saved value lives in Secrets
+Manager. Changing only the key preserves the existing achievement baseline when
+the profile and game stay the same. First-time setup or changing profile/game
+establishes a baseline without replaying every old achievement.
+
+## What runs where
+
+The gaming PC runs one local Node server on `127.0.0.1:8790`. It reads Palia logs,
+normalizes inputs, serves local artwork and renders/relays overlay data. Internet
+and an ICB cloud login are required. PostgreSQL owns saved feature state and
+Lambda owns the migrated business rules. The local installation has one shared
+cloud feed every two seconds, regardless of how many overlay pages are open.
+
+The AWS region is **us-east-1 (N. Virginia)**. Configurable resource names and
+network `Name` tags start with **`baby-icb-`**. The base identifier is
+**`baby-icb-postgres`**. Two subnets support RDS's subnet-group requirement;
+the database itself is Single-AZ.
+
+| Component | Current setup and purpose |
+| --- | --- |
+| RDS PostgreSQL | `baby-icb-postgres`: PostgreSQL 17, `db.t4g.micro`, Single-AZ, 20 GB encrypted gp3; storage autoscaling disabled. Database and application schema are both named `icb`. |
+| Network | Dedicated VPC, two public subnets in separate AZs, public route table and internet gateway. Security group permits internet-wide IPv4 access to TCP 5432 as requested; DB password authentication and TLS are required. |
+| HTTP API | API Gateway HTTP API forwards authenticated app requests to Express. Stage: `baby-icb-postgres-api`; configured rate 10 requests/second, burst 20. |
+| API Lambda | `baby-icb-postgres-activity-api`: Express 5 with Lambda Web Adapter, Node 22/ARM64, 512 MB, 15-second timeout, reserved concurrency 2, max DB pool 1. Uses `pg`/`pg-format`, no ORM. |
+| Worker Lambda | `baby-icb-postgres-feature-worker`: ordinary Node handler, no Web Adapter; Node 22/ARM64, 256 MB, 15-second timeout, concurrency 1, max DB pool 1. Runs leased Steam and maintenance jobs. |
+| Scheduler | One-minute EventBridge Scheduler trigger, flexible window off. Integration work is limited to enabled/recently active owners; Steam normally polls at least 60 seconds apart. |
+| Secrets Manager | Separate limited DB-service credential secret and owner-specific Steam secrets. API writes integration secrets; worker reads the referenced versions. |
+| Release bucket | Private, encrypted, versioned S3 bucket for immutable Lambda ZIPs and separate administrative SQL upgrade bundles. Application artwork/chat archives are not stored there. |
+| Failure queue | Private encrypted SQS queue, `baby-icb-postgres-feature-worker-failures`, with 14-day retention. Receives terminal Scheduler delivery failures and Lambda asynchronous execution failures. |
+| Monitoring | CloudWatch API/worker logs retain seven days. Alarms cover errors, throttles, worker/Scheduler/failure-destination problems, queued failures, DB free storage and connections. |
+| Budget | `baby-icb-postgres-monthly-cost-guard`: $30/month, account-wide, including unrelated AWS spend. Console-visible; no email/action recipients configured. It is not a spending cap. |
+| Backups | RDS automatic backups retain seven days; deletion protection and a final snapshot requirement are configured. Private logical dumps provide separately verified recovery. |
+
+The Lambdas connect to public RDS over certificate-verified TLS from outside the
+VPC. There is no NAT gateway, RDS Proxy, Redis or extra always-on application
+server. Cloudinary remains the separate, explicit artwork sync provider; overlays
+continue using local image files.
+
+## Credentials and configuration map
+
+| Item | Purpose and location |
+| --- | --- |
+| ICB username/password | App cloud login; usernames are case-insensitive. Salted password hashes are in PostgreSQL. The local Node process keeps the bearer session in memory; sign in again after a local restart. |
+| PostgreSQL service login | `icb_service`, used by both Lambdas. Terraform supplies endpoint/user/secret ARN as Lambda configuration; the password is read from the separate DB secret. No master credentials go into Lambda. |
+| PostgreSQL administration | RDS master username/password inputs are in ignored `terraform/.env`; generated `icb_migrator`/`icb_service` credentials are in ignored `database/.env.admin`. Use the administrative environment loader below. |
+| Steam API key | Optional achievements/stats integration; owner-specific Secrets Manager value. Replace it through the dashboard above. Steam ID/profile URL is configuration, not a password. |
+| AWS administration | Existing local AWS CLI profile `Vox`. Runtime Lambdas use scoped IAM roles; they do not need copied PC access keys. |
+| Cloudinary API credentials | Explicit artwork upload/download tools use ignored root `.env.cloudinary` with `CLOUDINARY_URL`; an environment variable also works. See [Cloudinary instructions](docs/CLOUDINARY.md). |
+| Local API address | Ignored `local-server/.env` contains public `ICB_CLOUD_API_URL`. It does not contain a PostgreSQL URL/password or Steam key. |
+
+ICB itself does not store Twitch/Palia passwords or OAuth credentials: Twitch
+events arrive through Meld and Palia events through local files. Meld maintains
+its own connection to Twitch. Generated session/CSRF/lease tokens are managed by
+the application, not additional provider credentials to configure.
+
+The DB service password and Steam key are different secrets. Database password
+rotation must coordinate the SQL role password, private administration settings
+and Terraform-managed DB secret/version. Changing only a Lambda environment
+variable or pasting a new value into Secrets Manager does not rotate the SQL
+role. Follow [Terraform](terraform/README.md) and [database](database/README.md)
+instructions for that administrative change.
+
+## AWS access and useful read-only commands
+
+From PowerShell at the repository root:
+
+```powershell
+aws login --profile Vox
+aws sts get-caller-identity --profile Vox
+terraform -chdir=terraform output -raw activity_api_url
+terraform -chdir=terraform output -raw database_host
+terraform -chdir=terraform output -raw database_username
+terraform -chdir=terraform output -raw feature_worker_name
+```
+
+The named-profile sign-in flow is described in
+[AWS CLI documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sign-in.html).
+Use the DNS hostname from Terraform for database clients, rather than a fixed IP.
+For pgAdmin: database `icb`, port `5432`, username from the output, the privately
+held DB password, SSL mode `verify-full`, and CA certificate
+`database/certs/global-bundle.pem`. A working ICB login is not a DB login.
+
+In the AWS console, select us-east-1 and look under RDS, Lambda, API Gateway,
+Secrets Manager, EventBridge Scheduler, SQS and CloudWatch. Billing/Budgets shows
+the account-wide budget. The log groups are
+`baby-icb-postgres-activity-api-logs` and
+`baby-icb-postgres-feature-worker-logs`. Alarms currently show in the console;
+notifications require an explicitly configured destination.
+
+## Deployments and recovery
+
+Steam key changes use the dashboard, not the deployment procedure. For a tested
+code/infrastructure release, use the existing repository workflow:
+
+```powershell
+./cloud-server/tools/release.ps1 -EnableWorker -Apply
+```
+
+The release checks SQL readiness, builds/uploads immutable packages, and refuses
+RDS changes or resource deletion in its release plan. It updates the public local
+API URL without restarting the local server. SQL upgrades run separately with
+administrative credentials, never at Lambda startup. Use one Terraform operator
+at a time; preserve ignored state, release metadata, credentials and dumps.
+
+For a private logical backup using the existing administration configuration:
+
+```powershell
+. ./database/admin-env.ps1 -Role master
+try {
+    ./database/backup.ps1
+} finally {
+    Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+}
+```
+
+AWS CLI, Terraform, PostgreSQL tools and the repository's installed cloud tools
+are prerequisites for administration. Recover dumps into a new empty database;
+do not overwrite current progress with old local JSON. Detailed procedures:
+
+- [Cloud operation, migration, rollback and worker failures](docs/STEP2-OPERATIONS.md)
+- [Database creation, grants, backup and restore](database/README.md)
+- [Feature/field ownership](docs/STEP2-FEATURE-MAP.md)
+- [Validation, existing missing-artwork failures and cost measurements](docs/STEP2-VALIDATION.md)
+
+The last cost estimate is about $20–27/month for one busy installation active
+120 hours/month, depending on free allowances and integration use. That is an
+estimate from the linked validation report, not a current bill or a hard limit.

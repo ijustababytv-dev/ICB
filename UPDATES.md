@@ -2,6 +2,7 @@
 
 ## New Features
 
+- 2026-10-31: Added AWS.md with Steam key replacement steps, infrastructure basics, credential locations and administration/recovery references.
 - 2026-10-31: Deployed Step 2 cloud feature execution: Express/Lambda owns saved settings, signups/attendance, Turn Line, giveaways, polls/teams/hunts, trackers/weekly progress, timers, collections and Steam. Imported and compared all 32 owner features; preserved the existing account/password and 34 historical reporting days.
 - 2026-10-31: Added the leased ARM64 scheduled worker, separate owner integration secrets, private failure queue, delivery/execution alarms and a console-visible $30 account budget. Existing AWS resources keep the baby-icb- prefix.
 - 2026-10-31: Completed Step 1 login, minimal count/support ingestion, independent SQL reports/CSV, owner isolation and durable transport. Raw chat wording is no longer archived.
@@ -24,6 +25,7 @@
 
 ## Improvements
 
+- 2026-10-31: Linked AWS.md from CLAUDE.md and the README documentation map.
 - 2026-10-31: Local code is now a thin Palia/input/artwork/rendering bridge with one shared cloud feed and bounded request queue. Removed inactive local rule modules, business timers, feature JSON writers and repeated overlay-request disk logs. Preserved local URLs, ES5 overlays, tracker skins, desktop widgets and explicit Cloudinary sync.
 - 2026-10-31: PostgreSQL now has 58 tables and 84 indexes in icb, with one object definition per file, separate schema/role/permission folders, immutable upgrade 006 and separately retained administrative SQL bundles. Verified fresh-versus-upgraded structure and a full 58-table backup restore with migration ownership/limited grants.
 - 2026-10-31: Added field-level ownership documentation, fresh frozen cutovers, export/fence/restore tools, SQL audit exports and metadata-only recovery lists. Change notifications retain revision markers rather than duplicate feature payloads. Assets, backups, data, private credentials and both checked-off logging plans remain ignored.
@@ -37,6 +39,7 @@
 
 ## Bug Fixes
 
+- 2026-10-31: Documented that Steam rotation must update the pinned SQL secret version through ICB, and that the immediate check toast confirms queued work rather than successful Steam authentication.
 - 2026-10-31: Prevented duplicate awards, obsolete snapshot writers, changed-command retries, stale edits, old account responses and replaced-worker results from changing current state. Preserved cumulative bits, anonymous/blocked reporting, weighted draws, undo, reconciliation, stock resets and persistent Amber/Essence.
 - 2026-10-31: Prevented Steam key update/delete races and old retries restoring superseded versions. Kept first-success achievement baselines silent, deadlines/reveals stable across cold contexts, and expired sounds from replaying on login.
 - 2026-10-31: Deferred physical artwork removal until cloud acknowledgment, retained removed originals, preserved numbered board reveals/page arrows/accented signup names, and made partial cutover retries reuse frozen defaults/collector identity.
