@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Added a checkbox to every numbered step of the ignored Step 2 plan, with instructions to mark whole steps complete only after verification.
+
 - 2026-10-31: Added database/schemas/icb.sql and explicit schema permission/rebuild support; one creation file per schema.
 
 - 2026-10-31: Added explicit per-object database recreation and a live-schema comparison command that uses a disposable schema. Recreation matches all 19 deployed tables and 34 indexes.
@@ -31,6 +33,8 @@
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 
 ## Improvements
+
+- 2026-10-31: Clarified Step 1 implementation/deployment completion versus pending local cutover, real-stream acceptance, and usage/cost measurements. Kept Step 2 gated on that acceptance.
 
 - 2026-10-31: Moved all 19 live tables and 34 indexes from public to icb, preserving every row, object identity, and prior migration record. Released the icb-only Lambda connection setting and updated recovery instructions. Verified live API ingestion, an equivalent rebuild, and an actual backup restore (1 account, 30 state files, 30,901 messages).
 
@@ -67,6 +71,8 @@
 - 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 
 ## Bug Fixes
+
+- 2026-10-31: Corrected the Step 1 review's stale test count and completion wording; existing missing-artwork E2E failures remain explicit.
 
 - 2026-10-31: Prevented fresh creation in public and duplicate initialization over a legacy database. Added real PostgreSQL namespace-move, fresh-rebuild, collision-rollback, and public-shadow isolation checks; retained service-role restrictions. All 216 unit/PostgreSQL and 16 Terraform tests pass; E2E retains its nine existing missing-artwork failures.
 

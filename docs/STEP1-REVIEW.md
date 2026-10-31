@@ -1,10 +1,19 @@
 # Step 1 review
 
-Implemented and deployed on 2026-10-31. Step 2 is not implemented. The local
+Implementation and cloud deployment completed on 2026-10-31; final local cutover
+and representative-stream acceptance remain open. Step 2 is not implemented. The local
 production server was not restarted; new local behavior takes effect at its next
 normal restart. Then open **Cloud account** on ICB Home (`/cloud.html`) and sign
 in as `ijustababytv` using the password supplied in the conversation. Mixed-case
 usernames work. The password is not in source, logs, or browser token storage.
+
+Before closing Step 1, confirm the final archive freeze/cutover boundary, activate
+the updated local app/listener at its normal authorized startup, verify a real
+local-to-cloud stream, and record traffic/connection/write/queue/cost measurements.
+The local status endpoint was unreachable during the 2026-10-31 checklist review;
+that review did not verify activation. The nine existing missing artwork files
+remain a separate E2E limitation. Keep Step 2's prerequisite unchecked until the
+remaining acceptance work has evidence.
 
 ## Changes to review
 
@@ -61,7 +70,7 @@ timers, decorations, and other maintained feature state.
 - A real database dump restored into a disposable database; account count, state
   files, and message totals matched. Dumps stay under ignored `backups/database/`.
 - Deployed CloudWatch entries checked for sample chat text and operational secrets.
-- All 209 unit/PostgreSQL checks pass, with real SQL tests using the limited role.
+- The latest full validation passed 216 unit/PostgreSQL checks, with real SQL tests using the limited role.
   E2E, headless browser, source-policy, formatter, and Terraform checks are rerun at handoff. E2E retains the existing nine missing-artwork failures; these
   assertions are preserved. See UPDATES.md for the final counts.
 
