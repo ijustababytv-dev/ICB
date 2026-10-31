@@ -25,7 +25,7 @@
 
 ## Improvements
 
-- 2026-10-31: Linked AWS.md from CLAUDE.md and the README documentation map.
+- 2026-10-31: Linked AWS.md from AGENTS.md, CLAUDE.md and the README documentation map.
 - 2026-10-31: Local code is now a thin Palia/input/artwork/rendering bridge with one shared cloud feed and bounded request queue. Removed inactive local rule modules, business timers, feature JSON writers and repeated overlay-request disk logs. Preserved local URLs, ES5 overlays, tracker skins, desktop widgets and explicit Cloudinary sync.
 - 2026-10-31: PostgreSQL now has 58 tables and 84 indexes in icb, with one object definition per file, separate schema/role/permission folders, immutable upgrade 006 and separately retained administrative SQL bundles. Verified fresh-versus-upgraded structure and a full 58-table backup restore with migration ownership/limited grants.
 - 2026-10-31: Added field-level ownership documentation, fresh frozen cutovers, export/fence/restore tools, SQL audit exports and metadata-only recovery lists. Change notifications retain revision markers rather than duplicate feature payloads. Assets, backups, data, private credentials and both checked-off logging plans remain ignored.

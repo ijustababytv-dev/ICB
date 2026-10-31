@@ -2,6 +2,7 @@
 
 Read this file, [RULES.md](RULES.md), and [UPDATES.md](UPDATES.md) before starting work.
 Read [README.md](README.md) for the project overview, startup steps, and documentation map.
+Read [AWS.md](AWS.md) for AWS infrastructure, credential locations, Steam key replacement, and administration/recovery references.
 Then read [docs/ICB-MASTER-HANDBOOK.md](docs/ICB-MASTER-HANDBOOK.md) for the method,
 failure history, and tracker recipes. Its historical file maps and status are not current instructions.
 Re-read these root documents whenever another contributor, including Aleister V.M., changes
