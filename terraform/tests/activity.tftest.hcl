@@ -128,9 +128,44 @@ run "enabled_express_lambda" {
       aws_lambda_permission.activity_gateway[0].principal == "apigateway.amazonaws.com" &&
       aws_lambda_permission.activity_gateway[0].source_arn == "${aws_apigatewayv2_api.activity.execution_arn}/*/*" &&
       length(aws_cloudwatch_metric_alarm.activity_api) == 2 &&
-      output.activity_api_url == aws_apigatewayv2_api.activity.api_endpoint
+      output.activity_api_url == "${aws_apigatewayv2_api.activity.api_endpoint}/${aws_apigatewayv2_stage.activity.name}"
     )
     error_message = "Expose the real API through scoped Gateway integration and create its error/throttle alarms."
+  }
+
+  assert {
+    condition = alltrue([for name in concat([
+      aws_db_instance.database.identifier,
+      aws_db_instance.database.final_snapshot_identifier,
+      aws_db_parameter_group.database.name,
+      aws_db_subnet_group.database.name,
+      aws_security_group.database.name,
+      aws_vpc.database.tags.Name,
+      aws_internet_gateway.database.tags.Name,
+      aws_route_table.public.tags.Name,
+      aws_iam_role.activity_api.name,
+      aws_iam_role_policy.activity_api.name,
+      aws_s3_bucket.activity_artifacts.bucket,
+      aws_secretsmanager_secret.activity_database.name_prefix,
+      aws_apigatewayv2_api.activity.name,
+      aws_apigatewayv2_stage.activity.name,
+      aws_lambda_function.activity_api[0].function_name,
+      aws_lambda_permission.activity_gateway[0].statement_id,
+      aws_cloudwatch_log_group.activity_api.name,
+      aws_cloudwatch_metric_alarm.database_storage.alarm_name,
+      aws_cloudwatch_metric_alarm.database_connections.alarm_name
+      ], [for subnet in aws_subnet.database : subnet.tags.Name],
+      [for alarm in aws_cloudwatch_metric_alarm.activity_api : alarm.alarm_name]
+    ) : startswith(name, "baby-icb-")])
+    error_message = "All configurable AWS resource names and network Name tags must start with baby-icb-."
+  }
+
+  assert {
+    condition = (
+      aws_lambda_function.activity_api[0].logging_config[0].log_group == aws_cloudwatch_log_group.activity_api.name &&
+      aws_lambda_function.activity_api[0].environment[0].variables["AWS_LWA_REMOVE_BASE_PATH"] == "/${aws_apigatewayv2_stage.activity.name}"
+    )
+    error_message = "Lambda must use the prefixed log group and strip the named Gateway stage before Express routing."
   }
 }
 
@@ -207,4 +242,20 @@ run "reject_unscoped_alarm_destination" {
     alarm_action_arns = ["*"]
   }
   expect_failures = [var.alarm_action_arns]
+}
+
+run "reject_unprefixed_database_identifier" {
+  command = plan
+  variables {
+    db_identifier = "another-project"
+  }
+  expect_failures = [var.db_identifier]
+}
+
+run "reject_unprefixed_final_snapshot" {
+  command = plan
+  variables {
+    final_snapshot_identifier = "another-project-final"
+  }
+  expect_failures = [var.final_snapshot_identifier]
 }

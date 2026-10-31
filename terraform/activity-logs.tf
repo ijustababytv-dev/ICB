@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "activity_api" {
-  name              = "/aws/lambda/${local.activity_name}"
+  name              = "${local.activity_name}-logs"
   retention_in_days = 7
 }
 

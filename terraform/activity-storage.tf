@@ -3,13 +3,15 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  activity_name = "${substr(var.db_identifier, 0, 40)}-activity-api"
+  activity_name       = "${substr(var.db_identifier, 0, 40)}-activity-api"
+  activity_stage_name = "${substr(var.db_identifier, 0, 40)}-api"
   activity_environment = {
     NODE_ENV                          = "production"
     PORT                              = "8080"
     AWS_LAMBDA_EXEC_WRAPPER           = "/opt/bootstrap"
     AWS_LWA_PORT                      = "8080"
     AWS_LWA_READINESS_CHECK_PATH      = "/healthz"
+    AWS_LWA_REMOVE_BASE_PATH          = "/${local.activity_stage_name}"
     RUST_LOG                          = "warn"
     DB_HOST                           = aws_db_instance.database.address
     DB_PORT                           = tostring(aws_db_instance.database.port)

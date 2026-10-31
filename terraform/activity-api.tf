@@ -6,7 +6,7 @@ resource "aws_apigatewayv2_api" "activity" {
 
 resource "aws_apigatewayv2_stage" "activity" {
   api_id      = aws_apigatewayv2_api.activity.id
-  name        = "$default"
+  name        = local.activity_stage_name
   auto_deploy = true
 
   default_route_settings {
@@ -38,6 +38,12 @@ resource "aws_lambda_function" "activity_api" {
 
   environment {
     variables = local.activity_environment
+  }
+
+  # A custom group keeps the literal project prefix instead of /aws/lambda/.
+  logging_config {
+    log_format = "Text"
+    log_group  = aws_cloudwatch_log_group.activity_api.name
   }
 
   # Intentionally outside the VPC; public RDS TLS access needs no NAT gateway.
@@ -80,7 +86,7 @@ resource "aws_apigatewayv2_route" "activity" {
 
 resource "aws_lambda_permission" "activity_gateway" {
   count         = var.activity_api_enabled ? 1 : 0
-  statement_id  = "AllowOnlyActivityHttpApi"
+  statement_id  = "${local.activity_name}-invoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.activity_api[0].function_name
   principal     = "apigateway.amazonaws.com"

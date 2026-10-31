@@ -1,6 +1,6 @@
 # Copy to terraform.tfvars (ignored), then customize non-secret settings.
 aws_region    = "us-east-1"
-db_identifier = "baby-icb"
+db_identifier = "baby-icb-postgres"
 
 # Optional username override; leave unset here when using TF_VAR_db_username.
 # db_username = "icbadmin"

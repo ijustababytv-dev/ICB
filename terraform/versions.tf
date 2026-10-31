@@ -16,6 +16,7 @@ provider "aws" {
     tags = {
       Project   = "ICB"
       ManagedBy = "Terraform"
+      Name      = "baby-icb-project"
     }
   }
 }

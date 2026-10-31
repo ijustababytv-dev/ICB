@@ -14,10 +14,25 @@ Step 1 acceptance tests. No AWS resources are applied by editing these files.
 | DB protection | Password auth, mandatory TLS, encryption, seven-day backups, deletion protection, retained final snapshot |
 | Releases | Private encrypted/versioned S3 bucket for immutable cloud-server ZIPs; public access blocked; TLS required |
 | Secrets | Secrets Manager container for the limited service-role login; seven-day recovery; populated on API enablement |
-| API foundation | API Gateway HTTP API, default stage, 10 requests/sec with burst 20, no access-log payload archive |
+| API foundation | API Gateway HTTP API, prefixed named stage, 10 requests/sec with burst 20, no access-log payload archive |
 | API runtime | Explicitly enabled Node.js 22 ARM64 Lambda, 512 MB, 15-second timeout, concurrency 2, pinned Web Adapter layer 30 |
 | Permissions | Lambda writes only its own logs and reads only its service-role secret; Gateway invocation is scoped to this API |
-| Monitoring | Seven-day Lambda logs; RDS free-storage/connection alarms; Lambda error/throttle alarms when enabled |
+| Monitoring | Seven-day custom Lambda log group; RDS free-storage/connection alarms; Lambda error/throttle alarms when enabled |
+
+All configurable AWS resource names begin with **`baby-icb-`**. The RDS identifier
+defaults to `baby-icb-postgres`; overrides and final snapshot names must preserve
+the prefix. IAM policies, the Gateway stage, the custom Lambda log group, secrets,
+buckets, and alarms follow the same rule. Network resources use prefixed `Name`
+tags; other taggable resources receive a prefixed default `Name` tag. AWS-generated
+IDs, log-stream names, automatic backup naming, route syntax, SQL identifiers,
+and referenced AWS-owned adapter layers retain their required service formats.
+
+The API base URL includes its named stage. Use `activity_api_url` as returned;
+the adapter strips that stage path before Express routing. Lambda is explicitly
+configured to write to the prefixed log group. Naming changes can rename or
+replace existing resources; review the full plan and preserve state before apply.
+Change old explicit `db_identifier = "baby-icb"` overrides to a prefixed identifier
+with a suffix (for example, `baby-icb-postgres`) before planning.
 
 Lambda connects over verified TLS to public RDS without joining the VPC. No NAT
 gateway, EC2 server, Aurora, RDS Proxy, load balancer, custom domain, provisioned

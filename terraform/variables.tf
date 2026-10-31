@@ -5,16 +5,16 @@ variable "aws_region" {
 }
 
 variable "db_identifier" {
-  description = "Unique RDS instance identifier and prefix for its network resources."
+  description = "Unique RDS identifier and base for resource names; must start with baby-icb-."
   type        = string
-  default     = "baby-icb"
+  default     = "baby-icb-postgres"
 
   validation {
     condition = (
       can(regex("^[a-z][a-z0-9-]{0,53}[a-z0-9]$", var.db_identifier)) &&
-      !strcontains(var.db_identifier, "--")
+      !strcontains(var.db_identifier, "--") && startswith(var.db_identifier, "baby-icb-")
     )
-    error_message = "Use 2-55 lowercase letters, digits, or single hyphens, starting with a letter and ending with a letter or digit."
+    error_message = "Start with baby-icb-, use at most 55 lowercase letters/digits/single hyphens, and end with a letter or digit."
   }
 }
 
@@ -81,8 +81,8 @@ variable "final_snapshot_identifier" {
   validation {
     condition = (
       can(regex("^[a-z][a-z0-9-]{0,253}[a-z0-9]$", var.final_snapshot_identifier)) &&
-      !strcontains(var.final_snapshot_identifier, "--")
+      !strcontains(var.final_snapshot_identifier, "--") && startswith(var.final_snapshot_identifier, "baby-icb-")
     )
-    error_message = "Use 2-255 lowercase letters, digits, or single hyphens, starting with a letter and ending with a letter or digit."
+    error_message = "Start with baby-icb-, use at most 255 lowercase letters/digits/single hyphens, and end with a letter or digit."
   }
 }

@@ -24,6 +24,8 @@
 
 ## Improvements
 
+- 2026-10-31: Enforced baby-icb- AWS resource names, including RDS, IAM policies, API stage, log group, and snapshots; added naming regression checks. No AWS changes applied.
+
 - 2026-10-31: Added a required cloud-server/local-server/ui folder migration and regression checks to the ignored Step 1 plan; aligned Step 2 target paths. No source files moved.
 
 - 2026-10-31: Terraform now accepts TF_VAR_db_username and uses it for the RDS master user and connection output, with validation and mocked tests.

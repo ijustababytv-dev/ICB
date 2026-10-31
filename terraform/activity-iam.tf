@@ -11,7 +11,7 @@ resource "aws_iam_role" "activity_api" {
 }
 
 resource "aws_iam_role_policy" "activity_api" {
-  name = "activity-logs-and-database-secret"
+  name = "${local.activity_name}-runtime"
   role = aws_iam_role.activity_api.id
   policy = jsonencode({
     Version = "2012-10-17"

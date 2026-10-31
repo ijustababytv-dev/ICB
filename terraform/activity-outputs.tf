@@ -15,7 +15,7 @@ output "activity_lambda_environment" {
 
 output "activity_api_url" {
   description = "Local Node cloud API base URL; null until the real Lambda release is enabled."
-  value       = var.activity_api_enabled ? aws_apigatewayv2_api.activity.api_endpoint : null
+  value       = var.activity_api_enabled ? "${aws_apigatewayv2_api.activity.api_endpoint}/${aws_apigatewayv2_stage.activity.name}" : null
 }
 
 output "activity_infrastructure_status" {
