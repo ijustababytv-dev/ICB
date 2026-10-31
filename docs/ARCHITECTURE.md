@@ -19,6 +19,7 @@ Updated 2026-10-24. The application is still one dependency-free Node server at 
 | `css/` | Page styles |
 | `images/embedded/` | Images extracted from former inline data URLs; ordinary local files |
 | `assets/` | Existing operator-managed artwork and audio; still excluded from Git |
+| `terraform/` | Optional AWS RDS PostgreSQL and dedicated public network; deployment is separate from the local application |
 | `js/bridge/` | Palia log bridge; its existing cursor stays in `bridge/` |
 | `js/tools/` | Standalone image sync and JavaScript formatting commands; never started by the server |
 | `desktop-widgets/js/` | Electron code; its package and lockfile stay in `desktop-widgets/` |

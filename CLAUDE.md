@@ -1,4 +1,5 @@
-Read [AGENTS.md](AGENTS.md) and [RULES.md](RULES.md) before starting work.
-Read [UPDATES.md](UPDATES.md) for the latest changes and handoff information.
-Read [README.md](README.md) for the project overview, startup steps, commands, and documentation links.
-Re-read these files whenever someone else, including Aleister V.M., makes changes; do not rely on an earlier session's assumptions.
+- Read [AGENTS.md](AGENTS.md) and [RULES.md](RULES.md) before starting work.
+- Read [UPDATES.md](UPDATES.md) for the latest changes and handoff information.
+- Read [README.md](README.md) for the project overview, startup steps, commands, and documentation links.
+- Re-read these files whenever someone else, including Aleister V.M., makes changes; do not rely on an earlier session's assumptions.
+- Commit/push code automatically to GitHub, in groups that make sense, as soon as it makes sense to do so (ex. new feature added), but only after you're able to perform some sort of test on the code.  Be sure to be descriptive with your commit name / description.

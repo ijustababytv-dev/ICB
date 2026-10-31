@@ -18,6 +18,16 @@ The existing `assets/resources/poke_bowl.png` file is missing in this checkout. 
 
 Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
 
+## Optional cloud database infrastructure
+
+`terraform/` defines a small AWS RDS PostgreSQL database and its dedicated public
+network. See [the Terraform instructions](../terraform/README.md) for deployment,
+TLS connections, credential handling, cost controls, and deliberate removal.
+Applying infrastructure does not migrate ICB data or connect the local application.
+The local server and log reader continue to run normally; no restart is needed
+to edit or validate Terraform. Internet-wide TCP 5432 access is intentional in
+this configuration and can be narrowed with `allowed_ipv4_cidrs`.
+
 ## Historical status (verified 2026-08-14)
 
 - The Chrome dashboard now leads the whole workflow through a live "Run the system" panel (see "What to start"). It was rendered and driven through all five states in a real browser during verification, not just unit-tested.
