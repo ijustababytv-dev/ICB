@@ -4,6 +4,12 @@ Terraform defines Step 1 infrastructure. It does not implement the application,
 restructure source folders, create SQL roles/tables, import data, or complete the
 Step 1 acceptance tests. No AWS resources are applied by editing these files.
 
+The Phase A foundation was deployed in `us-east-1` on 2026-10-31. RDS password
+authentication with certificate/hostname verification succeeded over TLS 1.3;
+unencrypted access was rejected. Lambda and API routes remain disabled pending
+Step 1 implementation. Retrieve the endpoint with `terraform output -raw database_host`
+from this directory; Terraform derives the future Lambda environment from it.
+
 ## Resources
 
 | Component | Configuration |
@@ -90,6 +96,11 @@ ephemeral inputs and write-only RDS fields, excluding them from state/plans. Use
 Retain the password yourself; Terraform cannot recover it. Increment
 `db_password_version` when deliberately rotating it.
 
+The TLS parameter explicitly uses `apply_method = "pending-reboot"` to match
+AWS's default metadata and avoid perpetual drift when its value is already `1`.
+The initial instance starts with that parameter group; a clean deployment does
+not need another reboot. Future parameter changes may require a deliberate DB reboot.
+
 ## Phase B: enable the real Step 1 API
 
 These application prerequisites remain pending until Step 1 is implemented and
@@ -175,6 +186,8 @@ and secrets can add charges. Check regional pricing before apply.
 
 State/plans/tfvars/provider downloads stay ignored; retain the provider lockfile.
 Keep state private, back it up securely, and use one Terraform operator at a time.
+The initial deployed state is also backed up under ignored `backups/terraform/`
+at the project root. Preserve that backup; it is separate from the Git repository.
 Use an encrypted locking remote backend before concurrent Terraform administration.
 OneDrive sync is not state locking. No state or release ZIP belongs in public Git.
 
@@ -182,7 +195,8 @@ OneDrive sync is not state locking. No state or release ZIP belongs in public Gi
 nothing in AWS. It tests both modes, release metadata, adapter settings, secret
 separation, IAM scope, alarms, and DB safety gates. It does not prove quotas,
 regional layer availability, SQL grants, ZIP contents, authentication, connectivity,
-or a successful deployed service. No AWS resources were applied during preparation.
+or a successful deployed service. After a real apply, verify password access with
+`sslmode=verify-full`, rejection of unencrypted access, and a no-change Terraform plan.
 
 For deliberate removal, first disable/apply DB deletion protection, then review
 `terraform plan -destroy`. Use an unused final snapshot identifier. The artifact

@@ -211,6 +211,8 @@ run "block_missing_service_password" {
 run "block_master_role_reuse" {
   command = plan
   variables {
+    # Keep the collision intentional even when TF_VAR_db_username is exported.
+    db_username             = "icbadmin"
     activity_api_enabled    = true
     activity_database_ready = true
     activity_db_username    = "icbadmin"

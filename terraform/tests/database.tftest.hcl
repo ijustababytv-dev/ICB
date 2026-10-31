@@ -53,9 +53,10 @@ run "small_public_postgres" {
       !aws_db_instance.database.iam_database_authentication_enabled &&
       aws_db_instance.database.manage_master_user_password == null &&
       one(aws_db_parameter_group.database.parameter).name == "rds.force_ssl" &&
-      one(aws_db_parameter_group.database.parameter).value == "1"
+      one(aws_db_parameter_group.database.parameter).value == "1" &&
+      one(aws_db_parameter_group.database.parameter).apply_method == "pending-reboot"
     )
-    error_message = "Expose only PostgreSQL with password authentication and mandatory TLS."
+    error_message = "Expose only PostgreSQL with password authentication and mandatory TLS; match AWS's apply method to prevent drift."
   }
 
   assert {

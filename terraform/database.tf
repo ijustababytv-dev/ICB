@@ -6,6 +6,8 @@ resource "aws_db_parameter_group" "database" {
   parameter {
     name  = "rds.force_ssl"
     value = "1"
+    # Match AWS's default for this value to avoid perpetual apply-method drift.
+    apply_method = "pending-reboot"
   }
 }
 

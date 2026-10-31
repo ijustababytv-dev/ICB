@@ -27,6 +27,11 @@ SQL bootstrap are supplied. See [the Terraform instructions](../terraform/README
 for the two deployment phases,
 TLS connections, credential handling, cost controls, and deliberate removal.
 Applying infrastructure does not migrate ICB data or connect the local application.
+The Phase A foundation was deployed in `us-east-1` on 2026-10-31, with verified
+TLS password access to PostgreSQL. Retrieve its current hostname from Terraform
+outputs; credentials remain in the ignored `terraform/.env`. SQL bootstrap and
+the Step 1 API are still pending. Keep the existing Terraform state and its
+ignored backups when administering this deployed stack.
 The local server and log reader continue to run normally; no restart is needed
 to edit or validate Terraform. Internet-wide TCP 5432 access is intentional in
 this configuration and can be narrowed with `allowed_ipv4_cidrs`.

@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Deployed the 24-resource AWS foundation in us-east-1, including the PostgreSQL micro instance, public network, private release bucket, service-secret container, IAM, API foundation, logs, and DB alarms. Lambda/routes and SQL bootstrap remain pending Step 1.
+
 - 2026-10-31: Added Step 1 Terraform foundations for API Gateway, gated Express Lambda deployment, private versioned releases, scoped IAM, a write-only service secret, logs/alarms, and automatic DB endpoint configuration. No AWS resources applied; real API code and SQL bootstrap remain prerequisites.
 
 - 2026-10-30: Added Terraform for a micro AWS PostgreSQL database, public VPC/subnets, internet-accessible PostgreSQL firewall, password authentication, mandatory TLS, backups, and deployment instructions. Infrastructure has not been applied.
@@ -23,6 +25,8 @@
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 
 ## Improvements
+
+- 2026-10-31: Verified RDS password login over certificate-checked TLS 1.3, rejection of unencrypted connections, and a no-change Terraform plan. Preserved private Terraform state separately from Git. All 16 Terraform and 171 unit tests pass; E2E still reports nine missing artwork files, with all remaining integration checks passing.
 
 - 2026-10-31: Enforced baby-icb- AWS resource names, including RDS, IAM policies, API stage, log group, and snapshots; added naming regression checks. No AWS changes applied.
 
@@ -49,6 +53,8 @@
 - 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 
 ## Bug Fixes
+
+- 2026-10-31: Matched the RDS TLS parameter's apply method to AWS's default to prevent perpetual Terraform drift; added a mocked regression assertion and isolated the master-role safety fixture from exported usernames.
 
 - 2026-10-24: Re-measured the Sashimi value box for the new `SASHIMI_NEW.png` art (1774 x 887) so the count sits in the blank panel. Only that card's `valueBox` in `config/resource-trackers.json` changed.
 - 2026-10-24: Merged the restored Ocean Fish stash onto the modular-layout changes. Resolved conflicts in the API router and Poke Bowl dashboard handler, kept the tested `signup-checkins` attendance code, and removed a duplicate `!here` handler. Split the overlay to meet the 500-line limit and added unit, smoke, and browser coverage.
