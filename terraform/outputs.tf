@@ -17,5 +17,5 @@ output "database_username" {
 
 output "psql_command" {
   description = "psql prompts for the password; download the RDS CA bundle first."
-  value       = "psql \"host=${aws_db_instance.database.address} port=5432 dbname=icb user=icbadmin sslmode=verify-full sslrootcert=global-bundle.pem\" -W"
+  value       = "psql \"host=${aws_db_instance.database.address} port=5432 dbname=icb user=${aws_db_instance.database.username} sslmode=verify-full sslrootcert=global-bundle.pem\" -W"
 }

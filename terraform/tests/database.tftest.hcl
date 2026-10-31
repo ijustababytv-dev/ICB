@@ -85,3 +85,52 @@ run "restrict_access_later" {
     error_message = "A CIDR override must replace internet-wide access."
   }
 }
+
+run "custom_master_username" {
+  command = plan
+
+  variables {
+    db_username = "icb_owner"
+  }
+
+  assert {
+    condition = (
+      aws_db_instance.database.username == "icb_owner" &&
+      output.database_username == "icb_owner"
+    )
+    error_message = "The configured username must reach RDS and the connection output."
+  }
+}
+
+run "reject_invalid_username" {
+  command = plan
+
+  variables {
+    db_username = "invalid-name"
+  }
+
+  expect_failures = [var.db_username]
+}
+
+run "maximum_username_length" {
+  command = plan
+
+  variables {
+    db_username = "a123456789012345"
+  }
+
+  assert {
+    condition     = aws_db_instance.database.username == "a123456789012345"
+    error_message = "A valid 16-character master username must be accepted."
+  }
+}
+
+run "reject_long_username" {
+  command = plan
+
+  variables {
+    db_username = "a1234567890123456"
+  }
+
+  expect_failures = [var.db_username]
+}

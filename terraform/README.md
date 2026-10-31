@@ -22,6 +22,14 @@ Use Terraform 1.11+ and AWS credentials authorized to manage VPC/RDS resources.
 Use your existing AWS profile/SSO session; never put AWS keys in these files.
 The default region is `us-east-1`; change it before creation if needed.
 
+Set `TF_VAR_db_username` in the process environment to select the RDS master
+username; otherwise it defaults to `icbadmin`. If storing it in `.env`, load that
+file into your shell before Terraform; Terraform does not load `.env` automatically.
+An explicit `db_username` in `terraform.tfvars` takes precedence over the environment.
+Use 1-16 letters, digits, or underscores, beginning with a letter, and avoid
+database-reserved names. Changing the master username after creation requires
+database replacement; review the plan before applying such a change.
+
 From PowerShell at the project root:
 
 ```powershell
@@ -62,7 +70,8 @@ terraform output -raw psql_command
 ```
 
 Run the printed command with `psql` installed. It verifies the server certificate
-and prompts for the password. Use the hostname, database `icb`, user `icbadmin`,
+and prompts for the password. Use the hostname, database `icb`, the configured
+username (also available from `terraform output -raw database_username`),
 port 5432, and certificate verification in other clients too. Create a separate
 limited database role when implementing application access; do not distribute
 the master password to software users. Their future ICB login accounts are separate.

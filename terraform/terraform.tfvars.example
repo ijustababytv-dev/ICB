@@ -2,6 +2,9 @@
 aws_region    = "us-east-1"
 db_identifier = "baby-icb"
 
+# Optional username override; leave unset here when using TF_VAR_db_username.
+# db_username = "icbadmin"
+
 # Requested public access; replace with ["YOUR.PUBLIC.IP/32"] to restrict later.
 allowed_ipv4_cidrs = ["0.0.0.0/0"]
 

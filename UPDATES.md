@@ -22,6 +22,8 @@
 
 ## Improvements
 
+- 2026-10-31: Terraform now accepts TF_VAR_db_username and uses it for the RDS master user and connection output, with validation and mocked tests.
+
 - 2026-10-31: Added a local, ignored Step 2 plan for moving live rules and saved feature state to Lambda/PostgreSQL after all Step 1 work is complete. Internet is an operating requirement.
 
 - 2026-10-31: Updated the ignored logging plan to use Express on Lambda with pg and pg-format, explicit SQL, and no ORM.

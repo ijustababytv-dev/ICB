@@ -20,7 +20,7 @@ resource "aws_db_instance" "database" {
   allow_major_version_upgrade = false
 
   db_name                             = "icb"
-  username                            = "icbadmin"
+  username                            = var.db_username
   password_wo                         = var.db_password
   password_wo_version                 = var.db_password_version
   iam_database_authentication_enabled = false

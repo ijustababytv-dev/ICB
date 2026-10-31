@@ -18,6 +18,17 @@ variable "db_identifier" {
   }
 }
 
+variable "db_username" {
+  description = "RDS master username, supplied with TF_VAR_db_username if desired. Changing it replaces an existing database."
+  type        = string
+  default     = "icbadmin"
+
+  validation {
+    condition     = can(regex("^[A-Za-z][A-Za-z0-9_]{0,15}$", var.db_username))
+    error_message = "Use 1-16 letters, digits, or underscores, beginning with a letter. AWS also rejects database-reserved names."
+  }
+}
+
 variable "db_password" {
   description = "Master password from a private prompt or TF_VAR_db_password; never stored in Terraform state."
   type        = string
