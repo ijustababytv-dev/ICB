@@ -15,7 +15,7 @@ async function lockOwner(client, owner) {
     ]);
     return (
         await client.query(
-            'SELECT revision,transaction_timestamp() AS now FROM owner_revisions WHERE owner_id=$1 FOR UPDATE',
+            'SELECT revision,clock_timestamp() AS now FROM owner_revisions WHERE owner_id=$1 FOR UPDATE',
             [owner]
         )
     ).rows[0];
@@ -68,7 +68,7 @@ async function saveDocument(client, owner, file, value) {
     );
 }
 
-/** Publish immutable revision payloads only for cloud-owned documents that actually changed. */
+/** Store only revision markers; consistent feeds hydrate current typed rows instead of archiving every intermediate feature payload. */
 async function saveChanges(client, owner, context, revision, authorities) {
     context.runtime.checkpoint();
     const changed = [...context.dirty].filter(
@@ -83,9 +83,10 @@ async function saveChanges(client, owner, context, revision, authorities) {
             'UPDATE feature_authority SET revision=$3 WHERE owner_id=$1 AND feature=$2',
             [owner, entry.feature, next]
         );
+        authorities.get(entry.feature).revision = next;
         await client.query(
             'INSERT INTO feature_changes(owner_id,revision,feature,snapshot) VALUES($1,$2,$3,$4::jsonb)',
-            [owner, next, entry.feature, JSON.stringify(sanitize(context.documents[file]))]
+            [owner, next, entry.feature, '{}']
         );
     }
     await client.query('UPDATE owner_revisions SET revision=$2 WHERE owner_id=$1', [owner, next]);

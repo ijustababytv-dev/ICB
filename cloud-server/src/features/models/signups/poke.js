@@ -308,6 +308,7 @@ module.exports = function createModel(context, exports) {
     /** Interpret supported Poke Bowl signup chat commands while preserving unrelated messages. */
 
     const createPokeChat = require('./poke-chat')({
+        Date: Date,
         mDomainValidation: mDomainValidation,
 
         mParty: mParty,
@@ -339,6 +340,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch Poke Bowl signup API requests, returning client errors for invalid input. */
 
     const createPokeApi = require('./poke-api')({
+        Date: Date,
         get SASHI_BUILTIN_IGNORE() {
             return SASHI_BUILTIN_IGNORE;
         },

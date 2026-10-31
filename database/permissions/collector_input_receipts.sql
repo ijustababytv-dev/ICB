@@ -1,1 +1,1 @@
-GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE collector_input_receipts TO icb_service;
+GRANT SELECT, INSERT ON TABLE collector_input_receipts TO icb_service;

@@ -51,10 +51,10 @@ async function loadProgress(client, owner, documents, byFeature) {
         doc.chatActiveThisWindow = Object.fromEntries(
             (
                 await client.query(
-                    'SELECT name_key FROM chat_window_presence WHERE owner_id=$1 AND awarded_at IS NULL',
+                    'SELECT name_key,display_name FROM chat_window_presence WHERE owner_id=$1 AND awarded_at IS NULL',
                     [owner]
                 )
-            ).rows.map((row) => [row.name_key, true])
+            ).rows.map((row) => [row.display_name || row.name_key, true])
         );
     }
     if (document('poll')) {
@@ -63,7 +63,9 @@ async function loadProgress(client, owner, documents, byFeature) {
             .sort((a, b) => a.position - b.position)
             .map((row) => ({ id: row.id, label: row.label, image: row.image }));
         doc.votes = {};
-        for (const row of await readRows(client, 'poll_votes', owner)) {
+        for (const row of (await readRows(client, 'poll_votes', owner)).sort(
+            (a, b) => a.position - b.position
+        )) {
             const vote =
                 doc.votes[row.name_key] ||
                 (doc.votes[row.name_key] = {
@@ -77,14 +79,14 @@ async function loadProgress(client, owner, documents, byFeature) {
     }
     const signupEvents = await readRows(client, 'signup_events', owner);
     const signupEntries = await readRows(client, 'signup_entries', owner);
-    for (const feature of ['sashimi-signin', 'beanburger-signup', 'flowtree-signup'])
+    for (const feature of require('./signups').FEATURES)
         if (document(feature)) {
             document(feature).events = signupEvents
                 .filter((row) => row.feature === feature)
                 .sort((a, b) => a.position - b.position)
                 .map((row) => ({
                     ...row.details,
-                    guests: signupEntries
+                    [feature === 'parties' ? 'signups' : 'guests']: signupEntries
                         .filter((guest) => guest.feature === feature && guest.event_id === row.id)
                         .sort((a, b) => a.position - b.position)
                         .map((guest) => guest.details)
@@ -106,14 +108,18 @@ async function loadProgress(client, owner, documents, byFeature) {
                 ...row.details,
                 endsAt: Number(row.ends_at) || 0,
                 leftMs: Number(row.paused_ms),
-                status: row.status
+                status: row.status,
+                completionId: row.completion_id
             }));
     const counts = await readRows(client, 'resource_progress', owner);
     if (document('live'))
         document('live').resources = Object.fromEntries(
             counts
                 .filter((row) => row.resource_id.startsWith('live/'))
-                .map((row) => [row.resource_id.slice(5), Number(row.quantity)])
+                .map((row) => [
+                    row.resource_id.slice(5),
+                    row.quantity === null ? null : Number(row.quantity)
+                ])
         );
     if (document('resource-trackers')) {
         const doc = document('resource-trackers');

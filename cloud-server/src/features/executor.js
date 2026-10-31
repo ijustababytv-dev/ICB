@@ -35,7 +35,7 @@ const ROUTES = [
     ['beanburger-signup', /^\/api\/beanburger-signup(?:\/|$)/, 'signups/burger', 'handleBbsuApi'],
     ['flowtree-signup', /^\/api\/flowtree-signup(?:\/|$)/, 'signups/flow', 'handleFtsuApi'],
     ['aniimo-dex', /^\/api\/aniimo(?:\/|$)/, 'aniimo', 'handleDexApi'],
-    ['sprites', /^\/api\/sprites(?:\/|$)/, 'routes/sprites', 'handleSpritesApi', true],
+    ['sprites', /^\/api\/sprites(?:\/|$)/, 'routes/sprites', 'handleSpritesApi'],
     ['avatars', /^\/api\/avatars(?:\/|$)/, 'avatars', 'handleAvatarsApi'],
     ['countdowns', /^\/api\/countdowns$/, 'countdowns', 'handleCountdownsApi'],
     ['paliaclock', /^\/api\/paliaclock$/, 'palia-clock', 'handlePaliaClockApi'],
@@ -90,10 +90,17 @@ async function executeRequest(context, feature, operands) {
     const { route, url } = routeFor(operands.path);
     if (
         route[0] !== feature &&
-        !(feature === 'settings' && ['/api/layout', '/api/ticker'].includes(url.pathname))
+        !(feature === 'settings' && ['/api/layout', '/api/ticker'].includes(url.pathname)) &&
+        !(
+            feature === 'live' &&
+            url.pathname === '/api/actions' &&
+            operands.values?.target === 'session.set-mode'
+        )
     )
         throw fail(400, 'feature_route_mismatch');
     const method = operands.method || 'GET';
+    if (url.pathname === '/api/giveaway/event' && method !== 'GET')
+        throw fail(409, 'collector_input_required');
     if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method))
         throw fail(405, 'invalid_feature_method');
     let [model, handler, useUrl] = route.slice(2);
@@ -126,10 +133,25 @@ async function executeRequest(context, feature, operands) {
         body: values,
         headers: {}
     };
+    let download;
+    const response = {
+        writeHead(status, headers) {
+            download = { status, headers };
+        },
+
+        end(text) {
+            if (!download || !String(download.headers['Content-Type']).includes('json'))
+                throw fail(400, 'local_asset_required');
+            return {
+                status: download.status,
+                payload: { download: { filename: 'icb-export.json', text: String(text) } }
+            };
+        }
+    };
     const fn = context.use(model)[handler];
     const reply = useUrl
-        ? await fn(request, {}, url)
-        : await fn(request, {}, url.pathname, method, url);
+        ? await fn(request, response, url)
+        : await fn(request, response, url.pathname, method, url);
     if (!reply || !Number.isInteger(reply.status)) throw fail(503, 'feature_response_unavailable');
     if (reply.status >= 400)
         throw Object.assign(fail(reply.status, 'feature_command_rejected'), {
@@ -151,3 +173,21 @@ function finalizeDue(context) {
 }
 
 module.exports = { ROUTES, routeFor, executeRequest, finalizeDue };
+
+/** A retired or mistyped local view cannot prevent delivery of every other registered feature. */
+async function readView(context, feature, path) {
+    try {
+        return (await executeRequest(context, feature, { path })).payload;
+    } catch (error) {
+        if (error.status >= 400 && error.status < 500)
+            return {
+                ok: false,
+                code: error.code,
+                error: error.detail || error.code,
+                __status: error.status
+            };
+        throw error;
+    }
+}
+
+module.exports.readView = readView;

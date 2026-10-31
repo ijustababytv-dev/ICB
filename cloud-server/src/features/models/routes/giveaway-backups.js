@@ -45,10 +45,15 @@ module.exports = function createModel(context, exports) {
                 });
             }
             const safety = mGiveawayBackups.backupGiveaway('before', 'restore');
+            const currentWindow = {
+                windowStartedAt: mGiveawayState.giveaway.windowStartedAt,
+                chatActiveThisWindow: mStorage.clone(mGiveawayState.giveaway.chatActiveThisWindow)
+            };
             mGiveawayState.giveaway = mStorage.mergeDefaults(
                 mGiveawayDefaults.GIVEAWAY_DEFAULTS,
                 restored
             );
+            Object.assign(mGiveawayState.giveaway, currentWindow);
             if (!mGiveawayState.giveaway.windowStartedAt)
                 mGiveawayState.giveaway.windowStartedAt = new Date().toISOString();
             mGiveawayState.migrateGiveaway();

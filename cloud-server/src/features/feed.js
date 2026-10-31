@@ -6,7 +6,7 @@ const { fail } = require('../activity/errors');
 const repository = require('./repository');
 const { byFile } = require('./catalog');
 const { createContext } = require('./context');
-const { executeRequest, routeFor, finalizeDue } = require('./executor');
+const { readView, routeFor, finalizeDue } = require('./executor');
 const { commitEffects } = require('./effects');
 const { sanitize } = require('./contracts');
 const { loadRecovery } = require('./recovery');
@@ -41,7 +41,7 @@ function pagesFor(payload) {
 
 /** One account feed supplies all active local overlays with one coherent owner revision. */
 async function stateFeed(db, owner, input) {
-    fields(input, ['after', 'paths', 'snapshot_token', 'page']);
+    fields(input, ['after', 'paths', 'known_views', 'snapshot_token', 'page']);
     const after =
         input.after === undefined ? 0 : integer(Number(input.after), 0, Number.MAX_SAFE_INTEGER);
     if (input.snapshot_token) {
@@ -59,10 +59,28 @@ async function stateFeed(db, owner, input) {
     const paths = input.paths || [];
     if (!Array.isArray(paths) || paths.length > 150) throw fail(400, 'invalid_feature_paths');
     paths.forEach(routeFor);
+    const known = input.known_views || {};
+    if (
+        typeof known !== 'object' ||
+        Array.isArray(known) ||
+        Object.keys(known).length > 150 ||
+        Object.entries(known).some(
+            ([path, hash]) => !paths.includes(path) || !/^[a-f0-9]{64}$/.test(hash)
+        )
+    )
+        throw fail(400, 'invalid_view_digest');
     return transaction(db, async (client) => {
         const clock = await repository.lockOwner(client, owner.id);
         if (after > Number(clock.revision)) throw fail(409, 'invalid_feature_revision');
         const authorities = await repository.authorities(client, owner.id);
+        await require('./bootstrap').bootstrapOwner(client, owner, clock, authorities);
+        const retained = await client.query(
+            'SELECT min(revision) AS oldest FROM feature_changes WHERE owner_id=$1',
+            [owner.id]
+        );
+        const fullSnapshot =
+            after === 0 ||
+            (retained.rows[0].oldest !== null && after < Number(retained.rows[0].oldest));
         const documents = await repository.loadDocuments(client, owner.id);
         const context = createContext(documents, {
             now: clock.now.getTime(),
@@ -78,8 +96,9 @@ async function stateFeed(db, owner, input) {
         for (const path of paths) {
             const feature = routeFor(path).route[0];
             if (authorities.get(feature)?.mode !== 'cloud') continue;
-            const reply = await executeRequest(context, feature, { path, method: 'GET' });
-            views[path] = sanitize(reply.payload);
+            views[path] = sanitize(await readView(context, feature, path));
+            if (require('../domain/view-digest').viewDigest(views[path]) === known[path])
+                delete views[path];
         }
         const revision = await repository.saveChanges(
             client,
@@ -89,17 +108,25 @@ async function stateFeed(db, owner, input) {
             authorities
         );
         await commitEffects(client, owner, context.effects);
+        await require('./display-events').captureDisplayEvents(client, owner.id, context, revision);
+        if (authorities.get('giveaway')?.mode === 'cloud')
+            await client.query(
+                "INSERT INTO integration_jobs(owner_id,kind,due_at) VALUES($1,'maintenance',now()+interval '5 minutes') ON CONFLICT DO NOTHING",
+                [owner.id]
+            );
         const source = Object.fromEntries(
             Object.entries(context.documents)
                 .filter(
                     ([file]) =>
                         byFile.has(file) &&
-                        authorities.get(byFile.get(file).feature)?.mode === 'cloud'
+                        authorities.get(byFile.get(file).feature)?.mode === 'cloud' &&
+                        (fullSnapshot || authorities.get(byFile.get(file).feature).revision > after)
                 )
                 .map(([file, value]) => [file, sanitize(value)])
         );
         const payload = {
             ok: true,
+            full_snapshot: fullSnapshot,
             intents: intentSpec(context),
             revision,
             server_time: clock.now.toISOString(),
@@ -117,9 +144,22 @@ async function stateFeed(db, owner, input) {
                 ])
             ),
             documents: source,
+            display_events: await require('./display-events').displayEvents(
+                client,
+                owner.id,
+                after
+            ),
             views
         };
         const pages = pagesFor(payload);
+        await client.query(
+            "DELETE FROM feature_changes WHERE owner_id=$1 AND created_at<now()-interval '24 hours'",
+            [owner.id]
+        );
+        await client.query(
+            'DELETE FROM feature_feed_snapshots WHERE owner_id=$1 AND expires_at<now()',
+            [owner.id]
+        );
         await client.query(
             "UPDATE owner_revisions SET active_at=now() WHERE owner_id=$1 AND active_at<now()-interval '30 seconds'",
             [owner.id]

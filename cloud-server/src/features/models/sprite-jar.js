@@ -272,6 +272,7 @@ module.exports = function createModel(context, exports) {
     /** Match local sticker art to configured sprites and report missing variants. */
 
     const createSpriteJarArt = require('./sprite-jar-art')({
+        Date: Date,
         fs: fs,
 
         path: path,
@@ -437,49 +438,33 @@ module.exports = function createModel(context, exports) {
                     ok: false,
                     error: 'No sticker art for that.'
                 });
-            const m = /^data:image\/(webp|png);base64,(.+)$/.exec(String(b.dataUrl || ''));
-            if (!m) return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Bad picture.' });
-            const buf = Buffer.from(m[2], 'base64');
-            if (buf.length > 3 * 1024 * 1024)
-                return mHttpResponse.sendJson(res, 400, { ok: false, error: 'Too large.' });
-            for (const f of fs.readdirSync(SJ_STK_DIR))
-                if (f.startsWith(a.key + '-')) {
-                    try {
-                        fs.unlinkSync(path.join(SJ_STK_DIR, f));
-                    } catch (_e) {}
-                }
-            fs.writeFileSync(path.join(SJ_STK_DIR, a.thumb), buf);
+            const name = require('../asset-reference').assetName(fs, SJ_STK_DIR, b.asset_ref);
+            if (name !== a.thumb)
+                throw new Error('Sticker source version changed. Refresh and try again.');
             return mHttpResponse.sendJson(res, 200, { ok: true });
         }
         if (pathname === '/api/sprites/jar/image' && method === 'POST') {
             const b = await mHttpBody.readBody(req),
                 c = sjCfg();
-            const m = /^data:image\/(png|webp|gif|jpeg|jpg);base64,(.+)$/.exec(
-                String(b.dataUrl || '')
-            );
-            if (!m)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'Picture must be a PNG, WEBP, GIF, or JPG.'
-                });
-            const buf = Buffer.from(m[2], 'base64');
-            if (buf.length > 12 * 1024 * 1024)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'Picture is too large.'
-                });
-            if (c.jarImage) {
-                try {
-                    fs.unlinkSync(path.join(SJ_DIR, c.jarImage));
-                } catch (_e) {}
-            }
-            c.jarImage = `jar-${Date.now()}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-            fs.writeFileSync(path.join(SJ_DIR, c.jarImage), buf);
+            c.jarImage = require('../asset-reference').assetName(fs, SJ_DIR, b.asset_ref);
             mSprites.sprSave();
             return mHttpResponse.sendJson(res, 200, { ok: true });
         }
         return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown sprite jar route.' });
     }
 
+    context.runtime.register(
+        'sprites',
+        () => ({
+            sjEvents: sjEvents.filter((event) => event.at > context.now - 120000),
+            sjSeq,
+            sjLastChat
+        }),
+        (value) => {
+            sjEvents = value.sjEvents || [];
+            sjSeq = value.sjSeq || 1;
+            sjLastChat = value.sjLastChat || [];
+        }
+    );
     Object.assign(exports, { handleSpriteJarApi, sjArtPublic, sjCfg, sjPush, sjChat });
 };

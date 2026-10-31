@@ -1,6 +1,7 @@
 'use strict';
 /** createPartyChat keeps related operations together and reads shared state at call time. */
 module.exports = function createPartyChat(context) {
+    const Date = context.Date || global.Date;
     function partyChat(name, parts) {
         // NOTE: no isBlocked() here on purpose - the giveaway block list includes Baby herself
         // (IJustABabyTv), and she signs up for roles at her own parties (2026-10-07).

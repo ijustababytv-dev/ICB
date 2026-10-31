@@ -398,6 +398,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch Bean Burger signup API requests, returning client errors for invalid input. */
 
     const createBurgerApi = require('./burger-api')({
+        Date: Date,
         mSignupsPoke: mSignupsPoke,
 
         mDomainTimezone: mDomainTimezone,

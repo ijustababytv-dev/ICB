@@ -5,7 +5,7 @@ const { createHash, randomUUID } = require('node:crypto');
 const { adminDatabase } = require('./admin-db');
 const { loginName } = require('../src/activity/validation');
 const { manifest, validatePayload } = require('../src/activity/feature-state');
-const { sanitize } = require('../../local-server/src/activity/state-sync');
+const { sanitize } = require('../../local-server/src/domain/recovery-sanitize');
 
 /** Import relevant current data files as account backups without restoring or changing local totals. */
 async function importState(pool, owner, directory, apply = false) {

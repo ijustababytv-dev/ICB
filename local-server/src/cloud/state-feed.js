@@ -1,8 +1,8 @@
 'use strict';
 const session = require('./session');
-const events = require('../events');
-const { catalog } = require('../../../cloud-server/src/features/catalog');
+const cacheEvents = require('./cache-events');
 const paths = new Map();
+const waiters = new Set();
 let cache = { revision: 0, documents: {}, views: {}, authorities: {} };
 let account = null;
 let generation = 0;
@@ -22,30 +22,37 @@ function synchronizeAccount() {
         problem = owner ? 'cloud_loading' : 'login_required';
         failures = 0;
         nextAttempt = 0;
+        cacheEvents.reset();
+        for (const waiter of [...waiters]) waiter.finish(null);
     }
     return owner;
 }
 
 /** Atomically publish a complete snapshot or committed command result after validating owner and order. */
-function publish(payload, owner, attempt) {
+function publish(payload, owner, attempt, options = {}) {
     if (
         synchronizeAccount() !== owner ||
         attempt !== generation ||
+        !Number.isSafeInteger(payload.revision) ||
         payload.revision < cache.revision
     )
         return false;
     const previous = cache;
-    cache = {
-        revision: payload.revision,
-        documents: { ...previous.documents, ...payload.documents },
-        views: { ...previous.views, ...payload.views },
-        authorities: { ...previous.authorities, ...payload.authorities },
-        intents: payload.intents || previous.intents
-    };
-    clockOffset = Date.parse(payload.server_time) - Date.now();
-    for (const [file, value] of Object.entries(payload.documents || {})) {
-        const entry = catalog.find((item) => item.file === file);
-        if (entry) events.broadcast(entry.feature, value);
+    const { mergeSnapshot } = require('./versioned-cache');
+    cache = mergeSnapshot(previous, payload, options.command);
+    const sent = Date.parse(payload.sent_at || payload.server_time);
+    if (Number.isFinite(sent)) clockOffset = sent - Date.now();
+    require('./clock').observe(payload.sent_at || payload.server_time);
+    cacheEvents.broadcast(
+        Object.fromEntries(
+            Object.keys(payload.views || {})
+                .filter((path) => cache.views[path] === payload.views[path])
+                .map((path) => [path, cache.views[path]])
+        )
+    );
+    for (const waiter of [...waiters]) {
+        const value = cache.views[waiter.path];
+        if (value !== undefined) waiter.finish(structuredClone(value));
     }
     problem = null;
     return true;
@@ -53,8 +60,44 @@ function publish(payload, owner, attempt) {
 
 /** Register recently used local DTOs; opening more overlays does not create more cloud poll loops. */
 function watch(path) {
+    for (const [key, until] of paths) if (until < Date.now()) paths.delete(key);
+    if (!paths.has(path) && paths.size >= 150) throw new Error('too_many_active_views');
     paths.set(path, Date.now() + 30000);
     return view(path);
+}
+
+/** Reuse the registered views in mutation responses, without adding an extra cloud poll. */
+function watchedPaths() {
+    return [...paths].filter(([, until]) => until > Date.now()).map(([path]) => path);
+}
+
+/** Initial page requests wait for the shared poll; they never start their own cloud read loop. */
+function waitForView(path, signal, timeout = 4500) {
+    const cached = watch(path);
+    if (cached) return Promise.resolve(cached);
+    if (!session.current()) return Promise.resolve(null);
+    return new Promise((resolve) => {
+        let timer;
+        const waiter = {
+            path,
+            finish(value) {
+                clearTimeout(timer);
+                waiters.delete(waiter);
+                signal?.removeEventListener('abort', abort);
+                resolve(value);
+            }
+        };
+        /** A disconnected tab releases its waiter without affecting other local consumers. */
+        function abort() {
+            waiter.finish(null);
+        }
+
+        if (signal?.aborted) return resolve(null);
+        signal?.addEventListener('abort', abort, { once: true });
+        timer = setTimeout(() => waiter.finish(null), timeout);
+        timer.unref();
+        waiters.add(waiter);
+    });
 }
 
 /** Serve the last confirmed local DTO without allowing handlers to mutate the shared cache. */
@@ -90,7 +133,17 @@ async function tick(force = false) {
                 'POST',
                 {
                     after: cache.revision,
-                    paths: [...paths.keys()]
+                    paths: [...paths.keys()],
+                    known_views: Object.fromEntries(
+                        [...paths.keys()]
+                            .filter((path) => cache.views[path] !== undefined)
+                            .map((path) => [
+                                path,
+                                require('../../../cloud-server/src/domain/view-digest').viewDigest(
+                                    cache.views[path]
+                                )
+                            ])
+                    )
                 },
                 owner
             );
@@ -117,6 +170,7 @@ async function tick(force = false) {
                     throw new Error('cloud_snapshot_expired');
                 Object.assign(combined.documents, response.data.documents);
                 Object.assign(combined.views, response.data.views);
+                combined.sent_at = response.data.sent_at || combined.sent_at;
             }
             publish(combined, owner, attempt);
             failures = 0;
@@ -146,9 +200,20 @@ function status() {
 module.exports = {
     tick,
     watch,
+    watchedPaths,
+    waitForView,
     view,
     document,
     authority,
+    revisions: () => {
+        synchronizeAccount();
+        return Object.fromEntries(
+            Object.entries(cache.authorities).map(([feature, value]) => [feature, value.revision])
+        );
+    },
+
+    viewRevision: (path) => cache.view_revisions?.[path] ?? 0,
+
     publish,
     status,
     generation: () => generation,

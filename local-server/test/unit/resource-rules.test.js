@@ -1,7 +1,12 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const rules = require('../../src/domain/resource-rules');
+const cloudRules = require('../../../cloud-server/src/domain/resource-rules');
+const { fixtureFact } = require('../helpers/typed-line-fixture');
+const rules = {
+    ...cloudRules,
+    applyResourceEvent: (state, line) => cloudRules.applyResourceEvent(state, fixtureFact(line))
+};
 
 /** Use known log tokens with small in-memory counts; no test touches live tracker files. */
 function card(overrides = {}) {

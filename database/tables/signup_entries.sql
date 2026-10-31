@@ -3,7 +3,7 @@ CREATE TABLE signup_entries (
     owner_id uuid NOT NULL REFERENCES accounts(id),
     feature text NOT NULL,
     event_id text NOT NULL,
-    id text NOT NULL,
+    id uuid NOT NULL,
     name_key text NOT NULL,
     display_name text NOT NULL,
     position integer NOT NULL,

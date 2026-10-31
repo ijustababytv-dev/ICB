@@ -40,7 +40,7 @@ Use **one production server on port 8790**. Do not migrate to port 8787 or start
 
 ## What the application provides
 
-- One dependency-free Node server.
+- One dependency-free local Node server, backed by an owner-scoped Express cloud API.
 - Private operator dashboards and a hub for the stream tools.
 - Read-only overlay pages for Meld Studio.
 - Separate stream settings and live tracker state.
@@ -60,7 +60,7 @@ Settings and live progress stay separate. Historical snapshots are never automat
 
 ## Contributor setup and checks
 
-Use Node.js and npm; the application has no runtime package dependencies. From PowerShell in this folder, install the local commit guard once per checkout:
+Use Node.js and npm; the local runtime has no package dependencies. Cloud dependencies stay in `cloud-server/`. From PowerShell in this folder, install the local commit guard once per checkout:
 
 ```powershell
 npm.cmd run setup:hooks
@@ -86,7 +86,15 @@ For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in t
 
 The local server starts at `local-server/src/index.js`; cloud Express code is in `cloud-server/`. Browser HTML, scripts, styles, and bundled images are under `ui/`. SQL and recovery tools are under root `database/`. Operator artwork and runtime `data/` remain private and ignored. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
 
-Step 1 cloud storage is deployed. After the next normal restart, open **Cloud account** on ICB Home to sign in, then open daily reports. Usernames are case-insensitive; sign in again after a local restart. Chat wording is transient; PostgreSQL stores counts, compact support/audit events, independent summaries, and recoverable feature-state copies. Live feature rules remain local in this phase. See [the Step 1 review](docs/STEP1-REVIEW.md) and [database recovery](database/README.md).
+Cloud storage and feature execution use Express/Lambda and PostgreSQL. On normal
+startup, open **Cloud account** on ICB Home (`/cloud.html`) and sign in. Usernames
+are case-insensitive; sessions stay in Node memory, so sign in after a restart.
+The PC still reads local Palia logs and renders Meld overlays. Saved settings,
+tickets, signups, polls, trackers, timers and Steam state belong to PostgreSQL.
+Chat wording stays transient/local; only counts and recognized command operands
+are sent. Internet is required. See [Step 2 operation and recovery](docs/STEP2-OPERATIONS.md),
+[feature ownership](docs/STEP2-FEATURE-MAP.md), and [database recovery](database/README.md).
+The implementation does not restart the user's local server.
 
 The pre-commit hook and source-policy checks enforce the file limits and layout defined in `RULES.md`. Never restore root `server.js`; add features in focused modules.
 
@@ -100,6 +108,9 @@ Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` p
 | [RULES.md](RULES.md) | Mandatory code, test, formatting, documentation, and delivery rules |
 | [UPDATES.md](UPDATES.md) | Completed work from the last seven days |
 | [Runbook](docs/ICB-CLEAN-RUNBOOK.md) | Operation, diagnostics, backup, and recovery |
+| [Step 2 operations](docs/STEP2-OPERATIONS.md) | Cloud authority, cutover, worker, release and rollback |
+| [Step 2 validation](docs/STEP2-VALIDATION.md) | Actual tests, known artwork failures, measurements and costs |
+| [Feature ownership](docs/STEP2-FEATURE-MAP.md) | Field-level inventory and SQL projections |
 | [Architecture](docs/ARCHITECTURE.md) | Module responsibilities and development commands |
 | [Master handbook](docs/ICB-MASTER-HANDBOOK.md) | Historical methods, failures, and tracker recipes; check current rules before acting |
 | [Skin standard](docs/ICB-TRACKER-SKIN-STANDARD.md) | Artwork dimensions, blank value boxes, and per-skin measurements |

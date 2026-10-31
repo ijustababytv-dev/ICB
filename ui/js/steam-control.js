@@ -161,7 +161,7 @@ function showThumb() {
 $('cardImage').addEventListener('change', showThumb);
 function ago(ms) {
     if (!ms) return 'never';
-    var s = Math.round((Date.now() - ms) / 1000);
+    var s = Math.round(((window.ICBClock ? window.ICBClock.now() : Date.now()) - ms) / 1000);
     return s < 60 ? s + 's ago' : Math.round(s / 60) + ' min ago';
 }
 

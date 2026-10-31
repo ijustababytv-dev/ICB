@@ -1,9 +1,28 @@
 'use strict';
 
 const clients = new Set();
+const adapters = new Map();
+let metadata = () => null;
+
+/** Machine-only diagnostics may decorate confirmed DTOs without changing cloud feature state. */
+function localize(event, payload) {
+    return adapters.has(event) ? adapters.get(event)(payload) : payload;
+}
+
+/** Composition modules register render adapters explicitly, avoiding circular feature imports. */
+function adapt(event, operation) {
+    adapters.set(event, operation);
+}
 
 /** Write one named SSE event using the framing expected by dashboard clients. */
 function sendSse(res, event, payload) {
+    const info = metadata();
+    const serialized = info && JSON.stringify(info);
+    if (serialized && res.icbMetadata !== serialized) {
+        res.icbMetadata = serialized;
+        res.write(`event: icb-revisions\ndata: ${serialized}\n\n`);
+    }
+    payload = localize(event, payload);
     res.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
 }
 
@@ -27,4 +46,8 @@ function clientCounts() {
     return counts;
 }
 
-Object.assign(exports, { broadcast, clients, sendSse, clientCounts });
+exports.setMetadata = (read) => {
+    metadata = read;
+};
+
+Object.assign(exports, { broadcast, clients, sendSse, clientCounts, adapt, localize });

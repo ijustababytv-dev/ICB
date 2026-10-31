@@ -19,23 +19,12 @@ const mViewsResource = require('./views/resource');
 const mHttpResponse = require('./http/response');
 const mHttpStatic = require('./http/static');
 const mReader = require('./reader');
-const mWeekly = require('./weekly');
-const backups = require('./giveaway/backups');
-const signupCommands = require('./signups/commands');
-
-backups.connectGiveaway(() => mGiveawayState.giveaway);
-const disconnectSpriteTv = require('./sprite-tv').connectSpriteUpdates();
-signupCommands.connectSignups(
-    require('./signups/poke'),
-    require('./signups/burger'),
-    require('./signups/flow')
-);
-backups.runScheduledBackup();
-const giveawayBackupTimer = setInterval(backups.runScheduledBackup, backups.BACKUP_EVERY_MS);
-giveawayBackupTimer.unref();
-
 const stopBackgroundJobs = require('./background').startBackgroundJobs();
-require('./sprites').sprImportCheck();
+
+mEvents.setMetadata(() => ({
+    revisions: require('./cloud/state-feed').revisions(),
+    session: require('./cloud/session').generation()
+}));
 
 const server = http.createServer(async (req, res) => {
     const url = new URL(
@@ -158,16 +147,6 @@ server.listen(mConfig.PORT, mConfig.HOST, () => {
     mReader.scanLog();
 });
 
-// The week must roll over even on a quiet night with no log activity, and a
-// server that was off across the boundary catches up on its next tick.
-mWeekly.rolloverWeeklyIfDue();
-const weeklyTimer = setInterval(() => {
-    try {
-        mWeekly.rolloverWeeklyIfDue();
-    } catch (_error) {}
-}, 60000);
-weeklyTimer.unref();
-
 const readerTimer = setInterval(mReader.scanLog, 1000);
 readerTimer.unref();
 const heartbeat = setInterval(() => {
@@ -183,10 +162,7 @@ heartbeat.unref();
 
 /** Stop timers and connected streams before closing the sole HTTP listener. */
 function shutdown() {
-    disconnectSpriteTv();
     stopBackgroundJobs();
-    clearInterval(giveawayBackupTimer);
-    clearInterval(weeklyTimer);
     clearInterval(readerTimer);
     clearInterval(heartbeat);
     for (const client of mEvents.clients) client.end();

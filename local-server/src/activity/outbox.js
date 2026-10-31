@@ -72,6 +72,7 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
             return;
         change((next) => {
             if (item.kind === 'feature') {
+                next.feature_protocol = 2;
                 if (item.body.operands.sequence !== (next.feature_sequence || 0) + 1)
                     throw new Error('collector_sequence_gap');
                 next.feature_sequence = item.body.operands.sequence;
@@ -90,12 +91,13 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
     }
 
     /** Seal an ordered minimal input and its next sequence in the same atomic checkpoint. */
-    function enqueueFeature(owner, feature, action, operands) {
+    function enqueueFeature(owner, feature, action, operands, read_paths = []) {
         const body = {
             protocol_version: 2,
             command_id: randomUUID(),
             expected_revision: 0,
             action,
+            read_paths,
             collector_id: state.collector_id,
             operands: { ...operands, sequence: (state.feature_sequence || 0) + 1 }
         };
@@ -123,16 +125,36 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
         });
     }
 
-    /** Bind existing local feature state to its first owner; other logins remain report-only. */
+    /** Rebind only an empty transport checkpoint; pending records always retain their original owner. */
     function bindOwner(owner) {
-        if (!state.bound_owner)
+        if (
+            !state.bound_owner ||
+            (state.feature_protocol === 2 &&
+                state.bound_owner !== owner &&
+                !state.pending.length &&
+                !state.quarantine.length)
+        )
             change((next) => {
+                if (next.bound_owner && next.bound_owner !== owner) {
+                    next.collector_id = randomUUID();
+                    next.feature_sequence = 0;
+                }
                 next.bound_owner = owner;
             });
         return state.bound_owner === owner;
     }
 
     return {
+        hasRejectedFeature: (owner) =>
+            state.quarantine.some((item) => item.kind === 'feature' && item.owner_id === owner),
+
+        lookup: (id, owner) => ({
+            pending: state.pending.some((item) => item.id === id && item.owner_id === owner),
+            rejected:
+                state.quarantine.find((item) => item.id === id && item.owner_id === owner)?.code ||
+                null
+        }),
+
         enqueue,
         enqueueFeature,
         acknowledge,

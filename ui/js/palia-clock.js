@@ -140,20 +140,6 @@
             $('next').children[0].textContent = best.label || 'Alarm';
             $('next').style.display = '';
         } else $('next').style.display = 'none';
-        // alarms that the clock just passed
-        if (prevH !== null) {
-            for (i = 0; i < D.alarms.length; i++) {
-                a = D.alarms[i];
-                if (!a.on) continue;
-                var tv = tval(a.time),
-                    passed = prevH <= ph ? tv > prevH && tv <= ph : tv > prevH || tv <= ph;
-                if (passed && (ph - prevH + 24) % 24 < 1) {
-                    var p2 = a.time.split(':');
-                    ring(a.icon, a.label, fmt(Number(p2[0]), Number(p2[1]), L.show24h));
-                }
-            }
-        }
-        prevH = ph;
         $('ring').style.display = Date.now() < ringUntil ? 'block' : 'none';
         fit();
     }
@@ -172,7 +158,7 @@
                 try {
                     var d = JSON.parse(x.responseText);
                     D = d;
-                    off = d.now - Date.now();
+                    off = window.ICBClock ? window.ICBClock.now() - Date.now() : d.now - Date.now();
                     if (!started) {
                         last = d.last;
                         started = true;

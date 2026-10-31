@@ -274,29 +274,33 @@ run "reject_unprefixed_final_snapshot" {
 run "leased_worker_has_separate_runtime_and_both_failure_paths" {
   command = apply
   variables {
-    activity_api_enabled = true
+    activity_api_enabled    = true
     activity_database_ready = true
-    feature_worker_enabled = true
+    feature_worker_enabled  = true
     activity_release = {
-      key = "releases/fixture.zip"
+      key        = "releases/fixture.zip"
       version_id = "mock-immutable-version"
-      sha256 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      sha256     = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     }
   }
   assert {
-    condition = aws_lambda_function.feature_worker[0].handler == "src/worker/index.handler" && aws_lambda_function.feature_worker[0].memory_size == 256 && aws_lambda_function.feature_worker[0].timeout == 15 && aws_lambda_function.feature_worker[0].reserved_concurrent_executions == 1
+    condition     = aws_lambda_function.feature_worker[0].handler == "src/worker/index.handler" && aws_lambda_function.feature_worker[0].memory_size == 256 && aws_lambda_function.feature_worker[0].timeout == 15 && aws_lambda_function.feature_worker[0].reserved_concurrent_executions == 1
     error_message = "Keep a bounded normal worker handler with its own concurrency budget."
   }
   assert {
-    condition = !contains(keys(aws_lambda_function.feature_worker[0].environment[0].variables), "AWS_LAMBDA_EXEC_WRAPPER") && !contains(keys(aws_lambda_function.feature_worker[0].environment[0].variables), "AWS_LWA_PORT") && try(length(aws_lambda_function.feature_worker[0].layers), 0) == 0
+    condition     = !contains(keys(aws_lambda_function.feature_worker[0].environment[0].variables), "AWS_LAMBDA_EXEC_WRAPPER") && !contains(keys(aws_lambda_function.feature_worker[0].environment[0].variables), "AWS_LWA_PORT") && try(length(aws_lambda_function.feature_worker[0].layers), 0) == 0
     error_message = "The worker must not inherit the HTTP Web Adapter."
   }
   assert {
-    condition = aws_scheduler_schedule.feature_worker[0].schedule_expression == "rate(1 minute)" && aws_scheduler_schedule.feature_worker[0].flexible_time_window[0].mode == "OFF" && aws_scheduler_schedule.feature_worker[0].target[0].dead_letter_config[0].arn == aws_sqs_queue.feature_failures[0].arn && aws_lambda_function_event_invoke_config.feature_worker[0].destination_config[0].on_failure[0].destination == aws_sqs_queue.feature_failures[0].arn
+    condition     = aws_scheduler_schedule.feature_worker[0].schedule_expression == "rate(1 minute)" && aws_scheduler_schedule.feature_worker[0].flexible_time_window[0].mode == "OFF" && aws_scheduler_schedule.feature_worker[0].target[0].dead_letter_config[0].arn == aws_sqs_queue.feature_failures[0].arn && aws_lambda_function_event_invoke_config.feature_worker[0].destination_config[0].on_failure[0].destination == aws_sqs_queue.feature_failures[0].arn
     error_message = "Scheduler delivery failures and accepted-invocation failures both require destinations."
   }
   assert {
-    condition = aws_lambda_function.feature_worker[0].s3_object_version == aws_lambda_function.activity_api[0].s3_object_version && aws_cloudwatch_log_group.feature_worker[0].retention_in_days == 7 && aws_sqs_queue.feature_failures[0].sqs_managed_sse_enabled && startswith(aws_scheduler_schedule_group.feature_worker[0].name, "baby-icb-")
+    condition     = aws_lambda_function.feature_worker[0].s3_object_version == aws_lambda_function.activity_api[0].s3_object_version && aws_cloudwatch_log_group.feature_worker[0].retention_in_days == 7 && aws_sqs_queue.feature_failures[0].sqs_managed_sse_enabled && startswith(aws_scheduler_schedule_group.feature_worker[0].name, "baby-icb-")
     error_message = "Keep the immutable release, short logs, encrypted failures and project naming."
+  }
+  assert {
+    condition = startswith(aws_budgets_budget.project_guard[0].name, "baby-icb-") && aws_budgets_budget.project_guard[0].limit_amount == "30" && aws_budgets_budget.project_guard[0].time_unit == "MONTHLY"
+    error_message = "Keep a prefixed console-visible monthly account cost guard."
   }
 }

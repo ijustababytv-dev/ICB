@@ -6,7 +6,7 @@ const {
     updateSettings,
     displaySprite,
     slideshowSprites
-} = require('../../src/domain/sprite-tv');
+} = require('../../../cloud-server/src/domain/sprite-tv');
 
 /** Model a current catch, an older owned sprite, and a genuinely uncaught sprite. */
 function collection() {

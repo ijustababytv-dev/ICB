@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const fishRules = require('../../src/domain/ocean-fish');
+const fishRules = require('../../../cloud-server/src/domain/ocean-fish');
 
 const root = path.resolve(__dirname, '../../..');
 

@@ -371,6 +371,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch Flow Tree signup API requests, returning client errors for invalid input. */
 
     const createFlowApi = require('./flow-api')({
+        Date: Date,
         mSignupsPoke: mSignupsPoke,
 
         mDomainTimezone: mDomainTimezone,

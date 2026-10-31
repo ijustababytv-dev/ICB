@@ -1,8 +1,12 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { paliaHours, pcUntil, pcCleanAlarm } = require('../../src/domain/palia-time');
-const { etToEpoch, etValidTz } = require('../../src/domain/timezone');
+const {
+    paliaHours,
+    pcUntil,
+    pcCleanAlarm
+} = require('../../../cloud-server/src/domain/palia-time');
+const { etToEpoch, etValidTz } = require('../../../cloud-server/src/domain/timezone');
 
 test('Palia time advances 24 game hours per real hour and wraps at midnight', () => {
     assert.equal(paliaHours(Date.parse('2026-10-22T12:15:00Z')), 6);

@@ -315,6 +315,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch aniimo API requests, returning client errors for invalid input. */
 
     const createAniimoApi = require('./aniimo-api')({
+        Date: Date,
         fs: fs,
 
         path: path,
@@ -400,7 +401,12 @@ module.exports = function createModel(context, exports) {
     Object.assign(exports, { dexChat, handleDexApi });
     context.runtime.register(
         'aniimo-dex',
-        () => ({ dexPopup, dexLookup, dexChatLast, dexChatSeen: [...dexChatSeen] }),
+        () => ({
+            dexPopup,
+            dexLookup,
+            dexChatLast,
+            dexChatSeen: [...dexChatSeen].filter(([, at]) => at > context.now - 20000).slice(-400)
+        }),
         (value) => {
             dexPopup = value.dexPopup;
             dexLookup = value.dexLookup;

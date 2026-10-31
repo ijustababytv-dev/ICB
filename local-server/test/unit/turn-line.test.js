@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const rules = require('../../src/domain/turn-line');
+const rules = require('../../../cloud-server/src/domain/turn-line');
 
 const root = path.resolve(__dirname, '../../..');
 const states = (s) => s.people.map((p) => p.name + ':' + p.state).join(' ');

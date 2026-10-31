@@ -5,6 +5,7 @@ CREATE TABLE feature_undo (
     id uuid NOT NULL,
     backup_name text NOT NULL,
     before_state jsonb NOT NULL,
+    backup_metadata jsonb NOT NULL DEFAULT '{}',
     after_revision bigint NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY(owner_id,feature,id),

@@ -181,7 +181,7 @@ Users receive ICB accounts, not that DB password.
 
 Alarms initially appear only in CloudWatch. Set `alarm_action_arns` to existing
 SNS topics for notifications; topic permissions/subscriptions must permit delivery.
-Set an AWS Budget alert separately. Neither alarms nor throttles impose a hard
+Step 2 creates a $30 monthly account-wide console budget (no email subscription). Neither alarms nor throttles impose a hard
 cost cap. Retained backups, S3 versions, IPv4, transfer, CPU credits, monitoring,
 and secrets can add charges. Check regional pricing before apply.
 
@@ -219,3 +219,19 @@ The limited SQL roles, schema and default account are bootstrapped. SQL sources,
 recreation instructions, public CA certificates, and backup/restore commands live
 under root [database/](../database/README.md). The default account password is not
 embedded in Terraform, seed files or Lambda environment variables.
+
+## Step 2 worker release
+
+`cloud-server/tools/release.ps1 -EnableWorker -Apply` deploys the same immutable
+package to the API and the normal Node worker. It checks SQL readiness and refuses
+resource deletion or any RDS change in a release plan. The worker has one reserved
+execution/DB connection, one-minute Scheduler delivery, separate async execution
+retry/on-failure handling, and a private encrypted 14-day SQS failure queue.
+It does not inherit the API's Web Adapter. Logs retain seven days.
+
+Use `./terraform/test.ps1` from the repository root for isolated mock checks;
+it excludes private state/tfvars/release settings and clears inherited TF_VAR
+values for the test, restoring them afterward. See [Step 2 operations](../docs/STEP2-OPERATIONS.md)
+and [validation/costs](../docs/STEP2-VALIDATION.md) for actual AWS failure tests,
+connection limits, measured request traffic and rollback. No command restarts the
+local production bridge. Alarm actions remain console-only unless configured.

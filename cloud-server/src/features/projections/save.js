@@ -30,12 +30,24 @@ async function saveProgress(client, owner, feature, doc) {
         handled.add('weekly');
     }
     if (feature === 'turnline') {
+        const { stableId } = require('../../domain/stable-id');
+        const round = doc.roundId || stableId(owner, 'initial-turn-round');
+        await client.query(
+            'UPDATE turn_rounds SET ended_at=now() WHERE owner_id=$1 AND id<>$2 AND ended_at IS NULL',
+            [owner, round]
+        );
+        await client.query(
+            'INSERT INTO turn_rounds(owner_id,id,started_at) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',
+            [owner, round, doc.roundStartedAt || new Date().toISOString()]
+        );
         await replaceRows(
             client,
             'turn_entries',
             owner,
             (doc.people || []).map((item, position) => ({
                 id: item.id,
+                entry_uuid: stableId(owner, 'turn-entry', item.id),
+                round_id: round,
                 name: item.name,
                 state: item.state,
                 position
@@ -77,16 +89,27 @@ async function saveProgress(client, owner, feature, doc) {
         );
         handled.add('entrants');
         handled.add('winners');
-        const active = Object.keys(doc.chatActiveThisWindow || {});
+        const active = [
+            ...new Map(
+                Object.keys(doc.chatActiveThisWindow || {}).map((name) => [
+                    name.toLowerCase(),
+                    name
+                ])
+            ).values()
+        ];
         const window = Date.parse(doc.windowStartedAt) || 0;
+        await client.query(
+            'UPDATE chat_window_presence SET awarded_at=now() WHERE owner_id=$1 AND window_id=$2 AND awarded_at IS NULL AND NOT(name_key=ANY($3::text[]))',
+            [owner, window, active.map((name) => name.toLowerCase())]
+        );
         await client.query(
             'UPDATE chat_window_presence SET awarded_at=now() WHERE owner_id=$1 AND window_id<$2 AND awarded_at IS NULL',
             [owner, window]
         );
         if (active.length)
             await client.query(
-                `INSERT INTO chat_window_presence(owner_id,name_key,window_id,occurred_at)
-            SELECT $1,name,$2,now() FROM unnest($3::text[]) name ON CONFLICT DO NOTHING`,
+                `INSERT INTO chat_window_presence(owner_id,name_key,display_name,window_id,occurred_at)
+            SELECT $1,lower(name),name,$2,now() FROM unnest($3::text[]) name ON CONFLICT DO NOTHING`,
                 [owner, window, active]
             );
         handled.add('chatActiveThisWindow');
@@ -108,7 +131,8 @@ async function saveProgress(client, owner, feature, doc) {
             'poll_votes',
             owner,
             Object.entries(doc.votes || {}).flatMap(([key, vote]) =>
-                (vote.picks || []).map((id) => ({
+                (vote.picks || []).map((id, position) => ({
+                    position,
                     name_key: key,
                     option_id: id,
                     display_name: vote.name,
@@ -120,39 +144,7 @@ async function saveProgress(client, owner, feature, doc) {
         handled.add('options');
         handled.add('votes');
     }
-    if (['sashimi-signin', 'beanburger-signup', 'flowtree-signup'].includes(feature)) {
-        await replaceRows(
-            client,
-            'signup_events',
-            owner,
-            (doc.events || []).map((event, position) => {
-                const { guests, ...details } = event;
-                return { feature, id: event.id, position, details };
-            }),
-            { feature }
-        );
-        await replaceRows(
-            client,
-            'signup_entries',
-            owner,
-            (doc.events || []).flatMap((event) =>
-                (event.guests || []).map((guest, position) => ({
-                    feature,
-                    event_id: event.id,
-                    id: String(guest.n ?? position),
-                    name_key: String(
-                        guest.twitch || guest.name || guest.n || position
-                    ).toLowerCase(),
-                    display_name: String(guest.name || guest.twitch || ''),
-                    position,
-                    checked_in: !!guest.checkedIn,
-                    details: guest
-                }))
-            ),
-            { feature }
-        );
-        handled.add('events');
-    }
+    if (await require('./signups').saveSignups(client, owner, feature, doc)) handled.add('events');
     if (feature === 'teams' || feature === 'hunt') {
         const rows = Object.entries(doc.players || {}).map(([key, item]) => ({
             name_key: key,
@@ -188,6 +180,15 @@ async function saveProgress(client, owner, feature, doc) {
                 ends_at: item.endsAt || null,
                 paused_ms: item.leftMs || 0,
                 status: item.status || 'idle',
+                completion_id:
+                    item.status === 'done'
+                        ? require('../../domain/stable-id').stableId(
+                              owner,
+                              feature,
+                              item.id,
+                              item.doneAt || item.endsAt
+                          )
+                        : null,
                 details: item
             })),
             { feature }

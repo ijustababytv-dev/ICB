@@ -23,6 +23,10 @@ async function main() {
         startServer();
         await waitForHealth();
         browser = await launchBrowser();
+        await require('../../local-server/test/helpers/feature-concurrency-browser').verifyConcurrentForms(
+            browser,
+            port
+        );
         const pages = [
             'cloud',
             'hub',
@@ -73,6 +77,7 @@ async function main() {
                 assert.equal(state.width, 1280);
                 assert.equal(state.imageLoaded, true);
                 const options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+                await json('/api/giveaway/state');
                 await json('/api/giveaway/manual', {
                     ...options,
                     body: JSON.stringify({ username: 'BrowserTestGuest', amount: 5 })

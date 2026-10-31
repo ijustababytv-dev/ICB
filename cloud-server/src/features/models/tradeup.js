@@ -105,12 +105,15 @@ module.exports = function createModel(context, exports) {
         return boxes.map((box, position) => ({ position, ...box }));
     }
 
-    let tradeup = mStorage.readJson(path.join(mConfig.DATA_DIR, 'tradeup-state.json'), {
-        board: [],
-        revealed: null, // { position, kind, item }
-        spinSeq: 0, // bumped on every spin so the board page only animates once per spin
-        log: []
-    });
+    let tradeup = mStorage.mergeDefaults(
+        {
+            board: [],
+            revealed: null, // { position, kind, item }
+            spinSeq: 0, // bumped on every spin so the board page only animates once per spin
+            log: []
+        },
+        mStorage.readJson(path.join(mConfig.DATA_DIR, 'tradeup-state.json'), null)
+    );
 
     /** Retain a bounded recent action log for the trade-up dashboard. */
     function tradeupPushLog(message) {
@@ -202,17 +205,11 @@ module.exports = function createModel(context, exports) {
 
     // Accepts a data: URL (image/png, image/jpeg, image/webp, image/gif) and
     // writes it into assets/tradeup/, returning the public /tradeup-art/ path.
-    function tradeupSaveImage(dataUrl, name) {
-        const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-            String(dataUrl || '')
+    function tradeupSaveImage(reference) {
+        return (
+            '/tradeup-art/' +
+            require('../asset-reference').assetName(fs, TRADEUP_ART_DIR, reference)
         );
-        if (!match) throw new Error('Image must be a PNG, JPG, WEBP, or GIF.');
-        const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-        const buffer = Buffer.from(match[2], 'base64');
-        if (buffer.length > 8 * 1024 * 1024) throw new Error('Image is too large (max 8MB).');
-        const filename = `${tradeupSlug(name)}-${Date.now()}.${ext}`;
-        fs.writeFileSync(path.join(TRADEUP_ART_DIR, filename), buffer);
-        return `/tradeup-art/${filename}`;
     }
 
     /** Resolve local tradeup artwork to the URL used by its display. */
@@ -265,7 +262,7 @@ module.exports = function createModel(context, exports) {
                     const points = Math.trunc(Number(body.points));
                     item.points = Number.isFinite(points) && points > 0 ? points : 0;
                 }
-                if (body.imageDataUrl) item.image = tradeupSaveImage(body.imageDataUrl, name);
+                if (body.image_ref) item.image = tradeupSaveImage(body.image_ref, name);
                 cfg.items.push(item);
                 saveTradeupConfig(cfg);
                 return mHttpResponse.sendJson(res, 200, { ok: true, item, config: cfg });
@@ -313,7 +310,7 @@ module.exports = function createModel(context, exports) {
                     const points = Math.trunc(Number(body.points));
                     item.points = Number.isFinite(points) && points > 0 ? points : 0;
                 }
-                if (body.imageDataUrl) item.image = tradeupSaveImage(body.imageDataUrl, item.name);
+                if (body.image_ref) item.image = tradeupSaveImage(body.image_ref, item.name);
                 saveTradeupConfig(cfg);
                 return mHttpResponse.sendJson(res, 200, { ok: true, item, config: cfg });
             }

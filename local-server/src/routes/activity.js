@@ -3,59 +3,46 @@ const { readBody } = require('../http/body');
 const { sendJson } = require('../http/response');
 const { relayChat } = require('../activity/chat-relay');
 const collector = require('../activity/collector');
-const activity = require('../giveaway/activity');
-const giveaway = require('../giveaway/state');
-const { applyEvent } = require('../activity/giveaway-event');
 const health = require('../health');
 const session = require('../cloud/session');
-const { normalizeSupport } = require('../domain/support-normalize');
+const inputs = require('../cloud/inputs');
 
-/** Process each chat once, retaining text only through immediate command/display fan-out. */
+/** Count messages and preserve transient visuals; only recognized semantic operands cross the cloud boundary. */
 function acceptChat(body) {
+    collector.requireCapacity();
     if (!require('../activity/listener-lease').permits(body.listener_id))
         throw new Error('duplicate_listener');
     const data = body.data;
     if (!data || typeof data.sender !== 'string' || !data.sender.trim() || data.sender.length > 80)
         throw new Error('invalid_chat_sender');
-    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, 'chat'))
+    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, 'chat', false))
         return { duplicate: true };
-    health.healthNoteRaw('chat', data);
-    relayChat(data);
     const identity = {
         username: data.sender,
         platform: body.platform,
         platform_user_id: body.platform_user_id,
         source_id: body.source_id
     };
-    collector.chat(identity);
-    applyEvent({ type: 'chat', username: data.sender });
-    return { accepted: true };
+    inputs.notePresence(identity);
+    relayChat(data, { platform: body.platform, source_id: body.source_id });
+    if (!collector.chat(identity)) throw new Error('outbox_full');
+    collector.acceptSource(body.platform || 'twitch', body.source_id, 'chat');
+    health.healthNoteRaw('chat', data);
+    return { accepted: true, pending: true };
 }
 
-/** Use the existing local award engine while preserving minimal supporter reporting. */
+/** Queue minimal supporter facts; one cloud transaction decides awards and reporting effects. */
 function acceptSupport(body) {
     collector.requireCapacity();
     if (!require('../activity/listener-lease').permits(body.listener_id))
         throw new Error('duplicate_listener');
-    if (!normalizeSupport(body)) {
-        collector.noteProblem(
-            ['tip', 'purchase'].includes(body.type)
-                ? 'unsupported_money_uncounted'
-                : 'unsupported_event'
-        );
-        throw new Error('unsupported_support_shape');
-    }
-    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, body.type))
+    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, body.type, false))
         return { duplicate: true };
-    let result;
-    activity.withEvent(body, () => {
-        if (['tip', 'purchase'].includes(body.type) || (body.type === 'gifts' && body.anonymous)) {
-            activity.logActivity(body);
-            result = { status: 200, payload: { ok: true } };
-        } else result = applyEvent(body);
-    });
-    giveaway.saveGiveaway();
-    return result;
+    const command_id = inputs.support(body);
+    collector.acceptSource(body.platform || 'twitch', body.source_id, body.type);
+    require('../avatars').avEvent(body.type, body.username, body);
+    require('../neon-chat').neonChatEvent(body.type, body.username, body);
+    return { status: 202, payload: { ok: true, pending: true, command_id } };
 }
 
 /** Serve minimal relay endpoints and PostgreSQL-backed report proxies, never JSONL reports. */
@@ -90,8 +77,13 @@ async function handleActivityApi(req, res, url) {
         const body = await readBody(req, 256 * 1024);
         // Compatibility with already-running listener pages: live fan-out only, no archive.
         health.healthNoteRaw(String(body.kind || '').slice(0, 60), body.data);
-        if (body.kind === 'chat' && typeof body.data?.sender === 'string') relayChat(body.data);
-        return sendJson(res, 200, { ok: true });
+        const owner = session.current()?.account.id;
+        const command =
+            body.kind === 'chat' && typeof body.data?.sender === 'string'
+                ? relayChat(body.data)
+                : null;
+        const confirmed = !command || (await collector.waitForAck(command, owner));
+        return sendJson(res, confirmed ? 200 : 202, { ok: true, pending: !confirmed });
     }
     if (
         req.method === 'GET' &&

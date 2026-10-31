@@ -18,7 +18,7 @@ Nine tracker-art files are missing in this checkout, listed in [the Step 1 revie
 
 Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
 
-## Step 1 cloud storage
+## Cloud feature operation
 
 The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
 After the next normal restart, open **Cloud account** on ICB Home (`/cloud.html`).
@@ -33,10 +33,13 @@ Resolve outbox/full/collector/account errors before assuming a report is complet
 New chat wording is not archived. Existing private raw files were preserved for
 review; they are no longer tracked or appended by the new runtime.
 
-The local giveaway, Palia reader, overlays, and feature rules remain authoritative
-in this phase. Cloud summaries are independent of event-retention cleanup, and
-allowlisted current feature files have owner-scoped recovery copies in PostgreSQL.
-Never automatically restore cloud/historical totals over current local progress.
+PostgreSQL owns migrated settings and live feature progress. Express/Lambda owns
+awards, queues, scoring, reset rules and deadlines. The local PC reads Palia logs,
+forwards typed inputs and serves cached state/artwork to overlays. It has no local
+counting fallback. Internet and a signed-in cloud session are required.
+See [Step 2 operations](STEP2-OPERATIONS.md) for cutover, release, worker, recovery
+and failure handling. Old JSON files and Step 1 recovery copies are historical
+recovery material; never copy them over newer cloud progress.
 
 See [the Step 1 review](STEP1-REVIEW.md), [database recovery](../database/README.md),
 and [Terraform instructions](../terraform/README.md). For private SQL administration,
@@ -96,13 +99,20 @@ Meld receives only `overlay.html`; never add `control.html` as a Browser layer.
 
 ## State ownership
 
-| File | Owns | Never use it for |
-| --- | --- | --- |
-| `data/settings.json` | Countdown and stream metadata | Amber, Essence, or Sweet Leaf totals |
-| `data/live.json` | Live tracker totals, reader status, session mode | General stream settings |
-| `data/actions.jsonl` | Recent command history | Authoritative tracker totals |
+| Location | Owns |
+| --- | --- |
+| `icb.owner_settings` | Owner presentation/settings only |
+| Typed `icb` feature tables | Live progress, identities, order, votes, scores and timers |
+| `icb.feature_metadata`, `feature_undo` | Operational/undo metadata and recovery snapshots |
+| `icb.stream_daily_stats` and currency summaries | Reports independent of source-log retention |
+| `data/activity-outbox.json` | Owner-bound minimal pending transport, cursor and collector identity |
+| Local artwork and desktop preferences | Machine files/window placement |
+| Old `data/*.json`, `feature_state` | Pre-cutover recovery evidence; never runtime authority |
 
-Normal `PUT /api/settings` saves cannot change live tracker totals. A resource total changes only from a parsed Palia Assistant log event or a deliberate `PUT /api/live/{resource}/correct` correction.
+Normal settings saves cannot change live tracker totals. A resource total changes
+through a typed parsed Palia event, established reset rule or deliberate correction.
+The reader checkpoints byte positions only after a durable enqueue; cloud receipts
+make rebatching/retries harmless. Primary resyncs remain excluded.
 
 ## Palia tracker behavior
 
@@ -227,7 +237,7 @@ If reconciliation has not been completed, enter all three current in-game totals
 ### Before changing server files
 
 1. Run `npm.cmd run test:e2e`.
-2. Run `backup-icb-clean-state.bat`. It creates a timestamped backup under `backups\` containing `data/settings.json`, `data/live.json`, `data/actions.jsonl`, and the historical snapshot.
+2. Run `backup-icb-clean-state.bat`. It copies every catalogued existing owner source, machine transport/preferences and public definitions into a timestamped `backups/` folder with a hash manifest. Current cloud state needs a PostgreSQL dump or feature export as well.
 3. Confirm `/api/health` says port `8790` and `ICB Clean Room`.
 4. Change one thing at a time, then rerun the test.
 

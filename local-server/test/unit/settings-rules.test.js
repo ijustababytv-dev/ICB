@@ -1,8 +1,8 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizeTodoItem, normalizeTodos } = require('../../src/domain/todos');
-const { randomizerClean } = require('../../src/domain/randomizer');
+const { normalizeTodoItem, normalizeTodos } = require('../../../cloud-server/src/domain/todos');
+const { randomizerClean } = require('../../../cloud-server/src/domain/randomizer');
 const { cleanString, validResource, validTimezone } = require('../../src/domain/validation');
 const { mergeDefaults } = require('../../src/storage');
 

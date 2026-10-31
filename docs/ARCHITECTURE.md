@@ -8,9 +8,9 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 | `local-server/src/server.js` | HTTP listener, page routing, connections, startup and shutdown |
 | `local-server/src/http/` | API dispatch, JSON bodies/responses, public-file routing |
 | `local-server/src/routes/` | Route families formerly embedded in the main API function |
-| `local-server/src/domain/` | Testable counting, reset, parsing, validation, and time rules |
-| `local-server/src/*.js` | Feature state, persistence, and feature-specific handlers |
-| `local-server/src/giveaway/`, `local-server/src/signups/` | Related feature modules |
+| `local-server/src/domain/` | Local parsing, normalized inputs, validation and visual helpers |
+| `local-server/src/*.js` | Thin cache adapters, machine state and transient graphical handlers |
+| `local-server/src/giveaway/` | Read-only giveaway cache/recovery adapters; signup rules are in cloud models |
 | `local-server/src/views/` | Server-rendered resource, weekly, and ticker overlays |
 | `local-server/src/background.js` | Explicit background-job scheduling; imports do not start timers |
 | `ui/html/` | All dashboard and overlay HTML, including `ui/html/wk/` |
@@ -27,26 +27,46 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 | `local-server/test/unit/` | Node built-in unit tests and structural guards |
 | `local-server/test/e2e.js`, `local-server/test/helpers/` | HTTP, persistence, log-reader, and asset integration tests |
 | `ui/test/browser.js` | Optional headless Chromium checks with a separate temporary browser profile |
-| `local-server/config/`, ignored `data/` | Definitions and live progress, respectively; keep them separate |
+| `local-server/config/`, ignored `data/` | Versioned public definitions and machine transport/recovery files; live feature state is in SQL |
 
 ## Adding or changing behavior
 
-Step 2 source is under implementation in `cloud-server/src/features/`, with static,
-transaction-scoped models, pure rules under `cloud-server/src/domain/`, and a normal
-scheduled handler under `cloud-server/src/worker/`. New local feed/command adapters
-are under `local-server/src/cloud/`. These candidates are tested independently;
-production feature routing and local authority have not been cut over yet.
+Cloud feature rules live in `cloud-server/src/features/models/`, with static
+transaction-scoped factories and pure rules in `cloud-server/src/domain/`.
+`features/commands.js` locks an owner, verifies authority/revision and retry receipt,
+executes rules and commits typed state, summaries, audit and revisions together.
+`features/projections/` maps settings separately from typed child/progress rows.
+`features/feed.js` serves consistent, owner-bound paginated snapshots and changed
+views. It finalizes elapsed deadlines using database time. Display events expire.
+
+`local-server/src/cloud/` owns one two-second state feed, versioned RAM caches,
+minimal command proxies and process-only sessions. Local URLs and SSE remain.
+`local-server/src/inputs/` and `activity/` retain ordered owner-bound transport,
+Palia byte cursors, compact chat counts/presence and recognized intents. No local
+award/reset/timer/Steam business loop or feature JSON writer remains. Raw visual
+chat stays bounded in local RAM. `assets/` handles ordinary local image files and
+metadata references; deletion waits for an acknowledged cloud edit.
+
+`cloud-server/src/worker/` is a normal Node handler, without Express/Web Adapter.
+One minute Scheduler ticks claim at most two leased jobs, with one DB connection
+and bounded provider I/O outside SQL transactions. Steam results are fenced by
+lease, owner revision and exact Secrets Manager credential version. Idle giveaway
+maintenance creates retained SQL recovery snapshots. Scheduler delivery failures
+and accepted Lambda execution failures both reach a private SQS queue.
+
 Database object sources remain in `database/tables/` and the other object folders;
 checksum-pinned administrative install manifests live in `database/upgrades/`.
-Do not run DDL in a Lambda cold start or HTTP handler.
+Their retained SQL bundles are versioned separately from the runtime package in
+the private release bucket. Do not run DDL in a Lambda cold start or HTTP handler.
+See [feature/field ownership](STEP2-FEATURE-MAP.md) and [operation/recovery](STEP2-OPERATIONS.md).
 
-Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`, then the historical handbook. `CLAUDE.md` points to those documents and contains no independent rules. Put business rules in small domain functions when practical, keep file/network effects in feature modules, and connect cross-feature behavior explicitly. Signup coordination is connected after its three stores load; sprite/jar coordination lives in a route module. There are no circular imports, runtime source concatenation, or eval-based modules.
+Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`, then the historical handbook. `CLAUDE.md` points to those documents and contains no independent rules. Put business rules in small domain functions when practical, keep file/network effects in feature modules, and connect cross-feature behavior explicitly. Transaction-scoped signup coordination is connected after its three stores load; sprite/jar coordination lives in a route module. There are no circular imports, runtime source concatenation, or eval-based modules.
 
 Add unit tests for every new or changed business rule, covering relevant boundaries and failure cases. Feature tests that need persistence must point `ICB_CLEAN_DATA_DIR` at a fresh temporary folder before importing the feature. Never import `local-server/src/index.js` in a unit test: that entry point starts the server.
 
 Maintained JS/TS, HTML, and CSS have a 500-line / 40 KB ceiling, enforced by `tools/source-policy.js`, unit tests, a staged-source pre-commit hook, and GitHub Actions. Only two checksum-pinned vendor distributions are exempt. Split by responsibility rather than packing more statements onto each line. Preserve meaningful function comments and business-rule explanations.
 
-Never restore root `server.js`, including a forwarding stub. It was accidentally restored in October and diverged from the active modular server. Its Sprite TV and Poke Bowl attendance changes now live in `local-server/src/sprite-tv.js`, the signup modules, and tested domain functions. Sprite TV pages use separate HTML, CSS, and browser scripts. The duplicate root sprite jar page was retired; the existing modular jar retains its fuller behavior. The main server remains composition and lifecycle wiring only.
+Never restore root `server.js`, including a forwarding stub. It was accidentally restored in October and diverged from the active modular server. Its Sprite TV and Poke Bowl attendance changes now live in `cloud-server/src/features/models/sprite-tv.js`, the cloud signup modules, and tested domain functions. Sprite TV pages use separate HTML, CSS, and browser scripts. The duplicate root sprite jar page was retired; the existing modular jar retains its fuller behavior. The main server remains composition and lifecycle wiring only.
 
 Browser feature files load before their page's startup script. Aniimo editing, dashboard panels, reports, signup controls, jar physics, drawing, and animation each have focused files. Private overlay state is passed to feature factories through explicit accessors so replacement state remains visible. Server API and chat modules use the same explicit context pattern; static options live separately from mutable state.
 
@@ -75,30 +95,27 @@ Use the existing batch launchers or `npm start`. No second production server and
 - `npm run format:check`: verify formatting and preserve parsed behavior without writing files.
 - `npm test`: unit tests followed by end-to-end tests.
 
-Known existing asset issue at restructuring: `local-server/config/resource-trackers.json` references `assets/resources/poke_bowl.png`, which is absent in this checkout. End-to-end tests finish the remaining checks and then fail with the missing-art list. Restore the original artwork to that path; do not fabricate a replacement or suppress the assertion.
+Known existing artwork issue (the complete nine-file list is in STEP2-VALIDATION.md): `local-server/config/resource-trackers.json` references `assets/resources/poke_bowl.png`, which is absent in this checkout. End-to-end tests finish the remaining checks and then fail with the missing-art list. Restore the original artwork to that path; do not fabricate a replacement or suppress the assertion.
 
 
-## Step 1 cloud boundaries
+## Cloud and local boundaries
 
-`cloud-server/src/activity/` owns Express, authentication, ingestion, SQL and report
-DTOs. Its package/lockfile are independent of the local app. `database/` owns
-per-object definitions in `tables/`, `indexes/`, and `roles/`, table permissions,
-schema creation files in `schemas/` (application namespace `icb`),
-ordered upgrade-only migrations, the state allowlist, public RDS CA certificates, and
-backup/recovery commands. `cloud-server/tools/` provides explicit administrative
-commands; none run on Lambda cold start.
+`cloud-server/src/activity/` owns authentication, minimal reporting ingestion,
+summary SQL and report DTOs. `features/` owns all migrated feature mutations.
+Historical reports and their quality flags are preserved; historical imports never
+run live award rules. Legacy recovery PUTs and client-decided award deltas are
+fenced for cloud-owned features. Deduplication receipts are retained.
 
-`local-server/src/activity/` owns transient chat fan-out, compact batching, durable
-outbox checkpoints and recoverable feature-state copies. It uses built-in Node
-HTTPS, not a local SQL driver. `local-server/src/cloud/` holds the API client and
-process-only session. The UI calls local routes and never imports Node/SQL code.
+The independent cloud package contains Express 5, pg, pg-format and the scoped
+Secrets Manager SDK. The local runtime uses built-in Node modules only. Browser
+code sees local DTOs/revisions and a short-lived local CSRF capability, never cloud
+bearer tokens, SQL credentials, provider keys or filesystem access.
 
-Only daily count deltas and compact support/audit events go through live ingestion.
-Reports read separate PostgreSQL summaries. Current saved feature files are
-owner-scoped recovery copies in `feature_state`; live rules and balances remain
-local in Step 1. No historical import calls award functions. See
-[Step 1 review](STEP1-REVIEW.md) and [database recovery](../database/README.md).
+`database/` owns per-object definitions, limited-role grants, the `icb` namespace,
+immutable upgrade history, source catalog, CA certificates and recovery commands.
+The runtime role cannot create objects or change account passwords. Integration
+credentials live in separate owner-scoped secrets, not the database secret.
 
-`/api/activity/reports/days`, day detail, and viewer range/lifetime proxies expose
-validated cloud DTOs. Existing nightly-report URLs remain as deliberate summary
-adapters. Offline/login errors are explicit, never fabricated zero totals.
+Existing daily report URLs remain summary adapters. `/api/feature-reports/` adds
+bounded, authorized JSON/CSV for commands, awards, draws, signups, turns, resources
+and archives. Unavailable data is explicit rather than invented zero totals.

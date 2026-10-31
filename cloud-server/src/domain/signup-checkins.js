@@ -8,7 +8,7 @@ function checkInViewer(event, twitch, now = Date.now()) {
     if (!guest) return { changed: false, reply: `${twitch} isn't signed up` };
     if (guest.checkedIn) return { changed: false, reply: `${guest.name} is already checked in` };
     guest.checkedIn = now;
-    return { changed: true, reply: `${guest.name} is here âœ…` };
+    return { changed: true, reply: `${guest.name} is here ✅` };
 }
 
 /** Dashboard commands toggle or explicitly set one guest; unknown guest numbers change nothing. */

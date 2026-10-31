@@ -5,22 +5,24 @@ RDS manages its physical database files. Actual account data is recovered with a
 RDS snapshot or a private logical dump, never by committing database files to Git.
 
 - `schemas/icb.sql`: creates the **`icb` schema**, owned by `icb_migrator`.
-  Keep one creation file per schema in `schemas/`. All 19 application tables,
+  Keep one creation file per schema in `schemas/`. All 58 application tables,
   their indexes, and the migration ledger belong to `icb`, leaving `public` empty.
-- `tables/`: **one current `CREATE TABLE` definition per table**, named after that table (19 files).
+- `tables/`: **one current `CREATE TABLE` definition per table**, named after that table (58 files).
   Creation tools enforce `search_path=icb`; disposable tests explicitly select their
   generated test schema. Fresh creation in `public` is rejected.
-- `indexes/`: one definition per standalone index (12 files). Primary-key and unique-constraint
-  indexes are created by their table definitions, giving 34 indexes in total.
+- `indexes/`: one definition per standalone index (19 files). Primary-key and unique-constraint
+  indexes are created by their table definitions, plus the typed-table constraint indexes.
 - `roles/`: one file each for `icb_migrator` and `icb_service`. Passwords come from private session settings.
 - `permissions/`: schema access and one table-privilege file per table; the service cannot perform DDL or change account passwords.
 - `views/`, `functions/`: reserved for one definition per object when those objects exist.
   PostgreSQL currently has no application views, stored functions/procedures, sequences, or custom triggers.
-  Reports and business rules currently use explicit SQL and Node code in `cloud-server/src/activity/`.
+  Reports and business rules use explicit SQL and Node code in `cloud-server/src/activity/`, `features/`, and `domain/`.
 - `schema.json`: dependency order for the actual object files and checksums of covered schema versions.
 - `migrations/`: future numbered, immutable upgrade scripts (`ALTER`, backfills, etc.);
   table creation sources belong in `tables/`. See [the upgrade instructions](migrations/README.md).
-- `state-manifest.json`: the allowlist of current local settings/progress copied to account-scoped `feature_state`.
+- `state-manifest.json`: legacy Step 1 recovery-copy allowlist.
+- `feature-catalog.json`: field-level owner settings/progress inventory and machine exclusions for Step 2.
+- `upgrades/`: checksum-pinned object-install manifests; retained administrative SQL bundles are stored separately from runtime releases.
 - `backup.ps1`: a complete custom-format dump under ignored `backups/database/`.
 - `restore.ps1`: transactional restore into a new empty database; it never uses `--clean`.
 
@@ -64,9 +66,9 @@ For a new database:
    Supply `ICB_ACCOUNT_PASSWORD` privately; usernames are normalized to lowercase.
    Existing accounts keep their passwords unless the explicit `--rotate` option is used.
 5. When recovering existing data, restore a logical dump into an empty database
-   **instead of creating the schema first**. As the restore owner, run
-   `npm run schema:permissions --prefix cloud-server` and
-   `npm run schema:grants --prefix cloud-server`, then verify login, totals, and TLS.
+   **instead of creating the schema first**. The migration/service roles must
+   already exist on that cluster. Use `database/restore.ps1` to repair object
+   ownership and limited grants, then verify login, totals and TLS.
    A pre-move backup with tables in `public` requires the upgrade below first.
 6. Configure the limited service secret and deploy the tested cloud ZIP through Terraform.
 
@@ -113,7 +115,7 @@ Remove-Item Env:PGPASSWORD
 This creates and removes only a generated disposable schema, comparing column
 types/defaults/order, constraints, indexes, views, routines, sequences, and custom
 triggers. It reads the selected database's definitions without changing its objects
-or rows. The 2026-10-31 check matched all 19 tables and 34 indexes.
+or rows. The Step 2 check on 2026-10-31 matched all 58 tables and 84 indexes.
 
 `feature_state` is a recovery copy during Step 1. Current balances, settings,
 signups, collections, timers, and other allowlisted feature files are copied under
@@ -151,3 +153,17 @@ A real backup was restored into an isolated `icb_test_restore_*` database on
 with `node cloud-server/tools/verify-backup.js PATH_TO_PRIVATE_DUMP` using the
 master environment when testing a new backup. It removes only its generated test
 database. After administrative work, clear `PGPASSWORD` from the shell environment.
+
+## Step 2 authority and recreation
+
+Version 006 adds typed feature storage and fenced owner commands. Current table
+creation remains under `tables/`; the migration installs only pinned new object
+files. Once applied, do not edit version 006 or its pins: use the next numbered
+upgrade and preserve its administrative SQL bundle. See [Step 2 operations](../docs/STEP2-OPERATIONS.md).
+
+`restore.ps1` repairs object ownership to `icb_migrator` and reapplies limited
+service grants after restoring. `node cloud-server/tools/verify-backup.js <dump>`
+restores into a newly generated disposable database, compares every table's
+fingerprint and original summary totals, verifies owners, and removes only that
+test database. A failed ownership repair does not mean restored rows disappeared;
+finish namespace migration/permission repair before starting runtime consumers.

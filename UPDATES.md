@@ -2,24 +2,11 @@
 
 ## New Features
 
-- 2026-10-31: Step 2 implementation in progress: added isolated cloud feature models, owner-locked command/revision/feed repositories, typed progress objects, and a leased Steam worker. These source changes are not yet deployed or connected to production local routing.
-
-- 2026-10-31: Added planned steps for SQL-object upgrade tooling, per-feature authority/protocol cutovers, consistent state feeds, and worker delivery/execution failures to the ignored Step 2 checklist.
-
-- 2026-10-31: Added a checkbox to every numbered step of the ignored Step 2 plan, with instructions to mark whole steps complete only after verification.
-
-- 2026-10-31: Added database/schemas/icb.sql and explicit schema permission/rebuild support; one creation file per schema.
-
-- 2026-10-31: Added explicit per-object database recreation and a live-schema comparison command that uses a disposable schema. Recreation matches all 19 deployed tables and 34 indexes.
-
-- 2026-10-31: Completed and deployed Step 1: Express/Lambda cloud login, case-insensitive accounts, minimal chat/support ingestion, owner isolation, durable local delivery, PostgreSQL daily reports/CSV, and saved feature-state copies. Added root database/ migrations and verified backup/restore tools. The default account was created privately; the local server was not restarted.
-
-- 2026-10-31: Deployed the 24-resource AWS foundation in us-east-1, including the PostgreSQL micro instance, public network, private release bucket, service-secret container, IAM, API foundation, logs, and DB alarms. Lambda/routes and SQL bootstrap remain pending Step 1.
-
-- 2026-10-31: Added Step 1 Terraform foundations for API Gateway, gated Express Lambda deployment, private versioned releases, scoped IAM, a write-only service secret, logs/alarms, and automatic DB endpoint configuration. No AWS resources applied; real API code and SQL bootstrap remain prerequisites.
+- 2026-10-31: Deployed Step 2 cloud feature execution: Express/Lambda owns saved settings, signups/attendance, Turn Line, giveaways, polls/teams/hunts, trackers/weekly progress, timers, collections and Steam. Imported and compared all 32 owner features; preserved the existing account/password and 34 historical reporting days.
+- 2026-10-31: Added the leased ARM64 scheduled worker, separate owner integration secrets, private failure queue, delivery/execution alarms and a console-visible $30 account budget. Existing AWS resources keep the baby-icb- prefix.
+- 2026-10-31: Completed Step 1 login, minimal count/support ingestion, independent SQL reports/CSV, owner isolation and durable transport. Raw chat wording is no longer archived.
 
 - 2026-10-30: Added Terraform for a micro AWS PostgreSQL database, public VPC/subnets, internet-accessible PostgreSQL firewall, password authentication, mandatory TLS, backups, and deployment instructions. Infrastructure has not been applied.
-
 - 2026-10-29: Vampire Crab Dishes tracker card (`/crab-dishes.html`): Crab Gumbo, Spicy Crab Fried Rice and Crab Pot Pie as three countdown boxes on one art card (replaces the three separate cards). Each box takes 1 off per cook line of its dish. Collection cards can now have countdown boxes, with a per-box 'Set & restock' on the Tracker Command Center.
 - 2026-10-29: Vampire Crab Pot Pie tracker card (`/crab-pot-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_crabpotpie` (token from her; no real cook line seen yet, so spot-check the first time it moves).
 - 2026-10-29: Spicy Vampire Crab Fried Rice tracker card (`/crab-fried-rice.html`): counts down from 100, 1 per cook line of `itemtype_c_crabfriedrice` (token from her; no real cook line seen yet, so spot-check the first time it moves).
@@ -34,57 +21,23 @@
 - 2026-10-25: Apple Pie tracker card (`/apple-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_dessert_pie_apple` (token confirmed in her logs; no real cook line seen yet, so spot-check the first time it moves).
 - 2026-10-25: Neon Chat (tile on ICB Home): a chat box in the synthwave overlay style as its own Meld layer she sizes and places. Shows emotes, role colours and ★/MOD/VIP/SUB tags, hides !commands, bots and optionally /me lines, fades old messages, and can show follows, subs, gifts, bits and raids as glowing lines. The chat listener now also passes each chatter's badge names and name colour.
 - 2026-10-25: Animated Overlay (tile on ICB Home): her synthwave overlay with a neon glow pulse and flicker, a light that runs along the real neon tubes round the camera and game frames, sun shimmer, twinkling stars and sparkles, colour shift, a power-on intro, and reactions to follows, subs, gifted subs, bits and raids (from the Meld listener; blocked names ignored). Overlay is ES5 and polls every two seconds; art lives in `assets/stream-frame/`.
+
 ## Improvements
 
-- 2026-10-31: Added checksum-pinned, per-object administrative upgrade bundles and a shared local cloud-feed adapter. Verified owner isolation, concurrent edits, immutable retries, paginated cache publication, and account-switch fencing. The full PostgreSQL/unit run passed 226 tests; 17 mocked Terraform runs and 29 headless pages passed. E2E retains the same nine baseline artwork failures; all remaining checks passed.
-
-- 2026-10-31: Removed Step 1 verification, acceptance, and prerequisite tasks from the ignored Step 2 plan; retained implementation context, feature inventory, and Step 2 regression testing.
-
-- 2026-10-31: Reviewed Step 2 against today's deployed icb schema, per-object SQL layout, existing authentication/reporting, recovery snapshots, outbox, and AWS limits. Reused completed foundations and preserved the Step 1 acceptance gate; no runtime or AWS changes.
-
-- 2026-10-31: Clarified Step 1 implementation/deployment completion versus pending local cutover, real-stream acceptance, and usage/cost measurements. Kept Step 2 gated on that acceptance.
-
-- 2026-10-31: Moved all 19 live tables and 34 indexes from public to icb, preserving every row, object identity, and prior migration record. Released the icb-only Lambda connection setting and updated recovery instructions. Verified live API ingestion, an equivalent rebuild, and an actual backup restore (1 account, 30 state files, 30,901 messages).
-
-- 2026-10-31: Split SQL into 19 table files under database/tables/, 12 standalone index files, and separate role/permission files. Reserved views/functions folders document that no such objects currently exist.
-
-- 2026-10-31: Saved 30 current data files and 34 historical activity files as owner-scoped state/minimal summaries (30,901 recoverable messages). Repeated import preserves totals; historical days are marked partial. Stopped tracking data/ while preserving local files/backups. Verified 209 unit/PostgreSQL checks, actual Gateway/ARM Lambda ingestion, default login, and a restored database dump; existing E2E artwork failures remain documented.
-
-- 2026-10-31: Completed the Step 1 source-folder migration into local-server/ and ui/, with cloud-server/ reserved for the API. Preserved public URLs, live data/artwork, launchers, desktop widgets, bridge cursor, and Cloudinary image IDs. Verified 179 unit tests and 28 isolated browser pages; E2E retains its nine existing missing-artwork failures.
-
-- 2026-10-31: Verified RDS password login over certificate-checked TLS 1.3, rejection of unencrypted connections, and a no-change Terraform plan. Preserved private Terraform state separately from Git. All 16 Terraform and 171 unit tests pass; E2E still reports nine missing artwork files, with all remaining integration checks passing.
-
-- 2026-10-31: Enforced baby-icb- AWS resource names, including RDS, IAM policies, API stage, log group, and snapshots; added naming regression checks. No AWS changes applied.
-
-- 2026-10-31: Added a required cloud-server/local-server/ui folder migration and regression checks to the ignored Step 1 plan; aligned Step 2 target paths. No source files moved.
-
-- 2026-10-31: Terraform now accepts TF_VAR_db_username and uses it for the RDS master user and connection output, with validation and mocked tests.
-
-- 2026-10-31: Added a local, ignored Step 2 plan for moving live rules and saved feature state to Lambda/PostgreSQL after all Step 1 work is complete. Internet is an operating requirement.
-
-- 2026-10-31: Updated the ignored logging plan to use Express on Lambda with pg and pg-format, explicit SQL, and no ORM.
-
-- 2026-10-31: Rewrote the local, ignored logging plan as technical implementation steps grouped by feature. No runtime or infrastructure changes.
+- 2026-10-31: Local code is now a thin Palia/input/artwork/rendering bridge with one shared cloud feed and bounded request queue. Removed inactive local rule modules, business timers, feature JSON writers and repeated overlay-request disk logs. Preserved local URLs, ES5 overlays, tracker skins, desktop widgets and explicit Cloudinary sync.
+- 2026-10-31: PostgreSQL now has 58 tables and 84 indexes in icb, with one object definition per file, separate schema/role/permission folders, immutable upgrade 006 and separately retained administrative SQL bundles. Verified fresh-versus-upgraded structure and a full 58-table backup restore with migration ownership/limited grants.
+- 2026-10-31: Added field-level ownership documentation, fresh frozen cutovers, export/fence/restore tools, SQL audit exports and metadata-only recovery lists. Change notifications retain revision markers rather than duplicate feature payloads. Assets, backups, data, private credentials and both checked-off logging plans remain ignored.
+- 2026-10-31: Verified 240 PostgreSQL/unit tests, 29 headless pages, 17 Terraform checks, actual Gateway/ARM/limited-role SQL behavior, concurrent/stale forms, owner isolation, game replay, secret-version fencing, both AWS worker failure paths and isolated stream load. Backend intervals fell from 15 to 6; transport adds some CPU/memory/bytes. Existing nine missing-artwork E2E failures remain explicit in the validation report.
+- 2026-10-31: Completed the cloud-server/local-server/ui split and SQL namespace move while preserving original ledger checksums, rows, Cloudinary IDs and historical quality flags. Terraform/admin environments accept the selected database username; ignored state and private credentials are preserved.
 
 - 2026-10-30: Stopped tracking LOGGING-ADJUST.md; the ignored local copy remains available.
-
 - 2026-10-30: Added LOGGING-ADJUST.md with a proposed minimal activity model, separate summaries, PostgreSQL delivery, and migration checks. Runtime behavior is unchanged.
-
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
 - 2026-10-25: Neon Chat background colour and strength on the dashboard, with See-through and Solid buttons (strength 0 = only the neon frame shows).
+
 ## Bug Fixes
 
-- 2026-10-31: Cloud models preserve countdown stocks and transient reveal deadlines across context replacement. Steam integration tests preserve a null first-success baseline, prevent repeated achievement popups, and fence results superseded by a newer operator edit.
-
-- 2026-10-31: Corrected Step 2 assumptions about raw Palia parsing, chat-window award inputs, stale snapshot writers, worker Web Adapter startup, and duplicate awards during cutover. Kept all unimplemented steps unchecked.
-
-- 2026-10-31: Corrected the Step 1 review's stale test count and completion wording; existing missing-artwork E2E failures remain explicit.
-
-- 2026-10-31: Prevented fresh creation in public and duplicate initialization over a legacy database. Added real PostgreSQL namespace-move, fresh-rebuild, collision-rollback, and public-shadow isolation checks; retained service-role restrictions. All 216 unit/PostgreSQL and 16 Terraform tests pass; E2E retains its nine existing missing-artwork failures.
-
-- 2026-10-31: Removed grouped table definitions from migrations/. Preserved deployed migration hashes/history, added upgrade/rollback and limited-permission regression coverage, and corrected recreation/restore instructions. All 215 unit/PostgreSQL checks pass; E2E retains only the nine existing missing-artwork failures.
-
-- 2026-10-31: Removed duplicate chat submission/raw payload archives and per-message giveaway saves. Preserved cumulative bits, anonymous/blocked support reporting, command/overlay fan-out, actual award deltas, account-bound retries, and applied-award recovery markers. Isolated Terraform mock fixtures from private deployed-release settings.
-
-- 2026-10-31: Matched the RDS TLS parameter's apply method to AWS's default to prevent perpetual Terraform drift; added a mocked regression assertion and isolated the master-role safety fixture from exported usernames.
-
+- 2026-10-31: Prevented duplicate awards, obsolete snapshot writers, changed-command retries, stale edits, old account responses and replaced-worker results from changing current state. Preserved cumulative bits, anonymous/blocked reporting, weighted draws, undo, reconciliation, stock resets and persistent Amber/Essence.
+- 2026-10-31: Prevented Steam key update/delete races and old retries restoring superseded versions. Kept first-success achievement baselines silent, deadlines/reveals stable across cold contexts, and expired sounds from replaying on login.
+- 2026-10-31: Deferred physical artwork removal until cloud acknowledgment, retained removed originals, preserved numbered board reveals/page arrows/accented signup names, and made partial cutover retries reuse frozen defaults/collector identity.
+- 2026-10-31: Fixed recreation/restore ownership, schema-collision rollback, private Terraform mock isolation and RDS TLS parameter drift without weakening source/test checks.

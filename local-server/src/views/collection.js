@@ -26,7 +26,7 @@ function renderCollectionCardPage(card, query) {
         .join('');
     return `<!doctype html>
 <html lang="en">
-<head>
+<head><script src="/js/client/local-api.js"></script>
 <meta charset="utf-8">
 <title>${mDomainHtml.escapeHtml(card.name)}</title>
 <style>

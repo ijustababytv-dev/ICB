@@ -1,1 +1,1 @@
-GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE feature_commands TO icb_service;
+GRANT SELECT, INSERT ON TABLE feature_commands TO icb_service;

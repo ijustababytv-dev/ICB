@@ -293,7 +293,7 @@ function startClock() {
         tz = $('tz').value;
     if (!v) return alert('Pick a time first.');
     var hm = v.split(':'),
-        now = Date.now() + off,
+        now = (window.ICBClock ? window.ICBClock.now() : Date.now()) + off,
         p = parts(now, tz),
         t = zoned(p.y, p.mo, p.d, Number(hm[0]), Number(hm[1]), tz);
     if (t <= now) t = zoned(p.y, p.mo, p.d + 1, Number(hm[0]), Number(hm[1]), tz);
@@ -346,7 +346,7 @@ function two(n) {
 function showLeft() {
     var c = C();
     if (!c) return;
-    var now = Date.now() + off,
+    var now = (window.ICBClock ? window.ICBClock.now() : Date.now()) + off,
         left = c.status === 'running' ? c.endsAt - now : c.status === 'paused' ? c.leftMs : 0,
         st = c.status;
     if (st === 'running' && left <= 0) st = 'done';
@@ -385,7 +385,7 @@ function load() {
             $('health').textContent = 'ICB connected';
             $('health').className = 'health';
             L = d.list;
-            off = d.now - Date.now();
+            off = d.now - (window.ICBClock ? window.ICBClock.now() : Date.now());
             if (!cur || !C()) cur = L[0].id;
             $('tabs').innerHTML = L.map(function (c) {
                 return (

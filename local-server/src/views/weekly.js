@@ -72,7 +72,7 @@ ${g.items.map(rowHtml).join('\n')}
 
     return `<!doctype html>
 <html lang="en">
-<head>
+<head><script src="/js/client/local-api.js"></script>
 <meta charset="utf-8">
 <title>Weekly Accomplishments</title>
 <style>

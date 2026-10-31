@@ -6,7 +6,8 @@ const { URL } = require('node:url');
 const mConfig = require('./config');
 const mStorage = require('./storage');
 const mDomainValidation = require('./domain/validation');
-const mParty = require('./party');
+const mParty = require('./domain/chat-text');
+const feed = require('./cloud/state-feed');
 const mHttpResponse = require('./http/response');
 const mHttpBody = require('./http/body');
 
@@ -19,7 +20,7 @@ const mHttpBody = require('./http/body');
 //   - Chatters always get the same avatar (hash), unless she assigns one or they type
 //     "!avatar <name>" (e.g. "!avatar sonic") when that's allowed.
 //   - Chat arrives through /api/activity/raw (text + emotes) and /api/giveaway/event (sub/follow/raid).
-//   - Saved in data/avatars.json. Overlay polls GET /api/avatars?since=<id>.
+//   - Saved configuration is read from the cloud cache. Overlay polls GET /api/avatars?since=<id>.
 // ---------------------------------------------------------------------------
 const AV_FILE = path.join(mConfig.DATA_DIR, 'avatars.json');
 const AV_DIR = path.join(mConfig.APP_DIR, 'assets', 'avatars');
@@ -63,7 +64,7 @@ function avDefaults() {
 
 /** Restore avatars state from disk and supply defaults for missing fields. */
 function avLoad() {
-    const raw = mStorage.readJson(AV_FILE, null) || {};
+    const raw = feed.document('avatars.json') || {};
     const d = { ...avDefaults(), ...raw };
     d.assign = d.assign && typeof d.assign === 'object' ? d.assign : {};
     d.disabled = Array.isArray(d.disabled) ? d.disabled : [];
@@ -74,6 +75,20 @@ let av = avLoad();
 let avEvents = [],
     avSeq = 1;
 const avSeen = new Map(); // lower name -> { name, at, avatar }
+
+let visualOwner = null;
+/** Refresh confirmed preferences and clear another account's transient visuals. */
+function refreshVisuals() {
+    const owner = require('./cloud/session').current()?.account.id || null;
+    if (owner !== visualOwner) {
+        avEvents = [];
+        avSeen.clear();
+        visualOwner = owner;
+        avSeq++;
+    }
+    av = avLoad();
+}
+
 /** Locate supported local avatars artwork while tolerating missing files. */
 function avFiles() {
     try {
@@ -156,6 +171,7 @@ function avPush(kind, name, extra) {
 
 // Chat text -> parts the overlay can draw: [{t:'text', v}, {t:'emote', url}]
 function avChat(sender, parts) {
+    refreshVisuals();
     const name = mDomainValidation.cleanString(sender).replace(/^@/, '').slice(0, 40);
     if (!name || avIgnored(name)) return '';
     const text = mParty
@@ -167,22 +183,6 @@ function avChat(sender, parts) {
         )
         .trim();
     // "!avatar sonic" picks your own avatar (when allowed); "!avatar" alone just waves.
-    const pm = /^!avatar\s+(.+)$/i.exec(text);
-    if (pm && av.pickCmd) {
-        const want = pm[1]
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '');
-        const f =
-            avPool().find((x) => avIdOf(x) === want) ||
-            avPool().find((x) => avIdOf(x).startsWith(want));
-        if (f) {
-            av.assign[name.toLowerCase()] = avIdOf(f);
-            mStorage.writeJson(AV_FILE, av);
-            avPush('pick', name, { text: `I'm ${avNice(avIdOf(f))} now!` });
-            return 'picked';
-        }
-    }
     const cmds = String(av.sayCmds || '')
         .split(/[\s,]+/)
         .map((s) => s.toLowerCase().replace(/^!/, ''))
@@ -205,6 +205,7 @@ function avChat(sender, parts) {
 
 /** Translate supported stream events into avatar reactions. */
 function avEvent(type, username, body) {
+    refreshVisuals();
     const name = mDomainValidation.cleanString(username).replace(/^@/, '').slice(0, 40);
     if (!name || avIgnored(name)) return;
     const n =
@@ -228,6 +229,7 @@ function avEvent(type, username, body) {
 
 /** Build the avatars response consumed by dashboards and overlays. */
 function avPublic() {
+    refreshVisuals();
     const pick = [
         'visible',
         'maxAvatars',
@@ -289,118 +291,10 @@ async function handleAvatarsApi(req, res, pathname, method) {
                 assigned: Object.entries(av.assign).map(([k, v]) => ({ name: k, avatar: v }))
             });
         }
-        if (pathname === '/api/avatars' && method === 'POST') {
-            const b = await mHttpBody.readBody(req);
-            for (const k of [
-                'visible',
-                'showNames',
-                'pickCmd',
-                'onlyCmdShow',
-                'subOn',
-                'followOn',
-                'raidOn',
-                'bitsOn',
-                'bounceAllOnSub'
-            ])
-                if (typeof b[k] === 'boolean') av[k] = b[k];
-            const nums = {
-                maxAvatars: [1, 60],
-                size: [30, 300],
-                speed: [0, 400],
-                bubbleSec: [2, 30],
-                textSize: [50, 250],
-                bottom: [0, 40],
-                leftEdge: [0, 90],
-                rightEdge: [10, 100],
-                idleMin: [0, 240]
-            };
-            for (const [k, [lo, hi]] of Object.entries(nums))
-                if (b[k] !== undefined && Number.isFinite(Number(b[k])))
-                    av[k] = Math.max(lo, Math.min(hi, Number(b[k])));
-            if (['all', 'commands', 'off'].includes(b.bubbles)) av.bubbles = b.bubbles;
-            for (const k of [
-                'ignore',
-                'sayCmds',
-                'colors',
-                'subMsg',
-                'followMsg',
-                'raidMsg',
-                'bitsMsg'
-            ])
-                if (typeof b[k] === 'string')
-                    av[k] = mDomainValidation.cleanString(b[k]).slice(0, 600);
-            if (b.toggleAvatar) {
-                const id = String(b.toggleAvatar);
-                av.disabled = av.disabled.includes(id)
-                    ? av.disabled.filter((x) => x !== id)
-                    : av.disabled.concat([id]);
-            }
-            if (b.assign && b.assign.name) {
-                const k = mDomainValidation
-                    .cleanString(b.assign.name)
-                    .toLowerCase()
-                    .replace(/^@/, '');
-                if (b.assign.avatar) av.assign[k] = String(b.assign.avatar);
-                else delete av.assign[k];
-            }
-            if (b.clear) {
-                av.epoch++;
-                avEvents = [];
-            }
-            if (b.wave) avPush('wave', '', {});
-            if (b.test)
-                avChat(mDomainValidation.cleanString(b.test.name) || 'TestViewer', [
-                    { t: 'text', v: mDomainValidation.cleanString(b.test.text) || 'Hi! 👋' }
-                ]);
-            if (b.testEvent)
-                avEvent(
-                    String(b.testEvent),
-                    mDomainValidation.cleanString(b.name) || 'TestViewer',
-                    { viewers: 25, amount: 100, count: 5 }
-                );
-            mStorage.writeJson(AV_FILE, av);
-            return mHttpResponse.sendJson(res, 200, { ok: true });
-        }
-        // Upload / remove an avatar picture
-        if (pathname === '/api/avatars/image' && method === 'POST') {
-            const b = await mHttpBody.readBody(req);
-            if (b.remove) {
-                const f = avFiles().find((x) => avIdOf(x) === String(b.remove));
-                if (f) {
-                    try {
-                        fs.unlinkSync(path.join(AV_DIR, f));
-                    } catch (_e) {}
-                }
-                return mHttpResponse.sendJson(res, 200, { ok: true });
-            }
-            const m = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                String(b.dataUrl || '')
-            );
-            if (!m)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                });
-            const buf = Buffer.from(m[2], 'base64');
-            if (buf.length > 9 * 1024 * 1024)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'Picture is too large.'
-                });
-            let id =
-                    mDomainValidation
-                        .cleanString(b.name)
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/^-|-$/g, '')
-                        .slice(0, 40) || 'avatar',
-                n = 2,
-                base = id;
-            while (avFiles().some((x) => avIdOf(x) === id)) id = `${base}-${n++}`;
-            fs.writeFileSync(path.join(AV_DIR, `${id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`), buf);
-            return mHttpResponse.sendJson(res, 200, { ok: true, id });
-        }
-        return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown avatars route.' });
+        return mHttpResponse.sendJson(res, 404, {
+            ok: false,
+            error: 'Unknown avatar display route.'
+        });
     } catch (error) {
         return mHttpResponse.sendJson(res, 400, {
             ok: false,

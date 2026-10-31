@@ -3,6 +3,7 @@ CREATE TABLE signup_events (
     owner_id uuid NOT NULL REFERENCES accounts(id),
     feature text NOT NULL,
     id text NOT NULL,
+    event_uuid uuid NOT NULL,
     position integer NOT NULL,
     details jsonb NOT NULL,
     PRIMARY KEY(owner_id,feature,id)

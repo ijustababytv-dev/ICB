@@ -1,6 +1,7 @@
 'use strict';
 /** createAniimoApi keeps related operations together and reads shared state at call time. */
 module.exports = function createAniimoApi(context) {
+    const Date = context.Date || global.Date;
     async function handleDexApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/aniimo' && method === 'GET')
@@ -245,28 +246,11 @@ module.exports = function createAniimoApi(context) {
                         context.dexSave();
                         return context.mHttpResponse.sendJson(res, 200, { ok: true });
                     }
-                    const fm = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                        String(b.dataUrl || '')
+                    const fname = require('../asset-reference').assetName(
+                        context.fs,
+                        context.DEX_ART_DIR,
+                        b.asset_ref
                     );
-                    if (!fm)
-                        return context.mHttpResponse.sendJson(res, 400, {
-                            ok: false,
-                            error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                        });
-                    const fb = Buffer.from(fm[2], 'base64');
-                    if (fb.length > 9 * 1024 * 1024)
-                        return context.mHttpResponse.sendJson(res, 400, {
-                            ok: false,
-                            error: 'Picture is too large.'
-                        });
-                    const fname = `${(
-                        context.dexSlug(a.number) ||
-                        context.dexSlug(a.name) ||
-                        a.id
-                    ).slice(0, 30)}__${context.dexSlug(v).slice(0, 40) || 'form'}.${
-                        fm[1] === 'jpeg' ? 'jpg' : fm[1]
-                    }`;
-                    context.fs.writeFileSync(context.path.join(context.DEX_ART_DIR, fname), fb);
                     a.formImages[v] = fname;
                     if (b.tick) context.dexSet(a.id, v, true);
                     context.dexSave();
@@ -292,39 +276,11 @@ module.exports = function createAniimoApi(context) {
                     context.dexSave();
                     return context.mHttpResponse.sendJson(res, 200, { ok: true });
                 }
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(b.dataUrl || '')
+                a.image = require('../asset-reference').assetName(
+                    context.fs,
+                    context.DEX_ART_DIR,
+                    b.asset_ref
                 );
-                if (!match)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 9 * 1024 * 1024)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture is too large.'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = (context.dexSlug(a.number) || context.dexSlug(a.name) || a.id).slice(
-                    0,
-                    30
-                );
-                if (a.image) {
-                    try {
-                        context.fs.unlinkSync(context.path.join(context.DEX_ART_DIR, a.image));
-                    } catch (_e) {}
-                }
-                for (const e of ['png', 'jpg', 'jpeg', 'webp', 'gif']) {
-                    try {
-                        context.fs.unlinkSync(
-                            context.path.join(context.DEX_ART_DIR, `${base}.${e}`)
-                        );
-                    } catch (_e) {}
-                }
-                a.image = `${base}.${ext}`;
-                context.fs.writeFileSync(context.path.join(context.DEX_ART_DIR, a.image), buffer);
                 context.dexArtList = null;
                 context.dexSave();
                 return context.mHttpResponse.sendJson(res, 200, {

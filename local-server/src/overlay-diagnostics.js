@@ -1,9 +1,5 @@
 'use strict';
 
-const path = require('node:path');
-const mConfig = require('./config');
-const mStorage = require('./storage');
-
 // ---------------------------------------------------------------------------
 // OVERLAY POLL TRACKING
 // The XHR-polling overlay pages (ticker.html, weekly.html, ...) never show up
@@ -14,15 +10,9 @@ const mStorage = require('./storage');
 // ---------------------------------------------------------------------------
 const overlayPolls = new Map();
 const OVERLAY_POLL_FRESH_MS = 15000;
-// Persisted so a failure can be diagnosed from the files alone, without
-// needing someone to read a number off the dashboard mid-stream. Records who
-// asked for an overlay page and what browser engine asked - which is the only
-// way to tell a Meld request apart from a Chrome one.
-const OVERLAY_LOG_FILE = path.join(mConfig.DATA_DIR, 'overlay-requests.json');
 const overlayRequests = [];
-let overlayLogWrittenAt = 0;
 
-/** Retain bounded request evidence so missing Meld layers can be diagnosed from files. */
+/** Retain bounded request evidence in RAM so missing Meld layers can be diagnosed without repetitive disk logging. */
 function noteOverlayRequest(kind, req, url) {
     overlayRequests.unshift({
         at: new Date().toISOString(),
@@ -33,18 +23,6 @@ function noteOverlayRequest(kind, req, url) {
         accept: String(req.headers.accept || '').slice(0, 120)
     });
     while (overlayRequests.length > 40) overlayRequests.pop();
-    const now = Date.now();
-    if (now - overlayLogWrittenAt < 3000) return;
-    overlayLogWrittenAt = now;
-    try {
-        mStorage.writeJson(OVERLAY_LOG_FILE, {
-            schemaVersion: 1,
-            updatedAt: new Date().toISOString(),
-            requests: overlayRequests
-        });
-    } catch (_error) {
-        /* non-fatal */
-    }
 }
 
 /** Record recent polling overlays, which do not appear among SSE clients. */

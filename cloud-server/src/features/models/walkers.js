@@ -360,6 +360,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch walkers API requests, returning client errors for invalid input. */
 
     const createWalkersApi = require('./walkers-api')({
+        Date: Date,
         get WALKERS_LIMITS() {
             return WALKERS_LIMITS;
         },

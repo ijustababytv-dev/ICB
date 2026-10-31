@@ -1,6 +1,7 @@
 'use strict';
 /** createBurgerApi keeps related operations together and reads shared state at call time. */
 module.exports = function createBurgerApi(context) {
+    const Date = context.Date || global.Date;
     async function handleBbsuApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/beanburger-signup' && method === 'GET')

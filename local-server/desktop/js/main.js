@@ -35,7 +35,9 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0);
 }
 
-function req(method, p, body) {
+async function req(method, p, body) {
+    let capability = null;
+    if (!['GET', 'HEAD'].includes(method)) capability = await req('GET', '/api/cloud/csrf');
     return new Promise((resolve) => {
         const data = body ? JSON.stringify(body) : null;
         const u = new URL(ICB + p);
@@ -49,9 +51,11 @@ function req(method, p, body) {
                 headers: data
                     ? {
                           'Content-Type': 'application/json',
-                          'Content-Length': Buffer.byteLength(data)
+                          'Content-Length': Buffer.byteLength(data),
+                          Origin: ICB,
+                          'X-ICB-CSRF': capability?.csrf || ''
                       }
-                    : {}
+                    : { Referer: ICB + '/desktop-control.html' }
             },
             (res) => {
                 let s = '';

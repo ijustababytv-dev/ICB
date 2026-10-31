@@ -30,7 +30,10 @@ async function handleSystemApi(req, res, url) {
             ok: true,
             version: mConfig.VERSION,
             port: mConfig.PORT,
+            stateAuthority: 'cloud',
+            sync: require('../cloud/state-feed').status(),
             dataFiles: {
+                purpose: 'inactive pre-cutover recovery sources',
                 settings: mConfig.SETTINGS_FILE,
                 live: mConfig.LIVE_FILE,
                 actions: mConfig.ACTIONS_FILE

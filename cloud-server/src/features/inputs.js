@@ -69,8 +69,19 @@ async function applyIntent(context, input, client, owner) {
         'command',
         'arguments',
         'subscriber',
-        'support'
+        'support',
+        'viewers'
     ]);
+    if (input.kind === 'presence_batch') {
+        if (!Array.isArray(input.viewers) || !input.viewers.length || input.viewers.length > 100)
+            throw fail(400, 'invalid_presence_batch');
+        const { viewers, ...common } = input;
+        for (const viewer of viewers) {
+            fields(viewer, ['sender', 'at']);
+            await applyIntent(context, { ...common, ...viewer, kind: 'presence' }, client, owner);
+        }
+        return { status: 200, payload: { ok: true } };
+    }
     if (input.sender !== '') text(input.sender, 80);
     if (input.kind === 'support') {
         const support = input.support;
@@ -112,15 +123,23 @@ async function applyIntent(context, input, client, owner) {
         return reply;
     }
     if (input.kind === 'presence') {
+        if (
+            Date.parse(input.at) < context.now - 300000 ||
+            Date.parse(input.at) > context.now + 5000
+        )
+            throw fail(409, 'chat_presence_outside_grace');
         const model = context.use('giveaway/state');
         const anchor = Date.parse(model.giveaway.windowStartedAt);
-        const window = anchor + Math.floor((Date.parse(input.at) - anchor) / 600000) * 600000;
+        const window =
+            anchor +
+            Math.floor((Math.min(context.now, Date.parse(input.at)) - anchor) / 600000) * 600000;
         const added = await client.query(
-            `INSERT INTO chat_window_presence(owner_id,name_key,window_id,occurred_at,awarded_at)
-            VALUES($1,$2,$3,$4,CASE WHEN $5 THEN now() ELSE NULL END) ON CONFLICT DO NOTHING RETURNING name_key`,
-            [owner.id, input.sender.toLowerCase(), window, input.at, window < anchor]
+            `INSERT INTO chat_window_presence(owner_id,name_key,display_name,window_id,occurred_at,awarded_at)
+            VALUES($1,$2,$6,$3,$4,CASE WHEN $5 THEN now() ELSE NULL END) ON CONFLICT DO NOTHING RETURNING name_key`,
+            [owner.id, input.sender.toLowerCase(), window, input.at, window < anchor, input.sender]
         );
         if (added.rowCount && !model.isBlocked(input.sender)) {
+            context.use('walkers').walkerChat(input.sender, [], false);
             if (window < anchor) {
                 const entrant = model.ensureEntrant(input.sender);
                 const before = model.entrantTotal(entrant);
@@ -193,6 +212,8 @@ async function applyIntent(context, input, client, owner) {
 function applyGame(context, input) {
     fields(input, ['sequence', 'source_key', 'at', 'fact']);
     const fact = input.fact;
+    if (context.use('state').live.reconciliation?.required)
+        throw fail(409, 'reconciliation_required');
     if (fact?.kind !== 'login' && !gameFact(fact)) throw fail(400, 'invalid_game_fact');
     if (fact.kind === 'login') fields(fact, ['kind', 'at']);
     else {

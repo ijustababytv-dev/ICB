@@ -60,6 +60,10 @@ test('cloud resource rules consume typed increments and reject Primary/raw input
         false
     );
     assert.equal(facts.valid({ source: 'primary', direction: 'gained', items: [] }), false);
+    assert.doesNotThrow(() =>
+        safeValue({ items: [{ token: 'itemtype_fixture', quantity: 3, star: true }] })
+    );
+    assert.throws(() => safeValue({ token: 'credential-fixture' }), /private_feature_field/);
     assert.equal(
         resourceRules.applyResourceEvent(state, {
             source: 'inventory',

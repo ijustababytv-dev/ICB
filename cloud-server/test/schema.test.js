@@ -41,7 +41,10 @@ test('every table and standalone index has its own named, ordered source file', 
         tables.length,
         19 + added.objects.filter((item) => item.file.startsWith('tables/')).length
     );
-    assert.equal(indexes.length, 12);
+    assert.equal(
+        indexes.length,
+        12 + added.objects.filter((item) => item.file.startsWith('indexes/')).length
+    );
     for (const [directory, pattern] of [
         ['tables', /CREATE TABLE\s+([a-z0-9_]+)/g],
         ['indexes', /CREATE (?:UNIQUE )?INDEX\s+([a-z0-9_]+)/g]

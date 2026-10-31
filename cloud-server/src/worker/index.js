@@ -18,6 +18,10 @@ async function runTick(db, options = {}) {
         if (!job) break;
         processed++;
         try {
+            if (job.kind === 'maintenance') {
+                await require('./maintenance').maintenance(db, job);
+                continue;
+            }
             const loaded = await db.withClient(async (client) => ({
                 documents: await repository.loadDocuments(client, job.owner_id),
                 assets: await loadAssets(client, job.owner_id),
@@ -67,12 +71,18 @@ async function runTick(db, options = {}) {
                     await releaseJob(client, job, 1);
                     return;
                 }
-                await repository.saveChanges(
+                const revision = await repository.saveChanges(
                     client,
                     job.owner_id,
                     context,
                     clock.revision,
                     authority
+                );
+                await require('../features/display-events').captureDisplayEvents(
+                    client,
+                    job.owner_id,
+                    context,
+                    revision
                 );
                 const interval = Math.max(60, Number(settings.pollSec) || 60);
                 await releaseJob(

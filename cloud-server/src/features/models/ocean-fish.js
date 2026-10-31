@@ -28,27 +28,8 @@ module.exports = function createModel(context, exports) {
     const MAX_PICTURE_BYTES = 8 * 1024 * 1024;
 
     /** Save an uploaded data URL as a real file in assets/ocean-fish and return its name. */
-    function writeFishPicture(dataUrl, name) {
-        const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-            String(dataUrl || '')
-        );
-        if (!match) throw new Error('Picture must be a PNG, JPG, WEBP, or GIF.');
-        const buffer = Buffer.from(match[2], 'base64');
-        if (buffer.length > MAX_PICTURE_BYTES) throw new Error('Picture is too large (max 8MB).');
-        const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-        const base =
-            mDomainOceanFish
-                .cleanFishName(name)
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '') || 'fish';
-        fs.mkdirSync(OFISH_ART_DIR, { recursive: true });
-        let file = `${base}.${ext}`;
-        // Never overwrite an existing picture; number the new one instead.
-        for (let n = 2; fs.existsSync(path.join(OFISH_ART_DIR, file)); n += 1)
-            file = `${base}-${n}.${ext}`;
-        fs.writeFileSync(path.join(OFISH_ART_DIR, file), buffer);
-        return file;
+    function writeFishPicture(reference) {
+        return require('../asset-reference').assetName(fs, OFISH_ART_DIR, reference);
     }
 
     /**
@@ -116,7 +97,7 @@ module.exports = function createModel(context, exports) {
                     // Check the limit before saving a picture so a full list leaves no stray file.
                     if (ofish.fish.length >= mDomainOceanFish.MAX_FISH)
                         throw new Error(`That's the most fish (${mDomainOceanFish.MAX_FISH}).`);
-                    const file = writeFishPicture(body.addFish.image, body.addFish.name);
+                    const file = writeFishPicture(body.addFish.asset_ref);
                     mDomainOceanFish.addFish(
                         ofish,
                         body.addFish.name,
@@ -125,7 +106,7 @@ module.exports = function createModel(context, exports) {
                     );
                 }
                 mDomainOceanFish.applyFishEdits(ofish, body);
-                mDomainOceanFish.queueCommands(commands, body);
+                mDomainOceanFish.queueCommands(commands, body, context.now);
                 ofishSave();
                 return mHttpResponse.sendJson(res, 200, { ok: true });
             }
@@ -141,5 +122,17 @@ module.exports = function createModel(context, exports) {
         }
     }
 
+    context.runtime.register(
+        'oceanfish',
+        () => ({
+            commands: {
+                seq: commands.seq,
+                list: commands.list.filter((event) => event.at > context.now - 120000)
+            }
+        }),
+        (value) => {
+            if (value.commands) Object.assign(commands, value.commands);
+        }
+    );
     Object.assign(exports, { handleOceanFishApi, ofishPublic });
 };

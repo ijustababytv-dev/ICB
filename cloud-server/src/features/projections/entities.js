@@ -7,7 +7,7 @@ const COLLECTIONS = {
     avatars: { assign: 'object' },
     walkers: { people: 'object' },
     decor: { effects: 'array', presets: 'array' },
-    parties: { names: 'object', events: 'array', slots: 'array' },
+    parties: { names: 'object', slots: 'array' },
     'sashimi-signin': { names: 'object' },
     steam: {
         schema: 'object',

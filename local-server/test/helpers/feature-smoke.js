@@ -55,11 +55,17 @@ async function verifyFeatureRoutes(json, origin) {
         'giveaway/state',
         'giveaway/backups'
     ];
-    for (const route of routes) {
-        const result = await json('/api/' + route);
+    const responses = await Promise.all(routes.map((route) => json('/api/' + route)));
+    for (const [index, route] of routes.entries()) {
+        const result = responses[index];
         if (route.startsWith('activity/')) {
-            assert.equal(result.response.status, 503, route);
-            assert.equal(result.payload.code, 'cloud_login_required');
+            assert.equal(result.response.status, 200, route);
+            assert.equal(result.payload.ok, true);
+            if (route.endsWith('/nights')) assert.ok(Array.isArray(result.payload.nights));
+            else {
+                assert.ok(Array.isArray(result.payload.viewers));
+                assert.ok(Array.isArray(result.payload.events));
+            }
         } else
             assert.equal(
                 result.response.status,

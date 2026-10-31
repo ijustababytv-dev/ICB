@@ -1,6 +1,7 @@
 'use strict';
 /** createWalkersApi keeps related operations together and reads shared state at call time. */
 module.exports = function createWalkersApi(context) {
+    const Date = context.Date || global.Date;
     async function handleWalkersApi(req, res, pathname, method, url) {
         try {
             if (pathname === '/api/walkers/state' && method === 'GET') {
@@ -127,31 +128,10 @@ module.exports = function createWalkersApi(context) {
                         ok: false,
                         error: 'Missing name.'
                     });
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(body.dataUrl || '')
-                );
-                if (!match)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 8 * 1024 * 1024)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image is too large (max 8MB).'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = context.mTradeup.tradeupSlug(name);
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (
-                    context.fs.existsSync(context.path.join(context.WALKERS_PERSONAL_DIR, filename))
-                )
-                    filename = `${base}-${n++}.${ext}`;
-                context.fs.writeFileSync(
-                    context.path.join(context.WALKERS_PERSONAL_DIR, filename),
-                    buffer
+                const filename = require('../asset-reference').assetName(
+                    context.fs,
+                    context.WALKERS_PERSONAL_DIR,
+                    body.asset_ref
                 );
                 const key = name.toLowerCase();
                 const p =
@@ -172,32 +152,11 @@ module.exports = function createWalkersApi(context) {
             // Add a picture: { dataUrl, name, pool: 'all' | 'subs' }
             if (pathname === '/api/walkers/art' && method === 'POST') {
                 const body = await context.mHttpBody.readBody(req);
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(body.dataUrl || '')
+                require('../asset-reference').assetName(
+                    context.fs,
+                    body.pool === 'subs' ? context.WALKERS_SUB_ART_DIR : context.WALKERS_ART_DIR,
+                    body.asset_ref
                 );
-                if (!match)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 8 * 1024 * 1024)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image is too large (max 8MB).'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = context.mTradeup.tradeupSlug(
-                    String(body.name || 'unicorn').replace(/\.[a-z0-9]+$/i, '')
-                );
-                const dir =
-                    body.pool === 'subs' ? context.WALKERS_SUB_ART_DIR : context.WALKERS_ART_DIR;
-                context.fs.mkdirSync(dir, { recursive: true });
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (context.fs.existsSync(context.path.join(dir, filename)))
-                    filename = `${base}-${n++}.${ext}`;
-                context.fs.writeFileSync(context.path.join(dir, filename), buffer);
                 return context.mHttpResponse.sendJson(res, 200, context.walkerAdminState());
             }
 
@@ -208,24 +167,10 @@ module.exports = function createWalkersApi(context) {
                 const toSubs = body.to === 'subs';
                 const fromDir = toSubs ? context.WALKERS_ART_DIR : context.WALKERS_SUB_ART_DIR,
                     toDir = toSubs ? context.WALKERS_SUB_ART_DIR : context.WALKERS_ART_DIR;
-                if (
-                    !context.mDomainValidation.DECOR_IMAGE_EXT.test(file) ||
-                    !context.fs.existsSync(context.path.join(fromDir, file))
-                )
-                    return context.mHttpResponse.sendJson(res, 404, {
-                        ok: false,
-                        error: 'No such picture.'
-                    });
-                let target = file,
-                    n = 2;
-                const stem = file.replace(/\.[^.]+$/, ''),
-                    ext = context.path.extname(file);
-                while (context.fs.existsSync(context.path.join(toDir, target)))
-                    target = `${stem}-${n++}${ext}`;
-                context.fs.mkdirSync(toDir, { recursive: true });
-                context.fs.renameSync(
-                    context.path.join(fromDir, file),
-                    context.path.join(toDir, target)
+                const target = require('../asset-reference').assetName(
+                    context.fs,
+                    toDir,
+                    body.asset_ref
                 );
                 // Keep anyone who had this picture picked on it (non-subs lose a sub-only pick and go back to random).
                 for (const p of Object.values(context.walkers.people)) {

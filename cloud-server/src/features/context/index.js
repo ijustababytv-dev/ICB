@@ -74,6 +74,8 @@ function createContext(documents, options = {}) {
         effects,
         notices,
         jobs: [],
+        draws: [],
+        backupMetadata: options.backups?.metadata || {},
         integrations: options.integrations || {},
         now,
         timezone: options.timezone || 'America/Chicago',

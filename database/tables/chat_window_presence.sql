@@ -2,6 +2,7 @@
 CREATE TABLE chat_window_presence (
     owner_id uuid NOT NULL REFERENCES accounts(id),
     name_key text NOT NULL,
+    display_name text NOT NULL DEFAULT '',
     window_id bigint NOT NULL,
     occurred_at timestamptz NOT NULL,
     awarded_at timestamptz,

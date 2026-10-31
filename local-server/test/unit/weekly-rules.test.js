@@ -1,12 +1,15 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { weekStartFor } = require('../../src/domain/week');
-const {
-    applyWeeklyEvent,
-    rolloverWeek,
-    undoWeeklyReset
-} = require('../../src/domain/weekly-rules');
+const { weekStartFor } = require('../../../cloud-server/src/domain/week');
+const { rolloverWeek, undoWeeklyReset } = require('../../../cloud-server/src/domain/weekly-rules');
+
+const { fixtureFact } = require('../helpers/typed-line-fixture');
+const applyWeeklyEvent = (state, line) =>
+    require('../../../cloud-server/src/domain/weekly-rules').applyWeeklyEvent(
+        state,
+        fixtureFact(line)
+    );
 
 /** Model one automatic goal using a token observed in the project logs. */
 function goal(overrides = {}) {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/js/client/local-api.js"></script>
 <meta charset="utf-8">
 <title>Fortnite Sprites — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,10 +46,11 @@
 
 <div class="card">
   <h2>⚙️ Season & backup</h2>
+  <button onclick="api('/api/sprites/import-local',{}).then(load)">Import local catch file</button>
   <div class="row"><label>Season</label><input type="text" id="season" style="flex:1"><button class="btn-sm" onclick="api('/api/sprites',{season:$('season').value}).then(load)">Save</button></div>
   <div class="row"><label>New variant for every sprite</label><input type="text" id="newVar" placeholder="e.g. Snowy" style="flex:1"><button class="btn-sm" onclick="addVarAll()">Add</button></div>
   <div class="row"><a href="/api/sprites/export"><button>Download backup</button></a><button onclick="newSeason()">🌟 Start a new season</button><span class="spacer"></span><button class="btn-danger" onclick="resetAll()">Reset all catches</button></div>
-  <div class="note">🖼️ Pictures: click a sprite's square to upload one, drag a picture onto its panel, or hover a panel and press <b>Ctrl+V</b> to paste a snip. "Start a new season" saves this season's list to a file and gives you a fresh page.</div>
+  <div class="note">🖼️ Pictures: click a sprite's square to upload one, drag a picture onto its panel, or hover a panel and press <b>Ctrl+V</b> to paste a snip. "Start a new season" saves this season's list as a cloud backup and gives you a fresh page.</div>
 </div>
 
 <div class="modal" id="modal"><div class="card">

@@ -10,35 +10,44 @@ function collectorRoutes(db) {
     router.post('/claim', async (req, res) => {
         fields(req.body, ['collector_id']);
         const collector = uuid(req.body.collector_id);
-        const lease = await transaction(db, async (client) => {
-            await client.query(
-                "SELECT pg_advisory_xact_lock(hashtextextended('icb-owner:' || $1,0))",
-                [req.owner.id]
-            );
-            const current = await client.query(
-                'SELECT *, expires_at>now() AS active FROM collector_leases WHERE owner_id=$1',
-                [req.owner.id]
-            );
-            const row = current.rows[0];
-            if (row?.active && row.collector_id !== collector) throw fail(409, 'collector_in_use');
-            if (row && row.collector_id !== collector)
-                await client.query(
-                    `INSERT INTO collector_history(owner_id,collector_id,started_at,expires_at) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
-                    [req.owner.id, row.collector_id, row.started_at, row.expires_at]
-                );
-            const next = await client.query(
-                `INSERT INTO collector_leases(owner_id,collector_id,expires_at)
-                VALUES($1,$2,now()+interval '90 seconds') ON CONFLICT(owner_id) DO UPDATE SET
-                collector_id=EXCLUDED.collector_id,
-                started_at=CASE WHEN collector_leases.collector_id=EXCLUDED.collector_id THEN collector_leases.started_at ELSE now() END,
-                expires_at=EXCLUDED.expires_at RETURNING expires_at`,
-                [req.owner.id, collector]
-            );
-            return next.rows[0];
-        });
+        const lease = await claimCollector(db, req.owner, collector);
         res.json({ ok: true, ...lease });
     });
     return router;
+}
+
+/** Claim or renew the same scoped lease from HTTP or explicit administrative cutover. */
+async function claimCollector(db, owner, collector) {
+    return transaction(db, async (client) => {
+        await client.query("SELECT pg_advisory_xact_lock(hashtextextended('icb-owner:' || $1,0))", [
+            owner.id
+        ]);
+        const current = await client.query(
+            'SELECT *, expires_at>now() AS active FROM collector_leases WHERE owner_id=$1',
+            [owner.id]
+        );
+        const row = current.rows[0];
+        const frozen = await client.query(
+            "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND mode='migrating' LIMIT 1",
+            [owner.id]
+        );
+        if (frozen.rowCount) throw fail(409, 'feature_cutover_in_progress');
+        if (row?.active && row.collector_id !== collector) throw fail(409, 'collector_in_use');
+        if (row && row.collector_id !== collector)
+            await client.query(
+                `INSERT INTO collector_history(owner_id,collector_id,started_at,expires_at) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+                [owner.id, row.collector_id, row.started_at, row.expires_at]
+            );
+        const next = await client.query(
+            `INSERT INTO collector_leases(owner_id,collector_id,expires_at)
+            VALUES($1,$2,now()+interval '90 seconds') ON CONFLICT(owner_id) DO UPDATE SET
+            collector_id=EXCLUDED.collector_id,
+            started_at=CASE WHEN collector_leases.collector_id=EXCLUDED.collector_id THEN collector_leases.started_at ELSE now() END,
+            expires_at=EXCLUDED.expires_at RETURNING expires_at`,
+            [owner.id, collector]
+        );
+        return next.rows[0];
+    });
 }
 
 /** Admit previously sealed batches from expired leases without admitting competing live collectors. */
@@ -91,3 +100,5 @@ async function verifyCollector(client, owner, batch) {
 }
 
 module.exports = { collectorRoutes, verifyCollector };
+
+module.exports.claimCollector = claimCollector;

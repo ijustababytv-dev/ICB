@@ -33,7 +33,7 @@ async function ingest(db, owner, input) {
         await verifyCollector(client, owner, body);
         if (body.records.some((record) => record.type !== 'chat_count')) {
             const authority = await client.query(
-                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature='giveaway' AND mode='cloud'",
+                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature='giveaway' AND mode<>'local'",
                 [owner.id]
             );
             if (authority.rowCount) throw fail(409, 'legacy_award_writer_retired');

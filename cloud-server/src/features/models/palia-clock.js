@@ -79,7 +79,8 @@ module.exports = function createModel(context, exports) {
     }
 
     let pc = pcLoad(),
-        pcEvents = [];
+        pcEvents = [],
+        lastAlarmCheck = 0;
     /** Persist operator changes to the palia clock state file. */
     function pcSave() {
         mStorage.writeJson(PC_FILE, pc);
@@ -89,8 +90,33 @@ module.exports = function createModel(context, exports) {
     /** Retire one-time alarms after their occurrence and its display grace period. */
     function checkAlarms() {
         // one-time alarms go away once they have rung
-        const now = Date.now(),
-            before = pc.alarms.length;
+        const now = Date.now();
+        if (!lastAlarmCheck) lastAlarmCheck = now;
+        for (const alarm of pc.alarms) {
+            if (!alarm.on) continue;
+            const occurrence =
+                alarm.once && alarm.until
+                    ? alarm.until
+                    : Math.round(mDomainPaliaTime.pcUntil(alarm.time, now) - 3600000);
+            if (occurrence > lastAlarmCheck && occurrence <= now && occurrence > now - 15000) {
+                pcEvents.push({
+                    id: pc.seq++,
+                    occurrence_id: alarm.id + ':' + occurrence,
+                    kind: 'ring',
+                    label: alarm.label,
+                    icon: alarm.icon,
+                    time: alarm.time,
+                    at: occurrence,
+                    expires_at: occurrence + 15000
+                });
+                lastAlarmCheck = occurrence;
+                pcSave();
+            }
+        }
+        pcEvents = pcEvents
+            .filter((event) => (event.expires_at || event.at + 15000) > now)
+            .slice(-30);
+        const before = pc.alarms.length;
         pc.alarms = pc.alarms.filter((a) => !(a.once && a.until && a.until + 15000 < now));
         if (pc.alarms.length !== before) pcSave();
     }
@@ -172,6 +198,8 @@ module.exports = function createModel(context, exports) {
                     pcEvents.push({
                         id: pc.seq++,
                         kind: 'ring',
+                        at: context.now,
+                        expires_at: context.now + 15000,
                         label: mDomainValidation.cleanString(b.test.label) || 'Test alarm!',
                         icon: mDomainValidation.cleanString(b.test.icon) || '🔔',
                         time: ''
@@ -198,9 +226,10 @@ module.exports = function createModel(context, exports) {
     exports.checkAlarms = checkAlarms;
     context.runtime.register(
         'paliaclock',
-        () => ({ pcEvents }),
+        () => ({ pcEvents, lastAlarmCheck }),
         (value) => {
-            pcEvents = value.pcEvents;
+            pcEvents = value.pcEvents || [];
+            lastAlarmCheck = value.lastAlarmCheck || 0;
         }
     );
 };

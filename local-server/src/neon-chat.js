@@ -17,11 +17,11 @@ const mDomainNeonChat = require('./domain/neon-chat');
 //   - Dashboard: /neon-chat-control.html
 //   - Settings in data/neonchat.json; chat lines are kept in memory only (last 60).
 // ---------------------------------------------------------------------------
-const CHAT_FILE = path.join(mConfig.DATA_DIR, 'neonchat.json');
+const feed = require('./cloud/state-feed');
 
 /** Restore saved settings, filling in anything new with its default. */
 function chatLoad() {
-    const raw = mStorage.readJson(CHAT_FILE, null) || {};
+    const raw = feed.document('neonchat.json') || {};
     const d = mDomainNeonChat.neonChatDefaults();
     return {
         ...d,
@@ -35,6 +35,17 @@ function chatLoad() {
 let chat = chatLoad();
 const store = { seq: 0, lines: [], clearedAt: 0 };
 let testCount = 0;
+let visualOwner = null;
+/** Account changes clear transient text; ordinary words never enter a persistence API. */
+function refreshVisuals() {
+    const owner = require('./cloud/session').current()?.account.id || null;
+    if (owner !== visualOwner) {
+        store.lines = [];
+        store.clearedAt = store.seq;
+        visualOwner = owner;
+    }
+    chat = chatLoad();
+}
 
 const TEST_LINES = [
     ['streamer', 'Welcome to the neon beach! 🌴'],
@@ -46,6 +57,7 @@ const TEST_LINES = [
 
 /** Build the response the overlay and dashboard read. `since` skips lines already shown. */
 function chatPublic(since) {
+    refreshVisuals();
     const after = Number(since) || 0;
     return {
         ok: true,
@@ -57,18 +69,13 @@ function chatPublic(since) {
     };
 }
 
-/** Persist settings and tell open dashboards. */
-function chatSave() {
-    mStorage.writeJson(CHAT_FILE, chat);
-    mEvents.broadcast('neonchat', { ok: true, seq: store.seq });
-}
-
 /**
  * Called for every chat message the Meld listener relays. `data` is the relayed message
  * (sender name, attributes, optional senderInfo with badges/colour), `parts` its text and
  * emote pieces. Never throws, so the chat box can never break other chat features.
  */
 function neonChatRelay(data, parts) {
+    refreshVisuals();
     try {
         const info = data.senderInfo && typeof data.senderInfo === 'object' ? data.senderInfo : {};
         const attrs = Array.isArray(data.attributes) ? data.attributes : [];
@@ -87,6 +94,7 @@ function neonChatRelay(data, parts) {
 
 /** Called for follows, subs, gifted subs, bits and raids; adds a highlighted line if switched on. */
 function neonChatEvent(type, username, body) {
+    refreshVisuals();
     try {
         mDomainNeonChat.pushLine(store, mDomainNeonChat.eventLine(chat, type, username, body));
     } catch (_error) {
@@ -140,9 +148,24 @@ async function handleNeonChatApi(req, res, pathname, method, url) {
             );
         if (pathname === '/api/neonchat' && method === 'POST') {
             const body = await mHttpBody.readBody(req);
-            mDomainNeonChat.applySettings(chat, body);
+            const settings = Object.fromEntries(
+                Object.entries(body).filter(
+                    ([key]) => !['testMessage', 'testEvent', 'clear'].includes(key)
+                )
+            );
+            if (Object.keys(settings).length)
+                await require('./cloud/features').command(
+                    'neonchat',
+                    {
+                        path: '/api/neonchat',
+                        method: 'POST',
+                        values: settings
+                    },
+                    'request',
+                    require('./cloud/browser-revisions').expectedRevision(req, 'neonchat')
+                );
+            refreshVisuals();
             dashboardActions(body);
-            chatSave();
             return mHttpResponse.sendJson(res, 200, { ok: true });
         }
         return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown neon chat route.' });

@@ -3,6 +3,7 @@ CREATE TABLE poll_votes (
     owner_id uuid NOT NULL REFERENCES accounts(id),
     name_key text NOT NULL,
     option_id text NOT NULL,
+    position integer NOT NULL DEFAULT 0,
     display_name text NOT NULL,
     subscriber boolean NOT NULL,
     occurred_at bigint NOT NULL,

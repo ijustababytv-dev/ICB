@@ -14,18 +14,18 @@ function renderResourceCardPage(card, query) {
     // Plushies" - instead of a bare number. Two independently-updated spans so
     // each number keeps its own thousands-separator grouping.
     const innerMarkup = hasSecondary
-        ? `<span id="c1">${card.secondaryCount || 0}</span> ${mDomainHtml.escapeHtml(
-              card.secondary.label || 'Cooked'
-          )}` +
-          ` <span class="vs">VS</span> <span id="n">${card.count}</span> ${mDomainHtml.escapeHtml(
-              card.secondary.primaryLabel || card.name
-          )}`
-        : `<span id="n">${card.count}</span>`;
+        ? `<span id="c1">${
+              card.secondaryCount == null ? '?' : card.secondaryCount
+          }</span> ${mDomainHtml.escapeHtml(card.secondary.label || 'Cooked')}` +
+          ` <span class="vs">VS</span> <span id="n">${
+              card.count == null ? '?' : card.count
+          }</span> ${mDomainHtml.escapeHtml(card.secondary.primaryLabel || card.name)}`
+        : `<span id="n">${card.count == null ? '?' : card.count}</span>`;
     // The pattern proven to render in Meld: image in the static HTML, plain ES5,
     // an XHR poll that only rewrites the number. Do not modernise this.
     return `<!doctype html>
 <html lang="en">
-<head>
+<head><script src="/js/client/local-api.js"></script>
 <meta charset="utf-8">
 <title>${mDomainHtml.escapeHtml(card.name)}</title>
 <style>
@@ -95,8 +95,8 @@ function renderResourceCardPage(card, query) {
         var list = (d.resourceTrackers && d.resourceTrackers.cards) || [];
         for (var i = 0; i < list.length; i++) {
           if (list[i].id === ${JSON.stringify(card.id)}) {
-            n.innerHTML = group(list[i].count || 0);
-            if (c1) { c1.innerHTML = group(list[i].secondaryCount || 0); }
+            n.innerHTML = (list[i].count == null ? '?' : group(list[i].count));
+            if (c1) { c1.innerHTML = (list[i].secondaryCount == null ? '?' : group(list[i].secondaryCount)); }
             size();
             return;
           }

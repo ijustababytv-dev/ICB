@@ -20,6 +20,9 @@ function documentStorage(initial, publicFiles, now, options = {}) {
     );
     const dirty = new Set();
     let initializing = true;
+    const directory = (file) =>
+        [...assets.keys()].some((key) => key.startsWith(normalize(file).replace(/\/$/, '') + '/'));
+
     /** Read only an account document, public definition, or explicitly loaded recovery snapshot. */
     function read(file) {
         const key = normalize(file);
@@ -65,7 +68,7 @@ function documentStorage(initial, publicFiles, now, options = {}) {
         },
 
         existsSync: (file) => {
-            if (assets.has(normalize(file))) return true;
+            if (assets.has(normalize(file)) || directory(file)) return true;
             try {
                 read(file);
                 return true;
@@ -96,7 +99,7 @@ function documentStorage(initial, publicFiles, now, options = {}) {
         statSync: (file) => ({
             size:
                 Number(assets.get(normalize(file))?.bytes) ||
-                Buffer.byteLength(assets.has(normalize(file)) ? '' : read(file)),
+                Buffer.byteLength(assets.has(normalize(file)) || directory(file) ? '' : read(file)),
             mtimeMs:
                 Number(assets.get(normalize(file))?.modified_at) ||
                 backupTimes.get(normalize(file)) ||
@@ -106,9 +109,9 @@ function documentStorage(initial, publicFiles, now, options = {}) {
                     backupTimes.get(normalize(file)) ||
                     now
             ),
-            isFile: () => true,
+            isFile: () => !directory(file),
 
-            isDirectory: () => false
+            isDirectory: () => directory(file)
         }),
 
         unlinkSync: (file) => backups.delete(normalize(file)),

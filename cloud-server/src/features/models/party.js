@@ -341,6 +341,7 @@ module.exports = function createModel(context, exports) {
     /** Interpret supported party chat commands while preserving unrelated messages. */
 
     const createPartyChat = require('./party-chat')({
+        Date: Date,
         mDomainValidation: mDomainValidation,
 
         PARTY_CHECKIN_CMDS: PARTY_CHECKIN_CMDS,
@@ -366,6 +367,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch party API requests, returning client errors for invalid input. */
 
     const createPartyApi = require('./party-api')({
+        Date: Date,
         fs: fs,
 
         path: path,

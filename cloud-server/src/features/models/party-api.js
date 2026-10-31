@@ -1,6 +1,7 @@
 'use strict';
 /** createPartyApi keeps related operations together and reads shared state at call time. */
 module.exports = function createPartyApi(context) {
+    const Date = context.Date || global.Date;
     async function handlePartyApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/party' && method === 'GET') {
@@ -331,32 +332,10 @@ module.exports = function createPartyApi(context) {
             }
             // Upload a picture for party boards: { dataUrl, name } -> assets/party/<name>.png
             if (pathname === '/api/party/image' && method === 'POST') {
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(b.dataUrl || '')
-                );
-                if (!match)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 9 * 1024 * 1024)
-                    return context.mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture is too large (max 8MB) - the dashboard shrinks big pictures automatically.'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base =
-                    context.mTradeup.tradeupSlug(
-                        String(b.name || 'party-art').replace(/\.[a-z0-9]+$/i, '')
-                    ) || 'party-art';
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (context.fs.existsSync(context.path.join(context.PARTY_ART_DIR, filename)))
-                    filename = `${base}-${n++}.${ext}`;
-                context.fs.writeFileSync(
-                    context.path.join(context.PARTY_ART_DIR, filename),
-                    buffer
+                const filename = require('../asset-reference').assetName(
+                    context.fs,
+                    context.PARTY_ART_DIR,
+                    b.asset_ref
                 );
                 return context.mHttpResponse.sendJson(res, 200, { ok: true, file: filename });
             }

@@ -17,7 +17,7 @@ const manifest = JSON.parse(
     )
 );
 const FORBIDDEN =
-    /^(?:__proto__|prototype|constructor|password|token|secret|authorization|raw|line|lastEvent|message|lastMessage|parts|fragments|senderInfo|bubble)$/i;
+    /^(?:__proto__|prototype|constructor|password|api_key|access_token|refresh_token|token|secret|authorization|raw|line|lastEvent|message|lastMessage|parts|fragments|senderInfo|bubble)$/i;
 
 /** Refuse chat-bearing fields and credentials inside otherwise valid saved feature state. */
 function validatePayload(value, depth = 0) {
@@ -73,7 +73,7 @@ function featureStateRoutes(db) {
             const entry = byFile.get(req.params.key);
             if (!entry) throw fail(409, 'machine_state_not_synced');
             const authority = await client.query(
-                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature=$2 AND mode='cloud'",
+                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature=$2 AND mode<>'local'",
                 [req.owner.id, entry.feature]
             );
             if (authority.rowCount) throw fail(409, 'feature_cloud_owned');

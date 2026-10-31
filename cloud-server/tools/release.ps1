@@ -1,11 +1,15 @@
-param([switch]$Apply)
+param([switch]$Apply,[switch]$EnableWorker)
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $cloudRoot=Join-Path $projectRoot 'cloud-server'
 $terraformRoot=Join-Path $projectRoot 'terraform'
 . (Join-Path $projectRoot 'database/admin-env.ps1') -Role master
 try {
-    & npm.cmd run build --prefix $cloudRoot
+    & node (Join-Path $cloudRoot 'tools/release-preflight.js')
+    if ($LASTEXITCODE -ne 0) { throw 'Database preflight failed.' }
+    & python (Join-Path $cloudRoot 'tools/build-database.py')
+    if ($LASTEXITCODE -ne 0) { throw 'Administrative SQL bundle build failed.' }
+    & python (Join-Path $cloudRoot 'tools/build.py')
     if ($LASTEXITCODE -ne 0) { throw 'Cloud package build failed.' }
     $artifact=Join-Path $projectRoot 'dist/baby-icb-cloud-server.zip'
     $sha=[Security.Cryptography.SHA256]::Create().ComputeHash([IO.File]::ReadAllBytes($artifact))
@@ -14,12 +18,27 @@ try {
     $outputs=((& terraform @tfOutputArgs) -join [Environment]::NewLine) | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0) { throw 'Terraform outputs unavailable.' }
     $region=if($env:TF_VAR_aws_region){$env:TF_VAR_aws_region}else{'us-east-1'}
-    $key='releases/baby-icb-step1-'+$hex+'.zip'
+    foreach($bundle in Get-ChildItem -LiteralPath (Join-Path $projectRoot 'dist/database-upgrades') -Filter '*.zip' -File) {
+        $bundleHash=[Security.Cryptography.SHA256]::Create().ComputeHash([IO.File]::ReadAllBytes($bundle.FullName))
+        $bundleHex=([BitConverter]::ToString($bundleHash)).Replace('-','').ToLowerInvariant()
+        $bundleKey='database-upgrades/'+$bundle.BaseName+'/'+$bundleHex+'.zip'
+        & aws s3api put-object --region $region --bucket $outputs.activity_artifact_bucket.value --key $bundleKey --body $bundle.FullName --output json | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Administrative SQL bundle upload failed.' }
+    }
+    $key='releases/baby-icb-cloud-'+$hex+'.zip'
     $uploadRaw=& aws s3api put-object --region $region --bucket $outputs.activity_artifact_bucket.value --key $key --body $artifact --output json
     if ($LASTEXITCODE -ne 0) { throw 'Versioned artifact upload failed.' }
     $upload=($uploadRaw -join '') | ConvertFrom-Json
     if (-not $upload.VersionId) { throw 'Immutable S3 version required.' }
-    $configuration=@{activity_api_enabled=$true;activity_database_ready=$true;activity_release=@{key=$key;version_id=$upload.VersionId;sha256=[Convert]::ToBase64String($sha)}}
+    $configFile=Join-Path $terraformRoot 'activity-release.auto.tfvars.json'
+    $previousConfig=if(Test-Path -LiteralPath $configFile){Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json}else{$null}
+    if ($previousConfig) {
+        $history=Join-Path $projectRoot 'backups/releases'
+        [IO.Directory]::CreateDirectory($history) | Out-Null
+        Copy-Item -LiteralPath $configFile -Destination (Join-Path $history ('baby-icb-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-ffff')+'.json'))
+    }
+    $workerEnabled=$EnableWorker.IsPresent -or ($previousConfig -and $previousConfig.feature_worker_enabled -eq $true)
+    $configuration=@{activity_api_enabled=$true;activity_database_ready=$true;feature_worker_enabled=$workerEnabled;activity_release=@{key=$key;version_id=$upload.VersionId;sha256=[Convert]::ToBase64String($sha)}}
     $configuration | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $terraformRoot 'activity-release.auto.tfvars.json') -Encoding ASCII
     $planArgs=@(('-chdir='+$terraformRoot),'plan','-input=false','-no-color','-out=activity-release.tfplan')
     & terraform @planArgs

@@ -18,15 +18,16 @@ function createApp(db, logger = (entry) => console.info(JSON.stringify(entry))) 
         const start = Date.now();
         res.set('Cache-Control', 'no-store');
         res.set('X-Content-Type-Options', 'nosniff');
-        res.on('finish', () =>
+        res.on('finish', () => {
+            if (res.statusCode < 400) return;
             logger({
                 request_id: req.requestId,
                 code: res.statusCode,
                 duration_ms: Date.now() - start,
                 batch_size: Array.isArray(req.body?.records) ? req.body.records.length : 0,
                 ok: res.statusCode < 400
-            })
-        );
+            });
+        });
         next();
     });
     app.get('/healthz', (_req, res) => res.json({ ok: true }));
@@ -57,7 +58,14 @@ function createApp(db, logger = (entry) => console.info(JSON.stringify(entry))) 
                 : error.status && error.code
                 ? error.code
                 : 'service_unavailable';
-        res.status(status).json({ ok: false, code, request_id: req.requestId });
+        res.status(status).json({
+            ok: false,
+            code,
+            request_id: req.requestId,
+            ...(status < 500 && typeof error.detail === 'string'
+                ? { error: error.detail.slice(0, 200) }
+                : {})
+        });
     });
     return app;
 }

@@ -16,7 +16,7 @@ const mDomainValidation = require('./domain/validation');
 const mGiveawayState = require('./giveaway/state');
 const mHttpResponse = require('./http/response');
 const mHttpBody = require('./http/body');
-const mTradeup = require('./tradeup');
+const feed = require('./cloud/state-feed');
 
 // ---------------------------------------------------------------------------
 // CHAT UNICORNS (Baby, 2026-09-29) - allowed chatters get their own unicorn
@@ -89,7 +89,7 @@ function walkerCleanLook(s, src) {
 
 /** Restore walkers state from disk and supply defaults for missing fields. */
 function loadWalkers() {
-    const raw = mStorage.readJson(WALKERS_FILE, {}) || {};
+    const raw = feed.document('walkers.json') || {} || {};
     const s = { ...WALKERS_DEFAULT_SETTINGS, ...(raw.settings || {}) };
     s.enabled = s.enabled !== false;
     s.artFacesLeft = s.artFacesLeft === true;
@@ -139,14 +139,27 @@ function loadWalkers() {
 let walkers = loadWalkers();
 let walkerEvents = []; // recent chat for the overlay: { seq, name, parts, at }
 let walkerSeq = 0;
+let visualOwner = null;
+const observed = new Map();
+/** Refresh cached preferences; chat appearances remain bounded machine-local RAM. */
+function refreshVisuals() {
+    const owner = require('./cloud/session').current()?.account.id || null;
+    if (owner !== visualOwner) {
+        walkerEvents = [];
+        observed.clear();
+        visualOwner = owner;
+        walkerSeq++;
+    }
+    walkers = loadWalkers();
+    for (const [key, person] of observed) {
+        if (Date.parse(person.lastSeen) < Date.now() - 600000) observed.delete(key);
+        else walkers.people[key] = { ...person, ...walkers.people[key] };
+    }
+}
+
 try {
     fs.mkdirSync(WALKERS_ART_DIR, { recursive: true });
 } catch (_error) {}
-
-/** Persist operator changes to the walkers state file. */
-function saveWalkers() {
-    mStorage.writeJson(WALKERS_FILE, { settings: walkers.settings, people: walkers.people });
-}
 
 /** Resolve local walkers artwork to the URL used by its display. */
 function walkerArt() {
@@ -240,6 +253,7 @@ function walkerParts(data) {
 
 // Called for every relayed chat message.
 function walkerChat(name, parts, force) {
+    refreshVisuals();
     name = mDomainValidation.cleanString(name).replace(/^@/, '').slice(0, 40);
     if (!name) return false;
     const key = name.toLowerCase();
@@ -255,7 +269,9 @@ function walkerChat(name, parts, force) {
         known.name = name;
         known.lastSeen = new Date().toISOString();
     }
-    if (!known) saveWalkers(); // remember new chatters so they show on the dashboard list
+
+    observed.set(key, { ...walkers.people[key] });
+    if (observed.size > 400) observed.delete(observed.keys().next().value);
     if (!force && !walkerAllowed(name)) return false;
     walkerEvents.push({ seq: ++walkerSeq, name, parts, at: Date.now() });
     if (walkerEvents.length > 200) walkerEvents = walkerEvents.slice(-200);
@@ -264,6 +280,7 @@ function walkerChat(name, parts, force) {
 
 /** Expose visible walkers and only the chat events newer than the client cursor. */
 function walkerOverlayState(since) {
+    refreshVisuals();
     const art = walkerArt(),
         subArt = walkerSubArt();
     const pick = {};
@@ -303,6 +320,7 @@ function walkerOverlayState(since) {
 
 /** Expose editable walker settings and available artwork for the private dashboard. */
 function walkerAdminState() {
+    refreshVisuals();
     const art = walkerArt();
     const names = new Map();
     for (const p of Object.values(walkers.people)) names.set(p.name.toLowerCase(), p.name);
@@ -342,87 +360,23 @@ function walkerAdminState() {
     };
 }
 
-/** Validate and dispatch walkers API requests, returning client errors for invalid input. */
-
-const createWalkersApi = require('./walkers-api')({
-    get WALKERS_LIMITS() {
-        return WALKERS_LIMITS;
-    },
-
-    get WALKERS_ANIMS() {
-        return WALKERS_ANIMS;
-    },
-
-    get WALKERS_ENTRANCES() {
-        return WALKERS_ENTRANCES;
-    },
-
-    get WALKERS_EXITS() {
-        return WALKERS_EXITS;
-    },
-
-    fs: fs,
-
-    path: path,
-
-    mDomainValidation: mDomainValidation,
-
-    mHttpResponse: mHttpResponse,
-
-    mHttpBody: mHttpBody,
-
-    mTradeup: mTradeup,
-
-    WALKERS_ART_DIR: WALKERS_ART_DIR,
-
-    WALKERS_SUB_ART_DIR: WALKERS_SUB_ART_DIR,
-
-    WALKERS_PERSONAL_DIR: WALKERS_PERSONAL_DIR,
-
-    walkerCleanAnims: walkerCleanAnims,
-
-    get walkerTry() {
-        return walkerTry;
-    },
-
-    set walkerTry(value) {
-        walkerTry = value;
-    },
-
-    walkerCleanLook: walkerCleanLook,
-
-    get walkers() {
-        return walkers;
-    },
-
-    saveWalkers: saveWalkers,
-
-    walkerArt: walkerArt,
-
-    walkerSubArt: walkerSubArt,
-
-    walkerCleanArtRef: walkerCleanArtRef,
-
-    walkerIsSub: walkerIsSub,
-
-    walkerChat: walkerChat,
-
-    walkerOverlayState: walkerOverlayState,
-
-    walkerAdminState: walkerAdminState
-});
-const handleWalkersApi = createWalkersApi.handleWalkersApi;
+/** GET handlers render transient chat locally; persistent controls use the cloud proxy. */
+async function handleWalkersApi(req, res, pathname, method, url) {
+    if (method === 'GET' && pathname === '/api/walkers/state')
+        return mHttpResponse.sendJson(
+            res,
+            200,
+            walkerOverlayState(Number(url.searchParams.get('since')) || 0)
+        );
+    if (method === 'GET' && pathname === '/api/walkers/admin')
+        return mHttpResponse.sendJson(res, 200, walkerAdminState());
+    return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown walker display route.' });
+}
 
 Object.assign(exports, { walkerIsSub, walkerChat, walkerParts, handleWalkersApi });
-
-// Accessors keep replacement state visible to routes and collaborating features.
-Object.defineProperties(exports, {
-    walkers: {
-        enumerable: true,
-        get: () => walkers,
-
-        set: (value) => {
-            walkers = value;
-        }
+Object.defineProperty(exports, 'walkers', {
+    get: () => {
+        refreshVisuals();
+        return walkers;
     }
 });

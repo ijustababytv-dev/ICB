@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { defaults } = require('../../src/domain/sprite-tv');
+const { defaults } = require('../../../cloud-server/src/domain/sprite-tv');
 const source = fs.readFileSync(path.resolve(__dirname, '../../../ui/js/sprite-tv.js'), 'utf8');
 
 /** Drive real overlay code with deterministic timers and queued XHR responses, without a server. */

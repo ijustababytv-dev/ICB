@@ -65,19 +65,23 @@ function intentSpec(context) {
         add(word, 'name');
     for (let index = 1; index <= 7; index++) {
         add('party' + index, 'none');
+        add('show' + index, 'none');
         add('leave' + index, 'none');
     }
     add(context.use('turn-line').publicState().joinWord || 'turn', 'none');
     const teams = context.use('teams').teams;
-    for (const word of [teams.item.command, ...(teams.item.aliases || '').split(/,\s*/)])
+    for (const word of [teams.item.command, ...(teams.item.aliases || '').split(/[\s,]+/)])
         add(word, 'amount');
     for (const item of context.use('hunt').hunt.items)
-        for (const word of [item.command, ...(item.aliases || '').split(/,\s*/)])
+        for (const word of [item.command, ...(item.aliases || '').split(/[\s,]+/)])
             add(word, 'amount');
     for (const event of context.use('party').parties.events)
         for (const role of event.roles || [])
             for (let index = 0; index <= 7; index++)
                 if (role.command) add(role.command + (index || ''), 'name');
+    if (!context.use('sprite-jar').sjCfg().needPrefix)
+        for (const sprite of context.use('sprites').spr.sprites)
+            for (const name of [sprite.id, sprite.name]) add(name.split(/\s+/)[0], 'name');
     let nameSignup = false;
     for (const [module, field] of [
         ['signups/poke', 'sashi'],
@@ -96,7 +100,7 @@ function intentSpec(context) {
 function validIntent(spec, command, args) {
     if (!Array.isArray(args) || args.some((arg) => typeof arg !== 'string')) return false;
     if (command === 'signup_name')
-        return spec.name_signup && args.length === 1 && /^[\p{L}\p{N} _'.-]{1,32}$/u.test(args[0]);
+        return spec.name_signup && args.length === 1 && /^[^\s!<>][^!<>\r\n]{0,31}$/u.test(args[0]);
     const kind = spec.commands[command];
     if (!kind) return false;
     if (kind === 'none') return args.length === 0;
@@ -104,6 +108,11 @@ function validIntent(spec, command, args) {
         return args.length > 0 && args.length <= 20 && args.every((arg) => /^\d{1,3}$/.test(arg));
     if (kind === 'amount')
         return args.length <= 1 && (!args.length || /^[+-]?\d{1,6}$/.test(args[0]));
+    if (kind === 'name')
+        return (
+            args.length <= 1 &&
+            (!args.length || (args[0].length <= 40 && !/[!<>\r\n]/.test(args[0])))
+        );
     return args.length <= 1 && (!args.length || /^[\p{L}\p{N} _'.-]{1,40}$/u.test(args[0]));
 }
 

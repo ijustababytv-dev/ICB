@@ -379,31 +379,8 @@ module.exports = function createModel(context, exports) {
                     }
                     return mHttpResponse.sendJson(res, 200, { ok: true });
                 }
-                const m = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(b.dataUrl || '')
-                );
-                if (!m)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buf = Buffer.from(m[2], 'base64');
-                if (buf.length > 9 * 1024 * 1024)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture is too large.'
-                    });
-                let id =
-                        mDomainValidation
-                            .cleanString(b.name)
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/^-|-$/g, '')
-                            .slice(0, 40) || 'avatar',
-                    n = 2,
-                    base = id;
-                while (avFiles().some((x) => avIdOf(x) === id)) id = `${base}-${n++}`;
-                fs.writeFileSync(path.join(AV_DIR, `${id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`), buf);
+                const file = require('../asset-reference').assetName(fs, AV_DIR, b.asset_ref);
+                const id = avIdOf(file);
                 return mHttpResponse.sendJson(res, 200, { ok: true, id });
             }
             return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Unknown avatars route.' });

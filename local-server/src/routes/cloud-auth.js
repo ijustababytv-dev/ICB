@@ -27,7 +27,8 @@ async function handleCloudAuth(req, res, url) {
         return sendJson(res, 200, {
             ok: true,
             ...collector.status(),
-            configured: !!process.env.ICB_CLOUD_API_URL
+            configured: !!process.env.ICB_CLOUD_API_URL,
+            feed: require('../cloud/state-feed').status()
         });
     }
     if (req.method === 'GET' && url.pathname === '/api/cloud/csrf') {
@@ -49,14 +50,22 @@ async function handleCloudAuth(req, res, url) {
             if (Object.keys(body).some((key) => !['username', 'password'].includes(key)))
                 throw new Error('invalid_login');
             collector.flushCounts();
+            require('../cloud/inputs').flushPresence();
             await session.logout();
             await session.login(process.env.ICB_CLOUD_API_URL, body.username, body.password);
+            const capabilities = await session.call('/v1/features/capabilities');
+            if (capabilities.status !== 200 || capabilities.data.protocol_version !== 2)
+                throw new Error('feature_protocol_required');
             await collector.sync();
-            require('../activity/state-sync').captureAll();
+            await require('../assets/references').syncAssets();
+            await require('../cloud/state-feed').tick(true);
+            require('../cloud/inputs').startSession();
+            require('../reader').forceRescan = true;
             return sendJson(res, 200, { ok: true, ...collector.status() });
         }
         if (req.method === 'POST' && url.pathname === '/api/cloud/logout') {
             collector.flushCounts();
+            require('../cloud/inputs').flushPresence();
             await session.logout();
             return sendJson(res, 200, { ok: true, ...collector.status() });
         }

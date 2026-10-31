@@ -56,6 +56,7 @@ module.exports = function createModel(context, exports) {
             // changes before the next draw. Empty means "use the generic wording".
             const prizeLabel = mGiveawayState.giveaway.display.currentPrizeLabel || '';
             const winnerRecord = {
+                draw_id: require('node:crypto').randomUUID(),
                 username: winnerName,
                 prize,
                 prizeLabel,
@@ -63,6 +64,13 @@ module.exports = function createModel(context, exports) {
                 at: new Date().toISOString()
             };
             mGiveawayState.giveaway.winners.push(winnerRecord);
+            context.draws.push({
+                id: winnerRecord.draw_id,
+                prize,
+                rates: mStorage.clone(mGiveawayState.giveaway.rates),
+                eligibility: pool,
+                result: mStorage.clone(winnerRecord)
+            });
             mGiveawayActivity.logActivity({
                 type: 'winner',
                 username: winnerName,

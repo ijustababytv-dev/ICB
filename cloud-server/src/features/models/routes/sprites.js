@@ -36,6 +36,7 @@ module.exports = function createModel(context, exports) {
             }
             if (pathname === '/api/sprites' && method === 'POST') {
                 const b = await mHttpBody.readBody(req);
+                if (b.importFacts) sprites.sprImportFacts(b.importFacts);
                 if (b.catch && b.catch.id) {
                     const had =
                         !!sprites.spr.caught[
@@ -158,22 +159,11 @@ module.exports = function createModel(context, exports) {
                     sprites.sprSave();
                     return mHttpResponse.sendJson(res, 200, { ok: true });
                 }
-                const m = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(b.dataUrl || '')
+                s.image = require('../../asset-reference').assetName(
+                    fs,
+                    sprites.SPR_ART_DIR,
+                    b.asset_ref
                 );
-                if (!m)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buf = Buffer.from(m[2], 'base64');
-                if (buf.length > 9 * 1024 * 1024)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Picture is too large.'
-                    });
-                s.image = `${s.id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-                fs.writeFileSync(path.join(sprites.SPR_ART_DIR, s.image), buf);
                 sprites.sprSave();
                 return mHttpResponse.sendJson(res, 200, { ok: true, img: sprites.sprImg(s) });
             }

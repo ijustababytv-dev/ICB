@@ -44,15 +44,23 @@ let stderr = '';
 
 function startServer() {
     stderr = '';
-    child = spawn(process.execPath, [path.join(__dirname, '..', '..', 'src', 'index.js')], {
-        env: {
-            ...process.env,
-            ICB_CLEAN_PORT: String(port),
-            ICB_CLEAN_DATA_DIR: temp,
-            ICB_CLEAN_PALIA_LOG_FILE: logFile
-        },
-        stdio: ['ignore', 'pipe', 'pipe']
-    });
+    child = spawn(
+        process.execPath,
+        [
+            '--require',
+            path.join(__dirname, 'cloud-fixture.js'),
+            path.join(__dirname, '..', '..', 'src', 'index.js')
+        ],
+        {
+            env: {
+                ...process.env,
+                ICB_CLEAN_PORT: String(port),
+                ICB_CLEAN_DATA_DIR: temp,
+                ICB_CLEAN_PALIA_LOG_FILE: logFile
+            },
+            stdio: ['ignore', 'pipe', 'pipe']
+        }
+    );
     child.stderr.on('data', (chunk) => {
         stderr += chunk.toString();
     });
@@ -77,15 +85,36 @@ async function waitForHealth() {
     for (let i = 0; i < 50; i += 1) {
         try {
             const response = await fetch(`http://127.0.0.1:${port}/api/health`);
-            if (response.ok) return response.json();
+            if (response.ok) {
+                const state = await fetch(`http://127.0.0.1:${port}/api/state`);
+                if (state.ok) return response.json();
+            }
         } catch (_error) {}
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw new Error(`Server did not start. ${stderr}`);
 }
 
+const revisions = {};
 async function json(pathname, options) {
+    if (options?.method && !['GET', 'HEAD'].includes(options.method)) {
+        const base = `http://127.0.0.1:${port}`;
+        const token = await fetch(base + '/api/cloud/csrf', {
+            headers: { Referer: base + '/control.html' }
+        });
+        const csrf = (await token.json()).csrf;
+        options = {
+            ...options,
+            headers: {
+                ...options.headers,
+                Origin: base,
+                'X-ICB-CSRF': csrf,
+                'X-ICB-Revisions': JSON.stringify(revisions)
+            }
+        };
+    }
     const response = await fetch(`http://127.0.0.1:${port}${pathname}`, options);
+    Object.assign(revisions, JSON.parse(response.headers.get('X-ICB-Revisions') || '{}'));
     return { response, payload: await response.json() };
 }
 

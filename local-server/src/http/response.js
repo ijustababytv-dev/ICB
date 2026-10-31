@@ -6,6 +6,8 @@ function sendJson(res, status, payload) {
     res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'no-store',
+        'X-ICB-Session': String(require('../cloud/session').generation()),
+        ...require('../cloud/browser-revisions').responseHeaders(res.icbPath || ''),
         'Access-Control-Allow-Origin': '*'
     });
     res.end(body);

@@ -7,7 +7,8 @@ async function claimJob(db) {
     return transaction(db, async (client) => {
         const result = await client.query(`SELECT j.owner_id,j.kind,a.reporting_timezone,f.revision
             FROM integration_jobs j JOIN owner_revisions o ON o.owner_id=j.owner_id
-            JOIN accounts a ON a.id=j.owner_id JOIN feature_authority f ON f.owner_id=j.owner_id AND f.feature='steam' AND f.mode='cloud'
+            JOIN accounts a ON a.id=j.owner_id JOIN feature_authority f ON f.owner_id=j.owner_id
+            AND f.feature=CASE WHEN j.kind='maintenance' THEN 'giveaway' ELSE j.kind END AND f.mode='cloud'
             WHERE j.due_at<=now() AND (j.lease_until IS NULL OR j.lease_until<now())
             AND o.active_at>now()-interval '5 minutes' ORDER BY j.due_at LIMIT 1 FOR UPDATE OF j SKIP LOCKED`);
         if (!result.rowCount) return null;

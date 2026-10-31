@@ -120,7 +120,10 @@ function render(d) {
 function timer() {
     if (!S) return;
     if (S.open && S.endsAt) {
-        const left = Math.max(0, Math.round((S.endsAt - Date.now()) / 1000));
+        const left = Math.max(
+            0,
+            Math.round((S.endsAt - (window.ICBClock ? window.ICBClock.now() : Date.now())) / 1000)
+        );
         $('timerText').textContent = `⏱ ${Math.floor(left / 60)}:${String(left % 60).padStart(
             2,
             '0'

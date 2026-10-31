@@ -8,10 +8,15 @@ const path = require('node:path');
 // Feature storage is isolated before importing it. Importing a feature starts no timers or server.
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'icb-giveaway-unit-'));
 process.env.ICB_CLEAN_DATA_DIR = temp;
-const giveaway = require('../../src/giveaway/state');
-const { GIVEAWAY_DEFAULTS } = require('../../src/giveaway/defaults');
+const { createContext } = require('../../../cloud-server/src/features/context');
+let giveaway;
+const {
+    GIVEAWAY_DEFAULTS
+} = require('../../../cloud-server/src/features/models/giveaway/defaults');
 beforeEach(() => {
-    giveaway.giveaway = structuredClone(GIVEAWAY_DEFAULTS);
+    giveaway = createContext({ 'giveaway.json': structuredClone(GIVEAWAY_DEFAULTS) })
+        .initialize()
+        .use('giveaway/state');
 });
 after(() => fs.rmSync(temp, { recursive: true, force: true }));
 

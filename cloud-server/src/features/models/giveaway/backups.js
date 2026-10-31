@@ -79,6 +79,7 @@ module.exports = function createModel(context, exports) {
                 .readdirSync(GIVEAWAY_BACKUP_DIR)
                 .filter((f) => f.endsWith('.json'))
                 .map((f) => {
+                    if (context.backupMetadata[f]) return context.backupMetadata[f];
                     const full = path.join(GIVEAWAY_BACKUP_DIR, f);
                     const stat = fs.statSync(full);
                     let entrants = null,

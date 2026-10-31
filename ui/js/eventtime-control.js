@@ -189,7 +189,7 @@ function pad(n) {
 
 function setDay(add) {
     var tz = $('sourceTz').value,
-        now = new Date(Date.now() + add * 86400000);
+        now = new Date((window.ICBClock ? window.ICBClock.now() : Date.now()) + add * 86400000);
     var p = {};
     new Intl.DateTimeFormat('en-US', {
         timeZone: tz,

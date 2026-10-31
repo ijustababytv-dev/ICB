@@ -7,6 +7,7 @@ CREATE TABLE feature_timers (
     ends_at bigint,
     paused_ms bigint NOT NULL DEFAULT 0,
     status text NOT NULL,
+    completion_id uuid,
     details jsonb NOT NULL,
     PRIMARY KEY(owner_id,feature,id)
 );

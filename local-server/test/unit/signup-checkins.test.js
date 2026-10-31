@@ -1,8 +1,12 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { checkInViewer, setCheckin, resetCheckins } = require('../../src/domain/signup-checkins');
-const createPokeChat = require('../../src/signups/poke-chat');
+const {
+    checkInViewer,
+    setCheckin,
+    resetCheckins
+} = require('../../../cloud-server/src/domain/signup-checkins');
+const createPokeChat = require('../../../cloud-server/src/features/models/signups/poke-chat');
 
 /** Keep roles and manual signups in the fixture so attendance cannot silently erase them. */
 function event() {

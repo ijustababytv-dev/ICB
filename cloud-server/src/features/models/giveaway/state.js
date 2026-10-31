@@ -249,6 +249,9 @@ module.exports = function createModel(context, exports) {
     // present across separate windows does.
     /** Award one earned chat window per active, unblocked viewer, then clear the window. */
     function awardChatWindow() {
+        const occurredAt = new Date(
+            (Date.parse(giveaway.windowStartedAt) || Date.now()) + 600000
+        ).toISOString();
         const activeUsers = Object.keys(giveaway.chatActiveThisWindow).filter((u) => !isBlocked(u));
         for (const username of activeUsers) {
             const entrant = ensureEntrant(username);
@@ -257,6 +260,8 @@ module.exports = function createModel(context, exports) {
             recomputeEntrant(entrant);
             mGiveawayActivity.logActivity({
                 type: 'chat_window',
+                source_id: 'window:' + giveaway.windowStartedAt + ':' + username.toLowerCase(),
+                at: occurredAt,
                 username,
                 unicorns: entrantTotal(entrant) - before
             });

@@ -34,7 +34,7 @@ function renderTickerPage(query) {
     // very next pass without a page reload.
     return `<!doctype html>
 <html lang="en">
-<head>
+<head><script src="/js/client/local-api.js"></script>
 <meta charset="utf-8">
 <title>ijustababyTV ticker</title>
 <style>

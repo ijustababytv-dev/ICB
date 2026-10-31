@@ -11,6 +11,7 @@ const TABLES = new Set([
     'poll_votes',
     'signup_events',
     'signup_entries',
+    'signup_checkins',
     'team_members',
     'hunt_players',
     'resource_progress',

@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const frameRules = require('../../src/domain/stream-frame');
+const frameRules = require('../../../cloud-server/src/domain/stream-frame');
 
 const root = path.resolve(__dirname, '../../..');
 

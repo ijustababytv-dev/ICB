@@ -41,28 +41,8 @@ module.exports = function createModel(context, exports) {
     }
 
     /** Save an uploaded data URL as a real file in assets/turn-line and return its name. */
-    function writePicture(dataUrl, name) {
-        const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-            String(dataUrl || '')
-        );
-        if (!match) throw new Error('Picture must be a PNG, JPG, WEBP, or GIF.');
-        const buffer = Buffer.from(match[2], 'base64');
-        if (buffer.length > MAX_PICTURE_BYTES) throw new Error('Picture is too large (max 8MB).');
-        const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-        const base =
-            String(name || '')
-                .replace(/\.[a-z0-9]+$/i, '')
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '')
-                .slice(0, 40) || 'background';
-        fs.mkdirSync(ART_DIR, { recursive: true });
-        let file = `${base}.${ext}`;
-        // Never overwrite an existing picture; number the new one instead.
-        for (let n = 2; fs.existsSync(path.join(ART_DIR, file)); n += 1)
-            file = `${base}-${n}.${ext}`;
-        fs.writeFileSync(path.join(ART_DIR, file), buffer);
-        return file;
+    function writePicture(reference) {
+        return require('../asset-reference').assetName(fs, ART_DIR, reference);
     }
 
     /** Restore the saved line and settings, filling in anything new with its default. */
@@ -141,6 +121,8 @@ module.exports = function createModel(context, exports) {
         if (body.skip) changed = D.skipCurrent(line) || changed;
         if (body.newRound) {
             D.newRound(line);
+            line.roundId = require('node:crypto').randomUUID();
+            line.roundStartedAt = new Date().toISOString();
             changed = true;
         }
         if (body.clear) {
@@ -159,7 +141,7 @@ module.exports = function createModel(context, exports) {
                 const body = await mHttpBody.readBody(req);
                 mDomainTurnLine.applySettings(line, body);
                 if (body.upload && typeof body.upload === 'object') {
-                    line.bgImage = writePicture(body.upload.data, body.upload.name);
+                    line.bgImage = writePicture(body.upload.asset_ref);
                     line.bgMode = 'image';
                 }
                 dashboardActions(body);

@@ -1,1 +1,1 @@
-GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE giveaway_awards TO icb_service;
+GRANT SELECT, INSERT ON TABLE giveaway_awards TO icb_service;

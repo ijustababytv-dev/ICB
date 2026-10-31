@@ -293,7 +293,7 @@
     function tick() {
         if (!D) return;
         var T = D.timer,
-            now = Date.now() + off,
+            now = (window.ICBClock ? window.ICBClock.now() : Date.now()) + off,
             left = T.status === 'running' ? Math.max(0, T.endsAt - now) : T.left,
             st = T.status;
         if (st === 'running' && left <= 0) st = 'ended';
@@ -330,14 +330,20 @@
 
     function poll() {
         var x = new XMLHttpRequest();
-        x.open('GET', '/api/hunt?t=' + Date.now(), true);
+        x.open(
+            'GET',
+            '/api/hunt?t=' + (window.ICBClock ? window.ICBClock.now() : Date.now()),
+            true
+        );
         x.timeout = 4000;
         x.onreadystatechange = function () {
             if (x.readyState !== 4) return;
             if (x.status === 200) {
                 try {
-                    D = JSON.parse(x.responseText);
-                    off = D.now - Date.now();
+                    var incoming = JSON.parse(x.responseText);
+                    if (!D && incoming.timer.status === 'ended') sparked = true;
+                    D = incoming;
+                    off = D.now - (window.ICBClock ? window.ICBClock.now() : Date.now());
                     if (epoch !== null && epoch !== D.epoch) lastTotals = {};
                     epoch = D.epoch;
                     render();

@@ -1,6 +1,7 @@
 'use strict';
 /** createHuntApi keeps related operations together and reads shared state at call time. */
 module.exports = function createHuntApi(context) {
+    const Date = context.Date || global.Date;
     async function handleHuntApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/hunt' && method === 'GET') {

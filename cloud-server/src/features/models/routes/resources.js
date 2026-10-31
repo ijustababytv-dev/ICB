@@ -76,21 +76,6 @@ module.exports = function createModel(context, exports) {
                     }
                     card.startAt = startAt;
                     card.count = startAt;
-                    try {
-                        const cfg = JSON.parse(
-                            fs.readFileSync(mResources.RESOURCE_CARDS_FILE, 'utf8')
-                        );
-                        const def = (cfg.cards || []).find((c) => c.id === card.id);
-                        if (def) {
-                            def.startAt = startAt;
-                            fs.writeFileSync(
-                                mResources.RESOURCE_CARDS_FILE,
-                                JSON.stringify(cfg, null, 2)
-                            );
-                        }
-                    } catch (_error) {
-                        /* live change still applies even if the config write fails */
-                    }
                 } else if (match[2] === 'adjust' || match[2] === 'set') {
                     if (card.mode === 'lifetime' && mResources.LIFETIME_SOURCE[card.id]) {
                         return mHttpResponse.sendJson(res, 400, {
@@ -188,7 +173,7 @@ module.exports = function createModel(context, exports) {
                 const body = await mHttpBody.readBody(req);
                 if (match[3] === 'set-start') {
                     // Countdown slots only: change this box's batch size and restock it now,
-                    // saved to config/resource-trackers.json so it survives a restart.
+                    // saved in the owner settings so it survives a collector restart.
                     const startAt = Math.trunc(Number(body.startAt));
                     if (slot.mode !== 'countdown' || !Number.isFinite(startAt) || startAt < 0)
                         return mHttpResponse.sendJson(res, 400, {
@@ -197,22 +182,7 @@ module.exports = function createModel(context, exports) {
                         });
                     slot.startAt = startAt;
                     slot.count = startAt;
-                    try {
-                        const cfg = JSON.parse(
-                            fs.readFileSync(mResources.RESOURCE_CARDS_FILE, 'utf8')
-                        );
-                        const def = (cfg.cards || []).find((c) => c.id === card.id);
-                        const defSlot = def && (def.slots || []).find((s) => s.id === slot.id);
-                        if (defSlot) {
-                            defSlot.startAt = startAt;
-                            fs.writeFileSync(
-                                mResources.RESOURCE_CARDS_FILE,
-                                JSON.stringify(cfg, null, 2)
-                            );
-                        }
-                    } catch (_error) {
-                        /* live change still applies even if the config write fails */
-                    }
+
                     mResources.broadcastResourceTrackers();
                     return mHttpResponse.sendJson(res, 200, {
                         ok: true,

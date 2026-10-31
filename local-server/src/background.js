@@ -2,24 +2,54 @@
 
 /** Start feature timers only from the server entry point; return one shutdown operation. */
 function startBackgroundJobs() {
+    const feed = require('./cloud/state-feed');
+    for (const path of [
+        '/api/state',
+        '/api/settings',
+        '/api/live',
+        '/api/resource-trackers',
+        '/api/weekly',
+        '/api/hub',
+        '/api/giveaway/state',
+        '/api/sprite-tv'
+    ])
+        feed.watch(path);
+    const inputs = require('./cloud/inputs');
+    /** Feed and input transport share one lifecycle; neither runs a local business rule. */
+    async function refresh() {
+        await feed.tick();
+        inputs.startSession();
+    }
+
     const timers = [
-        setInterval(require('./giveaway/state').flushChat, 10000),
-        setInterval(require('./activity/state-sync').flush, 10000),
-        setInterval(require('./giveaway/state').awardChatWindow, 10 * 60 * 1000),
-        setInterval(require('./steam').pollSteamIfDue, 5000),
-        setInterval(require('./poll').expirePoll, 1000),
-        setInterval(require('./palia-clock').checkAlarms, 5000),
-        setInterval(require('./countdowns').cdTick, 1000),
-        setInterval(require('./hunt').huntTick, 1000),
-        setInterval(require('./sprites').sprImportCheck, 3000)
+        setInterval(
+            () =>
+                refresh().catch(() =>
+                    require('./activity/collector').noteProblem('cloud_unavailable')
+                ),
+            2000
+        ),
+        setInterval(() => {
+            try {
+                inputs.flushPresence();
+            } catch (_) {
+                require('./activity/collector').noteProblem('presence_checkpoint_failed');
+            }
+        }, 10000)
     ];
+    refresh().catch(() => {});
     for (const timer of timers) timer.unref();
     const stopCollector = require('./activity/collector').start();
+    const stopAssets = require('./assets/references').watchAssets();
     return function stopBackgroundJobs() {
         for (const timer of timers) clearInterval(timer);
-        require('./giveaway/state').flushChat();
-        require('./activity/state-sync').flush();
+        try {
+            inputs.flushPresence();
+        } catch (_) {
+            require('./activity/collector').noteProblem('presence_checkpoint_failed');
+        }
         stopCollector();
+        stopAssets();
     };
 }
 

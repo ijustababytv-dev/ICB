@@ -1,6 +1,7 @@
 'use strict';
 /** createFlowApi keeps related operations together and reads shared state at call time. */
 module.exports = function createFlowApi(context) {
+    const Date = context.Date || global.Date;
     async function handleFtsuApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/flowtree-signup' && method === 'GET')

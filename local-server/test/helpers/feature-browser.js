@@ -8,6 +8,7 @@ async function settle(page, ms = 2300) {
 
 /** Submit mutations only through the isolated test server passed by the harness. */
 async function post(json, route, body) {
+    await json(route);
     const result = await json(route, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,8 +87,16 @@ async function verifySignupPage(page, json, overlay) {
             roles: [],
             add: ['Browser Guest']
         });
-        await settle(page);
-        await page.evaluate('document.querySelector(\'button[title="Check in"]\').click()');
+        await page.evaluate(`new Promise(function(resolve,reject) {
+            var until = Date.now()+7000;
+            function check() {
+                var button=document.querySelector('button[title="Check in"]');
+                if(button) { button.click(); resolve(); }
+                else if(Date.now()>until) reject(new Error('Cloud signup never reached the dashboard.'));
+                else setTimeout(check,100);
+            }
+            check();
+        })`);
         await settle(page, 500);
         assert.equal((await json('/api/sashimi')).payload.checkedIn, 1);
         assert.match(

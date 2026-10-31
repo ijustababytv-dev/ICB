@@ -13,8 +13,38 @@ let active = { account: { id: randomUUID(), timezone: 'America/Chicago' } };
 session.current = () => active;
 
 const collector = require('../../src/activity/collector');
-const giveaway = require('../../src/giveaway/state');
-const activity = require('../../src/giveaway/activity');
+const { createContext } = require('../../../cloud-server/src/features/context');
+const cloud = createContext({}).initialize();
+const giveaway = cloud.use('giveaway/state');
+const feed = require('../../src/cloud/state-feed');
+const inputs = require('../../src/cloud/inputs');
+feed.authority = () => ({ mode: 'cloud', protocol_version: 2, revision: 1 });
+
+feed.document = (file) => (file === 'giveaway.json' ? structuredClone(giveaway.giveaway) : null);
+
+const originalSync = collector.sync;
+collector.sync = async () => {};
+
+const { applyIntent } = require('../../../cloud-server/src/features/inputs');
+const received = new Set();
+/** Test the collector boundary using the real cloud rules; SQL receipt atomicity is tested separately against PostgreSQL. */
+async function deliver() {
+    for (const item of collector
+        .queue()
+        .get()
+        .pending.filter((item) => item.kind === 'feature')) {
+        if (received.has(item.body.operands.source_key)) continue;
+        received.add(item.body.operands.source_key);
+        await applyIntent(
+            cloud,
+            item.body.operands,
+            { query: async () => ({ rowCount: 1 }) },
+
+            { id: active.account.id }
+        );
+    }
+}
+
 const { acceptChat, acceptSupport, handleActivityApi } = require('../../src/routes/activity');
 const chat = require('../../src/neon-chat');
 const { trusted, handleCloudAuth } = require('../../src/routes/cloud-auth');
@@ -70,7 +100,7 @@ test('local credential writes require both the exact local Origin and CSRF token
     assert.equal(trusted({ headers: { origin: 'http://127.0.0.1:8790' } }), false);
 });
 
-test('live chat still reaches Neon Chat and participation, but no persistent file contains its wording', () => {
+test('live chat still reaches Neon Chat and participation, but no persistent file contains its wording', async () => {
     const phrase = 'distinctive-private-phrase';
     const data = {
         platform: 'twitch',
@@ -79,7 +109,8 @@ test('live chat still reaches Neon Chat and participation, but no persistent fil
     };
     acceptChat(data);
     acceptChat(data);
-    giveaway.flushChat();
+    inputs.flushPresence();
+    await deliver();
     collector.flushCounts();
     const queued = collector
         .queue()
@@ -102,54 +133,58 @@ test('live chat still reaches Neon Chat and participation, but no persistent fil
     assert.equal(fs.existsSync(path.join(temp, 'activity')), false);
 });
 
-test('cumulative bits, blocked supporters and chat windows preserve current local ticket rules', () => {
+test('cumulative bits, blocked supporters and chat windows preserve cloud ticket rules', async () => {
     acceptSupport({ type: 'bits', username: 'Guest', amount: 60, source_id: 'cheer-a' });
     acceptSupport({ type: 'bits', username: 'Guest', amount: 50, source_id: 'cheer-b' });
     acceptSupport({ type: 'bits', username: 'Guest', amount: 50, source_id: 'cheer-b' });
+    await deliver();
     assert.equal(giveaway.giveaway.entrants.Guest.counts.bits, 110);
     assert.equal(giveaway.giveaway.entrants.Guest.bitsTickets, 1);
     giveaway.giveaway.blocked = ['Blocked'];
     acceptChat({ source_id: 'blocked-chat', data: { sender: 'Blocked', raw: 'hello' } });
     acceptSupport({ type: 'gifts', username: 'Blocked', count: 3, source_id: 'blocked-gift' });
     assert.equal(giveaway.giveaway.entrants.Blocked, undefined);
+    inputs.flushPresence();
+    await deliver();
     giveaway.awardChatWindow();
     assert.equal(giveaway.giveaway.entrants.Guest.counts.chatWindows, 1);
-    const records = collector
-        .queue()
-        .get()
-        .pending.flatMap((entry) => entry.body.records || []);
     assert.ok(
-        records.some(
-            (record) =>
-                record.type === 'gifts' &&
-                record.viewer.username === 'blocked' &&
-                record.quantity === 3
+        cloud.effects.some(
+            (event) => event.type === 'gifts' && event.username === 'Blocked' && event.count === 3
         )
     );
-    assert.ok(records.some((record) => record.type === 'bits' && record.ticket_delta === 1));
+    assert.ok(cloud.effects.some((event) => event.type === 'bits' && event.unicorns === 1));
 });
 
-test('saved applied-award markers recover after a failed outbox write without awarding twice', () => {
+test('failed durable enqueue cannot mutate tickets or consume the upstream retry identity', async () => {
     const queue = collector.queue();
-    const enqueue = queue.enqueue;
-    queue.enqueue = () => {
+    const enqueue = queue.enqueueFeature;
+    const months = giveaway.giveaway.entrants.Guest.counts.subMonths;
+    queue.enqueueFeature = () => {
         throw new Error('injected disk failure');
     };
 
+    try {
+        assert.throws(
+            () =>
+                acceptSupport({
+                    type: 'sub',
+                    username: 'Guest',
+                    months: 1,
+                    source_id: 'sub-crash'
+                }),
+            /injected disk failure/
+        );
+        assert.equal(giveaway.giveaway.entrants.Guest.counts.subMonths, months);
+    } finally {
+        queue.enqueueFeature = enqueue;
+    }
     acceptSupport({ type: 'sub', username: 'Guest', months: 1, source_id: 'sub-crash' });
-    const saved = JSON.parse(fs.readFileSync(path.join(temp, 'giveaway.json'), 'utf8'));
-    assert.equal(saved.cloudAuditPending.length, 1);
-    const months = saved.entrants.Guest.counts.subMonths;
-    queue.enqueue = enqueue;
-    activity.recover(saved.cloudAuditPending);
-    giveaway.saveGiveaway();
-    activity.recover(saved.cloudAuditPending);
-    giveaway.saveGiveaway();
-    assert.equal(giveaway.giveaway.entrants.Guest.counts.subMonths, months);
-    // Event UUID is stable across recovery, so cloud event receipts suppress cross-batch retries.
-    const records = queue.get().pending.flatMap((entry) => entry.body.records || []);
-    const recovered = records.filter((record) => record.source_id === 'sub-crash');
-    assert.equal(new Set(recovered.map((record) => record.id)).size, 1);
+    acceptSupport({ type: 'sub', username: 'Guest', months: 1, source_id: 'sub-crash' });
+    await deliver();
+    await deliver();
+    assert.equal(giveaway.giveaway.entrants.Guest.counts.subMonths, months + 1);
+    assert.equal(fs.existsSync(path.join(temp, 'giveaway.json')), false);
 });
 
 test('switching accounts never relabels pending activity or mirrors another owner’s feature state', () => {
@@ -174,7 +209,7 @@ test('a competing collector pauses new collection and preserves queued owner-bou
     session.call = async () => ({ status: 409, data: { code: 'collector_in_use' } });
 
     try {
-        await collector.sync();
+        await originalSync();
         assert.equal(collector.canCollect(), false);
         const before = collector.queue().get().pending.length;
         collector.chat({ username: 'AnotherGuest' });

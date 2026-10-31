@@ -228,29 +228,11 @@ module.exports = function createModel(context, exports) {
             }
             // Upload a badge picture: { dataUrl, name } -> adds a new badge with it.
             if (pathname === '/api/poll/image' && method === 'POST') {
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(body.dataUrl || '')
+                const filename = require('../asset-reference').assetName(
+                    fs,
+                    POLL_ART_DIR,
+                    body.asset_ref
                 );
-                if (!match)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 8 * 1024 * 1024)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image is too large (max 8MB).'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = mTradeup.tradeupSlug(
-                    String(body.name || 'badge').replace(/\.[a-z0-9]+$/i, '')
-                );
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (fs.existsSync(path.join(POLL_ART_DIR, filename)))
-                    filename = `${base}-${n++}.${ext}`;
-                fs.writeFileSync(path.join(POLL_ART_DIR, filename), buffer);
                 if (body.addBadge !== false && poll.options.length < 30) {
                     const label = mDomainValidation
                         .cleanString(

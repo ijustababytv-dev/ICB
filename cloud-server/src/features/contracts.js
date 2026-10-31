@@ -5,7 +5,7 @@ const { canonical } = require('../domain/canonical');
 const { fail } = require('../activity/errors');
 
 const PRIVATE =
-    /^(?:__proto__|prototype|constructor|password|token|apiKey|secret|authorization|raw|line|lastEvent|lastMessage|parts|fragments|senderInfo|bubble|cloudAuditPending)$/i;
+    /^(?:__proto__|prototype|constructor|password|api_key|access_token|refresh_token|token|apiKey|secret|authorization|raw|line|lastEvent|lastMessage|parts|fragments|senderInfo|bubble|cloudAuditPending)$/i;
 
 /** Feature state contains intentional settings/semantic entries, never chat transcripts or credentials. */
 function safeValue(value, depth = 0) {
@@ -17,7 +17,15 @@ function safeValue(value, depth = 0) {
     if (value && typeof value === 'object') {
         if (Object.keys(value).length > 12000) throw fail(413, 'feature_too_large');
         for (const [key, child] of Object.entries(value)) {
-            if (PRIVATE.test(key)) throw fail(400, 'private_feature_field');
+            if (
+                PRIVATE.test(key) &&
+                !(
+                    key === 'token' &&
+                    typeof child === 'string' &&
+                    /^itemtype_[a-z0-9_]+$/.test(child)
+                )
+            )
+                throw fail(400, 'private_feature_field');
             safeValue(child, depth + 1);
         }
     }
@@ -30,7 +38,14 @@ function sanitize(value) {
     if (value && typeof value === 'object')
         return Object.fromEntries(
             Object.entries(value)
-                .filter(([key]) => !PRIVATE.test(key) && key !== 'reader')
+                .filter(
+                    ([key, child]) =>
+                        (!PRIVATE.test(key) ||
+                            (key === 'token' &&
+                                typeof child === 'string' &&
+                                /^itemtype_[a-z0-9_]+$/.test(child))) &&
+                        key !== 'reader'
+                )
                 .map(([key, child]) => [key, sanitize(child)])
         );
     return value;
@@ -44,7 +59,8 @@ function command(body) {
         'expected_revision',
         'action',
         'operands',
-        'collector_id'
+        'collector_id',
+        'read_paths'
     ]);
     if (body.protocol_version !== 2) throw fail(409, 'feature_protocol_required');
     uuid(body.command_id);
@@ -52,6 +68,13 @@ function command(body) {
     if (!['request', 'intent', 'game', 'collector_start', 'refresh'].includes(body.action))
         throw fail(400, 'invalid_feature_action');
     if (body.collector_id !== undefined) uuid(body.collector_id);
+    if (
+        body.read_paths !== undefined &&
+        (!Array.isArray(body.read_paths) ||
+            body.read_paths.length > 150 ||
+            body.read_paths.some((path) => typeof path !== 'string' || path.length > 500))
+    )
+        throw fail(400, 'invalid_feature_paths');
     safeValue(body.operands);
     if (Buffer.byteLength(JSON.stringify(body)) > 250000) throw fail(413, 'body_too_large');
     return body;

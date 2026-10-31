@@ -1,6 +1,7 @@
 'use strict';
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
+const acknowledgments = new (require('node:events').EventEmitter)();
 const config = require('../config');
 const session = require('../cloud/session');
 const { createOutbox } = require('./outbox');
@@ -29,6 +30,10 @@ function canCollect(active = session.current()) {
     if (!active) return false;
     if (leaseDenied && leaseOwner === active.account.id) {
         problem = 'collector_in_use';
+        return false;
+    }
+    if (queue().hasRejectedFeature(active.account.id)) {
+        problem = 'quarantined_records';
         return false;
     }
     const allowed = queue().bindOwner(active.account.id);
@@ -63,7 +68,7 @@ function status() {
 }
 
 /** Drop upstream duplicates only when a real source ID exists; never hash message text. */
-function acceptSource(platform, id, type) {
+function acceptSource(platform, id, type, remember = true) {
     const now = Date.now();
     for (const [key, expires] of seen) {
         if (expires <= now) seen.delete(key);
@@ -73,6 +78,7 @@ function acceptSource(platform, id, type) {
     const key =
         String(session.current()?.account.id || '') + ':' + platform + ':' + type + ':' + id;
     if (seen.has(key)) return false;
+    if (!remember) return true;
     seen.set(key, now + 300000);
     if (seen.size > 10000) seen.delete(seen.keys().next().value);
     return true;
@@ -116,6 +122,7 @@ function chat(body) {
             owner_id: owner,
             record: { ...record, source_id: null, message_delta: 1 }
         });
+    return true;
 }
 
 /** Enqueue already normalized minimal events with their original owner. */
@@ -244,7 +251,16 @@ async function sync() {
         if (response.status >= 200 && response.status < 300) {
             if (item.kind === 'activity' && response.data.batch_id !== item.body.batch_id)
                 throw new Error('invalid_acknowledgment');
+            if (item.kind === 'feature') {
+                if (response.data.command_id !== item.body.command_id)
+                    throw new Error('invalid_acknowledgment');
+                const feed = require('../cloud/state-feed');
+                feed.publish(response.data, active.account.id, feed.generation(), {
+                    command: true
+                });
+            }
             queue().acknowledge(item);
+            acknowledgments.emit('ack', { owner_id: item.owner_id, id: item.id, kind: item.kind });
             problem = null;
             failures = 0;
         } else if (response.status === 401) {
@@ -253,6 +269,11 @@ async function sync() {
             throw new Error('cloud_unavailable');
         else {
             queue().quarantine(item, response.data.code || 'batch_rejected');
+            acknowledgments.emit('reject', {
+                owner_id: item.owner_id,
+                id: item.id,
+                code: response.data.code || 'batch_rejected'
+            });
             problem = 'quarantined_records';
         }
     } catch (error) {
@@ -300,7 +321,44 @@ function requireCapacity() {
     }
 }
 
+/** A local interactive relay can await confirmation without changing the sealed input or starting a second sender. */
+function waitForAck(id, owner, timeout = 12000) {
+    const state = queue().lookup(id, owner);
+    if (state.rejected) return Promise.reject(new Error(state.rejected));
+    if (!state.pending) return Promise.resolve(true);
+    return new Promise((resolve, reject) => {
+        let timer;
+        /** Remove listeners on every completion path, including bounded timeout. */
+        function finish(value, error) {
+            clearTimeout(timer);
+            acknowledgments.off('ack', ack);
+            acknowledgments.off('reject', failed);
+            if (error) reject(error);
+            else resolve(value);
+        }
+
+        /** Match the original owner as well as command ID. */
+        function ack(item) {
+            if (item.id === id && item.owner_id === owner) finish(true);
+        }
+
+        /** Rejected inputs remain quarantined for explicit reconciliation. */
+        function failed(item) {
+            if (item.id === id && item.owner_id === owner) finish(false, new Error(item.code));
+        }
+
+        acknowledgments.on('ack', ack);
+        acknowledgments.on('reject', failed);
+        timer = setTimeout(() => finish(false), timeout);
+        timer.unref();
+    });
+}
+
 module.exports = {
+    onAcknowledged: (callback) => acknowledgments.on('ack', callback),
+
+    waitForAck,
+
     status,
     queue,
     chat,

@@ -207,7 +207,8 @@
       "winners",
       "manualLog",
       "windowStartedAt",
-      "jarBaseline"
+      "jarBaseline",
+      "testDraw"
     ]
   },
   {
@@ -446,7 +447,9 @@
       "visible",
       "lastLoginAt",
       "lastResetAt",
-      "updatedAt"
+      "updatedAt",
+      "startAt",
+      "slotStartAt"
     ],
     "progress": [
       "counts",
@@ -703,7 +706,9 @@
       "people"
     ],
     "progress": [
-      "people"
+      "people",
+      "roundId",
+      "roundStartedAt"
     ]
   },
   {
@@ -746,7 +751,9 @@
     "scope": "owner",
     "fields": [
       "schemaVersion",
-      "items"
+      "items",
+      "pools",
+      "whammy"
     ],
     "progress": [
       "items"

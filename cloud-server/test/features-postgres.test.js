@@ -92,8 +92,9 @@ test(
                 { id: other, reporting_timezone: 'America/Chicago' },
                 { after: 0, paths: ['/api/todos'] }
             );
-            assert.deepEqual(otherFeed.documents, {});
-            assert.deepEqual(otherFeed.views, {});
+            assert.deepEqual(otherFeed.documents['todos.json'].daily, []);
+            assert.deepEqual(otherFeed.views['/api/todos'].todos.daily, []);
+            assert.equal(otherFeed.authorities.todos.mode, 'cloud');
             const id = feed.documents['todos.json'].daily[0].id;
             const update = {
                 ...command,
@@ -174,6 +175,25 @@ test(
                 (await pool.query('SELECT bits FROM giveaway_entrants WHERE owner_id=$1', [first]))
                     .rows[0].bits,
                 '110'
+            );
+            await require('./helpers/game-protocol').verifyGameProtocol(pool, db, owner, collector);
+            await require('./helpers/recovery-protocol').verifyRecoveryProtocol(pool, db, owner);
+            await require('./helpers/legacy-fences').verifyLegacyFences(pool, db, owner, collector);
+            await require('./helpers/integration-credentials').verifyCredentials(pool, db, owner);
+            await require('./helpers/feature-rollback').verifyFeatureRollback(
+                pool,
+                db,
+                owner,
+                collector
+            );
+            assert.equal(
+                (
+                    await pool.query(
+                        "SELECT count(*) AS n FROM feature_changes WHERE snapshot<>'{}'::jsonb"
+                    )
+                ).rows[0].n,
+                '0',
+                'Change notifications contain revision markers only, never duplicate feature payload archives.'
             );
         } finally {
             if (service) await service.end();

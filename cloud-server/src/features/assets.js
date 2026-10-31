@@ -6,7 +6,7 @@ const { lockOwner } = require('./repository');
 
 /** Cloud validation sees only safe relative filenames and file metadata, never artwork bytes or PC paths. */
 async function saveAssets(db, owner, body) {
-    fields(body, ['collector_id', 'references']);
+    fields(body, ['collector_id', 'references', 'removed']);
     uuid(body.collector_id);
     if (!Array.isArray(body.references) || body.references.length > 50000)
         throw fail(413, 'too_many_assets');
@@ -24,6 +24,16 @@ async function saveAssets(db, owner, body) {
         integer(item.modified_at, 0, Number.MAX_SAFE_INTEGER);
         integer(item.bytes, 0, 1000000000);
     }
+    if (
+        body.removed !== undefined &&
+        (!Array.isArray(body.removed) ||
+            body.removed.length > 1000 ||
+            body.removed.some(
+                (item) =>
+                    typeof item !== 'string' || item.length > 350 || !item.startsWith('assets/')
+            ))
+    )
+        throw fail(400, 'invalid_asset_reference');
     return transaction(db, async (client) => {
         await lockOwner(client, owner.id);
         const lease = await client.query(
@@ -31,6 +41,11 @@ async function saveAssets(db, owner, body) {
             [owner.id, body.collector_id]
         );
         if (!lease.rowCount) throw fail(409, 'collector_lease_expired');
+        if (body.removed?.length)
+            await client.query(
+                'DELETE FROM asset_references WHERE owner_id=$1 AND relative_path=ANY($2::text[])',
+                [owner.id, body.removed]
+            );
         await client.query(
             `INSERT INTO asset_references(owner_id,relative_path,modified_at,bytes)
             SELECT $1,relative_path,modified_at,bytes FROM jsonb_to_recordset($2::jsonb)

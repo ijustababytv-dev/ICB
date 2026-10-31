@@ -2,6 +2,7 @@
 const { setCheckin, resetCheckins } = require('../../../domain/signup-checkins');
 /** createPokeApi keeps related operations together and reads shared state at call time. */
 module.exports = function createPokeApi(context) {
+    const Date = context.Date || global.Date;
     async function handleSashiApi(req, res, pathname, method) {
         try {
             if (pathname === '/api/sashimi' && method === 'GET')

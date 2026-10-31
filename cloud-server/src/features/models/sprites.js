@@ -71,7 +71,7 @@ module.exports = function createModel(context, exports) {
             popupSec: 8,
             ...(raw || {})
         };
-        if (!raw) {
+        if (!raw || !Array.isArray(raw.sprites)) {
             const seed = mStorage.readJson(SPR_SEED, null);
             if (seed) {
                 d.season = seed.season || d.season;
@@ -116,50 +116,37 @@ module.exports = function createModel(context, exports) {
         return null;
     }
 
-    // Drop-file import (2026-10-18): data/sprites-import.json = { caught: { "jonesy": ["Base","Gold"] } }
-    // is merged in (adds catches only) and renamed to sprites-import.imported-<ms>.json. Checked at
-    // start-up and every 3 s, so catches read from her screenshots can be added while ICB runs.
-    const SPR_IMPORT = path.join(mConfig.DATA_DIR, 'sprites-import.json');
-    /** Apply a pending local sprite import and persist the resulting collection. */
-    function sprImportCheck() {
-        if (!fs.existsSync(SPR_IMPORT)) return;
-        try {
-            const d = mStorage.readJson(SPR_IMPORT, null) || {};
-            let n = 0;
-            for (const [id, vars] of Object.entries(d.caught || {})) {
-                const s =
-                    sprFind(id) ||
-                    spr.sprites.find((x) => x.name.toLowerCase() === String(id).toLowerCase());
-                if (!s) continue;
-                for (const v of Array.isArray(vars) ? vars : []) {
-                    const vv = s.variants.find(
-                        (x) =>
-                            x.toLowerCase() === String(v).toLowerCase() ||
-                            x.split(' ')[0].toLowerCase() === String(v).toLowerCase()
-                    );
-                    if (vv && !spr.caught[sprKey(s.id, vv)]) {
-                        spr.caught[sprKey(s.id, vv)] = Date.now();
-                        n++;
-                    }
-                }
-            }
-            // Optional rarity fixes: { rarity: { "overshield": "Rare" } } (read from the game's card colours).
-            for (const [id, r] of Object.entries(d.rarity || {})) {
-                const s = sprFind(id);
-                if (s && SPR_RARITIES.includes(r) && s.rarity !== r) {
-                    s.rarity = r;
+    /** Apply explicitly imported semantic catches; raw files stay on the collector PC. */
+    function sprImportFacts(d) {
+        require('../../activity/validation').fields(d, ['caught', 'rarity']);
+        let n = 0;
+        for (const [id, vars] of Object.entries(d.caught || {})) {
+            const s =
+                sprFind(id) ||
+                spr.sprites.find((x) => x.name.toLowerCase() === String(id).toLowerCase());
+            if (!s) continue;
+            for (const v of Array.isArray(vars) ? vars : []) {
+                const vv = s.variants.find(
+                    (x) =>
+                        x.toLowerCase() === String(v).toLowerCase() ||
+                        x.split(' ')[0].toLowerCase() === String(v).toLowerCase()
+                );
+                if (vv && !spr.caught[sprKey(s.id, vv)]) {
+                    spr.caught[sprKey(s.id, vv)] = Date.now();
                     n++;
                 }
             }
-            fs.renameSync(
-                SPR_IMPORT,
-                path.join(mConfig.DATA_DIR, `sprites-import.imported-${Date.now()}.json`)
-            );
-            sprSave();
-            console.log(`[sprites] imported ${n} catches`);
-        } catch (error) {
-            console.log('[sprites] import failed:', error.message);
         }
+        // Optional rarity fixes: { rarity: { "overshield": "Rare" } } (read from the game's card colours).
+        for (const [id, r] of Object.entries(d.rarity || {})) {
+            const s = sprFind(id);
+            if (s && SPR_RARITIES.includes(r) && s.rarity !== r) {
+                s.rarity = r;
+                n++;
+            }
+        }
+        sprSave();
+        return n;
     }
 
     /** Count caught variants and completed sprites for the active season. */
@@ -277,7 +264,7 @@ module.exports = function createModel(context, exports) {
 
     Object.assign(exports, { sprCleanVar, sprClean, sprPublic, SPR_RARITIES });
 
-    exports.sprImportCheck = sprImportCheck;
+    exports.sprImportFacts = sprImportFacts;
     context.runtime.register(
         'sprites',
         () => ({ sprPopup }),

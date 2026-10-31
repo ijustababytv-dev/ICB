@@ -6,7 +6,12 @@ function parseIntent(text, spec) {
     if (typeof text !== 'string' || !spec?.commands) return null;
     const input = text.trim().replace(/\s+/g, ' ');
     const match = /^!([a-z0-9_]+)\b\s*(.*)$/i.exec(input);
-    if (!match) return null;
+    if (!match) {
+        const name = input.startsWith('!') ? input.slice(1) : '';
+        return validIntent(spec, 'signup_name', [name])
+            ? { command: 'signup_name', arguments: [name] }
+            : null;
+    }
     const command = match[1].toLowerCase();
     const kind = spec.commands[command];
     let args;
@@ -15,8 +20,12 @@ function parseIntent(text, spec) {
     else if (kind === 'amount') {
         const amount = /^([+-]?\s*\d{1,6})(?:\s|$)/.exec(match[2]);
         args = amount ? [amount[1].replace(/\s/g, '')] : match[2] ? null : [];
-    } else if (kind) args = match[2] ? [match[2].slice(0, 40)] : [];
-    else if (spec.name_signup) {
+    } else if (kind) {
+        const operand = ['page', 'book', 'stickers'].includes(command)
+            ? { '>': 'next', '<': 'back' }[match[2]] || match[2]
+            : match[2];
+        args = operand ? [operand.slice(0, 40)] : [];
+    } else if (spec.name_signup) {
         const name = input.slice(1);
         if (validIntent(spec, 'signup_name', [name]))
             return { command: 'signup_name', arguments: [name] };

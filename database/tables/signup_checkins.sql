@@ -5,5 +5,6 @@ CREATE TABLE signup_checkins (
     event_id text NOT NULL,
     name_key text NOT NULL,
     checked_at timestamptz NOT NULL,
-    PRIMARY KEY(owner_id,feature,event_id,name_key)
+    PRIMARY KEY(owner_id,feature,event_id,name_key),
+    FOREIGN KEY(owner_id,feature,event_id) REFERENCES signup_events(owner_id,feature,id) ON DELETE CASCADE
 );

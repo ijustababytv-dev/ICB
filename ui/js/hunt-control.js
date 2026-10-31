@@ -134,7 +134,7 @@ function two(n) {
 
 function showTimer() {
     if (!D) return;
-    var now = Date.now() + off,
+    var now = (window.ICBClock ? window.ICBClock.now() : Date.now()) + off,
         left = T.status === 'running' ? Math.max(0, T.endsAt - now) : T.left,
         st = T.status;
     if (st === 'running' && left <= 0) st = 'ended';
@@ -411,7 +411,7 @@ function load() {
         .then(function (d) {
             D = d;
             T = d.timer;
-            off = d.now - Date.now();
+            off = d.now - (window.ICBClock ? window.ICBClock.now() : Date.now());
             art = d.art || [];
             $('health').textContent = 'ICB connected';
             $('health').className = 'health';

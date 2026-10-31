@@ -361,6 +361,7 @@ module.exports = function createModel(context, exports) {
     /** Validate and dispatch hunt API requests, returning client errors for invalid input. */
 
     const createHuntApi = require('./hunt-api')({
+        Date: Date,
         fs: fs,
 
         mDomainValidation: mDomainValidation,

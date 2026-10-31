@@ -127,7 +127,7 @@
         if (!C) return;
         var c = C,
             card = $('card'),
-            now = Date.now() + off,
+            now = (window.ICBClock ? window.ICBClock.now() : Date.now()) + off,
             left = 0,
             status = c.status;
         if (status === 'running') {
@@ -171,14 +171,22 @@
 
     function poll() {
         var x = new XMLHttpRequest();
-        x.open('GET', '/api/countdowns?id=' + encodeURIComponent(id) + '&t=' + Date.now(), true);
+        x.open(
+            'GET',
+            '/api/countdowns?id=' +
+                encodeURIComponent(id) +
+                '&t=' +
+                (window.ICBClock ? window.ICBClock.now() : Date.now()),
+            true
+        );
         x.timeout = 4000;
         x.onreadystatechange = function () {
             if (x.readyState !== 4) return;
             if (x.status === 200) {
                 try {
                     var d = JSON.parse(x.responseText);
-                    off = d.now - Date.now();
+                    off = d.now - (window.ICBClock ? window.ICBClock.now() : Date.now());
+                    if (!C && d.countdown && d.countdown.status === 'done') sparked = true;
                     C = d.countdown;
                     apply();
                     tick();

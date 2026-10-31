@@ -2,6 +2,7 @@
 const { checkInViewer } = require('../../../domain/signup-checkins');
 /** createPokeChat keeps related operations together and reads shared state at call time. */
 module.exports = function createPokeChat(context) {
+    const Date = context.Date || global.Date;
     function sashiChat(sender, parts) {
         const twitch = context.mDomainValidation.cleanString(sender).replace(/^@/, '').slice(0, 40);
         if (!twitch) return '';

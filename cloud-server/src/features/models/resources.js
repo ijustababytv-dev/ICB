@@ -54,7 +54,19 @@ module.exports = function createModel(context, exports) {
 
     /** Merge progress by card/slot ID; countdown stocks restart at their configured batch size. */
     function loadResourceTrackers() {
-        const defs = resourceCardDefs();
+        const savedOverrides = mStorage.readJson(RESOURCE_STATE_FILE, {});
+        const defs = resourceCardDefs().map((def) => ({
+            ...def,
+            startAt: savedOverrides.startAt?.[def.id] ?? def.startAt,
+            ...(Array.isArray(def.slots)
+                ? {
+                      slots: def.slots.map((slot) => ({
+                          ...slot,
+                          startAt: savedOverrides.slotStartAt?.[def.id]?.[slot.id] ?? slot.startAt
+                      }))
+                  }
+                : {})
+        }));
         let saved = {};
         try {
             const parsed = JSON.parse(fs.readFileSync(RESOURCE_STATE_FILE, 'utf8'));
@@ -130,7 +142,8 @@ module.exports = function createModel(context, exports) {
             const key = LIFETIME_SOURCE[card.id];
             if (card.mode === 'lifetime' && key) {
                 const value = mState.live.resources ? mState.live.resources[key] : null;
-                card.count = Number.isFinite(Number(value)) ? Number(value) : 0;
+                card.count =
+                    value == null ? null : Number.isFinite(Number(value)) ? Number(value) : 0;
                 card.source = `live.resources.${key}`;
             }
         }
@@ -159,6 +172,23 @@ module.exports = function createModel(context, exports) {
         for (const card of resourceTrackers.cards) visible[card.id] = card.visible !== false;
         mStorage.writeJson(RESOURCE_STATE_FILE, {
             schemaVersion: 1,
+            startAt: Object.fromEntries(
+                resourceTrackers.cards
+                    .filter((card) => card.mode === 'countdown')
+                    .map((card) => [card.id, card.startAt])
+            ),
+            slotStartAt: Object.fromEntries(
+                resourceTrackers.cards
+                    .filter((card) => Array.isArray(card.slots))
+                    .map((card) => [
+                        card.id,
+                        Object.fromEntries(
+                            card.slots
+                                .filter((slot) => slot.mode === 'countdown')
+                                .map((slot) => [slot.id, slot.startAt])
+                        )
+                    ])
+            ),
             counts: resourceTrackers.counts,
             secondaryCounts: resourceTrackers.secondaryCounts,
             slotCounts: resourceTrackers.slotCounts,

@@ -309,30 +309,11 @@ module.exports = function createModel(context, exports) {
             // Upload into the picture library (assets/decor/misc): { dataUrl, name }
             if (pathname === '/api/decor/library' && method === 'POST') {
                 const body = await mHttpBody.readBody(req);
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(body.dataUrl || '')
+                const filename = require('../asset-reference').assetName(
+                    fs,
+                    path.join(DECOR_ART_DIR, 'misc'),
+                    body.asset_ref
                 );
-                if (!match)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 8 * 1024 * 1024)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image is too large (max 8MB).'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = mTradeup.tradeupSlug(
-                    String(body.name || 'art').replace(/\.[a-z0-9]+$/i, '')
-                );
-                const dir = path.join(DECOR_ART_DIR, 'misc');
-                fs.mkdirSync(dir, { recursive: true });
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (fs.existsSync(path.join(dir, filename))) filename = `${base}-${n++}.${ext}`;
-                fs.writeFileSync(path.join(dir, filename), buffer);
                 saveDecor();
                 return mHttpResponse.sendJson(res, 200, { ok: true, key: `misc/${filename}` });
             }
@@ -347,30 +328,11 @@ module.exports = function createModel(context, exports) {
                         error: 'No such effect.'
                     });
                 const body = await mHttpBody.readBody(req);
-                const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/.exec(
-                    String(body.dataUrl || '')
+                const filename = require('../asset-reference').assetName(
+                    fs,
+                    path.join(DECOR_ART_DIR, e.id),
+                    body.asset_ref
                 );
-                if (!match)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image must be a PNG, JPG, WEBP, or GIF.'
-                    });
-                const buffer = Buffer.from(match[2], 'base64');
-                if (buffer.length > 8 * 1024 * 1024)
-                    return mHttpResponse.sendJson(res, 400, {
-                        ok: false,
-                        error: 'Image is too large (max 8MB).'
-                    });
-                const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-                const base = mTradeup.tradeupSlug(
-                    String(body.name || 'art').replace(/\.[a-z0-9]+$/i, '')
-                );
-                const dir = path.join(DECOR_ART_DIR, e.id);
-                fs.mkdirSync(dir, { recursive: true });
-                let filename = `${base}.${ext}`,
-                    n = 2;
-                while (fs.existsSync(path.join(dir, filename))) filename = `${base}-${n++}.${ext}`;
-                fs.writeFileSync(path.join(dir, filename), buffer);
                 saveDecor();
                 return mHttpResponse.sendJson(res, 200, { ok: true, file: filename });
             }
@@ -385,12 +347,11 @@ module.exports = function createModel(context, exports) {
                         error: 'No such effect.'
                     });
                 const name = path.basename(decodeURIComponent(m[2]));
-                const from = path.join(DECOR_ART_DIR, e.id, name);
-                if (!mDomainValidation.DECOR_IMAGE_EXT.test(name) || !fs.existsSync(from))
-                    return mHttpResponse.sendJson(res, 404, { ok: false, error: 'No such image.' });
-                const bin = path.join(DECOR_ART_DIR, e.id, '_removed');
-                fs.mkdirSync(bin, { recursive: true });
-                fs.renameSync(from, path.join(bin, `${Date.now()}-${name}`));
+                if (
+                    !mDomainValidation.DECOR_IMAGE_EXT.test(name) ||
+                    !(await mHttpBody.readBody(req)).local_removed
+                )
+                    throw new Error('Remove artwork through the local server.');
                 e.off = e.off.filter((f) => f !== name);
                 saveDecor();
                 return mHttpResponse.sendJson(res, 200, { ok: true });

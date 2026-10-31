@@ -5,12 +5,13 @@ const contracts = require('./contracts');
 const repository = require('./repository');
 const { descriptor } = require('./catalog');
 const { createContext } = require('./context');
-const { executeRequest, finalizeDue } = require('./executor');
+const { executeRequest, finalizeDue, routeFor, readView } = require('./executor');
 const { commitEffects } = require('./effects');
 const { claimInput, applyIntent, applyGame } = require('./inputs');
 const { loadRecovery, saveRecovery } = require('./recovery');
 const { loadAssets } = require('./assets');
 const { scheduleJobs, integrationFlags } = require('./jobs');
+const { startSession, applyGameBatch } = require('./game-inputs');
 
 /** Commit a retry-stable command, all affected feature rows, revisions and summaries atomically. */
 async function executeCommand(db, owner, feature, input) {
@@ -30,6 +31,7 @@ async function executeCommand(db, owner, feature, input) {
         const authorities = await repository.authorities(client, owner.id);
         const active = authorities.get(feature);
         if (!active || active.mode !== 'cloud') throw fail(409, 'feature_not_migrated');
+        if (active.protocol_version !== 2) throw fail(409, 'feature_protocol_required');
         if (body.action === 'request' && active.revision !== body.expected_revision)
             throw fail(409, 'stale_feature_revision');
         const collected = ['intent', 'game', 'collector_start'].includes(body.action);
@@ -41,6 +43,7 @@ async function executeCommand(db, owner, feature, input) {
         if (collected && !(await claimInput(client, owner, body))) {
             const result = {
                 ok: true,
+                command_id: body.command_id,
                 duplicate: true,
                 revision: Number(clock.revision),
                 feature_revision: active.revision,
@@ -58,7 +61,17 @@ async function executeCommand(db, owner, feature, input) {
         const context = createContext(documents, {
             now: clock.now.getTime(),
             timezone: owner.reporting_timezone,
-            backups: feature === 'giveaway' ? await loadRecovery(client, owner.id) : [],
+            backups:
+                feature === 'giveaway'
+                    ? await loadRecovery(
+                          client,
+                          owner.id,
+                          body.action === 'request' &&
+                              body.operands.path === '/api/giveaway/backups/restore'
+                              ? body.operands.values?.file
+                              : null
+                      )
+                    : [],
             assets: await loadAssets(client, owner.id),
             integrations: await integrationFlags(client, owner.id)
         }).initialize();
@@ -68,12 +81,16 @@ async function executeCommand(db, owner, feature, input) {
             reply = await executeRequest(context, feature, body.operands);
         else if (body.action === 'intent')
             reply = await applyIntent(context, body.operands, client, owner);
-        else if (body.action === 'game') reply = applyGame(context, body.operands);
+        else if (body.action === 'game') reply = await applyGameBatch(client, owner, body, context);
         else if (body.action === 'collector_start') {
-            context.use('resources').resetCountdownStock();
-            context.use('tradeup').resetBoard();
-            reply = { status: 200, payload: { ok: true } };
+            reply = await startSession(client, owner, body, context);
         } else throw fail(400, 'unsupported_feature_action');
+        const views = {};
+        for (const path of body.read_paths || []) {
+            const requested = routeFor(path).route[0];
+            if (authorities.get(requested)?.mode === 'cloud')
+                views[path] = contracts.sanitize(await readView(context, requested, path));
+        }
         const revision = await repository.saveChanges(
             client,
             owner.id,
@@ -82,10 +99,26 @@ async function executeCommand(db, owner, feature, input) {
             authorities
         );
         await commitEffects(client, owner, context.effects);
+        await require('./display-events').captureDisplayEvents(client, owner.id, context, revision);
         await saveRecovery(client, owner.id, context, revision);
         await scheduleJobs(client, owner.id, context);
+        for (const draw of context.draws)
+            await client.query(
+                'INSERT INTO giveaway_draws(owner_id,id,command_id,revision,prize,rates,eligibility,result) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb)',
+                [
+                    owner.id,
+                    draw.id,
+                    body.command_id,
+                    revision,
+                    draw.prize,
+                    JSON.stringify(draw.rates),
+                    JSON.stringify(draw.eligibility),
+                    JSON.stringify(draw.result)
+                ]
+            );
         const result = {
             ok: true,
+            command_id: body.command_id,
             revision,
             feature_revision: context.dirty.has(descriptor(feature).file)
                 ? revision
@@ -102,8 +135,14 @@ async function executeCommand(db, owner, feature, input) {
         );
         return {
             ...result,
+            ...(feature === 'live' && body.action === 'request'
+                ? { reader_event: context.use('state').live.reader?.lastEvent || null }
+                : {}),
+            views,
+            authorities: Object.fromEntries(authorities),
+            intents: require('./intent-spec').intentSpec(context),
             documents: Object.fromEntries(
-                [...context.dirty]
+                (body.action === 'request' ? Object.keys(context.documents) : [...context.dirty])
                     .filter(
                         (file) =>
                             require('./catalog').byFile.has(file) &&
@@ -156,12 +195,12 @@ async function importFeature(db, owner, feature, body) {
             [owner.id, feature, revision]
         );
         await client.query(
-            'INSERT INTO feature_migrations(owner_id,feature,source_sha256,cutover_at,input_watermark,revision) VALUES($1,$2,$3,now(),$4,$5)',
-            [owner.id, feature, body.source_sha256, body.input_watermark, revision]
+            'INSERT INTO feature_migrations(owner_id,feature,source_sha256,cutover_at,input_watermark,revision,migration_id) VALUES($1,$2,$3,now(),$4,$5,$6)',
+            [owner.id, feature, body.source_sha256, body.input_watermark, revision, body.command_id]
         );
         await client.query(
             'INSERT INTO feature_changes(owner_id,revision,feature,snapshot) VALUES($1,$2,$3,$4::jsonb)',
-            [owner.id, revision, feature, JSON.stringify(payload)]
+            [owner.id, revision, feature, '{}']
         );
         await client.query('UPDATE owner_revisions SET revision=$2 WHERE owner_id=$1', [
             owner.id,
