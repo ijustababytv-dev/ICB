@@ -36,6 +36,8 @@
 
 ## Improvements
 
+- 2026-10-31: Removed Step 1 verification, acceptance, and prerequisite tasks from the ignored Step 2 plan; retained implementation context, feature inventory, and Step 2 regression testing.
+
 - 2026-10-31: Reviewed Step 2 against today's deployed icb schema, per-object SQL layout, existing authentication/reporting, recovery snapshots, outbox, and AWS limits. Reused completed foundations and preserved the Step 1 acceptance gate; no runtime or AWS changes.
 
 - 2026-10-31: Clarified Step 1 implementation/deployment completion versus pending local cutover, real-stream acceptance, and usage/cost measurements. Kept Step 2 gated on that acceptance.
