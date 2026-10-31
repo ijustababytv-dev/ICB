@@ -26,6 +26,8 @@
 
 ## Improvements
 
+- 2026-10-31: Completed the Step 1 source-folder migration into local-server/ and ui/, with cloud-server/ reserved for the API. Preserved public URLs, live data/artwork, launchers, desktop widgets, bridge cursor, and Cloudinary image IDs. Verified 179 unit tests and 28 isolated browser pages; E2E retains its nine existing missing-artwork failures.
+
 - 2026-10-31: Verified RDS password login over certificate-checked TLS 1.3, rejection of unencrypted connections, and a no-change Terraform plan. Preserved private Terraform state separately from Git. All 16 Terraform and 171 unit tests pass; E2E still reports nine missing artwork files, with all remaining integration checks passing.
 
 - 2026-10-31: Enforced baby-icb- AWS resource names, including RDS, IAM policies, API stage, log group, and snapshots; added naming regression checks. No AWS changes applied.

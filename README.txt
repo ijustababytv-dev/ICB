@@ -13,7 +13,7 @@ Use the tracker's Download backup (.json) and Import backup controls to transfer
 
 CONTENTS
 - html/Aniimo Tracker.html: the offline tracker page.
-- js/client/aniimo-tracker.js and css/aniimo-tracker.css: its local script and stylesheet.
+- ui/js/aniimo-tracker.js and css/aniimo-tracker.css: its local script and stylesheet.
 Keep these folders together when copying the portable tracker.
 - Launch Aniimo Tracker.bat: opens it in an app-style window on Windows with Edge or Chrome.
 

@@ -11,7 +11,7 @@ This README is the overview and quick start. Operating and recovery procedures a
 All ICB resource tracker skins are **2048 × 768 px, aspect ratio 8:3**, with the live value box left **blank** in the artwork — ICB renders the number on top at runtime.
 
 - Specification: [docs/ICB-TRACKER-SKIN-STANDARD.md](docs/ICB-TRACKER-SKIN-STANDARD.md)
-- Source of truth: [config/tracker-skin-standard.json](config/tracker-skin-standard.json), served at `/api/tracker-skin-standard`
+- Source of truth: [local-server/config/tracker-skin-standard.json](local-server/config/tracker-skin-standard.json), served at `/api/tracker-skin-standard`
 - Layout guide: [docs/tracker-skin-template.svg](docs/tracker-skin-template.svg)
 
 ## Start and operate ICB
@@ -83,7 +83,7 @@ For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in t
 
 ## Source layout and images
 
-The server starts at `js/server/index.js`. HTML is in `html/`, scripts in `js/`, styles in `css/`, and local extracted images in `images/embedded/`. Operator artwork remains in the ignored `assets/` folder. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+The server starts at `local-server/src/index.js`. HTML is in `html/`, scripts in `js/`, styles in `css/`, and local extracted images in `ui/images/embedded/`. Operator artwork remains in the ignored `assets/` folder. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
 
 The pre-commit hook and source-policy checks enforce the file limits and layout defined in `RULES.md`. Never restore root `server.js`; add features in focused modules.
 

@@ -12,7 +12,7 @@ It is intentionally separate from the legacy `C:\Users\mrsch\Documents\ChatGPT\I
 
 ## Source and tests (2026-10-22)
 
-Start with the existing batch launchers or `npm start` (`js/server/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
+Start with the existing batch launchers or `npm start` (`local-server/src/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
 
 The existing `assets/resources/poke_bowl.png` file is missing in this checkout. The E2E suite reports that missing artwork after completing its remaining checks. Restoring the original file resolves that asset prerequisite.
 
@@ -237,7 +237,7 @@ If reconciliation has not been completed, enter all three current in-game totals
 | Value box position | Directly underneath the resource title |
 | Default status | Required for future standard resource trackers unless Baby explicitly overrides it |
 
-The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `js/test/e2e.js` asserts the standard, so it cannot be changed silently.
+The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`local-server/config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `local-server/test/e2e.js` asserts the standard, so it cannot be changed silently.
 
 Two rules worth repeating here because they are the easy ones to get wrong:
 
@@ -256,7 +256,7 @@ Corner radius 64. Both zones centred on x = 1024. Keep key text and artwork insi
 
 **Value boxes are per-skin.** The zone table above is design guidance for new artwork. Each real card declares its own value box in `skins.cards[].valueBox` in the config, measured from the artwork and verified visually; ICB renders the live value into whichever card is showing. Cards do not need matching box positions — that was attempted and abandoned because image generation cannot hit pixel targets. Still mandatory per card: canvas exactly 2048 × 768, blank value box, PNG with transparent corners.
 
-Use the current skin configuration and `config/resource-trackers.json` for card mappings and local artwork paths. Do not depend on an old desktop folder or a historical card count.
+Use the current skin configuration and `local-server/config/resource-trackers.json` for card mappings and local artwork paths. Do not depend on an old desktop folder or a historical card count.
 
 A layout guide at true master size is provided at `docs/tracker-skin-template.svg` — open it in a browser or art tool as a reference. It is a guide, not a skin.
 
@@ -286,6 +286,6 @@ Any MCP, Streamer.bot, Discord, or scene-control integration must be a separate 
 
 Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`; re-read them after another contributor makes changes. `CLAUDE.md` contains pointers only. The handbook is a historical method record.
 
-Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `js/server/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
+Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `local-server/src/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
 
 After any changes, run `npm run check:structure`, `npm run format:check`, `npm run test:unit`, and `npm run test:e2e`; run `npm run test:browser` after browser changes. Tests use temporary state and port 8791. Do not restart the live server or control the user's desktop for verification. Record failures honestly, update `UPDATES.md`, then commit and push the coherent project work.

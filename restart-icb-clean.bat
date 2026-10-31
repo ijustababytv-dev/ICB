@@ -34,7 +34,7 @@ if defined FOUND (
 
 rem --- start the new one --------------------------------------------------
 echo  Starting ICB Clean...
-start "ICB Clean Server" /min cmd /c "node js\server\index.js"
+start "ICB Clean Server" /min cmd /c "node local-server\src\index.js"
 
 for /l %%N in (1,1,25) do (
   powershell -NoProfile -Command "try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8790/api/health -TimeoutSec 1; if($r.StatusCode -eq 200){exit 0} } catch {} ; exit 1" >nul 2>nul

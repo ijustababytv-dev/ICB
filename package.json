@@ -4,19 +4,19 @@
   "private": true,
   "description": "Clean-room IJUSTABABY command center and read-only stream overlay",
   "scripts": {
-    "check:structure": "node js/tools/check-source.js",
-    "setup:hooks": "node js/tools/install-hooks.js",
-    "prepare": "node js/tools/install-hooks.js",
-    "start": "node js/server/index.js",
+    "check:structure": "node tools/check-source.js",
+    "setup:hooks": "node tools/install-hooks.js",
+    "prepare": "node tools/install-hooks.js",
+    "start": "node local-server/src/index.js",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "node --test js/test/unit/*.test.js",
-    "test:e2e": "node js/test/e2e.js",
-    "test:browser": "node js/test/browser.js",
-    "images:plan": "node js/tools/cloudinary-sync.js --dry-run",
-    "images:sync": "node js/tools/cloudinary-sync.js --upload",
-    "images:download:plan": "node js/tools/cloudinary-download.js --dry-run",
-    "images:download": "node js/tools/cloudinary-download.js --download",
-    "format:js": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node js/tools/format-javascript.js --write\"",
-    "format:check": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node js/tools/format-javascript.js --check\""
+    "test:unit": "node --test local-server/test/unit/*.test.js",
+    "test:e2e": "node local-server/test/e2e.js",
+    "test:browser": "node ui/test/browser.js",
+    "images:plan": "node local-server/tools/cloudinary-sync.js --dry-run",
+    "images:sync": "node local-server/tools/cloudinary-sync.js --upload",
+    "images:download:plan": "node local-server/tools/cloudinary-download.js --dry-run",
+    "images:download": "node local-server/tools/cloudinary-download.js --download",
+    "format:js": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node tools/format-javascript.js --write\"",
+    "format:check": "npx --yes --package prettier@2.8.4 --package acorn@8.12.1 -c \"node tools/format-javascript.js --check\""
   }
 }

@@ -48,6 +48,6 @@ The original upload contained **274 images: 272 from `assets/`, one from `images
 
 No scheduled job is installed. Run the sync after adding or changing artwork. Uploading does not alter local files, tracker counts, or overlay URLs.
 
-Implementation: `js/tools/cloudinary-plan.js` contains upload selection and comparison rules; `js/tools/cloudinary-sync.js` handles Cloudinary requests and uploads. `js/tools/cloudinary-download-plan.js` validates download paths and compares contents; `js/tools/cloudinary-download.js` writes verified images and backups. Unit tests use isolated files and mocked requests; they never upload test images to the real account.
+Implementation: `local-server/tools/cloudinary-plan.js` contains upload selection and comparison rules; `local-server/tools/cloudinary-sync.js` handles Cloudinary requests and uploads. `local-server/tools/cloudinary-download-plan.js` validates download paths and compares contents; `local-server/tools/cloudinary-download.js` writes verified images and backups. Unit tests use isolated files and mocked requests; they never upload test images to the real account.
 
 API references: [Cloudinary Admin API](https://cloudinary.com/documentation/admin_api), [Upload API](https://cloudinary.com/documentation/image_upload_api_reference), [authentication signatures](https://cloudinary.com/documentation/authentication_signatures).

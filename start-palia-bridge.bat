@@ -16,7 +16,7 @@ rem  gained amount, so this window title must stay unique/unchanged)
 powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -like '*palia-log-bridge.js*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>nul
 
 echo Starting Palia log bridge...
-start "Palia Log Bridge" /min cmd /c "node js\bridge\palia-log-bridge.js"
+start "Palia Log Bridge" /min cmd /c "node local-server\bridge\palia-log-bridge.js"
 
 echo.
 echo The bridge is now tailing your Palia.log in the background and will

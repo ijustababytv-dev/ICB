@@ -7,7 +7,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-start "ICB Clean Server" /min cmd /c "node js\server\index.js"
+start "ICB Clean Server" /min cmd /c "node local-server\src\index.js"
 for /l %%N in (1,1,20) do (
   powershell -NoProfile -Command "try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8790/api/health -TimeoutSec 1; if($r.StatusCode -eq 200){exit 0} } catch {} ; exit 1" >nul 2>nul
   if not errorlevel 1 goto ready
