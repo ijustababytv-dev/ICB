@@ -6,6 +6,8 @@ const { collectorRoutes } = require('./collectors');
 const { ingestRoutes } = require('./ingest');
 const { reportRoutes } = require('./reports');
 const { featureStateRoutes } = require('./feature-state');
+const { featureRoutes } = require('../features/router');
+const { integrationRoutes } = require('../features/integrations');
 
 /** Construct Express independently of the listener for loopback and database integration tests. */
 function createApp(db, logger = (entry) => console.info(JSON.stringify(entry))) {
@@ -35,6 +37,8 @@ function createApp(db, logger = (entry) => console.info(JSON.stringify(entry))) 
     app.use('/v1/activity', ingestRoutes(db));
     app.use('/v1/reports', reportRoutes(db));
     app.use('/v1/state', featureStateRoutes(db));
+    app.use('/v1/features', featureRoutes(db));
+    app.use('/v1/integrations', integrationRoutes(db));
     app.use((_req, res) => res.status(404).json({ ok: false, code: 'not_found' }));
     app.use((error, req, res, _next) => {
         const status =

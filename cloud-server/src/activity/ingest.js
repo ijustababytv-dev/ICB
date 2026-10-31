@@ -6,21 +6,7 @@ const { transaction } = require('./db');
 const { verifyCollector } = require('./collectors');
 const bulk = require('./bulk');
 const { fail } = require('./errors');
-
-/** Canonicalize JSON keys so equivalent key order does not cause false receipt conflicts. */
-function canonical(value) {
-    if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
-    if (value && typeof value === 'object')
-        return (
-            '{' +
-            Object.keys(value)
-                .sort()
-                .map((key) => JSON.stringify(key) + ':' + canonical(value[key]))
-                .join(',') +
-            '}'
-        );
-    return JSON.stringify(value);
-}
+const { canonical } = require('../domain/canonical');
 
 /** Commit receipts, event deduplication, and summaries together before returning an acknowledgment. */
 async function ingest(db, owner, input) {
@@ -40,11 +26,18 @@ async function ingest(db, owner, input) {
             if (previous.rows[0].digest !== digest) throw fail(409, 'batch_content_changed');
             return { ok: true, batch_id: body.batch_id, duplicate: true };
         }
-        await verifyCollector(client, owner, body);
         // Serialize by owner to avoid summary/viewer deadlocks across concurrently delivered batches.
         await client.query("SELECT pg_advisory_xact_lock(hashtextextended('icb-owner:' || $1,0))", [
             owner.id
         ]);
+        await verifyCollector(client, owner, body);
+        if (body.records.some((record) => record.type !== 'chat_count')) {
+            const authority = await client.query(
+                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature='giveaway' AND mode='cloud'",
+                [owner.id]
+            );
+            if (authority.rowCount) throw fail(409, 'legacy_award_writer_retired');
+        }
         const records = await bulk.novelRecords(client, owner.id, body.records);
         const viewerId = await bulk.viewers(client, owner.id, records);
         await bulk.events(client, owner.id, records, viewerId);

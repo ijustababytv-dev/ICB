@@ -6,6 +6,7 @@ const { createHash } = require('node:crypto');
 const { fields, uuid, integer } = require('./validation');
 const { transaction } = require('./db');
 const { fail } = require('./errors');
+const { byFile } = require('../features/catalog');
 const manifest = JSON.parse(
     fs.readFileSync(
         path.join(
@@ -65,6 +66,17 @@ function featureStateRoutes(db) {
         if (!Number.isFinite(at) || at > Date.now() + 300000) throw fail(400, 'invalid_timestamp');
         const hash = createHash('sha256').update(JSON.stringify(req.body.payload)).digest('hex');
         await transaction(db, async (client) => {
+            await client.query(
+                "SELECT pg_advisory_xact_lock(hashtextextended('icb-owner:' || $1,0))",
+                [req.owner.id]
+            );
+            const entry = byFile.get(req.params.key);
+            if (!entry) throw fail(409, 'machine_state_not_synced');
+            const authority = await client.query(
+                "SELECT 1 FROM feature_authority WHERE owner_id=$1 AND feature=$2 AND mode='cloud'",
+                [req.owner.id, entry.feature]
+            );
+            if (authority.rowCount) throw fail(409, 'feature_cloud_owned');
             const lease = await client.query(
                 'SELECT collector_id FROM collector_leases WHERE owner_id=$1 AND expires_at>now() FOR UPDATE',
                 [req.owner.id]

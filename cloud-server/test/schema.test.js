@@ -30,7 +30,17 @@ test('every table and standalone index has its own named, ordered source file', 
     const manifest = definition();
     const tables = manifest.objects.filter((file) => file.startsWith('tables/'));
     const indexes = manifest.objects.filter((file) => file.startsWith('indexes/'));
-    assert.equal(tables.length, 19);
+    const baseline = JSON.parse(
+        fs.readFileSync(path.join(DATABASE_ROOT, 'baselines/005.json'), 'utf8')
+    );
+    const added = JSON.parse(
+        fs.readFileSync(path.join(DATABASE_ROOT, 'upgrades/006-feature-core.json'), 'utf8')
+    );
+    assert.equal(baseline.objects.filter((file) => file.startsWith('tables/')).length, 19);
+    assert.equal(
+        tables.length,
+        19 + added.objects.filter((item) => item.file.startsWith('tables/')).length
+    );
     assert.equal(indexes.length, 12);
     for (const [directory, pattern] of [
         ['tables', /CREATE TABLE\s+([a-z0-9_]+)/g],
@@ -65,7 +75,7 @@ test('every table and standalone index has its own named, ordered source file', 
         /CREATE SCHEMA IF NOT EXISTS icb AUTHORIZATION icb_migrator/
     );
     // Fresh object definitions cover the original schema plus its namespace move.
-    assert.equal(Object.keys(manifest.covers).length, 5);
+    assert.equal(Object.keys(manifest.covers).length, 6);
     for (const file of fs
         .readdirSync(path.join(DATABASE_ROOT, 'migrations'))
         .filter((name) => name.endsWith('.sql')))

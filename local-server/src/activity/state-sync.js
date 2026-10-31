@@ -5,6 +5,7 @@ const { createHash } = require('node:crypto');
 const config = require('../config');
 const session = require('../cloud/session');
 const collector = require('./collector');
+const { byFile } = require('../../../cloud-server/src/features/catalog');
 const manifest = JSON.parse(
     fs.readFileSync(path.join(config.APP_DIR, 'database/state-manifest.json'), 'utf8')
 );
@@ -45,6 +46,11 @@ function flush() {
     const active = session.current();
     if (!active || !collector.canCollect(active)) return;
     for (const key of dirty) {
+        const entry = byFile.get(key);
+        if (!entry || require('../cloud/state-feed').authority(entry.feature)?.mode === 'cloud') {
+            dirty.delete(key);
+            continue;
+        }
         const file = path.join(config.DATA_DIR, key);
         if (!fs.existsSync(file)) {
             dirty.delete(key);

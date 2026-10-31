@@ -1,0 +1,773 @@
+[
+  {
+    "file": "aniimo-dex.json",
+    "feature": "aniimo-dex",
+    "module": "aniimo",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "title",
+      "chat",
+      "popupSec",
+      "lookupSec",
+      "showElements",
+      "accent",
+      "panelColor",
+      "panelOpacity",
+      "roster",
+      "checked",
+      "recent",
+      "seq"
+    ],
+    "progress": [
+      "roster",
+      "checked",
+      "recent"
+    ]
+  },
+  {
+    "file": "avatars.json",
+    "feature": "avatars",
+    "module": "avatars",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "maxAvatars",
+      "size",
+      "speed",
+      "bubbles",
+      "bubbleSec",
+      "showNames",
+      "textSize",
+      "bottom",
+      "leftEdge",
+      "rightEdge",
+      "idleMin",
+      "ignore",
+      "sayCmds",
+      "pickCmd",
+      "colors",
+      "onlyCmdShow",
+      "subOn",
+      "subMsg",
+      "followOn",
+      "followMsg",
+      "raidOn",
+      "raidMsg",
+      "bitsOn",
+      "bitsMsg",
+      "bounceAllOnSub",
+      "disabled",
+      "assign",
+      "epoch"
+    ],
+    "progress": [
+      "assign"
+    ]
+  },
+  {
+    "file": "beanburger-signup.json",
+    "feature": "beanburger-signup",
+    "module": "signups/burger",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "open",
+      "live",
+      "seq",
+      "font",
+      "cols",
+      "title",
+      "max",
+      "ignore",
+      "accent",
+      "panelColor",
+      "panelOpacity",
+      "showZones",
+      "showCountdown",
+      "rseq",
+      "onDemand",
+      "showSec",
+      "showOnSignup",
+      "zones",
+      "events"
+    ],
+    "progress": [
+      "events"
+    ]
+  },
+  {
+    "file": "cloudinary-upload-manifest.json",
+    "feature": "cloudinary-upload-manifest",
+    "scope": "machine",
+    "reason": "Local filesystem/provider inventory or desktop window placement."
+  },
+  {
+    "file": "countdowns.json",
+    "feature": "countdowns",
+    "module": "countdowns",
+    "scope": "owner",
+    "fields": [
+      "list"
+    ],
+    "progress": [
+      "list"
+    ]
+  },
+  {
+    "file": "decor.json",
+    "feature": "decor",
+    "module": "decor",
+    "scope": "owner",
+    "fields": [
+      "rev",
+      "effects",
+      "presets"
+    ],
+    "progress": [
+      "effects",
+      "presets"
+    ]
+  },
+  {
+    "file": "desktop-widgets.json",
+    "feature": "desktop-widgets",
+    "scope": "machine",
+    "reason": "Local filesystem/provider inventory or desktop window placement."
+  },
+  {
+    "file": "eventtime.json",
+    "feature": "eventtime",
+    "module": "event-time",
+    "scope": "owner",
+    "fields": [
+      "title",
+      "subtitle",
+      "date",
+      "time",
+      "sourceTz",
+      "at",
+      "visible",
+      "showCountdown",
+      "layout",
+      "zones"
+    ],
+    "progress": []
+  },
+  {
+    "file": "flowtree-signup.json",
+    "feature": "flowtree-signup",
+    "module": "signups/flow",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "open",
+      "live",
+      "seq",
+      "font",
+      "cols",
+      "title",
+      "max",
+      "ignore",
+      "accent",
+      "panelColor",
+      "panelOpacity",
+      "showZones",
+      "showCountdown",
+      "rseq",
+      "onDemand",
+      "showSec",
+      "showOnSignup",
+      "zones",
+      "events"
+    ],
+    "progress": [
+      "events"
+    ]
+  },
+  {
+    "file": "giveaway.json",
+    "feature": "giveaway",
+    "module": "giveaway/state",
+    "scope": "owner",
+    "fields": [
+      "windowStartedAt",
+      "entrants",
+      "chatActiveThisWindow",
+      "winners",
+      "manualLog",
+      "rates",
+      "jarBaseline",
+      "blocked",
+      "display"
+    ],
+    "progress": [
+      "entrants",
+      "chatActiveThisWindow",
+      "winners",
+      "manualLog",
+      "windowStartedAt",
+      "jarBaseline"
+    ]
+  },
+  {
+    "file": "hub.json",
+    "feature": "hub",
+    "module": "hub",
+    "scope": "owner",
+    "fields": [
+      "order",
+      "startup",
+      "custom"
+    ],
+    "progress": []
+  },
+  {
+    "file": "hunt.json",
+    "feature": "hunt",
+    "module": "hunt",
+    "scope": "owner",
+    "fields": [
+      "title",
+      "subtitle",
+      "visible",
+      "joinOpen",
+      "scoring",
+      "lockTeams",
+      "ignore",
+      "teams",
+      "items",
+      "players",
+      "seq",
+      "timer",
+      "stopAtEnd",
+      "look",
+      "epoch"
+    ],
+    "progress": [
+      "players",
+      "timer",
+      "log"
+    ]
+  },
+  {
+    "file": "live.json",
+    "feature": "live",
+    "module": "state",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "resources",
+      "session",
+      "reader",
+      "reconciliation",
+      "updatedAt",
+      "migration"
+    ],
+    "progress": [
+      "resources",
+      "session",
+      "reconciliation"
+    ]
+  },
+  {
+    "file": "neonchat.json",
+    "feature": "neonchat",
+    "module": "neon-chat",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "showFrame",
+      "frameOnlyWithChat",
+      "showTitle",
+      "title",
+      "streamerName",
+      "textSize",
+      "maxMessages",
+      "fadeSec",
+      "glow",
+      "bgColor",
+      "bgOpacity",
+      "hueShift",
+      "nameFont",
+      "hideCommands",
+      "hideMe",
+      "hideNames",
+      "useTwitchColors",
+      "showBadges",
+      "sparkles",
+      "newestOnTop",
+      "roleColors",
+      "events"
+    ],
+    "progress": []
+  },
+  {
+    "file": "newsticker.json",
+    "feature": "newsticker",
+    "module": "news",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "label",
+      "showLabel",
+      "separator",
+      "speed",
+      "gap",
+      "barColor",
+      "barOpacity",
+      "textColor",
+      "labelColor",
+      "labelText",
+      "accent",
+      "font",
+      "messages",
+      "seq",
+      "alert"
+    ],
+    "progress": []
+  },
+  {
+    "file": "oceanfish.json",
+    "feature": "oceanfish",
+    "module": "ocean-fish",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "waveSpeed",
+      "waveHeight",
+      "sparkles",
+      "gold",
+      "bg",
+      "fishSize",
+      "jumpHeight",
+      "jumpSpeed",
+      "jumpEvery",
+      "jumpCount",
+      "jumpSpread",
+      "variety",
+      "autoJump",
+      "splash",
+      "directions",
+      "onDemand",
+      "showSec",
+      "showOnJump",
+      "useDefault",
+      "pick",
+      "fish",
+      "seq"
+    ],
+    "progress": []
+  },
+  {
+    "file": "paliaclock.json",
+    "feature": "paliaclock",
+    "module": "palia-clock",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "title",
+      "bannerSec",
+      "sound",
+      "volume",
+      "alarms",
+      "look",
+      "seq"
+    ],
+    "progress": []
+  },
+  {
+    "file": "parties.json",
+    "feature": "parties",
+    "module": "party",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "showTwitch",
+      "seq",
+      "liveId",
+      "names",
+      "events",
+      "slots",
+      "spotRotateSec",
+      "spotHoldSec",
+      "spotChat"
+    ],
+    "progress": [
+      "names",
+      "events",
+      "slots"
+    ]
+  },
+  {
+    "file": "poll.json",
+    "feature": "poll",
+    "module": "poll",
+    "scope": "owner",
+    "fields": [
+      "title",
+      "options",
+      "open",
+      "showResults",
+      "endsAt",
+      "subWeight",
+      "revealed",
+      "votes",
+      "seq"
+    ],
+    "progress": [
+      "options",
+      "votes"
+    ]
+  },
+  {
+    "file": "randomizer.json",
+    "feature": "randomizer",
+    "module": "randomizer",
+    "scope": "owner",
+    "fields": [
+      "games",
+      "link",
+      "recent"
+    ],
+    "progress": []
+  },
+  {
+    "file": "resource-trackers.json",
+    "feature": "resource-trackers",
+    "module": "resources",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "counts",
+      "secondaryCounts",
+      "slotCounts",
+      "previous",
+      "visible",
+      "lastLoginAt",
+      "lastResetAt",
+      "updatedAt"
+    ],
+    "progress": [
+      "counts",
+      "secondaryCounts",
+      "slotCounts",
+      "previous",
+      "lastLoginAt",
+      "lastResetAt"
+    ]
+  },
+  {
+    "file": "sashimi-signin.json",
+    "feature": "sashimi-signin",
+    "module": "signups/poke",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "open",
+      "live",
+      "seq",
+      "font",
+      "cols",
+      "title",
+      "max",
+      "ignore",
+      "accent",
+      "panelColor",
+      "panelOpacity",
+      "showZones",
+      "showCountdown",
+      "names",
+      "rseq",
+      "zones",
+      "events",
+      "showBy",
+      "hereColor"
+    ],
+    "progress": [
+      "events",
+      "names"
+    ]
+  },
+  {
+    "file": "settings.json",
+    "feature": "settings",
+    "module": "state",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "countdown",
+      "worldClock",
+      "stream",
+      "ticker",
+      "layout",
+      "updatedAt"
+    ],
+    "progress": []
+  },
+  {
+    "file": "sprite-tv.json",
+    "feature": "sprite-tv",
+    "module": "sprite-tv",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "mode",
+      "pinnedId",
+      "pinnedVariant",
+      "showName",
+      "showVariant",
+      "showRarity",
+      "flashMs",
+      "staticMs",
+      "idleBars",
+      "textPos",
+      "textSize",
+      "imgSize",
+      "slideshow",
+      "ssDelay",
+      "ssInterval",
+      "ssPool",
+      "ssMessage",
+      "ssSubMessage",
+      "ssShowInterrupt",
+      "seq"
+    ],
+    "progress": []
+  },
+  {
+    "file": "sprites.json",
+    "feature": "sprites",
+    "module": "sprites",
+    "scope": "owner",
+    "fields": [
+      "season",
+      "sprites",
+      "caught",
+      "recent",
+      "popupSec",
+      "jar"
+    ],
+    "progress": [
+      "sprites",
+      "caught",
+      "recent"
+    ]
+  },
+  {
+    "file": "steam.json",
+    "feature": "steam",
+    "module": "steam",
+    "scope": "owner",
+    "fields": [
+      "steamId",
+      "appId",
+      "gameName",
+      "enabled",
+      "pollSec",
+      "popupSec",
+      "showRarity",
+      "progressTitle",
+      "pinnedStats",
+      "cardImage",
+      "cardBox",
+      "known",
+      "schema",
+      "statDefs",
+      "stats",
+      "rarity",
+      "seq",
+      "profileInput",
+      "popups",
+      "lastPoll",
+      "lastOk",
+      "lastError",
+      "schemaAt"
+    ],
+    "progress": [
+      "known",
+      "schema",
+      "statDefs",
+      "stats",
+      "rarity",
+      "seq",
+      "popups",
+      "lastPoll",
+      "lastOk",
+      "lastError",
+      "schemaAt"
+    ]
+  },
+  {
+    "file": "streamframe.json",
+    "feature": "streamframe",
+    "module": "stream-frame",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "art",
+      "glow",
+      "glowStrength",
+      "glowSpeed",
+      "flicker",
+      "flickerRate",
+      "chaser",
+      "chaserSpeed",
+      "chaserLength",
+      "chaserColor",
+      "chaserOffset",
+      "chaserCount",
+      "chamfer",
+      "sun",
+      "sunShimmer",
+      "sunX",
+      "sunY",
+      "sunR",
+      "stars",
+      "starTwinkle",
+      "sparkles",
+      "colorMode",
+      "hueShift",
+      "cycleSpeed",
+      "introOnLoad",
+      "reactionStrength",
+      "reactions"
+    ],
+    "progress": []
+  },
+  {
+    "file": "teams.json",
+    "feature": "teams",
+    "module": "teams",
+    "scope": "owner",
+    "fields": [
+      "title",
+      "teamCount",
+      "teams",
+      "item",
+      "presets",
+      "joinOpen",
+      "counting",
+      "showPlayers",
+      "showBanner",
+      "visible",
+      "players",
+      "seq"
+    ],
+    "progress": [
+      "players",
+      "log"
+    ]
+  },
+  {
+    "file": "todos.json",
+    "feature": "todos",
+    "module": "todos",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "daily",
+      "weekly",
+      "updatedAt"
+    ],
+    "progress": [
+      "daily",
+      "weekly"
+    ]
+  },
+  {
+    "file": "turnline.json",
+    "feature": "turnline",
+    "module": "turn-line",
+    "scope": "owner",
+    "fields": [
+      "visible",
+      "open",
+      "showHeader",
+      "title",
+      "dish",
+      "turnsEach",
+      "font",
+      "joinWord",
+      "goColor",
+      "doneColor",
+      "waitColor",
+      "accent",
+      "bgMode",
+      "bgColor",
+      "bgOpacity",
+      "bgRadius",
+      "bgImage",
+      "bgFit",
+      "seq",
+      "people"
+    ],
+    "progress": [
+      "people"
+    ]
+  },
+  {
+    "file": "walkers.json",
+    "feature": "walkers",
+    "module": "walkers",
+    "scope": "owner",
+    "fields": [
+      "settings",
+      "people"
+    ],
+    "progress": [
+      "people"
+    ]
+  },
+  {
+    "file": "weekly-accomplishments.json",
+    "feature": "weekly-accomplishments",
+    "module": "weekly",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "weekStart",
+      "progress",
+      "previous",
+      "lastResetAt",
+      "updatedAt"
+    ],
+    "progress": [
+      "weekStart",
+      "progress",
+      "previous",
+      "lastResetAt"
+    ]
+  },
+  {
+    "file": "tradeup-config.json",
+    "feature": "tradeup-config",
+    "module": "tradeup",
+    "scope": "owner",
+    "fields": [
+      "schemaVersion",
+      "items"
+    ],
+    "progress": [
+      "items"
+    ]
+  },
+  {
+    "file": "tradeup-state.json",
+    "feature": "tradeup-state",
+    "module": "tradeup",
+    "scope": "owner",
+    "fields": [
+      "board",
+      "revealed",
+      "spinSeq",
+      "log"
+    ],
+    "progress": [
+      "board",
+      "revealed",
+      "spinSeq",
+      "log"
+    ]
+  }
+]

@@ -20,3 +20,17 @@ must finish using that original release before switching to this layout.
 to `icb`, including the migration ledger. Schema creation itself lives separately
 in `../schemas/icb.sql`. Fresh builds use that schema and baseline version 005;
 upgrades move the existing objects in a single transaction without rebuilding them.
+
+Version 006 adds cloud feature objects through `../upgrades/006-feature-core.json`.
+The upgrade runner installs its ordered per-object files inside the migration's
+transaction before applying its SQL delta. The version checksum binds both the
+delta and the object manifest; versions 001–005 retain their original checksums.
+
+Each manifest pins the SHA-256 of its original object SQL. Run
+`python cloud-server/tools/build-database.py` from the project root before a
+release. It retains the pinned sources under ignored `dist/database-upgrades/`
+and creates a separate administrative ZIP. Retain that ZIP in the private release
+bucket. It never belongs in the Lambda runtime package. If a later canonical
+definition changes, restore the old administrative bundle when upgrading an old
+database; never rewrite a released manifest or covered checksum. New ALTERs and
+new object installs require a new numbered version.

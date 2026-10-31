@@ -23,7 +23,7 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
 
     let usedBytes = Buffer.byteLength(JSON.stringify(state));
     let usedRecords = [...state.pending, ...state.quarantine].reduce(
-        (sum, item) => sum + (item.kind === 'state' ? 1 : item.body.records.length),
+        (sum, item) => sum + (item.kind === 'activity' ? item.body.records.length : 1),
         0
     );
 
@@ -38,7 +38,7 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
         operation(next);
         const content = JSON.stringify(next);
         const count = [...next.pending, ...next.quarantine].reduce(
-            (sum, item) => sum + (item.kind === 'state' ? 1 : item.body.records.length),
+            (sum, item) => sum + (item.kind === 'activity' ? item.body.records.length : 1),
             0
         );
         if (Buffer.byteLength(content) > limits.bytes || count > limits.records)
@@ -56,7 +56,14 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
         if (!/^[0-9a-f-]{36}$/i.test(item.owner_id || '')) throw new Error('owner_required');
         if (Buffer.byteLength(JSON.stringify(item.body)) > 256 * 1024)
             throw new Error('batch_too_large');
-        const id = item.kind === 'state' ? item.key + ':' + item.body.revision : item.body.batch_id;
+        if (!['state', 'activity', 'feature'].includes(item.kind))
+            throw new Error('invalid_envelope_kind');
+        const id =
+            item.kind === 'state'
+                ? item.key + ':' + item.body.revision
+                : item.kind === 'feature'
+                ? item.body.command_id
+                : item.body.batch_id;
         if (
             [...state.pending, ...state.quarantine].some(
                 (entry) => entry.id === id && entry.owner_id === item.owner_id
@@ -64,6 +71,11 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
         )
             return;
         change((next) => {
+            if (item.kind === 'feature') {
+                if (item.body.operands.sequence !== (next.feature_sequence || 0) + 1)
+                    throw new Error('collector_sequence_gap');
+                next.feature_sequence = item.body.operands.sequence;
+            }
             if (item.kind === 'state')
                 next.pending = next.pending.filter(
                     (entry) =>
@@ -75,6 +87,20 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
                 );
             next.pending.push({ ...structuredClone(item), id });
         });
+    }
+
+    /** Seal an ordered minimal input and its next sequence in the same atomic checkpoint. */
+    function enqueueFeature(owner, feature, action, operands) {
+        const body = {
+            protocol_version: 2,
+            command_id: randomUUID(),
+            expected_revision: 0,
+            action,
+            collector_id: state.collector_id,
+            operands: { ...operands, sequence: (state.feature_sequence || 0) + 1 }
+        };
+        enqueue({ owner_id: owner, kind: 'feature', feature, body });
+        return body.command_id;
     }
 
     /** Remove data only after an acknowledgment for the exact queued owner and item. */
@@ -108,6 +134,7 @@ function createOutbox(file, limits = { bytes: 20 * 1024 * 1024, records: 50000 }
 
     return {
         enqueue,
+        enqueueFeature,
         acknowledge,
         quarantine,
         bindOwner,

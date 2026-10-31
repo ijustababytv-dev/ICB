@@ -234,6 +234,8 @@ async function sync() {
         const response = await session.call(
             item.kind === 'state'
                 ? '/v1/state/' + encodeURIComponent(item.key)
+                : item.kind === 'feature'
+                ? '/v1/features/' + encodeURIComponent(item.feature) + '/commands'
                 : '/v1/activity/batches',
             item.kind === 'state' ? 'PUT' : 'POST',
             item.body,

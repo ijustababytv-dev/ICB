@@ -31,6 +31,15 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 
 ## Adding or changing behavior
 
+Step 2 source is under implementation in `cloud-server/src/features/`, with static,
+transaction-scoped models, pure rules under `cloud-server/src/domain/`, and a normal
+scheduled handler under `cloud-server/src/worker/`. New local feed/command adapters
+are under `local-server/src/cloud/`. These candidates are tested independently;
+production feature routing and local authority have not been cut over yet.
+Database object sources remain in `database/tables/` and the other object folders;
+checksum-pinned administrative install manifests live in `database/upgrades/`.
+Do not run DDL in a Lambda cold start or HTTP handler.
+
 Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`, then the historical handbook. `CLAUDE.md` points to those documents and contains no independent rules. Put business rules in small domain functions when practical, keep file/network effects in feature modules, and connect cross-feature behavior explicitly. Signup coordination is connected after its three stores load; sprite/jar coordination lives in a route module. There are no circular imports, runtime source concatenation, or eval-based modules.
 
 Add unit tests for every new or changed business rule, covering relevant boundaries and failure cases. Feature tests that need persistence must point `ICB_CLEAN_DATA_DIR` at a fresh temporary folder before importing the feature. Never import `local-server/src/index.js` in a unit test: that entry point starts the server.

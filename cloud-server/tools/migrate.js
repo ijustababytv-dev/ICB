@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const { createHash } = require('node:crypto');
+const { migrationHash, installUpgradeObjects } = require('./upgrade-objects');
 const format = require('pg-format');
 const { adminDatabase } = require('./admin-db');
 const {
@@ -13,19 +13,29 @@ const {
 } = require('./schema');
 
 /** Create missing fresh schemas from tables/, then apply only unapplied, checksum-checked deltas. */
-async function migrate(pool, directory = path.resolve(__dirname, '../../database/migrations')) {
+async function migrate(
+    pool,
+    directory = path.resolve(__dirname, '../../database/migrations'),
+    options = {}
+) {
     const baseline = definition();
+    if (options.through && !/^\d{3}[-a-z0-9]*\.sql$/.test(options.through))
+        throw new Error('Invalid target migration.');
+    const included = (version) => !options.through || version <= options.through;
+
     const files = fs
         .readdirSync(directory)
-        .filter((name) => /^\d{3}[-a-z0-9]*\.sql$/.test(name))
+        .filter((name) => /^\d{3}[-a-z0-9]*\.sql$/.test(name) && included(name))
         .sort();
     const sources = new Map(
         files.map((file) => {
             const sql = fs.readFileSync(path.join(directory, file), 'utf8');
-            return [file, { sql, hash: createHash('sha256').update(sql).digest('hex') }];
+            return [file, { sql, hash: migrationHash(file, sql) }];
         })
     );
-    const expected = { ...baseline.covers };
+    const expected = Object.fromEntries(
+        Object.entries(baseline.covers).filter(([version]) => included(version))
+    );
     for (const [file, source] of sources) {
         if (expected[file] && expected[file] !== source.hash)
             throw new Error('Covered migration checksum changed: ' + file);
@@ -44,7 +54,11 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
         if (target === 'icb' && found.target && found.legacy)
             throw new Error('Conflicting public and icb migration ledgers.');
         let ledgerSchema = target === 'icb' && !found.target && found.legacy ? 'public' : target;
-        if (!found.target && ledgerSchema !== 'public') await installBaseline(client);
+        if (!found.target && ledgerSchema !== 'public') {
+            if (options.through)
+                throw new Error('Historical fresh builds require their own baseline sources.');
+            await installBaseline(client);
+        }
         const previous = await client.query(
             format('SELECT version,sha256 FROM %I.schema_migrations', ledgerSchema)
         );
@@ -56,7 +70,7 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
             if (expected[version] !== hash)
                 throw new Error('Applied migration checksum changed: ' + version);
         }
-        for (const version of Object.keys(baseline.covers)) {
+        for (const version of Object.keys(baseline.covers).filter(included)) {
             if (!applied.has(version) && !sources.has(version))
                 throw new Error(
                     'Incomplete legacy schema; recover the original migration release before upgrading.'
@@ -71,6 +85,7 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
                         throw new Error('Move the legacy schema before other upgrades.');
                     await executeGroup(client, 'schemas');
                 }
+                await installUpgradeObjects(client, file);
                 await client.query(sql);
                 if (ledgerSchema === 'public') ledgerSchema = target;
                 await client.query(

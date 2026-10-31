@@ -24,6 +24,9 @@ for directory in ('src', 'node_modules'):
 for name in ('package.json', 'package-lock.json', 'run.sh'):
     files.append((cloud / name, name))
 files.append((root / 'database/state-manifest.json', 'database/state-manifest.json'))
+files.append((root / 'database/feature-catalog.json', 'database/feature-catalog.json'))
+for source in (root / 'local-server/config').glob('*.json'):
+    files.append((source, 'config/' + source.name))
 files.append((root / 'database/certs/global-bundle.pem', 'certs/global-bundle.pem'))
 with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     for source, name in sorted(files, key=lambda item: item[1]):

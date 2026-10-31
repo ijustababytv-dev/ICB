@@ -25,8 +25,25 @@ test(
             // A fresh isolated schema has every declared table and implicit/explicit index.
             await createSchema(pool);
             const rebuilt = await catalog(pool, schema);
-            assert.equal(new Set(rebuilt.columns.map((column) => column.table_name)).size, 19);
-            assert.equal(rebuilt.indexes.length, 34);
+            assert.equal(
+                new Set(rebuilt.columns.map((column) => column.table_name)).size,
+                definition().objects.filter((file) => file.startsWith('tables/')).length
+            );
+            const expectedIndexes =
+                definition().objects.filter((file) => file.startsWith('indexes/')).length +
+                definition()
+                    .objects.filter((file) => file.startsWith('tables/'))
+                    .reduce(
+                        (count, file) =>
+                            count +
+                            (
+                                fs
+                                    .readFileSync(path.join(DATABASE_ROOT, file), 'utf8')
+                                    .match(/\b(?:PRIMARY KEY|UNIQUE)\b/g) || []
+                            ).length,
+                        0
+                    );
+            assert.equal(rebuilt.indexes.length, expectedIndexes);
             await assert.rejects(() => createSchema(pool), /empty schema/);
 
             // Existing version entries must remain byte-for-byte unchanged on repeated runs.
@@ -35,13 +52,13 @@ test(
             ]);
             const legacy = (await pool.query('SELECT * FROM schema_migrations ORDER BY version'))
                 .rows;
-            assert.equal(legacy.length, 5);
+            assert.equal(legacy.length, Object.keys(definition().covers).length);
             await migrate(pool);
             assert.deepEqual(
                 (await pool.query('SELECT * FROM schema_migrations ORDER BY version')).rows,
                 legacy
             );
-            const delta = path.join(root, '006-fixture.sql');
+            const delta = path.join(root, '007-fixture.sql');
             fs.writeFileSync(delta, 'ALTER TABLE accounts ADD COLUMN fixture_marker text;');
             await migrate(pool, root);
             await pool.query(
@@ -59,7 +76,7 @@ test(
             await assert.rejects(() => migrate(pool, root), /checksum changed/);
             fs.writeFileSync(delta, 'ALTER TABLE accounts ADD COLUMN fixture_marker text;');
             fs.writeFileSync(
-                path.join(root, '007-failure.sql'),
+                path.join(root, '008-failure.sql'),
                 'ALTER TABLE accounts ADD COLUMN rolled_back text; SELECT 1/0;'
             );
             await assert.rejects(() => migrate(pool, root), /division by zero/);

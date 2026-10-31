@@ -1,6 +1,8 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const format = require('pg-format');
 const { SecretsManagerClient } = require('@aws-sdk/client-secrets-manager');
@@ -15,6 +17,10 @@ const {
 } = require('../tools/schema');
 const { migrate } = require('../tools/migrate');
 const { catalog } = require('../tools/schema-check');
+const { DATABASE_ROOT } = require('../tools/schema');
+const baseline = JSON.parse(
+    fs.readFileSync(path.join(DATABASE_ROOT, 'baselines/005.json'), 'utf8')
+);
 
 /** Record stable object identities so a namespace move cannot masquerade as a drop/rebuild. */
 async function identities(pool, schema) {
@@ -30,7 +36,7 @@ async function identities(pool, schema) {
 /** Compare every stored value without exposing fixture rows or credential hashes in output. */
 async function contents(pool, schema) {
     const result = {};
-    for (const file of definition().objects.filter((name) => name.startsWith('tables/'))) {
+    for (const file of baseline.objects.filter((name) => name.startsWith('tables/'))) {
         const table = file.slice(7, -4);
         if (table === 'schema_migrations') continue;
         result[table] = (
@@ -66,10 +72,11 @@ test(
             target = adminDatabase({ ...process.env, PGDATABASE: database });
             // Fresh rebuilds use the checked-in namespace creation file and leave public empty.
             await createSchema(target);
+            const freshCatalog = await catalog(target, 'icb');
             assert.equal(
                 new Set((await catalog(target, 'icb')).columns.map((column) => column.table_name))
                     .size,
-                19
+                definition().objects.filter((file) => file.startsWith('tables/')).length
             );
             assert.equal((await identities(legacy, 'public')).length, 0);
             assert.equal(
@@ -90,8 +97,9 @@ test(
             const client = await legacy.connect();
             try {
                 // Reconstruct the old deployed layout only inside this disposable database.
-                await executeGroup(client, 'objects');
-                for (const [version, hash] of Object.entries(definition().covers)) {
+                for (const file of baseline.objects)
+                    await client.query(fs.readFileSync(path.join(DATABASE_ROOT, file), 'utf8'));
+                for (const [version, hash] of Object.entries(baseline.covers)) {
                     if (version !== '005-icb-schema.sql')
                         await client.query(
                             'INSERT INTO schema_migrations(version,sha256) VALUES($1,$2)',
@@ -128,7 +136,10 @@ test(
                 schemaClient.release();
             }
             await target.query('CREATE TABLE icb.sessions(collision integer)');
-            await assert.rejects(() => migrate(target), /already exists/);
+            await assert.rejects(
+                () => migrate(target, undefined, { through: '005-icb-schema.sql' }),
+                /already exists/
+            );
             assert.ok(
                 (await legacy.query("SELECT to_regclass('public.accounts') AS table_name")).rows[0]
                     .table_name
@@ -144,7 +155,7 @@ test(
                 ledger
             );
             await target.query('DROP TABLE icb.sessions');
-            await migrate(target);
+            await migrate(target, undefined, { through: '005-icb-schema.sql' });
             assert.deepEqual(await identities(target, 'icb'), beforeIds);
             assert.deepEqual(await catalog(target, 'icb'), beforeCatalog);
             assert.deepEqual(await contents(target, 'icb'), before);
@@ -157,7 +168,7 @@ test(
                 ).rows,
                 ledger
             );
-            await migrate(target);
+            await migrate(target, undefined, { through: '005-icb-schema.sql' });
             assert.equal(
                 (
                     await target.query(
@@ -167,6 +178,15 @@ test(
                 1
             );
             await applySchemaPermissions(target);
+            // New per-table grants are valid only after the additive Step 2 upgrade.
+            await migrate(target);
+            assert.deepEqual(await catalog(target, 'icb'), freshCatalog);
+            assert.deepEqual(await contents(target, 'icb'), before);
+            assert.equal(
+                new Set((await catalog(target, 'icb')).columns.map((column) => column.table_name))
+                    .size,
+                definition().objects.filter((file) => file.startsWith('tables/')).length
+            );
             await applyGrants(target);
             if (process.env.ICB_TEST_SERVICE_PASSWORD) {
                 service = adminDatabase({

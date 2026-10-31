@@ -1,0 +1,477 @@
+'use strict';
+
+/** Construct a transaction-scoped feature model with injected state and side effects. */
+module.exports = function createModel(context, exports) {
+    const Date = context.Date;
+    const Math = context.Math;
+    const console = context.logger;
+    const path = require('node:path');
+    const mConfig = context.config;
+    const mSignupsPoke = context.use('signups/poke');
+    const mDomainTimezone = require('../../../domain/timezone');
+    const mDomainValidation = require('../../../domain/validation');
+    const mStorage = context.storage;
+    const mEvents = context.events;
+    const mParty = context.use('party');
+    const mSignupsCommands = context.use('signups/commands');
+    const mTeams = context.use('teams');
+    const mHttpResponse = context.response;
+    const mHttpBody = context.body;
+    const mNews = context.use('news');
+
+    // ---------------------------------------------------------------------------
+    // FLOW TREE SIGN-UP (Baby, 2026-10-20): its own copy of the Poke Bowl Sign-up (STREAM EVENT SIGN-UP above),
+    // so changing this one never touches the others. Same features; generated from that section.
+    //   - Overlay: /flowtree-signup.html   - Dashboard: /flowtree-signup-control.html   - data/flowtree-signup.json
+    //   - Pops up (hidden-until-asked) with !flow / !flowtree / !flowtrees only. Remembered in-game names are
+    //     shared with the Poke Bowl Sign-up (sashi.names), so viewers only type their name once.
+    // ---------------------------------------------------------------------------
+    const FTSU_FILE = path.join(mConfig.DATA_DIR, 'flowtree-signup.json');
+    const ftsuDefaults = require('./flow-defaults')(mSignupsPoke);
+
+    /** Normalize saved guests and role definitions before a signup event is used. */
+    function ftsuFixEvent(ev) {
+        ev.guests = Array.isArray(ev.guests) ? ev.guests : [];
+        ev.roles = Array.isArray(ev.roles) ? ev.roles : [];
+        ev.desc = typeof ev.desc === 'string' ? ev.desc : '';
+        ev.date = typeof ev.date === 'string' ? ev.date : '';
+        ev.time = typeof ev.time === 'string' ? ev.time : '';
+        ev.tz = mDomainTimezone.etValidTz(ev.tz) ? ev.tz : 'America/Chicago';
+        ev.game = mDomainValidation.cleanString(ev.game).slice(0, 30) || 'Palia';
+        for (const g of ev.guests)
+            if (typeof g.role !== 'string' || !ev.roles.some((r) => r.id === g.role)) g.role = '';
+        return ev;
+    }
+
+    /** Restore Flow Tree signup state from disk and supply defaults for missing fields. */
+    function ftsuLoad() {
+        const raw = mStorage.readJson(FTSU_FILE, null) || {};
+        const s = { ...ftsuDefaults(), ...raw };
+        if (!Array.isArray(s.events) || !s.events.length) s.events = ftsuDefaults().events;
+        if (!Array.isArray(s.zones) || !s.zones.length) s.zones = ftsuDefaults().zones;
+        s.zones = s.zones.filter((z) => z && mDomainTimezone.etValidTz(z.tz));
+        delete s.names;
+        s.events.forEach(ftsuFixEvent);
+        return s;
+    }
+
+    let ftsu = ftsuLoad();
+    const ftsuEv = (id) => ftsu.events.find((e) => e.id === (id || ftsu.live)) || null;
+
+    const ftsuRenumber = (ev) => {
+        ev.guests.forEach((g, i) => {
+            g.n = i + 1;
+        });
+    };
+
+    const ftsuEpoch = (ev) =>
+        ev && ev.date && ev.time ? mDomainTimezone.etToEpoch(ev.date, ev.time, ev.tz) : null;
+
+    // "Hidden until chat asks" (2026-10-15): with ftsu.onDemand on, the overlay stays invisible until chat types
+    // "!show" or "!event" (or someone signs up / leaves, if showOnSignup), then shows for showSec seconds.
+    let ftsuShowUntil = 0;
+    let ftsuChatHidden = false; // "!hide <word>" from chat (2026-10-20) - hidden until "!show <word>" or the dashboard's Show it now
+    /** Extend the signup display window without changing its guest list. */
+    function ftsuReveal(sec) {
+        ftsuShowUntil = Date.now() + (sec || ftsu.showSec || 30) * 1000;
+        mEvents.broadcast('flowtree-signup', ftsuPublic());
+    }
+
+    /** Build the Flow Tree signup response consumed by dashboards and overlays. */
+    function ftsuPublic() {
+        const ev = ftsuEv();
+        return {
+            ok: true,
+            visible:
+                ftsu.visible && !ftsuChatHidden && (!ftsu.onDemand || Date.now() < ftsuShowUntil),
+            visibleSetting: ftsu.visible,
+            chatHidden: ftsuChatHidden,
+            onDemand: !!ftsu.onDemand,
+            showSec: ftsu.showSec || 30,
+            showOnSignup: ftsu.showOnSignup !== false,
+            shownLeft: ftsu.onDemand
+                ? Math.max(0, Math.ceil((ftsuShowUntil - Date.now()) / 1000))
+                : 0,
+            open: ftsu.open,
+            title: ftsu.title,
+            font: ftsu.font,
+            cols: ftsu.cols,
+            max: ftsu.max,
+            accent: ftsu.accent,
+            panelColor: ftsu.panelColor,
+            panelOpacity: ftsu.panelOpacity,
+            showZones: ftsu.showZones,
+            showCountdown: ftsu.showCountdown,
+            zones: ftsu.zones.filter((z) => z.on).map((z) => ({ label: z.label, tz: z.tz })),
+            event: ev
+                ? {
+                      id: ev.id,
+                      name: ev.name,
+                      game: ev.game,
+                      desc: ev.desc,
+                      date: ev.date,
+                      time: ev.time,
+                      tz: ev.tz,
+                      start: ftsuEpoch(ev),
+                      roles: ev.roles.map((r) => ({
+                          id: r.id,
+                          label: r.label,
+                          cmd: r.cmd,
+                          spots: r.spots || 0,
+                          color: r.color || ''
+                      })),
+                      guests: ev.guests.map((g) => ({
+                          n: g.n,
+                          name: g.name,
+                          twitch: g.twitch || '',
+                          at: g.at || 0,
+                          role: g.role || ''
+                      }))
+                  }
+                : null,
+            total: ev ? ev.guests.length : 0,
+            now: Date.now()
+        };
+    }
+
+    /** Persist operator changes to the Flow Tree signup state file. */
+    function ftsuSave() {
+        mStorage.writeJson(FTSU_FILE, ftsu);
+        mEvents.broadcast('flowtree-signup', ftsuPublic());
+    }
+
+    const ftsuPop = () => {
+        if (ftsu.onDemand && ftsu.showOnSignup !== false)
+            ftsuShowUntil = Math.max(ftsuShowUntil, Date.now() + (ftsu.showSec || 30) * 1000);
+    };
+
+    const ftsuCleanName = (x) =>
+        mDomainValidation
+            .cleanString(x)
+            .replace(/^\s*\d+[.)\-:]\s+/, '')
+            .replace(/[<>]/g, '')
+            .trim()
+            .slice(0, 40);
+
+    const ftsuCleanCmd = (v) =>
+        mDomainValidation
+            .cleanString(v)
+            .toLowerCase()
+            .replace(/^!+/, '')
+            .replace(/[^a-z0-9_]/g, '')
+            .slice(0, 24);
+
+    /** Add unique guest names, preserve the list limit, and renumber the resulting lineup. */
+    function ftsuAddNames(ev, names, role) {
+        role = ev.roles.some((r) => r.id === role) ? role : '';
+        for (const raw of names) {
+            const name = ftsuCleanName(raw);
+            if (
+                !name ||
+                ev.guests.some((g) => g.name.toLowerCase() === name.toLowerCase()) ||
+                ev.guests.length >= 200
+            )
+                continue;
+            ev.guests.push({ n: 0, name, twitch: '', at: Date.now(), role });
+        }
+        ftsuRenumber(ev);
+    }
+
+    // Every command word some other feature uses right now, so "!tomato" is never mistaken for a Palia name.
+    function ftsuIgnored() {
+        const set = new Set(mSignupsPoke.SASHI_BUILTIN_IGNORE);
+        for (const w of String(ftsu.ignore || '').split(/[\s,]+/)) {
+            const c = w.toLowerCase().replace(/^!+/, '');
+            if (c) set.add(c);
+        }
+        try {
+            for (const b of mParty.partyLiveBoards())
+                for (const r of b.ev.roles)
+                    if (r.command) {
+                        set.add(r.command);
+                        for (let i = 1; i <= 7; i++) set.add(r.command + i);
+                    }
+        } catch (_e) {}
+        for (const c of mSignupsCommands.signupRoleCmds()) set.add(c);
+        try {
+            [mTeams.teams.item.command]
+                .concat(mTeams.teams.item.aliases ? mTeams.teams.item.aliases.split(/,\s*/) : [])
+                .forEach((c) => {
+                    if (c) set.add(String(c).toLowerCase());
+                });
+        } catch (_e) {}
+        return set;
+    }
+
+    // Party-board role commands that are live right now (to warn her about clashes).
+    function ftsuPartyCmds() {
+        const set = new Set();
+        try {
+            for (const b of mParty.partyLiveBoards())
+                for (const r of b.ev.roles) if (r.command) set.add(r.command);
+        } catch (_e) {}
+        return set;
+    }
+
+    /** Resolve remembered viewer names for this event game without mixing different games. */
+    function ftsuNames(ev) {
+        const k = mSignupsPoke.sashiGameKey(ev.game);
+        return mSignupsPoke.sashi.names[k] || (mSignupsPoke.sashi.names[k] = {});
+    }
+
+    // Remember their in-game name for this event's game (also for names she fixes on the dashboard).
+    function ftsuRemember(ev, twitch, name) {
+        if (twitch && name && ftsuNames(ev)[String(twitch).toLowerCase()] !== name) {
+            ftsuNames(ev)[String(twitch).toLowerCase()] = name;
+            mStorage.writeJson(mSignupsPoke.SASHI_FILE, mSignupsPoke.sashi);
+        }
+    }
+
+    // A Palia name typed in chat: up to 3 words / 32 characters, no @ or links.
+    function ftsuChatName(v) {
+        const name = String(v || '')
+            .replace(/^\[|\]$/g, '')
+            .replace(/[<>]/g, '')
+            .trim();
+        if (
+            name.length < 2 ||
+            name.length > 32 ||
+            !/[a-z]/i.test(name) ||
+            name.split(' ').length > 3 ||
+            /@|https?:|www\./i.test(name)
+        )
+            return '';
+        return name;
+    }
+
+    /** Interpret supported Flow Tree signup chat commands while preserving unrelated messages. */
+    function ftsuChat(sender, parts) {
+        const twitch = mDomainValidation.cleanString(sender).replace(/^@/, '').slice(0, 40);
+        if (!twitch) return '';
+        const text = mParty
+            .partyDecode(
+                (parts || [])
+                    .filter((x) => x.t === 'text')
+                    .map((x) => x.v)
+                    .join(' ')
+            )
+            .trim()
+            .replace(/\s+/g, ' ');
+        const ev = ftsuEv();
+        if (!ev) return '';
+        const key = twitch.toLowerCase();
+        // "!show" / "!event" pops the sign-up on screen when it's set to "hidden until chat asks".
+        if (/^!(flow|flowtree|flowtrees)$/i.test(text)) {
+            if (ftsu.onDemand && ftsu.visible) {
+                ftsuReveal();
+                return 'Showing the Flow Tree Sign-Up';
+            }
+            return '';
+        }
+        // "!leave" takes their own name off the list (2026-10-11). Works even when sign-ups are closed.
+        // (Party Sign-ups also hears !leave - that's fine, each only removes its own entries.)
+        if (/^!leave$/i.test(text)) {
+            const mine = ev.guests.find((g) => g.twitch && g.twitch.toLowerCase() === key);
+            if (!mine) return '';
+            ev.guests = ev.guests.filter((g) => g !== mine);
+            ftsuRenumber(ev);
+            ftsuSave();
+            return `${mine.name} left`;
+        }
+        const mine = ev.guests.find((g) => g.twitch && g.twitch.toLowerCase() === key);
+        // ----- events WITH roles: "!<role command> [Palia name]" -----
+        if (ev.roles.length) {
+            const m = /^!([a-z0-9_]+)(?: (.+))?$/i.exec(text);
+            if (!m) return '';
+            const role = ev.roles.find((r) => r.cmd === m[1].toLowerCase());
+            if (!role) return '';
+            if (!ftsu.open) return `${twitch}: sign-ups are closed`;
+            let name = m[2] ? ftsuChatName(m[2]) : '';
+            if (m[2] && !name) return '';
+            if (!name) name = (mine && mine.name) || ftsuNames(ev)[key] || twitch;
+            const taken = ev.guests.find(
+                (g) => g.name.toLowerCase() === name.toLowerCase() && g !== mine
+            );
+            if (taken) return `${name} is already signed up`;
+            ftsuRemember(ev, twitch, name);
+            if (mine) {
+                const moved = mine.role !== role.id;
+                mine.name = name;
+                if (moved) {
+                    mine.role = role.id;
+                    mine.at = Date.now();
+                    ev.guests = ev.guests.filter((g) => g !== mine).concat([mine]);
+                    ftsuRenumber(ev);
+                }
+                ftsuPop();
+                ftsuSave();
+                return moved ? `${name} switched to ${role.label}` : `${name} updated`;
+            }
+            if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+            ev.guests.push({
+                n: ev.guests.length + 1,
+                name,
+                twitch,
+                at: Date.now(),
+                role: role.id
+            });
+            ftsuPop();
+            ftsuSave();
+            const pos = ev.guests.filter((g) => g.role === role.id).length;
+            return role.spots && pos > role.spots
+                ? `${name} is on the ${role.label} waitlist (#${pos - role.spots})`
+                : `${name} signed up for ${role.label}`;
+        }
+        // ----- events WITHOUT roles: "!Palia Name" (2026-10-10 / -11 rules) -----
+        if (!ftsu.open) return '';
+        // "!signup" alone = use the name we remember for this game (from their first sign-up).
+        if (/^!signup$/i.test(text)) {
+            const known = ftsuNames(ev)[key];
+            if (!known) return `${twitch}: type ! + your ${ev.game} name the first time`;
+            if (mine) return '';
+            if (ev.guests.some((g) => g.name.toLowerCase() === known.toLowerCase()))
+                return `${known} is already signed up`;
+            if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+            ev.guests.push({
+                n: ev.guests.length + 1,
+                name: known,
+                twitch,
+                at: Date.now(),
+                role: ''
+            });
+            ftsuPop();
+            ftsuSave();
+            return `${known} signed up (#${ev.guests.length})`;
+        }
+        const m = /^!([^\s!][^!]{0,31})$/.exec(text);
+        if (!m) return '';
+        const name = ftsuChatName(m[1]);
+        if (!name) return '';
+        const low = name.toLowerCase(),
+            first = low.split(' ')[0];
+        // The first word decides whether it's another command ("!vote 2", "!tomato Kitsuu", "!hug Bob").
+        const ign = ftsuIgnored();
+        if (ign.has(first) || ign.has(low) || /^(leave|party|show|here)\d*$/.test(first)) return '';
+        const taken = ev.guests.find((g) => g.name.toLowerCase() === low);
+        if (taken) return taken.twitch.toLowerCase() === key ? '' : `${name} is already signed up`;
+        ftsuRemember(ev, twitch, name);
+        if (mine) {
+            mine.name = name;
+            ftsuPop();
+            ftsuSave();
+            return `${twitch} changed their name to ${name} (#${mine.n})`;
+        }
+        if (ftsu.max && ev.guests.length >= ftsu.max) return `Event is full (${ftsu.max})`;
+        ev.guests.push({ n: ev.guests.length + 1, name, twitch, at: Date.now(), role: '' });
+        ftsuPop();
+        ftsuSave();
+        return `${name} signed up (#${ev.guests.length})`;
+    }
+
+    /** Validate and dispatch Flow Tree signup API requests, returning client errors for invalid input. */
+
+    const createFlowApi = require('./flow-api')({
+        mSignupsPoke: mSignupsPoke,
+
+        mDomainTimezone: mDomainTimezone,
+
+        mDomainValidation: mDomainValidation,
+
+        mStorage: mStorage,
+
+        mSignupsCommands: mSignupsCommands,
+
+        mHttpResponse: mHttpResponse,
+
+        mHttpBody: mHttpBody,
+
+        mNews: mNews,
+
+        ftsuFixEvent: ftsuFixEvent,
+
+        get ftsu() {
+            return ftsu;
+        },
+
+        ftsuEv: ftsuEv,
+
+        ftsuRenumber: ftsuRenumber,
+
+        get ftsuShowUntil() {
+            return ftsuShowUntil;
+        },
+
+        set ftsuShowUntil(value) {
+            ftsuShowUntil = value;
+        },
+
+        get ftsuChatHidden() {
+            return ftsuChatHidden;
+        },
+
+        set ftsuChatHidden(value) {
+            ftsuChatHidden = value;
+        },
+
+        ftsuPublic: ftsuPublic,
+
+        ftsuSave: ftsuSave,
+
+        ftsuCleanName: ftsuCleanName,
+
+        ftsuCleanCmd: ftsuCleanCmd,
+
+        ftsuAddNames: ftsuAddNames,
+
+        ftsuPartyCmds: ftsuPartyCmds,
+
+        ftsuRemember: ftsuRemember,
+
+        ftsuChat: ftsuChat
+    });
+    const handleFtsuApi = createFlowApi.handleFtsuApi;
+
+    // "!show <word>" / "!hide <word>" for every sign-up widget (Baby, 2026-10-20):
+    //   !show poke / !hide poke    -> Poke Bowl Sign-up      !show cake / !hide cake -> Cake Sign-Ups (all party boards)
+    //   !show burger / !hide burger -> Bean Burger Sign-Up   !show flow / !hide flow -> Flow Tree Sign-Up
+    // !hide keeps it off screen until !show (or the dashboard's Show button). !show brings it back; when the widget is
+    // "hidden until chat asks" it shows for its usual N seconds. The dashboard's "Show on stream" switch still wins.
+
+    Object.assign(exports, { ftsuPublic, ftsuEv, ftsuChat, handleFtsuApi });
+
+    // Accessors keep replacement state visible to routes and collaborating features.
+    Object.defineProperties(exports, {
+        ftsuChatHidden: {
+            enumerable: true,
+            get: () => ftsuChatHidden,
+
+            set: (value) => {
+                ftsuChatHidden = value;
+            }
+        },
+        ftsu: {
+            enumerable: true,
+            get: () => ftsu,
+
+            set: (value) => {
+                ftsu = value;
+            }
+        },
+        ftsuShowUntil: {
+            enumerable: true,
+            get: () => ftsuShowUntil,
+
+            set: (value) => {
+                ftsuShowUntil = value;
+            }
+        }
+    });
+    context.runtime.register(
+        'flowtree-signup',
+        () => ({ ftsuShowUntil, ftsuChatHidden }),
+        (value) => {
+            ftsuShowUntil = value.ftsuShowUntil;
+            ftsuChatHidden = value.ftsuChatHidden;
+        }
+    );
+};

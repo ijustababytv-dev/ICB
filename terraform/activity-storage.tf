@@ -7,6 +7,7 @@ locals {
   activity_stage_name = "${substr(var.db_identifier, 0, 40)}-api"
   activity_environment = {
     NODE_ENV                          = "production"
+    INTEGRATION_SECRET_PREFIX         = local.integration_secret_prefix
     PORT                              = "8080"
     AWS_LAMBDA_EXEC_WRAPPER           = "/opt/bootstrap"
     AWS_LWA_PORT                      = "8080"

@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Step 2 implementation in progress: added isolated cloud feature models, owner-locked command/revision/feed repositories, typed progress objects, and a leased Steam worker. These source changes are not yet deployed or connected to production local routing.
+
 - 2026-10-31: Added planned steps for SQL-object upgrade tooling, per-feature authority/protocol cutovers, consistent state feeds, and worker delivery/execution failures to the ignored Step 2 checklist.
 
 - 2026-10-31: Added a checkbox to every numbered step of the ignored Step 2 plan, with instructions to mark whole steps complete only after verification.
@@ -32,9 +34,9 @@
 - 2026-10-25: Apple Pie tracker card (`/apple-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_dessert_pie_apple` (token confirmed in her logs; no real cook line seen yet, so spot-check the first time it moves).
 - 2026-10-25: Neon Chat (tile on ICB Home): a chat box in the synthwave overlay style as its own Meld layer she sizes and places. Shows emotes, role colours and ★/MOD/VIP/SUB tags, hides !commands, bots and optionally /me lines, fades old messages, and can show follows, subs, gifts, bits and raids as glowing lines. The chat listener now also passes each chatter's badge names and name colour.
 - 2026-10-25: Animated Overlay (tile on ICB Home): her synthwave overlay with a neon glow pulse and flicker, a light that runs along the real neon tubes round the camera and game frames, sun shimmer, twinkling stars and sparkles, colour shift, a power-on intro, and reactions to follows, subs, gifted subs, bits and raids (from the Meld listener; blocked names ignored). Overlay is ES5 and polls every two seconds; art lives in `assets/stream-frame/`.
-- 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
-
 ## Improvements
+
+- 2026-10-31: Added checksum-pinned, per-object administrative upgrade bundles and a shared local cloud-feed adapter. Verified owner isolation, concurrent edits, immutable retries, paginated cache publication, and account-switch fencing. The full PostgreSQL/unit run passed 226 tests; 17 mocked Terraform runs and 29 headless pages passed. E2E retains the same nine baseline artwork failures; all remaining checks passed.
 
 - 2026-10-31: Removed Step 1 verification, acceptance, and prerequisite tasks from the ignored Step 2 plan; retained implementation context, feature inventory, and Step 2 regression testing.
 
@@ -70,13 +72,9 @@
 
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
 - 2026-10-25: Neon Chat background colour and strength on the dashboard, with See-through and Solid buttons (strength 0 = only the neon frame shows).
-- 2026-10-24: Updated README.md as the project overview and quick start, corrected stale port and documentation guidance, and added README reading instructions to CLAUDE.md and AGENTS.md.
-- 2026-10-24: Removed the restored 7,217-line root server after migrating Sprite TV and Poke Bowl attendance into focused modules. Retired duplicate root pages while preserving the modular sprite jar.
-- 2026-10-24: Added an installed pre-commit guard and GitHub source checks for the 500-line / 40 KB limits, source folders, unchanged vendor files, and the root-server ban. Added regression tests, including a rejected oversized test commit.
-- 2026-10-24: Consolidated useful standing instructions into AGENTS.md and RULES.md. CLAUDE.md now only directs readers to those files and UPDATES.md, including after changes by Aleister V.M. Removed obsolete feature-status claims and conflicting skin geometry guidance.
-- 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
-
 ## Bug Fixes
+
+- 2026-10-31: Cloud models preserve countdown stocks and transient reveal deadlines across context replacement. Steam integration tests preserve a null first-success baseline, prevent repeated achievement popups, and fence results superseded by a newer operator edit.
 
 - 2026-10-31: Corrected Step 2 assumptions about raw Palia parsing, chat-window award inputs, stale snapshot writers, worker Web Adapter startup, and duplicate awards during cutover. Kept all unimplemented steps unchecked.
 
@@ -90,6 +88,3 @@
 
 - 2026-10-31: Matched the RDS TLS parameter's apply method to AWS's default to prevent perpetual Terraform drift; added a mocked regression assertion and isolated the master-role safety fixture from exported usernames.
 
-- 2026-10-24: Re-measured the Sashimi value box for the new `SASHIMI_NEW.png` art (1774 x 887) so the count sits in the blank panel. Only that card's `valueBox` in `config/resource-trackers.json` changed.
-- 2026-10-24: Merged the restored Ocean Fish stash onto the modular-layout changes. Resolved conflicts in the API router and Poke Bowl dashboard handler, kept the tested `signup-checkins` attendance code, and removed a duplicate `!here` handler. Split the overlay to meet the 500-line limit and added unit, smoke, and browser coverage.
-- 2026-10-24: Connected Sprite TV and Poke Bowl check-ins to the active modular server, with unit and integration coverage. Fixed slideshow roster lookup, ownership checks, cancellation/retry behavior, and the Sprite TV copy-link binding.
