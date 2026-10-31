@@ -45,6 +45,10 @@ const GIVEAWAY_DEFAULTS = {
     // roll over (Baby, 2026-09-25). Snapshot of each viewer's counts when the
     // jar was last emptied; the jar shows only what was earned since.
     jarBaseline: { night: null, startedAt: null, snapshot: {} },
+    // Check-in (Baby, 2026-10-30): only viewers who chat on the current stream day are in
+    // the jar and the drawings; their saved unicorns come out on their first chat.
+    // `required` is a setting (survives Reset); `users` is today's lower-case names.
+    checkIn: { required: true, night: null, users: {} },
     // Never part of the giveaway: Baby herself + chat bots. Case-insensitive.
     // Survives Reset. Edited on the dashboard. (Baby, 2026-09-25: "I don't
     // want me nor any bots in the giveaways".)
@@ -89,6 +93,10 @@ const GIVEAWAY_DEFAULTS = {
         // unicorn-jar.html settings
         jarSide: 'right', // 'left' | 'center' | 'right'
         unicornSize: 'medium', // 'small' | 'medium' | 'large'
+        // Fine-tune sizes (Baby, 2026-10-31); multipliers, 1 = normal.
+        jarScale: 1, // 0.5 - 1.5
+        cloudScale: 1, // 0.5 - 2
+        unicornScale: 1, // 0.5 - 2 (on top of the small/medium/large choice)
         showNames: false, // print each viewer's name on their unicorns (Baby turned this off 2026-09-25)
         magic: true, // cloud, falling stars and rainbow on unicorn-jar.html
         // What to call the current prize on the winner banner/board (Baby,

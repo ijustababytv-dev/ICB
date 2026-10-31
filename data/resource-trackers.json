@@ -8,13 +8,13 @@
     "palium-ore": 0,
     "platinum-ore": 0,
     "jadium": 2,
-    "flint": 0,
-    "clay": 0,
+    "flint": 5,
+    "clay": 88,
     "coral": 8,
-    "emerald-moss": 0,
+    "emerald-moss": 2,
     "dragons-beard-peat": 1,
     "apples": 0,
-    "meat": 57,
+    "meat": 71,
     "sashimi": 100,
     "ramen-plush": 0,
     "golden-glory-bee": 0,
@@ -46,9 +46,9 @@
   "slotCounts": {
     "queen-ushindi-collection": {
       "ash-wood": 46,
-      "stone": 287,
+      "stone": 297,
       "whitestone": 37,
-      "silk-thread": 549,
+      "silk-thread": 552,
       "jadium-ore": 183
     },
     "long-tracker": {
@@ -57,14 +57,14 @@
       "jadium-ore": 183,
       "gold-ore": 31,
       "iron-ore": 178,
-      "bugs": 1861
+      "bugs": 1862
     },
     "ore-vs-kitsuu": {
       "jadium-ore": 183,
       "gold-ore": 31,
       "iron-ore": 178,
       "copper-ore": 0,
-      "silver-ore": 0,
+      "silver-ore": 5,
       "palium-ore": 32,
       "platinum-ore": 0,
       "cave-kitsuu": 0,
@@ -155,5 +155,5 @@
   },
   "lastLoginAt": "2026-09-17T21:22:09.592Z",
   "lastResetAt": "2026-10-11T18:51:41.644Z",
-  "updatedAt": "2026-10-30T17:28:02.359Z"
+  "updatedAt": "2026-10-31T15:10:56.363Z"
 }

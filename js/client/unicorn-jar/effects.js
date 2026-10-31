@@ -17,7 +17,10 @@
     };
 
     jarState.cloudW = function cloudW() {
-        return Math.min(jarState.W * 0.24, jarState.J.w * 1.05);
+        return Math.min(
+            jarState.W * 0.6,
+            Math.min(jarState.W * 0.24, jarState.J.w * 1.05) * jarState.settings.cloudScale
+        );
     };
 
     // Where the next unicorn should fall from, and move the cloud there.

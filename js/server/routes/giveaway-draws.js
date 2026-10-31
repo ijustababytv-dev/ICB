@@ -33,13 +33,14 @@ async function handleGiveawayDrawsApi(req, res, url) {
             const entrant = mGiveawayState.giveaway.entrants[username];
             if (prize === 'mystery-outfit' && entrant.mysteryOutfitWon) continue;
             if (mGiveawayState.isBlocked(username)) continue;
+            if (!mGiveawayState.isEligible(username)) continue; // must have chatted today
             const tickets = mGiveawayState.entrantTotal(entrant);
             for (let i = 0; i < tickets; i++) pool.push(username);
         }
         if (!pool.length)
             return mHttpResponse.sendJson(res, 400, {
                 ok: false,
-                error: 'No eligible entrants with tickets for this drawing.'
+                error: 'No eligible entrants with tickets for this drawing. (Only people who chatted today count.)'
             });
 
         const winnerName = pool[Math.floor(Math.random() * pool.length)];

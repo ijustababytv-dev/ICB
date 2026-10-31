@@ -34,10 +34,10 @@
       "lastMinutes": 24,
       "lastTime": "19:00",
       "lastTz": "America/Chicago",
-      "status": "running",
+      "status": "done",
       "endsAt": 1793404800000,
       "leftMs": 0,
-      "doneAt": 1793318400000
+      "doneAt": 1793404800000
     }
   ]
 }

@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Unicorn Jar size sliders on the dashboard (Board text card): Jar size 50-150%, Cloud size 50-200% and Unicorn size 50-200% (on top of Small/Medium/Large). The jar layer reloads itself when you save.
+- 2026-10-31: Unicorn Jar check-in: the first time someone chats on a stream day (6 AM cutoff), the cloud pours out ALL of their saved-up fluffy unicorns. Only people who have chatted that day are in the jar, the entrants board and the drawing (their unicorns stay saved otherwise). New dashboard checkbox 'Only people who chat today can win' turns it off, and the entrants table shows who is here. Empty the jar makes everyone chat again.
 - 2026-10-29: Vampire Crab Dishes tracker card (`/crab-dishes.html`): Crab Gumbo, Spicy Crab Fried Rice and Crab Pot Pie as three countdown boxes on one art card (replaces the three separate cards). Each box takes 1 off per cook line of its dish. Collection cards can now have countdown boxes, with a per-box 'Set & restock' on the Tracker Command Center.
 - 2026-10-29: Vampire Crab Pot Pie tracker card (`/crab-pot-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_crabpotpie` (token from her; no real cook line seen yet, so spot-check the first time it moves).
 - 2026-10-29: Spicy Vampire Crab Fried Rice tracker card (`/crab-fried-rice.html`): counts down from 100, 1 per cook line of `itemtype_c_crabfriedrice` (token from her; no real cook line seen yet, so spot-check the first time it moves).

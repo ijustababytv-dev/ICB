@@ -63,7 +63,7 @@
       "done": false
     },
     "hunt-30": {
-      "count": 0,
+      "count": 13,
       "done": false
     },
     "hunt-magical-5": {
@@ -71,11 +71,11 @@
       "done": false
     },
     "mine-20": {
-      "count": 0,
+      "count": 20,
       "done": false
     },
     "mine-silver-gold-10": {
-      "count": 0,
+      "count": 5,
       "done": false
     },
     "hometour-visit-15": {
@@ -198,5 +198,5 @@
     ]
   },
   "lastResetAt": "2026-10-26T04:00:28.477Z",
-  "updatedAt": "2026-10-30T17:28:02.364Z"
+  "updatedAt": "2026-10-31T15:10:56.368Z"
 }

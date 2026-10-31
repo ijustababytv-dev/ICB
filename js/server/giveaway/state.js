@@ -6,6 +6,7 @@ const mGiveawayBackups = require('./backups');
 const mGiveawayActivity = require('./activity');
 const mConfig = require('../config');
 const mEvents = require('../events');
+const mCheckIn = require('../domain/check-in');
 
 let giveaway = mStorage.mergeDefaults(
     mGiveawayDefaults.GIVEAWAY_DEFAULTS,
@@ -79,13 +80,56 @@ function snapshotTotal(snap) {
     );
 }
 
-/** Show only tickets earned since the display baseline, leaving lifetime totals intact. */
-function jarView() {
-    ensureJarBaseline();
+/** Today's check-in record; a new stream day (6 AM cutoff) starts with nobody here. */
+function ensureCheckIn() {
+    const night = mGiveawayActivity.nightKey(new Date());
+    if (!giveaway.checkIn || giveaway.checkIn.night !== night) {
+        giveaway.checkIn = mCheckIn.forNight(giveaway.checkIn, night);
+        saveGiveaway();
+    }
+    return giveaway.checkIn;
+}
+
+/** Can this viewer be in the jar and the drawing right now? */
+function isEligible(name) {
+    return mCheckIn.isEligible(ensureCheckIn(), name);
+}
+
+/** Mark a viewer as here today (first chat). True only the first time today. */
+function checkInViewer(name) {
+    return mCheckIn.markCheckedIn(ensureCheckIn(), name);
+}
+
+/** Forget who is checked in (second stream the same day). */
+function clearCheckIn() {
+    mCheckIn.clearCheckedIn(ensureCheckIn());
+}
+
+/** Everyone allowed in today's drawing with their FULL saved-up unicorn count. */
+function poolView() {
+    const ci = ensureCheckIn();
     const counts = {};
     let total = 0;
     for (const [key, e] of Object.entries(giveaway.entrants)) {
-        const snap = giveaway.jarBaseline.snapshot[key];
+        const n = entrantTotal(e);
+        if (n > 0 && !isBlocked(key) && mCheckIn.isEligible(ci, e.username || key)) {
+            counts[e.username || key] = n;
+            total += n;
+        }
+    }
+    return { required: ci.required, counts, total, people: Object.keys(counts).length };
+}
+
+/** Show only tickets earned since the display baseline, leaving lifetime totals intact. */
+function jarView() {
+    ensureJarBaseline();
+    const ci = ensureCheckIn();
+    const counts = {};
+    let total = 0;
+    for (const [key, e] of Object.entries(giveaway.entrants)) {
+        // Check-in on: the jar holds checked-in viewers' FULL saved-up unicorns.
+        if (ci.required && !mCheckIn.isEligible(ci, e.username || key)) continue;
+        const snap = ci.required ? null : giveaway.jarBaseline.snapshot[key];
         const n = Math.max(0, entrantTotal(e) - (snap ? snapshotTotal(snap) : 0));
         if (n > 0) {
             counts[e.username] = n;
@@ -102,7 +146,19 @@ function jarView() {
 
 /** Return detached giveaway data plus transient listener and jar information. */
 function publicGiveaway() {
-    return { ...mStorage.clone(giveaway), listener: { ...listenerStatus }, jar: jarView() };
+    const ci = ensureCheckIn();
+    return {
+        ...mStorage.clone(giveaway),
+        listener: { ...listenerStatus },
+        jar: jarView(),
+        pool: poolView(),
+        checkIn: {
+            required: ci.required,
+            night: ci.night,
+            count: Object.keys(ci.users).length,
+            users: { ...ci.users }
+        }
+    };
 }
 
 /** Truncate and bound finite rates; use the existing default for invalid numbers. */
@@ -248,6 +304,11 @@ Object.assign(exports, {
     broadcastGiveaway,
     snapshotJar,
     jarView,
+    poolView,
+    ensureCheckIn,
+    isEligible,
+    checkInViewer,
+    clearCheckIn,
     purgeBlocked,
     cleanRate,
     migrateGiveaway

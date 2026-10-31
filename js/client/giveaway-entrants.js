@@ -89,6 +89,14 @@
         applyDisplay(giveaway.display);
         var entrants = [];
         var map = giveaway.entrants || {};
+        // Check-in on: the board lists only people who chatted today (full saved-up count).
+        if (giveaway.pool && giveaway.pool.required) {
+            for (var pk in giveaway.pool.counts) {
+                if (Object.prototype.hasOwnProperty.call(giveaway.pool.counts, pk))
+                    entrants.push({ username: pk, tickets: giveaway.pool.counts[pk] });
+            }
+            map = {};
+        }
         for (var key in map) {
             if (Object.prototype.hasOwnProperty.call(map, key)) {
                 var e = map[key];

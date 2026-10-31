@@ -32,7 +32,7 @@
       <button class="btn-plushie" onclick="draw('plushie')">🧸 Draw Plushie Winner</button>
       <button class="btn-mystery" onclick="draw('mystery-outfit')">🎁 Draw Mystery Outfit Winner</button>
     </div>
-    <p class="footer-note">The winner is picked fairly the instant you click, from everyone's full fluffy unicorn count. On stream the jar tips, its unicorns tumble out and mix like a lottery machine while the song plays, and the winner is revealed about 20 seconds before the song ends (about 1 min 20 s after your click). The song then plays out and fades. The name stays hidden here and on the Winners Circle until then.</p>
+    <p class="footer-note">The winner is picked fairly the instant you click, from everyone's full fluffy unicorn count (only people who have chatted today when check-in is on). On stream the jar tips, its unicorns tumble out and mix like a lottery machine while the song plays, and the winner is revealed about 20 seconds before the song ends (about 1 min 20 s after your click). The song then plays out and fades. The name stays hidden here and on the Winners Circle until then.</p>
     <p class="footer-note">Plushie winners stay eligible for future plushie drawings. Mystery Outfit winners are removed from future Mystery Outfit drawings only (still eligible for plushies).</p>
 
     <div class="draw-row" style="margin-top:4px; align-items:center;">
@@ -45,7 +45,16 @@
       <button class="btn-ghost" onclick="emptyJar()">🫙 Empty the jar</button>
       <span class="save-status" id="jarStatus"></span>
     </div>
-    <p class="footer-note">The unicorn jar starts empty on its own each stream day (6 AM cutoff) and fills with unicorns earned that stream. Everyone's full fluffy unicorn count still carries over and is what the drawings use. Use this button to empty the jar by hand (e.g. a second stream the same day).</p>
+    <p class="footer-note">Use this button to start the jar over by hand (e.g. a second stream the same day). Everyone keeps their fluffy unicorns, but everyone has to chat again to come back in.</p>
+
+    <div class="draw-row" style="margin-top:10px; align-items:center;">
+      <label style="display:flex; gap:8px; align-items:center; cursor:pointer;">
+        <input type="checkbox" id="checkInRequired" onchange="setCheckIn(this.checked)">
+        Only people who chat today can win
+      </label>
+      <span class="save-status" id="checkInStatus"></span>
+    </div>
+    <p class="footer-note">When this is on, each stream day (6 AM cutoff) starts with nobody in the jar. The first time someone chats, the cloud pours out ALL of their saved-up fluffy unicorns and they are in the drawing. Anyone who has not chatted yet is not in the jar, the entrants board or the drawing. Their unicorns stay saved.</p>
 
     <h2 style="margin-top:18px;">Winners</h2>
     <div class="winners-list" id="winnersList"><div style="color:var(--text-dim); font-size:13px;">None yet.</div></div>
@@ -201,6 +210,20 @@
       </select>
     </div>
     <div class="field">
+      <label for="dJarScale">Jar size</label>
+      <input type="range" id="dJarScale" min="50" max="150" step="5" oninput="this.nextElementSibling.textContent = this.value + '%'"><span>100%</span>
+      <div class="hint">100% is normal. The jar stays on the bottom of the screen.</div>
+    </div>
+    <div class="field">
+      <label for="dCloudScale">Cloud size</label>
+      <input type="range" id="dCloudScale" min="50" max="200" step="5" oninput="this.nextElementSibling.textContent = this.value + '%'"><span>100%</span>
+    </div>
+    <div class="field">
+      <label for="dUnicornScale">Unicorn size (fine-tune)</label>
+      <input type="range" id="dUnicornScale" min="50" max="200" step="5" oninput="this.nextElementSibling.textContent = this.value + '%'"><span>100%</span>
+      <div class="hint">On top of Small / Medium / Large above. Smaller unicorns fit more in the jar.</div>
+    </div>
+    <div class="field">
       <label for="dShowNames">Names on the unicorns</label>
       <select id="dShowNames">
         <option value="no">Hide names</option>
@@ -225,6 +248,7 @@
 
 <script src="/js/client/giveaway-control/awards.js"></script>
 <script src="/js/client/giveaway-control/backups.js"></script>
+<script src="/js/client/giveaway-control/check-in.js"></script>
 <script src="/js/client/giveaway-control.js"></script>
 </body>
 </html>

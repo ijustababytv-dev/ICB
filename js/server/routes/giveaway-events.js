@@ -84,8 +84,12 @@ async function handleGiveawayEventsApi(req, res, url) {
                 mGiveawayState.ensureEntrant(username).username
             ] = true;
             mGiveawayState.ensureEntrant(username).lastSeenAt = new Date().toISOString();
-            mGiveawayState.saveGiveaway();
-            return mHttpResponse.sendJson(res, 200, { ok: true });
+            // First chat of the stream day: this viewer joins the jar and the drawing,
+            // and ALL their saved-up unicorns pour out of the cloud (jar view picks them up).
+            const firstToday = mGiveawayState.checkInViewer(username);
+            if (firstToday) mGiveawayState.broadcastGiveaway();
+            else mGiveawayState.saveGiveaway();
+            return mHttpResponse.sendJson(res, 200, { ok: true, checkedIn: firstToday });
         }
 
         if (type === 'sub') {

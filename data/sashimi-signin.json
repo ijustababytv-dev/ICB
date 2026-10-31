@@ -25,7 +25,6 @@
       "itsmisscupcake": "MissCupcake",
       "dylans__babygirl": "Dylans__Babygirl",
       "geckotryhard": "geckotryhard",
-      "4kayslayz": "4KaySlayz",
       "kjdragon2018": "kjdragon2018",
       "bunnybliss_": "setgame Palia",
       "voxdawnbringer": "VoxDawnbringer",
@@ -40,7 +39,8 @@
       "ijustababytv": "IJustABabyTv",
       "someadj_kitty": "someadj_kitty",
       "i_just_a_layla": "I_just_a_Layla",
-      "ladymo": "ladymo"
+      "ladymo": "ladymo",
+      "katalinahalia": "katalinahalia"
     }
   },
   "rseq": 21,
@@ -274,6 +274,34 @@
           "twitch": "VoxDawnbringer",
           "at": 1793310813851,
           "role": "r12"
+        },
+        {
+          "n": 7,
+          "name": "Haleyplzhush",
+          "twitch": "haley_please_hush",
+          "at": 1793400484978,
+          "role": "r18"
+        },
+        {
+          "n": 8,
+          "name": "Layla",
+          "twitch": "",
+          "at": 1793401334756,
+          "role": "r13"
+        },
+        {
+          "n": 9,
+          "name": "Bells",
+          "twitch": "",
+          "at": 1793401417788,
+          "role": "r14"
+        },
+        {
+          "n": 10,
+          "name": "katalinahalia",
+          "twitch": "katalinahalia",
+          "at": 1793404642805,
+          "role": "r16"
         }
       ],
       "roles": [

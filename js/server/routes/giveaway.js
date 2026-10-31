@@ -19,9 +19,22 @@ async function handleGiveawayApi(req, res, url) {
     if (pathname === '/api/giveaway/jar/empty' && method === 'POST') {
         mGiveawayBackups.backupGiveaway('before', 'empty-jar');
         mGiveawayState.snapshotJar();
+        mGiveawayState.clearCheckIn(); // second stream the same day: everyone checks in again
         mGiveawayActivity.logActivity({ type: 'jar_emptied' });
         mGiveawayState.broadcastGiveaway();
         return mHttpResponse.sendJson(res, 200, { ok: true, jar: mGiveawayState.jarView() });
+    }
+    // Turn "only people who chat today can win" on or off.
+    if (pathname === '/api/giveaway/checkin' && method === 'POST') {
+        const body = await mHttpBody.readBody(req);
+        if (typeof body.required !== 'boolean')
+            return mHttpResponse.sendJson(res, 400, {
+                ok: false,
+                error: 'required must be true or false.'
+            });
+        mGiveawayState.ensureCheckIn().required = body.required;
+        mGiveawayState.broadcastGiveaway();
+        return mHttpResponse.sendJson(res, 200, { ok: true, required: body.required });
     }
     // Heartbeat from giveaway-listener.html every few seconds.
     if (pathname === '/api/giveaway/listener' && method === 'POST') {
@@ -107,10 +120,12 @@ async function handleGiveawayApi(req, res, url) {
         const keptDisplay = mStorage.clone(mGiveawayState.giveaway.display);
         const keptRates = mStorage.clone(mGiveawayState.giveaway.rates);
         const keptBlocked = mStorage.clone(mGiveawayState.giveaway.blocked);
+        const keptCheckInRequired = mGiveawayState.giveaway.checkIn.required !== false;
         mGiveawayState.giveaway = mStorage.clone(mGiveawayDefaults.GIVEAWAY_DEFAULTS);
         mGiveawayState.giveaway.display = keptDisplay; // wording is a setting, not tonight's data
         mGiveawayState.giveaway.rates = keptRates;
         mGiveawayState.giveaway.blocked = keptBlocked;
+        mGiveawayState.giveaway.checkIn.required = keptCheckInRequired;
         mGiveawayState.giveaway.windowStartedAt = new Date().toISOString();
         mGiveawayState.broadcastGiveaway();
         return mHttpResponse.sendJson(res, 200, { ok: true });
@@ -135,6 +150,15 @@ async function handleGiveawayApi(req, res, url) {
         if (['left', 'center', 'right'].includes(body.jarSide)) d.jarSide = body.jarSide;
         if (['small', 'medium', 'large'].includes(body.unicornSize))
             d.unicornSize = body.unicornSize;
+        for (const [field, min, max] of [
+            ['jarScale', 0.5, 1.5],
+            ['cloudScale', 0.5, 2],
+            ['unicornScale', 0.5, 2]
+        ]) {
+            const n = Number(body[field]);
+            if (body[field] !== undefined && Number.isFinite(n))
+                d[field] = Math.round(Math.min(max, Math.max(min, n)) * 100) / 100;
+        }
         if (typeof body.showNames === 'boolean') d.showNames = body.showNames;
         if (typeof body.magic === 'boolean') d.magic = body.magic;
         if (typeof body.currentPrizeLabel === 'string')

@@ -64,6 +64,7 @@ test('chat earns one ticket per active window, not per message; blocked users ea
     assert.equal(giveaway.giveaway.entrants.Viewer.counts.chatWindows, 1);
 });
 test('emptying the display jar preserves ticket totals and only shows subsequent additions', () => {
+    giveaway.ensureCheckIn().required = false; // the jar baseline applies when check-in is off
     const entrant = giveaway.ensureEntrant('Viewer');
     entrant.counts.subMonths = 3;
     giveaway.recomputeEntrant(entrant);
@@ -75,6 +76,7 @@ test('emptying the display jar preserves ticket totals and only shows subsequent
     assert.equal(giveaway.jarView().total, 2);
 });
 test('repricing a jar baseline cannot manufacture newly earned tickets', () => {
+    giveaway.ensureCheckIn().required = false;
     const entrant = giveaway.ensureEntrant('Viewer');
     entrant.counts.subMonths = 3;
     giveaway.recomputeEntrant(entrant);

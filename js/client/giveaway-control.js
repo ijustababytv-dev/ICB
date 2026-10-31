@@ -33,6 +33,9 @@ const DISPLAY_FIELDS = [
     'dWinnersEmpty',
     'dJarSide',
     'dUnicornSize',
+    'dJarScale',
+    'dCloudScale',
+    'dUnicornScale',
     'dShowNames',
     'dMagic'
 ];
@@ -46,6 +49,12 @@ DISPLAY_FIELDS.forEach((id) =>
     )
 );
 
+// Size sliders show a percent; the server stores a multiplier (100% = 1).
+function setSlider(id, scale) {
+    $(id).value = Math.round((scale || 1) * 100);
+    $(id).nextElementSibling.textContent = $(id).value + '%';
+}
+
 function fillDisplay(d) {
     if (!d || displayDirty) return; // never clobber what you're typing
     $('dEntrantsTitle').value = d.entrantsTitle || '';
@@ -57,6 +66,9 @@ function fillDisplay(d) {
     $('dWinnersEmpty').value = d.winnersEmptyMessage || '';
     $('dJarSide').value = d.jarSide || 'right';
     $('dUnicornSize').value = d.unicornSize || 'medium';
+    setSlider('dJarScale', d.jarScale);
+    setSlider('dCloudScale', d.cloudScale);
+    setSlider('dUnicornScale', d.unicornScale);
     $('dShowNames').value = d.showNames === true ? 'yes' : 'no';
     $('dMagic').value = d.magic === false ? 'no' : 'yes';
 }
@@ -75,6 +87,9 @@ async function saveDisplay() {
         winnersEmptyMessage: $('dWinnersEmpty').value,
         jarSide: $('dJarSide').value,
         unicornSize: $('dUnicornSize').value,
+        jarScale: $('dJarScale').value / 100,
+        cloudScale: $('dCloudScale').value / 100,
+        unicornScale: $('dUnicornScale').value / 100,
         showNames: $('dShowNames').value === 'yes',
         magic: $('dMagic').value === 'yes'
     };
@@ -246,6 +261,7 @@ function render(giveaway) {
     fillRates(giveaway.rates);
     fillBlocked(giveaway.blocked);
     renderJarStatus(giveaway);
+    renderCheckIn(giveaway);
     renderListener();
     updateGivePreview();
     const entrants = Object.values(giveaway.entrants || {})
@@ -263,7 +279,7 @@ function render(giveaway) {
         <tr>
           <td>${escapeHtml(e.username)}${
                     e.mysteryOutfitWon ? ' <span class="breakdown">(won mystery outfit)</span>' : ''
-                }</td>
+                }${hereBadge(giveaway, e)}</td>
           <td class="total"><img class="uni-icon" src="${UNI_ICON}" alt="">${e.total}</td>
           <td class="breakdown">${breakdownText(e)}</td>
           <td>${subInfoHtml(e)}</td>
@@ -390,7 +406,7 @@ const KIND_INFO = {
 async function emptyJar() {
     if (
         !confirm(
-            'Empty the unicorn jar on stream? Everyone keeps their fluffy unicorns — only the jar starts over.'
+            'Empty the unicorn jar on stream? Everyone keeps their fluffy unicorns — only the jar starts over, and everyone has to chat again to come back in.'
         )
     )
         return;

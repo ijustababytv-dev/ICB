@@ -69,6 +69,11 @@ async function main() {
                 assert.equal(state.width, 1280);
                 assert.equal(state.imageLoaded, true);
                 const options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+                // Check-in: unicorns only show in the jar once the viewer has chatted today.
+                await json('/api/giveaway/event', {
+                    ...options,
+                    body: JSON.stringify({ type: 'chat', username: 'BrowserTestGuest' })
+                });
                 await json('/api/giveaway/manual', {
                     ...options,
                     body: JSON.stringify({ username: 'BrowserTestGuest', amount: 5 })

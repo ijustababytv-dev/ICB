@@ -142,7 +142,10 @@
         jarState.magic = d.magic !== false;
         if (
             (d.jarSide && d.jarSide !== jarState.settings.jarSide) ||
-            (d.unicornSize && d.unicornSize !== jarState.settings.unicornSize)
+            (d.unicornSize && d.unicornSize !== jarState.settings.unicornSize) ||
+            jarState.scaleOf(d.jarScale, 0.5, 1.5) !== jarState.settings.jarScale ||
+            jarState.scaleOf(d.cloudScale, 0.5, 2) !== jarState.settings.cloudScale ||
+            jarState.scaleOf(d.unicornScale, 0.5, 2) !== jarState.settings.unicornScale
         ) {
             window.location.reload();
             return;
@@ -175,6 +178,11 @@
         jarState.lastG = g;
         jarState.fullTotals = {};
         var ents = g.entrants || {};
+        if (g.pool && g.pool.counts) ents = {}; // check-in on: only people who chatted today
+        for (var pk in g.pool && g.pool.counts ? g.pool.counts : {}) {
+            if (Object.prototype.hasOwnProperty.call(g.pool.counts, pk))
+                jarState.fullTotals[pk] = g.pool.counts[pk];
+        }
         for (var key in ents) {
             if (!Object.prototype.hasOwnProperty.call(ents, key)) continue;
             var en = ents[key],
