@@ -22,6 +22,8 @@
 
 ## Improvements
 
+- 2026-10-30: Stopped tracking LOGGING-ADJUST.md; the ignored local copy remains available.
+
 - 2026-10-30: Added LOGGING-ADJUST.md with a proposed minimal activity model, separate summaries, PostgreSQL delivery, and migration checks. Runtime behavior is unchanged.
 
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
