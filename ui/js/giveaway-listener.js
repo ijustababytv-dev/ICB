@@ -26,6 +26,9 @@
             : 'http://127.0.0.1:8790';
     var statusEl = document.getElementById('status');
     var firehose = null;
+    var listenerId =
+        'listener-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).slice(2);
+    var collecting = true;
     var BIT_TYPES = { TWITCH_BITS: true };
     var SKIP_ATTRS = { HIGHLIGHTED: true, ANNOUNCEMENT: true };
 
@@ -36,6 +39,10 @@
     }
 
     function post(path, payload) {
+        if (!collecting && /^\/api\/activity\/(chat|support)$/.test(path)) {
+            return;
+        }
+        payload.listener_id = listenerId;
         try {
             var x = new XMLHttpRequest();
             x.open('POST', ICB + path, true);
@@ -103,7 +110,7 @@
         return user.displayname || user.username || '';
     }
 
-    // Shrink an event for the log: user objects become just their name, long
+    // Shrink transient live-display data: user objects become just their name, long
     // strings are trimmed, big lists capped (the viewer list keeps every name).
     var DROP_KEYS = {
         image_link: true,
@@ -156,6 +163,27 @@
             return o;
         }
         return undefined;
+    }
+
+    var MONEY_TYPES = {
+        YOUTUBE_SUPER_CHAT: true,
+        YOUTUBE_SUPER_STICKER: true,
+        FOURTHWALL_DONATION: true
+    };
+
+    // Copy only actual provider identifiers. Generated local IDs cannot deduplicate upstream deliveries.
+    function metadata(event, user) {
+        var upid = user && typeof user.UPID === 'string' ? user.UPID : '';
+        var suffix = upid.split(';').pop().toLowerCase();
+        var platform = /^(twitch|youtube|kick|tiktok|fourthwall)$/.test(suffix)
+            ? suffix
+            : 'unknown';
+        var id = event && (event.event_id || event.message_id || event.id);
+        return {
+            platform: platform,
+            platform_user_id: upid || (user && typeof user.id === 'string' ? user.id : null),
+            source_id: typeof id === 'string' && id.length <= 120 ? id : null
+        };
     }
 
     function bitsIn(msg) {
@@ -217,13 +245,24 @@
                     return;
                 }
                 try {
-                    if (JSON.parse(x.responseText).reload === true) {
+                    var reply = JSON.parse(x.responseText);
+                    collecting = reply.collecting !== false;
+                    if (!collecting) {
+                        setStatus('Another listener is collecting. This copy is idle.');
+                    }
+                    if (reply.reload === true) {
                         reloadMe();
                     }
                 } catch (e) {}
             };
 
-            x.send(JSON.stringify({ firehose: state, page: String(location.href).slice(0, 200) }));
+            x.send(
+                JSON.stringify({
+                    firehose: state,
+                    page: String(location.href).slice(0, 200),
+                    listener_id: listenerId
+                })
+            );
         } catch (e) {}
         setStatus(
             state === 'connected'
@@ -271,17 +310,67 @@
             return;
         }
 
-        firehose = new Firehose();
+        // The older weekly listener retried SDK construction failures; preserve that recovery here.
+        try {
+            firehose = new Firehose();
+        } catch (e) {
+            setStatus('Meld SDK is unavailable; retrying.');
+            heartbeat();
+            setTimeout(boot, 5000);
+            return;
+        }
+        var lastSocketState = null;
+        setInterval(function () {
+            var open = !!firehose.socketOpen;
+            if (open !== lastSocketState) {
+                lastSocketState = open;
+                setStatus(
+                    collecting
+                        ? open
+                            ? 'Connected to Meld, relaying to ICB'
+                            : 'Waiting for Meld...'
+                        : 'Another listener is collecting. This copy is idle.'
+                );
+            }
+        }, 2000);
+        firehose.on('error', function () {
+            setStatus('Meld connection error; waiting for recovery.');
+        });
 
         firehose.on('chat', function (msg) {
             var name = usernameOf(msg && msg.sender);
             if (!name) {
                 return;
             }
-            post('/api/giveaway/event', { type: 'chat', username: name });
+            var data = compact(msg, 0, 'chat');
+            data.senderInfo = senderInfoOf(msg.sender);
+            var info = metadata(msg, msg.sender);
+            info.data = data;
+            post('/api/activity/chat', info);
             var bits = bitsIn(msg);
             if (bits > 0) {
-                post('/api/giveaway/event', { type: 'bits', username: name, amount: bits });
+                var cheer = metadata(msg, msg.sender);
+                cheer.type = 'bits';
+                cheer.username = name;
+                cheer.amount = bits;
+                post('/api/activity/support', cheer);
+            }
+            var donations = msg.donations || [];
+            for (var d = 0; d < donations.length; d++) {
+                var donation = donations[d];
+                if (!donation || !MONEY_TYPES[donation.type]) {
+                    continue;
+                }
+                var tip = metadata(msg, msg.sender);
+                tip.type = 'tip';
+                tip.username = name;
+                tip.amount = donation.amount;
+                tip.currency = donation.currency;
+                tip.count = donation.count || 1;
+                if (tip.source_id) {
+                    tip.source_id += ':tip:' + d;
+                }
+                post('/api/activity/support', tip);
             }
         });
 
@@ -290,91 +379,72 @@
             if (!name) {
                 return;
             }
-            var months =
+            var event = metadata(sub, sub.subscriber);
+            event.type = 'sub';
+            event.username = name;
+            event.months =
                 sub && typeof sub.months_purchased === 'number' && sub.months_purchased >= 1
                     ? Math.round(sub.months_purchased)
                     : 1;
-            post('/api/giveaway/event', {
-                type: 'sub',
-                username: name,
-                months: months,
-                tier: sub && sub.sub_level,
-                subType: sub && sub.sub_type
-            });
+            event.tier = sub && sub.sub_level;
+            event.subType = sub && sub.sub_type;
+            post('/api/activity/support', event);
         });
 
         firehose.on('gifts', function (bundle) {
-            if (!bundle || bundle.anonymous) {
+            if (!bundle) {
                 return;
-            } // anonymous gifter: nobody to credit
-            var name = usernameOf(bundle.gifter);
+            }
+            var event = metadata(bundle, bundle.gifter);
+            event.type = 'gifts';
+            event.username = usernameOf(bundle.gifter);
+            event.anonymous = !!bundle.anonymous || !event.username;
+            event.count = bundle.count || 0;
+            event.tier = bundle.sub_level;
+            post('/api/activity/support', event);
+        });
+
+        firehose.on('follow', function (follow) {
+            var name = usernameOf(follow && follow.follower);
             if (!name) {
                 return;
             }
-            var recips = [];
-            var list = bundle.recipients || [];
-            for (var r = 0; r < list.length && r < 100; r++) {
-                var rn = usernameOf(list[r]);
-                if (rn) {
-                    recips.push(rn);
-                }
-            }
-            post('/api/giveaway/event', {
-                type: 'gifts',
-                username: name,
-                count: bundle.count || 0,
-                tier: bundle.sub_level,
-                recipients: recips
-            });
+            var event = metadata(follow, follow.follower);
+            event.type = 'follow';
+            event.username = name;
+            post('/api/activity/support', event);
         });
 
-        // EVERYTHING else for the nightly report: Firehose's catch-all "*" hands
-        // us every event it receives (chat text, viewer counts, viewer list,
-        // stream on/off, scene changes, shop purchases, super chats, Fourthwall
-        // donations, highlighted messages, channel updates, speech-to-text...).
-        // Each one is shrunk (people -> their name, long text trimmed, huge
-        // lists capped) and saved raw to the night's activity log. Replay /
-        // history messages Meld sends on connect are skipped so a layer reload
-        // doesn't duplicate the log.
-        // 'meld' is skipped because Meld also sends the same thing as 'meld.scene_change' etc.
-        var SKIP_RAW = {
-            x_history: true,
-            catchup: true,
-            x_features: true,
-            x_response: true,
-            meld: true
-        };
-        firehose.on('*', function (wrapped) {
-            if (!wrapped || !wrapped.type || SKIP_RAW[wrapped.type]) {
+        firehose.on('raid', function (raid) {
+            var user = raid && (raid.host || raid.raider || raid.sender);
+            var event = metadata(raid, user);
+            event.type = 'raid';
+            event.username = usernameOf(user);
+            event.viewers = raid && typeof raid.viewers === 'number' ? raid.viewers : 0;
+            post('/api/activity/support', event);
+        });
+
+        firehose.on('purchase', function (purchase) {
+            if (!purchase) {
                 return;
             }
-            var data = compact(wrapped.event, 0, wrapped.type);
-            if (wrapped.type === 'chat' && data && wrapped.event) {
-                try {
-                    data.senderInfo = senderInfoOf(wrapped.event.sender);
-                } catch (e) {
-                    /* chat still relays without badges */
-                }
+            var event = metadata(purchase, purchase.purchaser);
+            event.type = 'purchase';
+            event.username = usernameOf(purchase.purchaser);
+            event.anonymous = !event.username;
+            event.amount = purchase.total_amount;
+            event.currency = purchase.currency;
+            post('/api/activity/support', event);
+        });
+
+        // Connection observations stay in memory for troubleshooting, never in the activity archive.
+        firehose.on('*', function (wrapped) {
+            if (!wrapped || !wrapped.type || !/^(connection|stream_status)$/.test(wrapped.type)) {
+                return;
             }
             post('/api/activity/raw', {
                 kind: wrapped.type,
-                data: data
-            });
-        });
-
-        // Report-only (no unicorns): follows and raids for the nightly report.
-        firehose.on('follow', function (f) {
-            var name = usernameOf(f && f.follower);
-            if (name) {
-                post('/api/giveaway/event', { type: 'follow', username: name });
-            }
-        });
-        firehose.on('raid', function (r) {
-            var name = usernameOf(r && (r.host || r.raider || r.sender));
-            post('/api/giveaway/event', {
-                type: 'raid',
-                username: name,
-                viewers: r && typeof r.viewers === 'number' ? r.viewers : 0
+                data: compact(wrapped.event, 0, wrapped.type)
             });
         });
 

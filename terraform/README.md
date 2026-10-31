@@ -6,8 +6,8 @@ Step 1 acceptance tests. No AWS resources are applied by editing these files.
 
 The Phase A foundation was deployed in `us-east-1` on 2026-10-31. RDS password
 authentication with certificate/hostname verification succeeded over TLS 1.3;
-unencrypted access was rejected. Lambda and API routes remain disabled pending
-Step 1 implementation. Retrieve the endpoint with `terraform output -raw database_host`
+unencrypted access was rejected. The real Step 1 Express API, routes, limited-role
+secret, and Lambda alarms were enabled later that day after SQL/bootstrap tests. Retrieve the endpoint with `terraform output -raw database_host`
 from this directory; Terraform derives the future Lambda environment from it.
 
 ## Resources
@@ -103,10 +103,13 @@ not need another reboot. Future parameter changes may require a deliberate DB re
 
 ## Phase B: enable the real Step 1 API
 
-These application prerequisites remain pending until Step 1 is implemented and
-tested. Terraform infrastructure cannot substitute for working application code.
+These are the reproducible deployment prerequisites. They were completed for the
+2026-10-31 deployment; see [the review](../docs/STEP1-REVIEW.md). Preserve the ignored
+`activity-release.auto.tfvars.json` with the deployed immutable release metadata.
+A fresh checkout without that configuration defaults to a disabled API; inspect
+the full plan before applying against existing state.
 
-1. Complete the planned `cloud-server/`, `local-server/`, and `ui/` migration.
+1. Keep the implemented `cloud-server/`, `local-server/`, and `ui/` separation.
    Build the real Express app with authentication/owner middleware, ingestion,
    reports, input limits, DB access, and acceptance tests.
 2. Run SQL migrations and create a limited PostgreSQL role such as `icb_service`
@@ -210,3 +213,9 @@ References: [AWS Express ZIP example](https://github.com/aws/aws-lambda-web-adap
 [RDS TLS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/PostgreSQL.Concepts.General.SSL.html),
 [Lambda concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html),
 [write-only inputs](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral).
+
+
+The limited SQL roles, schema and default account are bootstrapped. SQL sources,
+recreation instructions, public CA certificates, and backup/restore commands live
+under root [database/](../database/README.md). The default account password is not
+embedded in Terraform, seed files or Lambda environment variables.

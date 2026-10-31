@@ -21,6 +21,7 @@ function writeJson(file, value) {
     const temporary = `${file}.tmp`;
     fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
     fs.renameSync(temporary, file);
+    require('./activity/state-sync').mark(file);
 }
 
 /** Retain saved fields while supplying new defaults; never mutate the default object. */

@@ -10,31 +10,38 @@ C:\Users\aleis\OneDrive\Documents\GitHub\ICB
 
 It is intentionally separate from the legacy `C:\Users\mrsch\Documents\ChatGPT\ICB` project and `C:\StreamLive`. Do not start, edit, or troubleshoot those older projects as part of normal ICB Clean use.
 
-## Source and tests (2026-10-22)
+## Source and tests (2026-10-31)
 
 Start with the existing batch launchers or `npm start` (`local-server/src/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
 
-The existing `assets/resources/poke_bowl.png` file is missing in this checkout. The E2E suite reports that missing artwork after completing its remaining checks. Restoring the original file resolves that asset prerequisite.
+Nine tracker-art files are missing in this checkout, listed in [the Step 1 review](STEP1-REVIEW.md). The E2E suite reports them after completing its remaining checks. Restore the original artwork to resolve those asset prerequisites.
 
 Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
 
-## Optional cloud database infrastructure
+## Step 1 cloud storage
 
-`terraform/` defines a small AWS RDS PostgreSQL database, its public network, and
-Step 1 foundations (private release bucket, service secret, IAM, HTTP API, logs,
-and alarms). Lambda/routes stay disabled until a real Express release and verified
-SQL bootstrap are supplied. See [the Terraform instructions](../terraform/README.md)
-for the two deployment phases,
-TLS connections, credential handling, cost controls, and deliberate removal.
-Applying infrastructure does not migrate ICB data or connect the local application.
-The Phase A foundation was deployed in `us-east-1` on 2026-10-31, with verified
-TLS password access to PostgreSQL. Retrieve its current hostname from Terraform
-outputs; credentials remain in the ignored `terraform/.env`. SQL bootstrap and
-the Step 1 API are still pending. Keep the existing Terraform state and its
-ignored backups when administering this deployed stack.
-The local server and log reader continue to run normally; no restart is needed
-to edit or validate Terraform. Internet-wide TCP 5432 access is intentional in
-this configuration and can be narrowed with `allowed_ipv4_cidrs`.
+The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
+After the next normal restart, open **Cloud account** on ICB Home (`/cloud.html`).
+Sign in as `ijustababytv` with the supplied password; username case is ignored.
+Sessions stay in Node memory, so sign in again after a restart. No live server was
+restarted as part of implementation.
+
+The ignored `local-server/.env` contains the public API URL. Cloud credentials
+stay in Secrets Manager; local installations never receive the master DB login.
+The cloud page shows pending/quarantined uploads and the last acknowledgment.
+Resolve outbox/full/collector/account errors before assuming a report is complete.
+New chat wording is not archived. Existing private raw files were preserved for
+review; they are no longer tracked or appended by the new runtime.
+
+The local giveaway, Palia reader, overlays, and feature rules remain authoritative
+in this phase. Cloud summaries are independent of event-retention cleanup, and
+allowlisted current feature files have owner-scoped recovery copies in PostgreSQL.
+Never automatically restore cloud/historical totals over current local progress.
+
+See [the Step 1 review](STEP1-REVIEW.md), [database recovery](../database/README.md),
+and [Terraform instructions](../terraform/README.md). For private SQL administration,
+dot-source `database/admin-env.ps1` with the intended role. Preserve ignored
+credentials, release metadata, state, and backups when changing machines.
 
 ## Historical status (verified 2026-08-14)
 

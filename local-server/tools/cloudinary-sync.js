@@ -214,7 +214,9 @@ async function main(args = process.argv.slice(2)) {
         args.some((arg) => !['--upload', '--dry-run', '--inventory'].includes(arg)) ||
         args.length > 1
     ) {
-        throw new Error('Usage: node js/tools/cloudinary-sync.js [--dry-run|--upload|--inventory]');
+        throw new Error(
+            'Usage: node local-server/tools/cloudinary-sync.js [--dry-run|--upload|--inventory]'
+        );
     }
     const root = path.resolve(__dirname, '../..');
     const plan = buildPlan(root);

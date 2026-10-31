@@ -57,7 +57,15 @@ async function verifyFeatureRoutes(json, origin) {
     ];
     for (const route of routes) {
         const result = await json('/api/' + route);
-        assert.equal(result.response.status, 200, `${route}: ${result.payload.error || 'failed'}`);
+        if (route.startsWith('activity/')) {
+            assert.equal(result.response.status, 503, route);
+            assert.equal(result.payload.code, 'cloud_login_required');
+        } else
+            assert.equal(
+                result.response.status,
+                200,
+                `${route}: ${result.payload.error || 'failed'}`
+            );
     }
     // Exercise cross-feature chat dispatch and replacement state after the module split.
     for (const text of [

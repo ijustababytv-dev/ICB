@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ICB Cloud account</title>
+    <link rel="stylesheet" href="/css/giveaway-report.css">
+</head>
+<body>
+    <main class="page">
+        <h1>Cloud account</h1>
+        <p><a href="/">ICB Home</a> · <a href="/giveaway-report.html">Daily reports</a></p>
+        <p>Sign in to save activity counts and feature backups to your account. Sign in again after restarting ICB.</p>
+        <form id="login">
+            <p><label>Username <input id="username" name="username" autocomplete="username" value="ijustababytv" required></label></p>
+            <p><label>Password <input id="password" name="password" type="password" autocomplete="current-password" required></label></p>
+            <button type="submit">Sign in</button>
+            <button id="logout" type="button">Sign out</button>
+        </form>
+        <p id="result" role="status"></p>
+        <pre id="cloudStatus" aria-live="polite">Checking cloud status...</pre>
+        <p>Live giveaway balances and Palia tracking continue locally. Cloud reports contain counts and support totals; chat wording is not archived.</p>
+    </main>
+    <script src="/js/client/cloud-auth.js"></script>
+</body>
+</html>

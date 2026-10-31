@@ -1,138 +1,139 @@
 'use strict';
+const { readBody } = require('../http/body');
+const { sendJson } = require('../http/response');
+const { relayChat } = require('../activity/chat-relay');
+const collector = require('../activity/collector');
+const activity = require('../giveaway/activity');
+const giveaway = require('../giveaway/state');
+const { applyEvent } = require('../activity/giveaway-event');
+const health = require('../health');
+const session = require('../cloud/session');
+const { normalizeSupport } = require('../domain/support-normalize');
 
-const mHttpBody = require('../http/body');
-const mDomainValidation = require('../domain/validation');
-const mGiveawayActivity = require('../giveaway/activity');
-const mHealth = require('../health');
-const mWalkers = require('../walkers');
-const mPoll = require('../poll');
-const mTeams = require('../teams');
-const mSignupsCommands = require('../signups/commands');
-const mSignupsPoke = require('../signups/poke');
-const mSignupsBurger = require('../signups/burger');
-const mSignupsFlow = require('../signups/flow');
-const mAniimo = require('../aniimo');
-const mAvatars = require('../avatars');
-const mSpriteJar = require('../sprite-jar');
-const mHunt = require('../hunt');
-const mParty = require('../party');
-const mNeonChat = require('../neon-chat');
-const mTurnLine = require('../turn-line');
-const mHttpResponse = require('../http/response');
-const fs = require('node:fs');
-const mConfig = require('../config');
-const mStorage = require('../storage');
-const mGiveawayState = require('../giveaway/state');
-
-/** Handle activity requests; reject unmatched paths. */
-async function handleActivityApi(req, res, url) {
-    const method = req.method || 'GET';
-    const pathname = url.pathname.replace(/\/$/, '') || '/';
-    // Raw Firehose events from the listener's catch-all, for the nightly report.
-    // Body is capped (readBody) and nothing here touches unicorns.
-    if (pathname === '/api/activity/raw' && method === 'POST') {
-        const body = await mHttpBody.readBody(req);
-        const kind = mDomainValidation.cleanString(body.kind).slice(0, 60);
-        if (kind) mGiveawayActivity.logActivity({ type: 'raw', kind, data: body.data });
-        try {
-            mHealth.healthNoteRaw(kind, body.data);
-        } catch (_error) {}
-        // Chat Unicorns: every chat message (sender + text + emote pictures).
-        if (kind === 'chat' && body.data && typeof body.data.sender === 'string') {
-            mNeonChat.neonChatRelay(body.data, mWalkers.walkerParts(body.data)); // never throws
-            try {
-                mWalkers.walkerChat(body.data.sender, mWalkers.walkerParts(body.data), false);
-            } catch (_error) {}
-            try {
-                mPoll.pollChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            try {
-                mTeams.teamsChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            let shDone = false; // "!show cake" / "!hide flow" ... (handled once, then the sign-ups skip it)
-            try {
-                shDone = mSignupsCommands.signupShowHideChat(
-                    body.data.sender,
-                    mWalkers.walkerParts(body.data)
-                );
-            } catch (_error) {}
-            let tlDone = false; // "!turn" joins the Turn Line; the sign-ups below would read it as a name
-            try {
-                tlDone = mTurnLine.turnLineChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            if (!shDone && !tlDone) {
-                try {
-                    mSignupsPoke.sashiChat(body.data.sender, mWalkers.walkerParts(body.data));
-                } catch (_error) {}
-                try {
-                    mSignupsBurger.bbsuChat(body.data.sender, mWalkers.walkerParts(body.data));
-                } catch (_error) {}
-                try {
-                    mSignupsFlow.ftsuChat(body.data.sender, mWalkers.walkerParts(body.data));
-                } catch (_error) {}
-            }
-            try {
-                mAniimo.dexChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            try {
-                mAvatars.avChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            try {
-                mSpriteJar.sjChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            try {
-                mHunt.huntChat(body.data.sender, mWalkers.walkerParts(body.data));
-            } catch (_error) {}
-            if (!shDone)
-                try {
-                    mParty.partyChat(body.data.sender, mWalkers.walkerParts(body.data));
-                } catch (_error) {}
-        }
-        return mHttpResponse.sendJson(res, 200, { ok: true });
-    }
-    // Nightly report data (giveaway-report.html).
-    if (pathname === '/api/activity/nights' && method === 'GET') {
-        let nights = [];
-        try {
-            nights = fs
-                .readdirSync(mConfig.ACTIVITY_DIR)
-                .filter((n) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(n))
-                .map((n) => n.slice(0, 10))
-                .sort()
-                .reverse();
-        } catch (_error) {
-            nights = [];
-        }
-        return mHttpResponse.sendJson(res, 200, {
-            ok: true,
-            nights,
-            tonight: mGiveawayActivity.nightKey(new Date())
-        });
-    }
-    if (pathname === '/api/activity/night' && method === 'GET') {
-        const key = url.searchParams.get('date') || mGiveawayActivity.nightKey(new Date());
-        const events = mGiveawayActivity.readNight(key);
-        if (events === null)
-            return mHttpResponse.sendJson(res, 400, {
-                ok: false,
-                error: 'date must look like 2026-09-25.'
-            });
-        return mHttpResponse.sendJson(res, 200, {
-            ok: true,
-            date: key,
-            events,
-            rates: mStorage.clone(mGiveawayState.giveaway.rates),
-            blocked: mStorage.clone(mGiveawayState.giveaway.blocked || []),
-            standings: Object.values(mGiveawayState.giveaway.entrants).map((e) => ({
-                username: e.username,
-                total: mGiveawayState.entrantTotal(e),
-                counts: e.counts,
-                note: e.note,
-                mysteryOutfitWon: !!e.mysteryOutfitWon
-            }))
-        });
-    }
-    return mHttpResponse.sendJson(res, 404, { ok: false, error: 'Not found.' });
+/** Process each chat once, retaining text only through immediate command/display fan-out. */
+function acceptChat(body) {
+    if (!require('../activity/listener-lease').permits(body.listener_id))
+        throw new Error('duplicate_listener');
+    const data = body.data;
+    if (!data || typeof data.sender !== 'string' || !data.sender.trim() || data.sender.length > 80)
+        throw new Error('invalid_chat_sender');
+    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, 'chat'))
+        return { duplicate: true };
+    health.healthNoteRaw('chat', data);
+    relayChat(data);
+    const identity = {
+        username: data.sender,
+        platform: body.platform,
+        platform_user_id: body.platform_user_id,
+        source_id: body.source_id
+    };
+    collector.chat(identity);
+    applyEvent({ type: 'chat', username: data.sender });
+    return { accepted: true };
 }
 
-Object.assign(exports, { handleActivityApi });
+/** Use the existing local award engine while preserving minimal supporter reporting. */
+function acceptSupport(body) {
+    collector.requireCapacity();
+    if (!require('../activity/listener-lease').permits(body.listener_id))
+        throw new Error('duplicate_listener');
+    if (!normalizeSupport(body)) {
+        collector.noteProblem(
+            ['tip', 'purchase'].includes(body.type)
+                ? 'unsupported_money_uncounted'
+                : 'unsupported_event'
+        );
+        throw new Error('unsupported_support_shape');
+    }
+    if (!collector.acceptSource(body.platform || 'twitch', body.source_id, body.type))
+        return { duplicate: true };
+    let result;
+    activity.withEvent(body, () => {
+        if (['tip', 'purchase'].includes(body.type) || (body.type === 'gifts' && body.anonymous)) {
+            activity.logActivity(body);
+            result = { status: 200, payload: { ok: true } };
+        } else result = applyEvent(body);
+    });
+    giveaway.saveGiveaway();
+    return result;
+}
+
+/** Serve minimal relay endpoints and PostgreSQL-backed report proxies, never JSONL reports. */
+async function handleActivityApi(req, res, url) {
+    const pathname = url.pathname.replace(/\/$/, '');
+    if (
+        req.method === 'GET' &&
+        /^\/api\/activity\/reports\/(?:days(?:\/\d{4}-\d{2}-\d{2})?|viewers\/[a-f0-9-]{36}(?:\/lifetime)?)$/.test(
+            pathname
+        )
+    ) {
+        if (!session.current())
+            return sendJson(res, 503, { ok: false, code: 'cloud_login_required' });
+        try {
+            const result = await session.call(
+                pathname.replace('/api/activity/reports/', '/v1/reports/') + url.search
+            );
+            return sendJson(res, result.status, { ...result.data, sync: collector.status() });
+        } catch (_error) {
+            return sendJson(res, 503, { ok: false, code: 'cloud_offline' });
+        }
+    }
+    if (req.method === 'POST' && pathname === '/api/activity/chat') {
+        const body = await readBody(req, 256 * 1024);
+        return sendJson(res, 200, { ok: true, ...acceptChat(body) });
+    }
+    if (req.method === 'POST' && pathname === '/api/activity/support') {
+        const result = acceptSupport(await readBody(req, 256 * 1024));
+        return sendJson(res, result.status || 200, result.payload || { ok: true, ...result });
+    }
+    if (req.method === 'POST' && pathname === '/api/activity/raw') {
+        const body = await readBody(req, 256 * 1024);
+        // Compatibility with already-running listener pages: live fan-out only, no archive.
+        health.healthNoteRaw(String(body.kind || '').slice(0, 60), body.data);
+        if (body.kind === 'chat' && typeof body.data?.sender === 'string') relayChat(body.data);
+        return sendJson(res, 200, { ok: true });
+    }
+    if (
+        req.method === 'GET' &&
+        ['/api/activity/nights', '/api/activity/night'].includes(pathname)
+    ) {
+        const today = require('../domain/reporting-day').reportingDay(
+            Date.now(),
+            session.current()?.account.timezone || 'America/Chicago'
+        );
+        const date = url.searchParams.get('date') || today;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
+            return sendJson(res, 400, { ok: false, code: 'invalid_date' });
+        if (!session.current())
+            return sendJson(res, 503, {
+                ok: false,
+                code: 'cloud_login_required',
+                sync: collector.status()
+            });
+        try {
+            const result = await session.call(
+                pathname.endsWith('/nights') ? '/v1/reports/days' : '/v1/reports/days/' + date
+            );
+            const body =
+                pathname.endsWith('/nights') && result.status === 200
+                    ? {
+                          ok: true,
+                          nights: result.data.days.map((row) =>
+                              String(row.reporting_date).slice(0, 10)
+                          ),
+                          tonight: today
+                      }
+                    : result.data;
+            return sendJson(res, result.status, { ...body, sync: collector.status() });
+        } catch (_error) {
+            return sendJson(res, 503, {
+                ok: false,
+                code: 'cloud_offline',
+                sync: collector.status()
+            });
+        }
+    }
+    return sendJson(res, 404, { ok: false, code: 'not_found' });
+}
+
+module.exports = { handleActivityApi, acceptChat, acceptSupport };

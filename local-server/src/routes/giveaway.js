@@ -26,6 +26,8 @@ async function handleGiveawayApi(req, res, url) {
     // Heartbeat from giveaway-listener.html every few seconds.
     if (pathname === '/api/giveaway/listener' && method === 'POST') {
         const body = await mHttpBody.readBody(req);
+        if (body.listener_id && !require('../activity/listener-lease').claim(body.listener_id))
+            return mHttpResponse.sendJson(res, 200, { ok: true, collecting: false });
         const wasConnected = mGiveawayState.listenerStatus.firehose === 'connected';
         mGiveawayState.listenerStatus.lastSeen = new Date().toISOString();
         mGiveawayState.listenerStatus.firehose = ['connected', 'connecting', 'no-sdk'].includes(

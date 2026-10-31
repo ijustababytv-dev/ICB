@@ -64,6 +64,7 @@ Use Node.js and npm; the application has no runtime package dependencies. From P
 
 ```powershell
 npm.cmd run setup:hooks
+npm.cmd run setup:cloud
 ```
 
 After changes, including documentation:
@@ -77,13 +78,15 @@ npm.cmd run test:e2e
 
 Run `npm.cmd run format:js` to apply JavaScript formatting and `npm.cmd run test:browser` after browser changes. Every new or changed business rule requires unit tests. E2E and browser tests use port 8791 and temporary state; browser checks use a separate headless profile.
 
-The E2E suite currently reports the existing missing `assets/resources/poke_bowl.png`. Restore the original artwork; do not suppress the check.
+The E2E suite currently reports nine existing missing tracker-art files, listed in [the Step 1 review](docs/STEP1-REVIEW.md). Restore the original artwork; do not suppress the checks.
 
 For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in the isolated test environment. Normal use searches the standard Palia Assistant log directories.
 
 ## Source layout and images
 
-The server starts at `local-server/src/index.js`. HTML is in `html/`, scripts in `js/`, styles in `css/`, and local extracted images in `ui/images/embedded/`. Operator artwork remains in the ignored `assets/` folder. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+The local server starts at `local-server/src/index.js`; cloud Express code is in `cloud-server/`. Browser HTML, scripts, styles, and bundled images are under `ui/`. SQL and recovery tools are under root `database/`. Operator artwork and runtime `data/` remain private and ignored. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+
+Step 1 cloud storage is deployed. After the next normal restart, open **Cloud account** on ICB Home to sign in, then open daily reports. Usernames are case-insensitive; sign in again after a local restart. Chat wording is transient; PostgreSQL stores counts, compact support/audit events, independent summaries, and recoverable feature-state copies. Live feature rules remain local in this phase. See [the Step 1 review](docs/STEP1-REVIEW.md) and [database recovery](database/README.md).
 
 The pre-commit hook and source-policy checks enforce the file limits and layout defined in `RULES.md`. Never restore root `server.js`; add features in focused modules.
 

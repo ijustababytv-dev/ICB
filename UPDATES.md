@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Completed and deployed Step 1: Express/Lambda cloud login, case-insensitive accounts, minimal chat/support ingestion, owner isolation, durable local delivery, PostgreSQL daily reports/CSV, and saved feature-state copies. Added root database/ migrations and verified backup/restore tools. The default account was created privately; the local server was not restarted.
+
 - 2026-10-31: Deployed the 24-resource AWS foundation in us-east-1, including the PostgreSQL micro instance, public network, private release bucket, service-secret container, IAM, API foundation, logs, and DB alarms. Lambda/routes and SQL bootstrap remain pending Step 1.
 
 - 2026-10-31: Added Step 1 Terraform foundations for API Gateway, gated Express Lambda deployment, private versioned releases, scoped IAM, a write-only service secret, logs/alarms, and automatic DB endpoint configuration. No AWS resources applied; real API code and SQL bootstrap remain prerequisites.
@@ -25,6 +27,8 @@
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 
 ## Improvements
+
+- 2026-10-31: Saved 30 current data files and 34 historical activity files as owner-scoped state/minimal summaries (30,901 recoverable messages). Repeated import preserves totals; historical days are marked partial. Stopped tracking data/ while preserving local files/backups. Verified 209 unit/PostgreSQL checks, actual Gateway/ARM Lambda ingestion, default login, and a restored database dump; existing E2E artwork failures remain documented.
 
 - 2026-10-31: Completed the Step 1 source-folder migration into local-server/ and ui/, with cloud-server/ reserved for the API. Preserved public URLs, live data/artwork, launchers, desktop widgets, bridge cursor, and Cloudinary image IDs. Verified 179 unit tests and 28 isolated browser pages; E2E retains its nine existing missing-artwork failures.
 
@@ -55,6 +59,8 @@
 - 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 
 ## Bug Fixes
+
+- 2026-10-31: Removed duplicate chat submission/raw payload archives and per-message giveaway saves. Preserved cumulative bits, anonymous/blocked support reporting, command/overlay fan-out, actual award deltas, account-bound retries, and applied-award recovery markers. Isolated Terraform mock fixtures from private deployed-release settings.
 
 - 2026-10-31: Matched the RDS TLS parameter's apply method to AWS's default to prevent perpetual Terraform drift; added a mocked regression assertion and isolated the master-role safety fixture from exported usernames.
 

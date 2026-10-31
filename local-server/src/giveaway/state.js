@@ -12,6 +12,8 @@ let giveaway = mStorage.mergeDefaults(
     mGiveawayBackups.loadGiveawayFile()
 );
 if (!giveaway.windowStartedAt) giveaway.windowStartedAt = new Date().toISOString();
+mGiveawayActivity.recover(giveaway.cloudAuditPending);
+let chatDirty = false;
 migrateGiveaway();
 purgeBlocked();
 
@@ -102,7 +104,9 @@ function jarView() {
 
 /** Return detached giveaway data plus transient listener and jar information. */
 function publicGiveaway() {
-    return { ...mStorage.clone(giveaway), listener: { ...listenerStatus }, jar: jarView() };
+    const snapshot = mStorage.clone(giveaway);
+    delete snapshot.cloudAuditPending;
+    return { ...snapshot, listener: { ...listenerStatus }, jar: jarView() };
 }
 
 /** Truncate and bound finite rates; use the existing default for invalid numbers. */
@@ -164,7 +168,23 @@ function recomputeEntrant(e) {
 
 /** Persist the active giveaway state independently of tracker settings. */
 function saveGiveaway() {
+    giveaway.cloudAuditPending = mGiveawayActivity.checkpoint();
     mStorage.writeJson(mConfig.GIVEAWAY_FILE, giveaway);
+    chatDirty = false;
+    if (giveaway.cloudAuditPending.length && mGiveawayActivity.commit()) {
+        giveaway.cloudAuditPending = [];
+        mStorage.writeJson(mConfig.GIVEAWAY_FILE, giveaway);
+    }
+}
+
+/** Batch ordinary participation writes without delaying supporter or operator saves. */
+function markChatDirty() {
+    chatDirty = true;
+}
+
+/** Checkpoint dirty chat participation at the timer/shutdown boundary. */
+function flushChat() {
+    if (chatDirty || mGiveawayActivity.checkpoint().length) saveGiveaway();
 }
 
 /** Persist ticket changes before updating dashboards and overlays. */
@@ -221,15 +241,15 @@ function awardChatWindow() {
     const activeUsers = Object.keys(giveaway.chatActiveThisWindow).filter((u) => !isBlocked(u));
     for (const username of activeUsers) {
         const entrant = ensureEntrant(username);
+        const before = entrantTotal(entrant);
         entrant.counts.chatWindows += 1;
         recomputeEntrant(entrant);
-    }
-    if (activeUsers.length)
         mGiveawayActivity.logActivity({
-            type: 'chat_unicorns',
-            usernames: activeUsers,
-            each: giveaway.rates.chatWindow
+            type: 'chat_window',
+            username,
+            unicorns: entrantTotal(entrant) - before
         });
+    }
     giveaway.chatActiveThisWindow = {};
     giveaway.windowStartedAt = new Date().toISOString();
     if (activeUsers.length) broadcastGiveaway();
@@ -243,6 +263,8 @@ Object.assign(exports, {
     publicGiveaway,
     ensureEntrant,
     saveGiveaway,
+    markChatDirty,
+    flushChat,
     entrantTotal,
     recomputeEntrant,
     broadcastGiveaway,

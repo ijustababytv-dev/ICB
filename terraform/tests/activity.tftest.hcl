@@ -27,8 +27,11 @@ mock_provider "aws" {
 }
 
 variables {
-  db_password          = "TestOnly-NotARealSecret123!"
-  activity_db_password = "Fixture-ServicePassword123!"
+  activity_api_enabled    = false
+  activity_database_ready = false
+  activity_release        = null
+  db_password             = "TestOnly-NotARealSecret123!"
+  activity_db_password    = "Fixture-ServicePassword123!"
 }
 
 run "foundation_has_no_placeholder_api" {

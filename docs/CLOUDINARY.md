@@ -25,7 +25,7 @@ The separate downloader uses the same credentials and retrieves ICB images under
 
 - Original `assets/` images return to their original subfolders, such as `assets/resources/card.png`.
 - Images originally uploaded from `images/` or `docs/` become copies under `assets/cloudinary/images/` or `assets/cloudinary/docs/`. Every downloaded file stays inside `assets/`; existing application URLs remain unchanged.
-- `assets/cloudinary/` is reserved for those copies and excluded from uploads so they cannot create duplicate Cloudinary images. Restore one of these copies to its original `images/` or `docs/` path separately if needed by the application.
+- `assets/cloudinary/` is reserved for those copies and excluded from uploads so they cannot create duplicate Cloudinary images. Restore one of these copies to its current `ui/images/` or `docs/` path separately if needed by the application.
 - The upload manifest preserves exact original filename spelling when available. A fresh checkout can recover filenames from Cloudinary's IDs and display names without that manifest. Unrecognized IDs and unsafe paths stop the comparison before writes.
 - Downloading chooses the Cloudinary version. Before replacing a differing local file, the script saves its previous contents under `assets/backups/cloudinary-download/<run>/`, preserving subfolders. Uploading chooses the local version. These are two explicit directions, not automatic conflict resolution.
 - Downloads use binary temporary files beside their destinations and publish only after verification. Interrupted or corrupt downloads leave the existing image intact. Files edited locally during a download are not replaced. Rerunning safely compares current contents again.
@@ -34,7 +34,7 @@ The original upload contained **274 images: 272 from `assets/`, one from `images
 
 ## Image selection and comparison
 
-- Scans `assets/`, `images/`, and `docs/` recursively for image files. Recognizes extensionless PNG, JPEG, GIF and WebP artwork too.
+- Scans `assets/`, `ui/images/`, and `docs/` recursively for image files. Relocated UI images retain their existing `icb/images/...` Cloudinary IDs. Recognizes extensionless PNG, JPEG, GIF and WebP artwork too.
 - Excludes scripts, audio, archives, hidden files, backup folders, `assets/cloudinary/` mirror copies and symlinks. It does not scan private state or unrelated folders on the computer.
 - Preserves project folders beneath `icb/` in Cloudinary, with the original filename displayed in the Media Library.
 - Adds a format suffix to Cloudinary IDs so `card.png`, `card.jpg`, and extensionless `card` stay distinct: `card--png`, `card--jpg`, `card--original`. A rename therefore uploads a new asset and retains the old one.

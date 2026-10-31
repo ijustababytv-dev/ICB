@@ -8,6 +8,9 @@ mock_provider "aws" {
 }
 
 variables {
+  activity_api_enabled    = false
+  activity_database_ready = false
+  activity_release        = null
   # Public fixture, not an operational credential; this value is never deployed.
   db_password = "TestOnly-NotARealSecret123!"
 }

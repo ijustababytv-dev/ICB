@@ -58,7 +58,11 @@ function publicState() {
 function recordAction(action) {
     actions.push(action);
     actions = actions.slice(-100);
-    fs.appendFileSync(mConfig.ACTIONS_FILE, `${JSON.stringify(action)}\n`, 'utf8');
+    fs.writeFileSync(
+        mConfig.ACTIONS_FILE,
+        actions.map((entry) => JSON.stringify(entry)).join('\n') + '\n',
+        'utf8'
+    );
     mEvents.broadcast('action', action);
 }
 

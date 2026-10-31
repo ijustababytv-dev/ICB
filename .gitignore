@@ -30,6 +30,9 @@ dist/
 /data/backups/
 /backups/
 
+# Runtime state, cloud sessions/outbox, and historical chat archives stay private.
+/data/
+
 # temp files
 *.tmp
 tmp/

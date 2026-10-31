@@ -1,6 +1,6 @@
 # ICB project structure
 
-Updated 2026-10-24. The application is still one dependency-free Node server at `http://127.0.0.1:8790`. Existing page and API URLs remain unchanged.
+Updated 2026-10-31. The local application remains one dependency-free Node server at `http://127.0.0.1:8790`. Existing page and API URLs remain unchanged.
 
 | Location | Responsibility |
 | --- | --- |
@@ -13,20 +13,21 @@ Updated 2026-10-24. The application is still one dependency-free Node server at 
 | `local-server/src/giveaway/`, `local-server/src/signups/` | Related feature modules |
 | `local-server/src/views/` | Server-rendered resource, weekly, and ticker overlays |
 | `local-server/src/background.js` | Explicit background-job scheduling; imports do not start timers |
-| `html/` | All dashboard and overlay HTML, including `html/wk/` |
+| `ui/html/` | All dashboard and overlay HTML, including `ui/html/wk/` |
 | `ui/js/` | Page startup scripts, with large features split into named subfolders |
 | `ui/js/vendor/` | Existing local Matter.js and Meld Firehose distributions |
-| `css/` | Page styles |
+| `ui/css/` | Page styles |
 | `ui/images/embedded/` | Images extracted from former inline data URLs; ordinary local files |
 | `assets/` | Existing operator-managed artwork and audio; still excluded from Git |
 | `terraform/` | RDS/network, private releases, service secret/IAM, logs/alarms, and gated Express Lambda/HTTP API; separate from the local application |
 | `local-server/bridge/` | Palia log bridge; its existing cursor stays in `bridge/` |
-| `tools/` | Standalone image sync and JavaScript formatting commands; never started by the server |
+| `tools/` | Repository source-policy, hooks, and formatter |
+| `local-server/tools/` | Image sync/download and historical activity import |
 | `local-server/desktop/js/` | Electron code; its package and lockfile stay in `local-server/desktop/` |
 | `local-server/test/unit/` | Node built-in unit tests and structural guards |
 | `local-server/test/e2e.js`, `local-server/test/helpers/` | HTTP, persistence, log-reader, and asset integration tests |
 | `ui/test/browser.js` | Optional headless Chromium checks with a separate temporary browser profile |
-| `local-server/config/`, `data/` | Definitions and live progress, respectively; keep them separate |
+| `local-server/config/`, ignored `data/` | Definitions and live progress, respectively; keep them separate |
 
 ## Adding or changing behavior
 
@@ -44,11 +45,11 @@ JavaScript uses four-space indentation and a blank line between function definit
 
 ## Images and URLs
 
-All previously embedded base64 image assets are files in `ui/images/embedded/`; repeated images share the same file. Browser scripts refer to `/ui/images/embedded/<file>`. Existing artwork URLs under `/assets/` and `/resource-art/` still work. Image upload request encoding is transport, not an embedded asset.
+All previously embedded base64 image assets are files in `ui/images/embedded/`; repeated images share the same file. Browser scripts keep the public URL `/images/embedded/<file>`. Existing artwork URLs under `/assets/` and `/resource-art/` still work. Image upload request encoding is transport, not an embedded asset.
 
 Baby selected Cloudinary on 2026-10-22. `npm run images:plan` compares local originals with Cloudinary; `npm run images:sync` uploads only new or changed files and records their URLs. See `docs/CLOUDINARY.md`. Overlays continue using local image files. The extracted images are versioned because they were previously part of tracked source; operator-managed `assets/` remains ignored.
 
-The public server maps `/control.html` to `html/control.html`, `/` to `html/hub.html`, and the old `/matter.min.js` and `/meld-firehose.js` URLs to `ui/js/vendor/`. Server source, test source, and `data/` are not public static roots. Never put the private dashboard in Meld.
+The public server maps `/control.html` to `ui/html/control.html`, `/` to `ui/html/hub.html`, and the old `/matter.min.js` and `/meld-firehose.js` URLs to `ui/js/vendor/`. Server source, test source, and `data/` are not public static roots. Never put the private dashboard in Meld.
 
 ## Running and checking
 
@@ -66,3 +67,27 @@ Use the existing batch launchers or `npm start`. No second production server and
 - `npm test`: unit tests followed by end-to-end tests.
 
 Known existing asset issue at restructuring: `local-server/config/resource-trackers.json` references `assets/resources/poke_bowl.png`, which is absent in this checkout. End-to-end tests finish the remaining checks and then fail with the missing-art list. Restore the original artwork to that path; do not fabricate a replacement or suppress the assertion.
+
+
+## Step 1 cloud boundaries
+
+`cloud-server/src/activity/` owns Express, authentication, ingestion, SQL and report
+DTOs. Its package/lockfile are independent of the local app. `database/` owns
+versioned migrations, grants, the state allowlist, public RDS CA certificates, and
+backup/recovery commands. `cloud-server/tools/` provides explicit administrative
+commands; none run on Lambda cold start.
+
+`local-server/src/activity/` owns transient chat fan-out, compact batching, durable
+outbox checkpoints and recoverable feature-state copies. It uses built-in Node
+HTTPS, not a local SQL driver. `local-server/src/cloud/` holds the API client and
+process-only session. The UI calls local routes and never imports Node/SQL code.
+
+Only daily count deltas and compact support/audit events go through live ingestion.
+Reports read separate PostgreSQL summaries. Current saved feature files are
+owner-scoped recovery copies in `feature_state`; live rules and balances remain
+local in Step 1. No historical import calls award functions. See
+[Step 1 review](STEP1-REVIEW.md) and [database recovery](../database/README.md).
+
+`/api/activity/reports/days`, day detail, and viewer range/lifetime proxies expose
+validated cloud DTOs. Existing nightly-report URLs remain as deliberate summary
+adapters. Offline/login errors are explicit, never fabricated zero totals.

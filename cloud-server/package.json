@@ -1,0 +1,20 @@
+{
+  "name": "baby-icb-cloud-server",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/activity/bootstrap.js",
+    "test": "node --test test/*.test.js",
+    "migrate": "node tools/migrate.js",
+    "account": "node tools/account.js",
+    "maintenance": "node tools/maintenance.js",
+    "build": "python tools/build.py"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1161.0",
+    "express": "5.3.0",
+    "pg": "8.23.1",
+    "pg-format": "1.0.4"
+  }
+}

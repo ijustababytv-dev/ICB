@@ -4,15 +4,13 @@ const mHttpResponse = require('../http/response');
 const mGiveawayState = require('../giveaway/state');
 const mHttpBody = require('../http/body');
 const mDomainValidation = require('../domain/validation');
-const mAvatars = require('../avatars');
-const mStreamFrame = require('../stream-frame');
-const mNeonChat = require('../neon-chat');
 const mGiveawayActivity = require('../giveaway/activity');
 
 /** Handle giveaway events requests; reject unmatched paths. */
 async function handleGiveawayEventsApi(req, res, url) {
     const method = req.method || 'GET';
     const pathname = url.pathname.replace(/\/$/, '') || '/';
+    if (method === 'POST') require('../activity/collector').requireCapacity();
     // ---------------- Stream Giveaway ----------------
     if (pathname === '/api/giveaway/state' && method === 'GET') {
         return mHttpResponse.sendJson(res, 200, {
@@ -25,171 +23,12 @@ async function handleGiveawayEventsApi(req, res, url) {
     // chat/sub/gifts/bits event. This is the ONLY place ticket math happens.
     if (pathname === '/api/giveaway/event' && method === 'POST') {
         const body = await mHttpBody.readBody(req);
-        const type = mDomainValidation.cleanString(body.type);
-        const username = mDomainValidation.cleanString(body.username);
-        mGiveawayState.listenerStatus.lastSeen = new Date().toISOString();
-        mGiveawayState.listenerStatus.lastEventAt = mGiveawayState.listenerStatus.lastSeen;
-        mGiveawayState.listenerStatus.lastEvent = `${type}${username ? ' from ' + username : ''}${
-            type === 'bits' ? ' (' + body.amount + ' bits)' : ''
-        }${type === 'gifts' ? ' (' + body.count + ' gifted)' : ''}${
-            type === 'sub' && body.months > 1 ? ' (' + body.months + ' months)' : ''
-        }`;
-        try {
-            if (type !== 'chat') mAvatars.avEvent(type, username, body);
-        } catch (_error) {}
-        // The animated overlay reacts to follows, subs, gifts, bits and raids (never throws).
-        // Blocked names (bots, test accounts) do not set it off.
-        if (type !== 'chat' && !(username && mGiveawayState.isBlocked(username))) {
-            mStreamFrame.frameEvent(type, username, body);
-            mNeonChat.neonChatEvent(type, username, body); // highlighted line in Neon Chat
-        }
-        const blocked = username && mGiveawayState.isBlocked(username);
-        // Report-only events: no unicorns, just the nightly log.
-        if (type === 'follow') {
-            if (username) mGiveawayActivity.logActivity({ type: 'follow', username });
-            return mHttpResponse.sendJson(res, 200, { ok: true });
-        }
-        if (type === 'raid') {
-            mGiveawayActivity.logActivity({
-                type: 'raid',
-                username,
-                viewers: Math.max(0, Math.trunc(Number(body.viewers)) || 0)
-            });
-            return mHttpResponse.sendJson(res, 200, { ok: true });
-        }
-        if (blocked) {
-            // Real support from a blocked name (e.g. a sub) still goes in the report.
-            if (type !== 'chat')
-                mGiveawayActivity.logActivity({
-                    type,
-                    username,
-                    blocked: true,
-                    months: body.months,
-                    count: body.count,
-                    amount: body.amount,
-                    tier: mDomainValidation.cleanString(body.tier),
-                    subType: mDomainValidation.cleanString(body.subType)
-                });
-            return mHttpResponse.sendJson(res, 200, { ok: true, note: 'blocked name, ignored.' });
-        }
-
-        if (type === 'chat') {
-            if (!username)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'username is required.'
-                });
-            mGiveawayActivity.logActivity({ type: 'chat', username });
-            mGiveawayState.giveaway.chatActiveThisWindow[
-                mGiveawayState.ensureEntrant(username).username
-            ] = true;
-            mGiveawayState.ensureEntrant(username).lastSeenAt = new Date().toISOString();
-            mGiveawayState.saveGiveaway();
-            return mHttpResponse.sendJson(res, 200, { ok: true });
-        }
-
-        if (type === 'sub') {
-            if (!username)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'username is required.'
-                });
-            const entrant = mGiveawayState.ensureEntrant(username);
-            // Firehose sends months_purchased: 1 for a normal sub/resub, more when
-            // someone buys several months at once.
-            const months = Math.min(24, Math.max(1, Math.trunc(Number(body.months)) || 1));
-            const before = mGiveawayState.entrantTotal(entrant);
-            entrant.counts.subMonths += months;
-            mGiveawayState.recomputeEntrant(entrant);
-            mGiveawayActivity.logActivity({
-                type: 'sub',
-                username: entrant.username,
-                months,
-                tier: mDomainValidation.cleanString(body.tier),
-                subType: mDomainValidation.cleanString(body.subType),
-                unicorns: mGiveawayState.entrantTotal(entrant) - before
-            });
-            entrant.lastSeenAt = new Date().toISOString();
-            mGiveawayState.broadcastGiveaway();
-            return mHttpResponse.sendJson(res, 200, {
-                ok: true,
-                entrant: { ...entrant, totalTickets: mGiveawayState.entrantTotal(entrant) }
-            });
-        }
-
-        if (type === 'gifts') {
-            if (!username)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'username is required.'
-                });
-            const count = Math.max(0, Math.trunc(Number(body.count)) || 0);
-            if (count <= 0)
-                return mHttpResponse.sendJson(res, 200, {
-                    ok: true,
-                    note: 'count was 0, nothing awarded.'
-                });
-            const entrant = mGiveawayState.ensureEntrant(username);
-            const before = mGiveawayState.entrantTotal(entrant);
-            entrant.counts.giftedSubs += count;
-            mGiveawayState.recomputeEntrant(entrant);
-            const recipients = Array.isArray(body.recipients)
-                ? body.recipients
-                      .map((r) => mDomainValidation.cleanString(r))
-                      .filter(Boolean)
-                      .slice(0, 100)
-                : [];
-            mGiveawayActivity.logActivity({
-                type: 'gifts',
-                username: entrant.username,
-                count,
-                tier: mDomainValidation.cleanString(body.tier),
-                recipients,
-                unicorns: mGiveawayState.entrantTotal(entrant) - before
-            });
-            entrant.lastSeenAt = new Date().toISOString();
-            mGiveawayState.broadcastGiveaway();
-            return mHttpResponse.sendJson(res, 200, {
-                ok: true,
-                entrant: { ...entrant, totalTickets: mGiveawayState.entrantTotal(entrant) }
-            });
-        }
-
-        if (type === 'bits') {
-            if (!username)
-                return mHttpResponse.sendJson(res, 400, {
-                    ok: false,
-                    error: 'username is required.'
-                });
-            const amount = Math.max(0, Math.trunc(Number(body.amount)) || 0);
-            if (amount <= 0)
-                return mHttpResponse.sendJson(res, 200, {
-                    ok: true,
-                    note: 'no bits, nothing recorded.'
-                });
-            const entrant = mGiveawayState.ensureEntrant(username);
-            // Bits add up across cheers: 60 + 50 = 110 bits = 1 unicorn at 100 per.
-            const before = mGiveawayState.entrantTotal(entrant);
-            entrant.counts.bits += amount;
-            mGiveawayState.recomputeEntrant(entrant);
-            mGiveawayActivity.logActivity({
-                type: 'bits',
-                username: entrant.username,
-                amount,
-                unicorns: mGiveawayState.entrantTotal(entrant) - before
-            });
-            entrant.lastSeenAt = new Date().toISOString();
-            mGiveawayState.broadcastGiveaway();
-            return mHttpResponse.sendJson(res, 200, {
-                ok: true,
-                entrant: { ...entrant, totalTickets: mGiveawayState.entrantTotal(entrant) }
-            });
-        }
-
-        return mHttpResponse.sendJson(res, 400, {
-            ok: false,
-            error: `Unknown event type "${type}".`
-        });
+        if (body.type === 'chat') require('../activity/collector').chat(body);
+        const result = mGiveawayActivity.withEvent(body, () =>
+            require('../activity/giveaway-event').applyEvent(body)
+        );
+        if (body.type !== 'chat') mGiveawayState.saveGiveaway();
+        return mHttpResponse.sendJson(res, result.status, result.payload);
     }
 
     // Dashboard-only manual ticket adjustment (donations, corrections, etc.

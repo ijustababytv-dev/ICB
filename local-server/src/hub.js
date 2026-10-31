@@ -19,6 +19,13 @@ const mEvents = require('./events');
 const HUB_FILE = path.join(mConfig.DATA_DIR, 'hub.json');
 const HUB_BUILTIN = [
     {
+        id: 'cloud',
+        icon: '☁',
+        name: 'Cloud account',
+        url: '/cloud.html',
+        desc: 'Sign in, check sync status, and open stored daily reports'
+    },
+    {
         id: 'spritetv',
         icon: '📺',
         name: 'Sprite TV',

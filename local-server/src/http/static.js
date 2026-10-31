@@ -70,6 +70,8 @@ function resolveStaticPath(pathname, appDir) {
         '/meld-firehose.js': 'meld-firehose.js'
     };
     const ui = path.join(appDir, 'ui');
+    if (decoded === '/js/client/wk-giveaway-listener.js')
+        return { file: path.join(ui, 'js', 'giveaway-listener.js'), root: path.join(ui, 'js') };
     if (legacyScripts[decoded])
         return {
             file: path.join(ui, 'js', 'vendor', legacyScripts[decoded]),

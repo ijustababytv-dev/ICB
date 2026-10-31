@@ -100,7 +100,9 @@ async function downloadImage(root, item, backupRun, request = fetch) {
 /** Preview by default; --download pulls only new/changed ICB images and leaves Cloudinary untouched. */
 async function main(args = process.argv.slice(2), options = {}) {
     if (args.length > 1 || args.some((arg) => !['--dry-run', '--download'].includes(arg)))
-        throw new Error('Usage: node js/tools/cloudinary-download.js [--dry-run|--download]');
+        throw new Error(
+            'Usage: node local-server/tools/cloudinary-download.js [--dry-run|--download]'
+        );
     const root = options.root || path.resolve(__dirname, '../..');
     const request = options.request || fetch;
     const envFile = path.join(root, '.env.cloudinary');

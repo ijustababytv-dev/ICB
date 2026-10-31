@@ -14,6 +14,7 @@ for (const [url, file] of [
     ['/matter.min.js', 'ui/js/vendor/matter.min.js'],
     ['/meld-firehose.js', 'ui/js/vendor/meld-firehose.js'],
     ['/js/client/control.js', 'ui/js/control.js'],
+    ['/js/client/wk-giveaway-listener.js', 'ui/js/giveaway-listener.js'],
     ['/css/control.css', 'ui/css/control.css'],
     ['/assets/resources/a.png', 'assets/resources/a.png'],
     ['/images/embedded/a.png', 'ui/images/embedded/a.png']

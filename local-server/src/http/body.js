@@ -3,12 +3,18 @@
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
 /** Bound request size and decode JSON before any feature mutates its state. */
-function readBody(req) {
+function readBody(req, limit = MAX_BODY_BYTES) {
     return new Promise((resolve, reject) => {
         let body = '';
+        let size = 0;
         req.on('data', (chunk) => {
+            size += chunk.length;
+            if (size > limit) {
+                body = '';
+                reject(new Error('Request body is too large.'));
+                return;
+            }
             body += chunk;
-            if (body.length > MAX_BODY_BYTES) reject(new Error('Request body is too large.'));
         });
         req.on('end', () => {
             if (!body) return resolve({});

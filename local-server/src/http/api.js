@@ -43,6 +43,8 @@ const mHttpResponse = require('./response');
 async function handleApi(req, res, url) {
     const method = req.method || 'GET';
     const pathname = url.pathname.replace(/\/$/, '') || '/';
+    if (pathname.startsWith('/api/cloud/'))
+        return require('../routes/cloud-auth').handleCloudAuth(req, res, url);
     if (pathname === '/api/sprite-tv' || pathname === '/api/sprite-tv/slideshow')
         return mSpriteTv.handleSpriteTvApi(req, res, pathname, method);
     if (['/api/health', '/api/diagnostics', '/api/tracker-skin-standard'].includes(pathname))

@@ -24,6 +24,7 @@ async function main() {
         await waitForHealth();
         browser = await launchBrowser();
         const pages = [
+            'cloud',
             'hub',
             'control',
             'giveaway-control',

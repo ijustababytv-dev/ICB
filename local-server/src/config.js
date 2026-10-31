@@ -3,6 +3,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+// The only local cloud setting is a public API URL; credentials remain process-only after login.
+const cloudEnvFile = path.resolve(__dirname, '../.env');
+if (!process.env.ICB_CLOUD_API_URL && fs.existsSync(cloudEnvFile)) {
+    const match = /^ICB_CLOUD_API_URL=(https:\/\/[^\r\n]+)$/m.exec(
+        fs.readFileSync(cloudEnvFile, 'utf8')
+    );
+    if (match) process.env.ICB_CLOUD_API_URL = match[1].trim();
+}
+
 const VERSION = '0.1.0-clean';
 const PORT = Number(process.env.ICB_CLEAN_PORT || 8790);
 const HOST = '127.0.0.1';
