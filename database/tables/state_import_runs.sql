@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of state_import_runs; apply live changes through a new migration.
 CREATE TABLE state_import_runs (
     owner_id uuid NOT NULL REFERENCES accounts(id),

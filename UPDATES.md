@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-10-31: Added database/schemas/icb.sql and explicit schema permission/rebuild support; one creation file per schema.
+
 - 2026-10-31: Added explicit per-object database recreation and a live-schema comparison command that uses a disposable schema. Recreation matches all 19 deployed tables and 34 indexes.
 
 - 2026-10-31: Completed and deployed Step 1: Express/Lambda cloud login, case-insensitive accounts, minimal chat/support ingestion, owner isolation, durable local delivery, PostgreSQL daily reports/CSV, and saved feature-state copies. Added root database/ migrations and verified backup/restore tools. The default account was created privately; the local server was not restarted.
@@ -29,6 +31,8 @@
 - 2026-10-24: Ocean Fish overlay and dashboard (tile on ICB Home). Waves with gold trim and sparkles, several fish pictures (saved in `assets/ocean-fish/`), random or in-order picks, per-fish size and flip, and group jumps (fish per jump, time between). Overlay is ES5 and polls every two seconds; jump/show/hide reach it as numbered commands.
 
 ## Improvements
+
+- 2026-10-31: Moved all 19 live tables and 34 indexes from public to icb, preserving every row, object identity, and prior migration record. Released the icb-only Lambda connection setting and updated recovery instructions. Verified live API ingestion, an equivalent rebuild, and an actual backup restore (1 account, 30 state files, 30,901 messages).
 
 - 2026-10-31: Split SQL into 19 table files under database/tables/, 12 standalone index files, and separate role/permission files. Reserved views/functions folders document that no such objects currently exist.
 
@@ -63,6 +67,8 @@
 - 2026-10-24: Verified 132 unit tests and 20 isolated browser pages; formatting and source-policy checks pass. E2E checks still report the existing missing `assets/resources/poke_bowl.png`; other integration checks pass.
 
 ## Bug Fixes
+
+- 2026-10-31: Prevented fresh creation in public and duplicate initialization over a legacy database. Added real PostgreSQL namespace-move, fresh-rebuild, collision-rollback, and public-shadow isolation checks; retained service-role restrictions. All 216 unit/PostgreSQL and 16 Terraform tests pass; E2E retains its nine existing missing-artwork failures.
 
 - 2026-10-31: Removed grouped table definitions from migrations/. Preserved deployed migration hashes/history, added upgrade/rollback and limited-permission regression coverage, and corrected recreation/restore instructions. All 215 unit/PostgreSQL checks pass; E2E retains only the nine existing missing-artwork failures.
 

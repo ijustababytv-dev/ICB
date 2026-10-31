@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of giveaway_audit_events; apply live changes through a new migration.
 CREATE TABLE giveaway_audit_events (
     owner_id uuid NOT NULL REFERENCES accounts(id),

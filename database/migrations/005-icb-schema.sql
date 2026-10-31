@@ -1,0 +1,21 @@
+-- Preserve table OIDs, rows, constraints, indexes, and grants while changing namespaces.
+SET LOCAL lock_timeout='5s';
+ALTER TABLE public.accounts SET SCHEMA icb;
+ALTER TABLE public.sessions SET SCHEMA icb;
+ALTER TABLE public.login_attempts SET SCHEMA icb;
+ALTER TABLE public.collector_leases SET SCHEMA icb;
+ALTER TABLE public.collector_history SET SCHEMA icb;
+ALTER TABLE public.viewers SET SCHEMA icb;
+ALTER TABLE public.migration_runs SET SCHEMA icb;
+ALTER TABLE public.activity_receipts SET SCHEMA icb;
+ALTER TABLE public.source_event_receipts SET SCHEMA icb;
+ALTER TABLE public.activity_event_receipts SET SCHEMA icb;
+ALTER TABLE public.support_events SET SCHEMA icb;
+ALTER TABLE public.giveaway_audit_events SET SCHEMA icb;
+ALTER TABLE public.viewer_daily_stats SET SCHEMA icb;
+ALTER TABLE public.stream_daily_stats SET SCHEMA icb;
+ALTER TABLE public.support_currency_daily SET SCHEMA icb;
+ALTER TABLE public.feature_state SET SCHEMA icb;
+ALTER TABLE public.state_import_runs SET SCHEMA icb;
+ALTER TABLE public.daily_summary_quality SET SCHEMA icb;
+ALTER TABLE public.schema_migrations SET SCHEMA icb;

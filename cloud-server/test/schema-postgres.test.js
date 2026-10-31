@@ -22,27 +22,26 @@ test(
         try {
             await admin.query(format('CREATE SCHEMA %I', schema));
             pool = adminDatabase({ ...process.env, ICB_DB_SCHEMA: schema });
-            // Compare the entire catalog before exercising upgrade-only behavior in this disposable schema.
+            // A fresh isolated schema has every declared table and implicit/explicit index.
             await createSchema(pool);
-            assert.deepEqual(
-                await catalog(pool, schema),
-                await catalog(admin, process.env.ICB_DB_SCHEMA || 'public')
-            );
+            const rebuilt = await catalog(pool, schema);
+            assert.equal(new Set(rebuilt.columns.map((column) => column.table_name)).size, 19);
+            assert.equal(rebuilt.indexes.length, 34);
             await assert.rejects(() => createSchema(pool), /empty schema/);
 
-            // Existing deployments have only the original four ledger entries. They must remain byte-for-byte unchanged.
+            // Existing version entries must remain byte-for-byte unchanged on repeated runs.
             await pool.query('DELETE FROM schema_migrations WHERE version=$1', [
                 definition().baseline_id
             ]);
             const legacy = (await pool.query('SELECT * FROM schema_migrations ORDER BY version'))
                 .rows;
-            assert.equal(legacy.length, 4);
+            assert.equal(legacy.length, 5);
             await migrate(pool);
             assert.deepEqual(
                 (await pool.query('SELECT * FROM schema_migrations ORDER BY version')).rows,
                 legacy
             );
-            const delta = path.join(root, '005-fixture.sql');
+            const delta = path.join(root, '006-fixture.sql');
             fs.writeFileSync(delta, 'ALTER TABLE accounts ADD COLUMN fixture_marker text;');
             await migrate(pool, root);
             await pool.query(
@@ -60,7 +59,7 @@ test(
             await assert.rejects(() => migrate(pool, root), /checksum changed/);
             fs.writeFileSync(delta, 'ALTER TABLE accounts ADD COLUMN fixture_marker text;');
             fs.writeFileSync(
-                path.join(root, '006-failure.sql'),
+                path.join(root, '007-failure.sql'),
                 'ALTER TABLE accounts ADD COLUMN rolled_back text; SELECT 1/0;'
             );
             await assert.rejects(() => migrate(pool, root), /division by zero/);

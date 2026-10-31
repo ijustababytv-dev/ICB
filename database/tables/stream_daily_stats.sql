@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of stream_daily_stats; apply live changes through a new migration.
 CREATE TABLE stream_daily_stats (
     owner_id uuid NOT NULL REFERENCES accounts(id),

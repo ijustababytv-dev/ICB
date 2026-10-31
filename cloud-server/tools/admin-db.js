@@ -7,8 +7,9 @@ const format = require('pg-format');
 function adminDatabase(env = process.env) {
     if (!env.PGHOST || !env.PGUSER || !env.PGPASSWORD || !env.PGSSLROOTCERT)
         throw new Error('Set PGHOST, PGUSER, PGPASSWORD, PGDATABASE, and PGSSLROOTCERT privately.');
-    const schema = env.ICB_DB_SCHEMA || 'public';
-    if (schema !== 'public' && !/^icb_test_[a-z0-9_]+$/.test(schema))
+    const schema = env.ICB_DB_SCHEMA || 'icb';
+    // Public is an explicit legacy inspection/restore override, never the creation default.
+    if (!['icb', 'public'].includes(schema) && !/^icb_test_[a-z0-9_]+$/.test(schema))
         throw new Error('Invalid schema.');
     return new Pool({
         host: env.PGHOST,

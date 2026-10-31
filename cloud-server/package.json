@@ -9,6 +9,7 @@
     "migrate": "node tools/migrate.js",
     "schema:create": "node tools/schema.js",
     "schema:grants": "node tools/schema.js --grants",
+    "schema:permissions": "node tools/schema.js --schema-permissions",
     "schema:check": "node tools/schema-check.js",
     "account": "node tools/account.js",
     "maintenance": "node tools/maintenance.js",

@@ -2,8 +2,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const format = require('pg-format');
 const { adminDatabase } = require('./admin-db');
-const { definition, withSchemaLock, installBaseline } = require('./schema');
+const {
+    definition,
+    withSchemaLock,
+    installBaseline,
+    selectedSchema,
+    executeGroup
+} = require('./schema');
 
 /** Create missing fresh schemas from tables/, then apply only unapplied, checksum-checked deltas. */
 async function migrate(pool, directory = path.resolve(__dirname, '../../database/migrations')) {
@@ -25,9 +32,22 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
         expected[file] = source.hash;
     }
     return withSchemaLock(pool, async (client) => {
-        const ledger = await client.query("SELECT to_regclass('schema_migrations') AS ledger");
-        if (!ledger.rows[0].ledger) await installBaseline(client);
-        const previous = await client.query('SELECT version,sha256 FROM schema_migrations');
+        const target = await selectedSchema(client);
+        if (target === 'public')
+            throw new Error('Migrations target icb; public is for legacy inspection only.');
+        const found = (
+            await client.query(
+                "SELECT to_regclass($1) AS target,to_regclass('public.schema_migrations') AS legacy",
+                [target + '.schema_migrations']
+            )
+        ).rows[0];
+        if (target === 'icb' && found.target && found.legacy)
+            throw new Error('Conflicting public and icb migration ledgers.');
+        let ledgerSchema = target === 'icb' && !found.target && found.legacy ? 'public' : target;
+        if (!found.target && ledgerSchema !== 'public') await installBaseline(client);
+        const previous = await client.query(
+            format('SELECT version,sha256 FROM %I.schema_migrations', ledgerSchema)
+        );
         const applied = new Map(previous.rows.map((row) => [row.version, row.sha256]));
         for (const [version, hash] of applied) {
             if (version === baseline.baseline_id) continue;
@@ -46,11 +66,20 @@ async function migrate(pool, directory = path.resolve(__dirname, '../../database
             if (applied.has(file)) continue;
             await client.query('BEGIN');
             try {
+                if (ledgerSchema === 'public') {
+                    if (file !== '005-icb-schema.sql')
+                        throw new Error('Move the legacy schema before other upgrades.');
+                    await executeGroup(client, 'schemas');
+                }
                 await client.query(sql);
-                await client.query('INSERT INTO schema_migrations(version,sha256) VALUES($1,$2)', [
-                    file,
-                    hash
-                ]);
+                if (ledgerSchema === 'public') ledgerSchema = target;
+                await client.query(
+                    format(
+                        'INSERT INTO %I.schema_migrations(version,sha256) VALUES($1,$2)',
+                        ledgerSchema
+                    ),
+                    [file, hash]
+                );
                 await client.query('COMMIT');
             } catch (error) {
                 await client.query('ROLLBACK');

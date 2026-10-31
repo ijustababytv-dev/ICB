@@ -44,7 +44,9 @@ dot-source `database/admin-env.ps1` with the intended role. Preserve ignored
 credentials, release metadata, state, and backups when changing machines.
 
 Current table definitions are in `database/tables/`, one file per table; other
-SQL objects have their own folders. `database/migrations/` is for upgrade deltas.
+SQL objects have their own folders. `database/schemas/icb.sql` creates the `icb`
+namespace containing all application tables/indexes and the ledger. In pgAdmin,
+refresh Databases → icb → Schemas → icb → Tables. `database/migrations/` is for upgrade deltas.
 Use `npm run schema:check --prefix cloud-server` with master credentials to verify
 recreation in a disposable schema. Follow the database recovery instructions for
 fresh creation or a private dump restore; creation refuses populated schemas.

@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of viewers; apply live changes through a new migration.
 CREATE TABLE viewers (
     id uuid PRIMARY KEY,

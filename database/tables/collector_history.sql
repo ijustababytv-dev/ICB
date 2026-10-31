@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of collector_history; apply live changes through a new migration.
 CREATE TABLE collector_history (
     owner_id uuid NOT NULL REFERENCES accounts(id),

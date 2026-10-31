@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of daily_summary_quality; apply live changes through a new migration.
 CREATE TABLE daily_summary_quality (
     owner_id uuid NOT NULL REFERENCES accounts(id),

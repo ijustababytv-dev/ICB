@@ -4,7 +4,12 @@ This folder is the versioned source needed to recreate ICB's PostgreSQL schema.
 RDS manages its physical database files. Actual account data is recovered with an
 RDS snapshot or a private logical dump, never by committing database files to Git.
 
+- `schemas/icb.sql`: creates the **`icb` schema**, owned by `icb_migrator`.
+  Keep one creation file per schema in `schemas/`. All 19 application tables,
+  their indexes, and the migration ledger belong to `icb`, leaving `public` empty.
 - `tables/`: **one current `CREATE TABLE` definition per table**, named after that table (19 files).
+  Creation tools enforce `search_path=icb`; disposable tests explicitly select their
+  generated test schema. Fresh creation in `public` is rejected.
 - `indexes/`: one definition per standalone index (12 files). Primary-key and unique-constraint
   indexes are created by their table definitions, giving 34 indexes in total.
 - `roles/`: one file each for `icb_migrator` and `icb_service`. Passwords come from private session settings.
@@ -23,6 +28,9 @@ Install cloud tools with `npm ci --prefix cloud-server`. Administrative commands
 require private `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, and
 `PGSSLROOTCERT`. TLS certificate and hostname verification are mandatory. Do not
 put operational passwords in command-line arguments, tracked files, or shell output.
+The database name is `icb` and the schema inside it is also `icb`; these are separate
+PostgreSQL objects. Runtime/admin pools select only the `icb` schema by default.
+In pgAdmin, refresh **Databases → icb → Schemas → icb → Tables**.
 
 Load administrative connection settings without printing secrets:
 
@@ -43,9 +51,10 @@ For a new database:
 1. Provision the RDS/network foundation using the existing Terraform state or, for
    an intentionally new stack, a reviewed configuration. Keep the `baby-icb-` names.
 2. Load the master connection and run `node cloud-server/tools/bootstrap.js` as above.
-   This executes `roles/` and schema access files as master, then creates objects and
-   applies permissions as `icb_migrator`. No manual password substitution in SQL is needed.
-3. For structure-only recreation with roles already provisioned, load the migration
+   This creates roles and the `icb` namespace as master, creates tables/indexes as
+   `icb_migrator`, then applies schema security and limited table privileges.
+   No manual password substitution in SQL is needed.
+3. For structure-only recreation with roles and the empty `icb` namespace already provisioned, load the migration
    connection and run `npm run schema:create --prefix cloud-server`, followed by
    `npm run schema:grants --prefix cloud-server`. Creation is transactional and refuses
    populated schemas. It does not create accounts or recover data. Use
@@ -56,7 +65,9 @@ For a new database:
    Existing accounts keep their passwords unless the explicit `--rotate` option is used.
 5. When recovering existing data, restore a logical dump into an empty database
    **instead of creating the schema first**. As the restore owner, run
+   `npm run schema:permissions --prefix cloud-server` and
    `npm run schema:grants --prefix cloud-server`, then verify login, totals, and TLS.
+   A pre-move backup with tables in `public` requires the upgrade below first.
 6. Configure the limited service secret and deploy the tested cloud ZIP through Terraform.
 
 Back up with `powershell -File database/backup.ps1`. Recover using
@@ -72,6 +83,24 @@ fingerprint in `schema_migrations`, without replaying duplicate `CREATE TABLE` s
 Editing a table file never alters an existing database; add an explicit upgrade
 script for that change. Partially applied legacy versions must be completed with
 their original release before switching to this layout.
+
+`005-icb-schema.sql` moves existing tables with `ALTER TABLE ... SET SCHEMA icb`.
+PostgreSQL preserves their rows, object identities, constraints, indexes, and ACLs.
+It adds one version row in the relocated ledger. Fresh builds cover this change
+directly and skip the move. A conflicting target table or lock timeout rolls the
+entire upgrade back; the migration never drops or rebuilds existing tables.
+
+For a legacy `public` deployment, back up first. As master, run
+`psql -X -v ON_ERROR_STOP=1 -f database/schemas/icb.sql`. Before moving a running
+API, temporarily grant `icb_service` usage on `icb` and set that role's **per-database**
+search path to `icb,public`; allow at least 65 seconds for the old Lambda pool's
+60-second credential/pool lifetime to expire. Then run `npm run migrate --prefix
+cloud-server`, `npm run schema:permissions --prefix cloud-server`, and
+`npm run schema:grants --prefix cloud-server` with master credentials. The namespace
+permission command replaces the temporary search path with `icb` only, removes
+application-role CREATE access to `public`, and keeps the service unable to do DDL.
+Release the runtime that explicitly selects `icb`, then run live API/restore checks.
+The 2026-10-31 deployment performs this transition without restarting the local server.
 
 Validate recreation against the selected database with:
 
@@ -112,6 +141,9 @@ to exercise actual object creation, legacy-history preservation, upgrade checksu
 DDL rollback, transactions, retries, concurrent support
 duplicates, owner isolation, snapshot access, and summary retention. Tests never
 point the local server at production `data/` or restore historical live progress.
+The namespace-move test uses a separate generated `icb_test_schema_*` database,
+checking all rows and object identities, collision rollback, repeated upgrades,
+limited-role access, and runtime isolation from a same-named public decoy table.
 
 
 A real backup was restored into an isolated `icb_test_restore_*` database on

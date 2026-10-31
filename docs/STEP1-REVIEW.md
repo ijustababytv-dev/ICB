@@ -17,6 +17,9 @@ usernames work. The password is not in source, logs, or browser token storage.
 - `database/`: one SQL file per table/index/role, separate permissions and upgrade
   migrations, the saved-state allowlist,
   administrative environment helper, and actual backup/restore commands.
+- All 19 application tables, their indexes, and the migration ledger use the `icb`
+  schema, created by `database/schemas/icb.sql`. Version 005 preserves existing rows
+  and object identities while moving them out of `public`.
 - `data/`: remains local for live feature state, recovery, and the minimal outbox;
   it is now ignored/untracked. Existing files and historical private backups were
   preserved. Old raw chat remains in earlier Git history; history was not rewritten.

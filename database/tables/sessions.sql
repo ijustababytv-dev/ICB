@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of sessions; apply live changes through a new migration.
 CREATE TABLE sessions (
     token_hash text PRIMARY KEY,

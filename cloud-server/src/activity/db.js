@@ -27,6 +27,7 @@ function createDatabase(env = process.env) {
                 database: env.DB_NAME,
                 user: env.DB_USER,
                 password: credentials.password,
+                options: '-c search_path=icb',
                 ssl: { ca: fs.readFileSync(env.DB_CA_FILE, 'utf8'), rejectUnauthorized: true },
                 max: 1,
                 connectionTimeoutMillis: 3000,

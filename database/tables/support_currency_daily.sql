@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of support_currency_daily; apply live changes through a new migration.
 CREATE TABLE support_currency_daily (
     owner_id uuid NOT NULL REFERENCES accounts(id),

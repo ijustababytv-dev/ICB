@@ -5,12 +5,12 @@
     "001-activity.sql": "d3310e40f3ca2eebd6e2c654ca764b4162a998fc3dbe718d7cc8aa9b0e25c56c",
     "002-state-backups.sql": "a6afb5a0b1653100a8df6579de1212c3351f9fdae27e081c84ddb762a4d5db07",
     "003-report-quality.sql": "9368626cedf8a4fb8af4719a87b297da5357bf7e90c0518a35bf94e7940f02e1",
-    "004-source-index.sql": "f11ed8c086408b8ed91672a27d7c6d3129079f4fbfcb1c2f998667f49e380e83"
+    "004-source-index.sql": "f11ed8c086408b8ed91672a27d7c6d3129079f4fbfcb1c2f998667f49e380e83",
+    "005-icb-schema.sql": "2a12534a0727a67d72b244738a79fe97faef89f68ddca5ff5a8c0ea84c7dd606"
   },
   "bootstrap": [
     "roles/icb_migrator.sql",
-    "roles/icb_service.sql",
-    "permissions/schema.sql"
+    "roles/icb_service.sql"
   ],
   "objects": [
     "tables/schema_migrations.sql",
@@ -65,5 +65,11 @@
     "permissions/feature_state.sql",
     "permissions/state_import_runs.sql",
     "permissions/daily_summary_quality.sql"
+  ],
+  "schemas": [
+    "schemas/icb.sql"
+  ],
+  "schema_permissions": [
+    "permissions/schema.sql"
   ]
 }

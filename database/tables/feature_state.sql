@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of feature_state; apply live changes through a new migration.
 CREATE TABLE feature_state (
     owner_id uuid NOT NULL REFERENCES accounts(id),

@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of support_events; apply live changes through a new migration.
 CREATE TABLE support_events (
     owner_id uuid NOT NULL REFERENCES accounts(id),

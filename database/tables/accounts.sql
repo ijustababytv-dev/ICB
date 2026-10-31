@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of accounts; apply live changes through a new migration.
 CREATE TABLE accounts (
     id uuid PRIMARY KEY,

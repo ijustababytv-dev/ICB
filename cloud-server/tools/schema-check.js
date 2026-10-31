@@ -87,7 +87,7 @@ async function verifySchema(env = process.env) {
         await existing.query(format('CREATE SCHEMA %I', schema));
         recreated = adminDatabase({ ...env, ICB_DB_SCHEMA: schema });
         await createSchema(recreated);
-        const target = env.ICB_DB_SCHEMA || 'public';
+        const target = env.ICB_DB_SCHEMA || 'icb';
         const before = await catalog(existing, target);
         assert.deepEqual(
             await catalog(recreated, schema),

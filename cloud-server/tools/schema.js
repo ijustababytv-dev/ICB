@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const format = require('pg-format');
 const { adminDatabase } = require('./admin-db');
 const DATABASE_ROOT = path.resolve(__dirname, '../../database');
 const SCHEMA_LOCK = 19770731;
@@ -12,6 +13,8 @@ function definition(root = DATABASE_ROOT) {
     if (manifest.format !== 1 || manifest.baseline_id !== '000-object-baseline')
         throw new Error('Unsupported database definition format.');
     const allowed = {
+        schemas: /^schemas\/[a-z0-9_-]+\.sql$/,
+        schema_permissions: /^permissions\/[a-z0-9_-]+\.sql$/,
         bootstrap: /^(roles|permissions)\/[a-z0-9_-]+\.sql$/,
         objects: /^(tables|indexes|views|functions|sequences|types|triggers)\/[a-z0-9_-]+\.sql$/,
         grants: /^permissions\/[a-z0-9_-]+\.sql$/
@@ -41,7 +44,7 @@ function definition(root = DATABASE_ROOT) {
 
 /** Execute checked-in files in explicit order, with no generated or duplicated table DDL. */
 async function executeGroup(client, group, root = DATABASE_ROOT) {
-    if (!['bootstrap', 'objects', 'grants'].includes(group))
+    if (!['schemas', 'schema_permissions', 'bootstrap', 'objects', 'grants'].includes(group))
         throw new Error('Unknown SQL file group.');
     for (const file of definition(root)[group])
         await client.query(fs.readFileSync(path.join(root, file), 'utf8'));
@@ -51,7 +54,7 @@ async function executeGroup(client, group, root = DATABASE_ROOT) {
 function sourceHash(root = DATABASE_ROOT) {
     const manifest = definition(root);
     const hash = createHash('sha256').update(JSON.stringify(manifest.covers));
-    for (const file of manifest.objects)
+    for (const file of [...manifest.schemas, ...manifest.objects])
         hash.update(file + '\0').update(fs.readFileSync(path.join(root, file)));
     return hash.digest('hex');
 }
@@ -71,11 +74,30 @@ async function withSchemaLock(pool, operation) {
     }
 }
 
+/** Administrative pools select exactly one application or disposable namespace. */
+async function selectedSchema(client) {
+    const schema = (await client.query('SHOW search_path')).rows[0].search_path;
+    if (!/^(icb|public|icb_test_[a-z0-9_]+)$/.test(schema))
+        throw new Error('Select one explicit schema.');
+    return schema;
+}
+
 /** Build an empty schema atomically and baseline the versions represented by its definitions. */
 async function installBaseline(client, root = DATABASE_ROOT) {
-    const existing =
-        await client.query(`SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-        WHERE n.nspname=current_schema() AND c.relkind IN ('r','p','v','m','S','f') LIMIT 1`);
+    const target = await selectedSchema(client);
+    if (target === 'public')
+        throw new Error('Application tables must be created in icb, not public.');
+    if (
+        target === 'icb' &&
+        (await client.query("SELECT to_regclass('public.schema_migrations') AS ledger")).rows[0]
+            .ledger
+    )
+        throw new Error('Existing public tables require the schema-move migration.');
+    const existing = await client.query(
+        `SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname=$1 AND c.relkind IN ('r','p','v','m','S','f') LIMIT 1`,
+        [target]
+    );
     if (existing.rowCount)
         throw new Error(
             'Schema creation requires an empty schema; existing objects were left unchanged.'
@@ -84,6 +106,9 @@ async function installBaseline(client, root = DATABASE_ROOT) {
     const fingerprint = sourceHash(root);
     await client.query('BEGIN');
     try {
+        if (target === 'icb') await executeGroup(client, 'schemas', root);
+        // Reassert the selected namespace inside the transaction before any unqualified DDL.
+        await client.query(format('SET LOCAL search_path=%I', target));
         await executeGroup(client, 'objects', root);
         for (const [version, hash] of Object.entries(manifest.covers))
             await client.query('INSERT INTO schema_migrations(version,sha256) VALUES($1,$2)', [
@@ -106,12 +131,12 @@ async function createSchema(pool, root = DATABASE_ROOT) {
     return withSchemaLock(pool, (client) => installBaseline(client, root));
 }
 
-/** Reapply limited table privileges after creation or a no-ACL restore, as the object owner. */
-async function applyGrants(pool, root = DATABASE_ROOT) {
+/** Apply one permission group atomically; namespace rules require the database master. */
+async function applyPermissions(pool, group, root) {
     return withSchemaLock(pool, async (client) => {
         await client.query('BEGIN');
         try {
-            await executeGroup(client, 'grants', root);
+            await executeGroup(client, group, root);
             await client.query('COMMIT');
         } catch (error) {
             await client.query('ROLLBACK');
@@ -120,14 +145,30 @@ async function applyGrants(pool, root = DATABASE_ROOT) {
     });
 }
 
+/** Reapply limited table privileges after creation or a no-ACL restore, as the object owner. */
+async function applyGrants(pool, root = DATABASE_ROOT) {
+    return applyPermissions(pool, 'grants', root);
+}
+
+/** Secure icb and set per-database search paths without granting service DDL access. */
+async function applySchemaPermissions(pool, root = DATABASE_ROOT) {
+    return applyPermissions(pool, 'schema_permissions', root);
+}
+
 /** Create structure only; accounts and feature data need a private backup or explicit import. */
 async function main() {
     const args = process.argv.slice(2);
-    if (args.length && (args.length !== 1 || args[0] !== '--grants'))
+    if (
+        args.length &&
+        (args.length !== 1 || !['--grants', '--schema-permissions'].includes(args[0]))
+    )
         throw new Error('Unknown schema command.');
     const pool = adminDatabase();
     try {
-        if (args[0] === '--grants') {
+        if (args[0] === '--schema-permissions') {
+            await applySchemaPermissions(pool);
+            console.info('Application schema permissions and search paths applied.');
+        } else if (args[0] === '--grants') {
             await applyGrants(pool);
             console.info('Limited table permissions applied.');
         } else {
@@ -152,5 +193,7 @@ module.exports = {
     withSchemaLock,
     installBaseline,
     createSchema,
-    applyGrants
+    applyGrants,
+    applySchemaPermissions,
+    selectedSchema
 };

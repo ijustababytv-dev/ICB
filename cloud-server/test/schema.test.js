@@ -59,8 +59,13 @@ test('every table and standalone index has its own named, ordered source file', 
         manifest.grants.map((file) => path.basename(file)).sort(),
         tables.map((file) => path.basename(file)).sort()
     );
-    // The four already-deployed versions are represented by the current table/index sources.
-    assert.equal(Object.keys(manifest.covers).length, 4);
+    assert.deepEqual(manifest.schemas, ['schemas/icb.sql']);
+    assert.match(
+        fs.readFileSync(path.join(DATABASE_ROOT, manifest.schemas[0]), 'utf8'),
+        /CREATE SCHEMA IF NOT EXISTS icb AUTHORIZATION icb_migrator/
+    );
+    // Fresh object definitions cover the original schema plus its namespace move.
+    assert.equal(Object.keys(manifest.covers).length, 5);
     for (const file of fs
         .readdirSync(path.join(DATABASE_ROOT, 'migrations'))
         .filter((name) => name.endsWith('.sql')))

@@ -4,7 +4,7 @@ const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { adminDatabase } = require('./admin-db');
 const { migrate } = require('./migrate');
-const { executeGroup, applyGrants } = require('./schema');
+const { executeGroup, applyGrants, applySchemaPermissions } = require('./schema');
 
 /** Bootstrap separate SQL roles and preserve their generated credentials only in ignored local env files. */
 async function main() {
@@ -33,6 +33,7 @@ async function main() {
             await client.query('BEGIN');
             try {
                 await executeGroup(client, 'bootstrap');
+                await executeGroup(client, 'schemas');
                 await client.query('COMMIT');
             } catch (error) {
                 await client.query('ROLLBACK');
@@ -56,6 +57,7 @@ async function main() {
         });
         try {
             await migrate(migration);
+            await applySchemaPermissions(master);
             await applyGrants(migration);
         } finally {
             await migration.end();

@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of login_attempts; apply live changes through a new migration.
 CREATE TABLE login_attempts (
     attempt_key text PRIMARY KEY,

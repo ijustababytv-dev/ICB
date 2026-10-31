@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Tracks applied changes and an explicit baseline when creating an empty schema.
 CREATE TABLE schema_migrations (
     version text PRIMARY KEY,

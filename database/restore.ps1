@@ -8,4 +8,4 @@ $env:PGSSLMODE = 'verify-full'
 # No --clean: restoring over a populated database must fail instead of deleting existing data.
 & pg_restore --dbname=$env:PGDATABASE --no-owner --no-acl --single-transaction --exit-on-error $resolvedBackup
 if ($LASTEXITCODE -ne 0) { throw 'Restore failed. Use a new empty database; existing data was not deliberately removed.' }
-Write-Output 'Database restored. As the restore owner, run npm run schema:grants --prefix cloud-server and verify the application account before cutover.'
+Write-Output 'Database restored. As master/restore owner, run schema:permissions and schema:grants in cloud-server, then verify the application account before cutover. Legacy public-schema dumps require migrate first.'

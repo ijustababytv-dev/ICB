@@ -1,3 +1,4 @@
+-- Target schema: icb (enforced by the schema creation tools).
 -- Current definition of migration_runs; apply live changes through a new migration.
 CREATE TABLE migration_runs (
     id uuid PRIMARY KEY,
