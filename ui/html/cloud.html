@@ -13,42 +13,24 @@
         <div class="eyebrow">ICB account</div>
         <h1>Cloud sign-in</h1>
         <p class="intro">Sign in to use ICB. Your sign-in is remembered on this computer for 14 days.</p>
-        <div class="account-grid">
-            <section class="card" aria-labelledby="signinTitle">
-                <h2 id="signinTitle">Welcome back</h2>
-                <form id="login" method="post" action="/api/cloud/login">
-                    <label for="username">Username</label>
-                    <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="ijustababytv" required aria-describedby="usernameHint">
-                    <div class="note" id="usernameHint">Uppercase and lowercase usernames work the same.</div>
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required>
-                    <div class="actions">
-                        <button id="signin" class="primary" type="submit" disabled>Sign in</button>
-                        <button id="logout" type="button" hidden>Sign out</button>
-                        <button id="restore" type="button" hidden>Retry saved sign-in</button>
-                        <a id="continue" href="/" hidden>Continue to ICB &rarr;</a>
-                    </div>
-                </form>
-                <p id="result" role="status" aria-live="polite"></p>
-                <p class="note">This computer securely remembers a session token, not your password. Sign out to forget it immediately. Your password is cleared from this form after each attempt.</p>
-            </section>
-            <section class="card" aria-labelledby="statusTitle">
-                <h2 id="statusTitle">Account &amp; sync</h2>
-                <div id="cloudStatus" role="status" aria-live="polite">
-                    <p class="account-state" id="accountState">Checking account&hellip;</p>
-                    <dl>
-                        <dt>Remembered until</dt><dd class="wide-detail" id="sessionExpiry">&mdash;</dd>
-                        <dt>Cloud connection</dt><dd id="connectionState">Checking&hellip;</dd>
-                        <dt>Pending uploads</dt><dd id="pendingUploads">&mdash;</dd>
-                        <dt>Uploads needing attention</dt><dd id="quarantinedUploads">&mdash;</dd>
-                        <dt>Uncounted provider events</dt><dd id="uncountedEvents">&mdash;</dd>
-                        <dt>Last upload confirmed</dt><dd class="wide-detail" id="lastAck">&mdash;</dd>
-                    </dl>
+        <section class="card" aria-labelledby="signinTitle">
+            <h2 id="signinTitle">Welcome back</h2>
+            <form id="login" method="post" action="/api/cloud/login">
+                <label for="username">Username</label>
+                <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="ijustababytv" required aria-describedby="usernameHint">
+                <div class="note" id="usernameHint">Uppercase and lowercase usernames work the same.</div>
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+                <div class="actions">
+                    <button id="signin" class="primary" type="submit" disabled>Sign in</button>
+                    <button id="logout" type="button" hidden>Sign out</button>
+                    <button id="restore" type="button" hidden>Retry saved sign-in</button>
+                    <a id="continue" href="/" hidden>Continue to ICB &rarr;</a>
                 </div>
-                <p><a href="/giveaway-report.html">Open daily activity reports &rarr;</a></p>
-                <p class="note">Cloud reports store activity counts and support totals. Chat messages are not archived. Palia log reading and overlay rendering run on this computer.</p>
-            </section>
-        </div>
+            </form>
+            <p id="result" role="status" aria-live="polite"></p>
+            <p class="note">This computer securely remembers a session token, not your password. Sign out to forget it immediately. Your password is cleared from this form after each attempt.</p>
+        </section>
     </main>
     <script src="/js/client/cloud-auth.js"></script>
 </body>

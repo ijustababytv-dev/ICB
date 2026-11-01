@@ -6,6 +6,9 @@ account, shared by its browser tabs and Meld layers. Usernames ignore case.
 
 ## Startup and daily use
 
+The login screen is a single centered form, without dashboard navigation or an
+account/sync diagnostics panel. Only authentication actions and feedback appear there.
+
 The launchers open `/cloud.html?startup=1`. A signed-out installation serves only
 the login page and its assets, authentication endpoints, minimal readiness health,
 and the startup URL list pointing to login. Direct page links redirect to login;

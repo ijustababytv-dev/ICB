@@ -1,9 +1,8 @@
 body { padding: 20px; }
-.account-page { max-width: 980px; margin: 30px auto; }
+.account-page { max-width: 520px; margin: 30px auto; }
 .account-page .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; }
 .account-page h1 { margin: 8px 0; }
 .account-page .intro { color: var(--dim); max-width: 660px; }
-.account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 .account-page .card { margin-top: 10px; padding: 24px; min-width: 0; }
 .account-page h2 { font-size: 20px; margin: 0 0 18px; }
 .account-page label { display: block; margin: 18px 0 7px; font-weight: 600; }
@@ -18,15 +17,9 @@ body { padding: 20px; }
 .account-page a { color: #dfbdff; }
 .account-page #result { min-height: 24px; margin-bottom: 0; }
 .account-page #result[data-error="true"] { color: #ff9eab; }
-.account-page .account-state { color: var(--good); font-weight: 700; overflow-wrap: anywhere; }
-.account-page dl { display: grid; grid-template-columns: 1fr auto; gap: 12px; font-size: 14px; }
-.account-page dt { color: var(--dim); }
-.account-page dd { margin: 0; text-align: right; overflow-wrap: anywhere; min-width: 0; }
-.account-page .wide-detail { grid-column: 1 / -1; text-align: left; }
 .account-page .note { line-height: 1.6; }
 @media (max-width: 700px) {
     body { padding: 12px; }
-    .account-grid { grid-template-columns: 1fr; gap: 6px; }
     .account-page { margin-top: 22px; }
     .account-page .card { padding: 20px; }
 }

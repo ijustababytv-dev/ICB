@@ -19,6 +19,19 @@ function form() {
     let heldStatus = null;
     /** Provide only DOM operations used by this focused controller. */
     function node(id) {
+        if (
+            ![
+                'login',
+                'username',
+                'password',
+                'signin',
+                'logout',
+                'restore',
+                'continue',
+                'result'
+            ].includes(id)
+        )
+            throw new Error('Removed or unknown login element: ' + id);
         return (
             nodes[id] ||
             (nodes[id] = {
@@ -112,7 +125,7 @@ async function settle() {
 test('Sign-in posts CSRF-protected credentials, blocks duplicate submits and clears password', async () => {
     const f = form();
     await settle();
-    assert.equal(f.node('accountState').textContent, 'Signed out');
+    assert.equal(f.node('continue').hidden, true);
     assert.equal(f.node('logout').hidden, true);
     f.node('username').value = '  TEST-user  ';
     f.node('password').value = 'fixture-only';
@@ -132,11 +145,11 @@ test('Sign-in posts CSRF-protected credentials, blocks duplicate submits and cle
     assert.equal(f.node('password').value, '');
     assert.equal(f.node('signin').disabled, false);
     assert.equal(f.node('logout').hidden, false);
-    assert.match(f.node('accountState').textContent, /test-user/);
+    assert.equal(f.node('continue').hidden, false);
     assert.match(f.node('result').textContent, /dashboards are ready/);
     f.node('logout').click();
     await settle();
-    assert.equal(f.node('accountState').textContent, 'Signed out');
+    assert.equal(f.node('continue').hidden, true);
     assert.equal(f.node('logout').hidden, true);
 });
 
@@ -156,29 +169,25 @@ test('Rejected and unavailable sign-ins announce errors without leaving password
     }
 });
 
-test('Sync status preserves attention counts and distinguishes unavailable counters from zero', async () => {
+test('Minimal login keeps restoration/retry controls working without the removed diagnostics panel', async () => {
     const f = form();
     await settle();
-    f.status({
-        account: { username: '<unsafe>' },
-        pending: 3,
-        quarantined: 2,
-        uncounted_events: 4,
-        feed: { code: 'cloud_unavailable' }
-    });
-    await f.intervals[0]();
-    await settle();
-    assert.equal(f.node('accountState').textContent, 'Signed in as <unsafe>');
-    assert.equal(f.node('pendingUploads').textContent, 3);
-    assert.equal(f.node('quarantinedUploads').textContent, 2);
-    assert.equal(f.node('uncountedEvents').textContent, 4);
-    assert.match(f.node('connectionState').textContent, /cloud_unavailable/);
-    f.status({ pending: null, quarantined: null, code: 'outbox_unreadable' });
+    f.status({ remembered: true, restoring: true, pending: 3, quarantined: 2 });
     f.intervals[0]();
     await settle();
-    assert.equal(f.node('pendingUploads').textContent, 'Unavailable');
-    assert.equal(f.node('quarantinedUploads').textContent, 'Unavailable');
-    assert.match(f.node('connectionState').textContent, /needs attention/);
+    assert.equal(f.node('signin').disabled, true);
+    assert.equal(f.node('restore').hidden, true);
+    assert.match(f.node('result').textContent, /Restoring saved sign-in/);
+    f.status({ restoring: false, auth_code: 'cloud_unavailable' });
+    f.intervals[0]();
+    await settle();
+    assert.equal(f.node('signin').disabled, false);
+    assert.equal(f.node('restore').hidden, false);
+    assert.equal(f.node('result').textContent, '');
+    f.status({ account: { username: 'fixture' } });
+    f.intervals[0]();
+    await settle();
+    assert.equal(f.node('continue').hidden, false);
 });
 
 test('A delayed signed-out status cannot overwrite a completed sign-in', async () => {
@@ -193,7 +202,7 @@ test('A delayed signed-out status cannot overwrite a completed sign-in', async (
 
     release();
     await settle();
-    assert.equal(f.node('accountState').textContent, 'Signed in as test-user');
+    assert.equal(f.node('continue').hidden, false);
     assert.equal(f.node('logout').hidden, false);
 });
 

@@ -85,13 +85,19 @@ async function verifyNavigation(page, name) {
             autocomplete:document.getElementById('password').autocomplete,
             label:document.querySelector('label[for="password"]').textContent,
             result:document.getElementById('result').getAttribute('role'),
-            panel:getComputedStyle(document.querySelector('.account-page .card')).backgroundColor
+            panel:getComputedStyle(document.querySelector('.account-page .card')).backgroundColor,
+            cards:document.querySelectorAll('.account-page .card').length,
+            diagnostics:!!document.querySelector('#cloudStatus, #statusTitle'),
+            width:document.querySelector('.account-page').getBoundingClientRect().width
         })`);
         assert.equal(form.password, 'password');
         assert.equal(form.autocomplete, 'current-password');
         assert.equal(form.label, 'Password');
         assert.equal(form.result, 'status');
         assert.equal(form.panel, 'rgb(29, 22, 40)');
+        assert.equal(form.cards, 1, 'Login contains only its form card');
+        assert.equal(form.diagnostics, false, 'No account/sync information panel');
+        assert.ok(form.width <= 520, 'Single centered sign-in column');
     }
 }
 
