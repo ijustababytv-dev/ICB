@@ -5,7 +5,7 @@ Application data lives in the `icb` schema and is separated by streamer account.
 - **Accounts and access:** usernames, password hashes/salts, timezone, session-token hashes/expiry and login-attempt limits.
 - **Viewer activity:** viewer identities, message counts, active-chat windows and daily viewer/stream summaries.
 - **Support:** subscriptions, gifted subs, months/tiers, bits, follows, raids, monetary amounts/currencies and ticket awards.
-- **Giveaways:** entrants, tickets, awards, draws, winners, eligibility snapshots, audit history and undo data.
+- **Giveaways:** entrants, tickets, awards, draws, winners, eligibility snapshots, daily chat check-in policy/attendance, audit history and undo data.
 - **Sign-ups and parties:** events, participants, roles and attendance/check-ins.
 - **Turn Line:** waiting order, rounds and completed turns.
 - **Games:** poll choices/votes, team membership and hunt participants/scores.

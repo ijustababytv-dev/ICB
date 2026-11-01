@@ -37,7 +37,8 @@ module.exports = function createModel(context, exports) {
             for (const username of Object.keys(mGiveawayState.giveaway.entrants)) {
                 const entrant = mGiveawayState.giveaway.entrants[username];
                 if (prize === 'mystery-outfit' && entrant.mysteryOutfitWon) continue;
-                if (mGiveawayState.isBlocked(username)) continue;
+                if (mGiveawayState.isBlocked(username) || !mGiveawayState.isEligible(username))
+                    continue;
                 const tickets = mGiveawayState.entrantTotal(entrant);
                 if (tickets > 0) pool.push({ name: username, tickets });
             }

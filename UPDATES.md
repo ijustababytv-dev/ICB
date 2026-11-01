@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-01: Integrated main's daily Unicorn Jar check-in and jar/cloud/unicorn size sliders. Checked-in viewers bring their full saved ticket balance; absent viewers stay out of the jar, board and draws until they chat.
+
 - 2026-11-01: Added the categorized operator sidebar, tight fuzzy page search with keyboard suggestions, an alphabetical All Pages directory and a last-opened Recent Pages table. Home shows responsive panels of four recent tools beneath its subtitle.
 
 - 2026-11-01: Restored 339 missing project images from Cloudinary using download-cloudinary-images.bat, including the Poke Bowl tracker artwork.
@@ -24,6 +26,8 @@
 - 2026-10-29: Vampire Crab tracker card (`/vampire-crab.html`): counts up every Vampire Crab caught (`itemtype_bug_crabr`, confirmed in her game log); storage withdrawals don't count. Never resets on its own.
 
 ## Improvements
+
+- 2026-11-01: Merged origin/main through 902ec2f into log-adjust, adapting giveaway behavior to cloud transactions and current UI folders. Kept runtime JSON/logs untracked, stopped tracking the machine-specific bridge cursor, and retained current sidebar/authentication.
 
 - 2026-11-01: Referenced the PostgreSQL data inventory from AGENTS.md and CLAUDE.md.
 
@@ -53,6 +57,8 @@
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
 
 ## Bug Fixes
+
+- 2026-11-01: Same-window chat can re-enter an emptied jar without a second ticket award. Earlier queued presence cannot undo an explicit clear; the 06:00 account-timezone cutoff survives DST and cold cloud contexts.
 
 - 2026-11-01: Kept Home randomizer, connection checks and saved-link navigation working after removing the legacy tile controls.
 

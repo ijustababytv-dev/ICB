@@ -29,6 +29,7 @@ async function main() {
             port
         );
         await require('./workspace').verifyWorkspace(browser, port, json);
+        await require('./giveaway-upstream').verifyGiveawayUpstream(browser, port, json);
         const pages = [
             'cloud',
             'hub',
@@ -81,18 +82,27 @@ async function main() {
                 assert.equal(state.width, 1280);
                 assert.equal(state.imageLoaded, true);
                 const options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+                await json('/api/giveaway/event', {
+                    ...options,
+                    body: JSON.stringify({ type: 'chat', username: 'BrowserTestGuest' })
+                });
                 await json('/api/giveaway/state');
                 await json('/api/giveaway/manual', {
                     ...options,
                     body: JSON.stringify({ username: 'BrowserTestGuest', amount: 5 })
                 });
-                await page.evaluate(
-                    'new Promise(function(resolve) { setTimeout(resolve, 1300); })'
+                await require('./giveaway-upstream').until(
+                    () => page.evaluate('window.__jar.state().total === 5'),
+                    'batched first-chat check-in reaches the jar'
                 );
                 assert.equal(await page.evaluate('window.__jar.state().total'), 5);
-                await json('/api/giveaway/draw-test', { ...options, body: '{}' });
-                await page.evaluate(
-                    'new Promise(function(resolve) { setTimeout(resolve, 1300); })'
+                // Batched chat may advance the revision after the earlier manual award.
+                await json('/api/giveaway/state');
+                const drawing = await json('/api/giveaway/draw-test', { ...options, body: '{}' });
+                assert.equal(drawing.response.status, 200);
+                await require('./giveaway-upstream').until(
+                    () => page.evaluate('window.__jar.state().isTest === true'),
+                    'confirmed drawing reaches the overlay'
                 );
                 assert.equal(await page.evaluate('window.__jar.state().isTest'), true);
                 assert.deepEqual(

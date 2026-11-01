@@ -1,14 +1,26 @@
 // Physics for the unicorn jar overlay. The server remains the authority on winners and counts.
 (function (jarState) {
     // ------------------------------------------------------------------ setup
+    // A size multiplier from the dashboard, kept inside its allowed range (1 = normal).
+    jarState.scaleOf = function scaleOf(value, min, max) {
+        var n = Number(value);
+        if (!isFinite(n) || n <= 0) return 1;
+        return Math.min(max, Math.max(min, n));
+    };
+
     jarState.init = function init(display) {
         jarState.settings = {
             jarSide: display.jarSide || 'right',
-            unicornSize: display.unicornSize || 'medium'
+            unicornSize: display.unicornSize || 'medium',
+            jarScale: jarState.scaleOf(display.jarScale, 0.5, 1.5),
+            cloudScale: jarState.scaleOf(display.cloudScale, 0.5, 2),
+            unicornScale: jarState.scaleOf(display.unicornScale, 0.5, 2)
         };
         jarState.showNames = display.showNames === true;
         jarState.magic = display.magic !== false;
-        jarState.R = jarState.SIZE_R[jarState.settings.unicornSize] || 20;
+        jarState.R = Math.round(
+            (jarState.SIZE_R[jarState.settings.unicornSize] || 20) * jarState.settings.unicornScale
+        );
 
         jarState.engine = jarState.Engine.create({ enableSleeping: true });
         jarState.engine.gravity.y = 1;
@@ -44,10 +56,11 @@
 
         // Jar art is drawn at scale js; everything below is measured in the
         // art's own pixels (1024x1536) and converted with P(x, y).
-        var js = Math.min(
-            (jarState.H * 0.62) / jarState.JAR_IMG_H,
-            (jarState.W * 0.26) / jarState.JAR_IMG_W
-        );
+        var js =
+            Math.min(
+                (jarState.H * 0.62) / jarState.JAR_IMG_H,
+                (jarState.W * 0.26) / jarState.JAR_IMG_W
+            ) * jarState.settings.jarScale;
         var jarW = jarState.JAR_IMG_W * js;
         var t = Math.max(10, 30 * js);
         var cx;

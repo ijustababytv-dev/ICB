@@ -138,6 +138,8 @@ async function applyIntent(context, input, client, owner) {
             VALUES($1,$2,$6,$3,$4,CASE WHEN $5 THEN now() ELSE NULL END) ON CONFLICT DO NOTHING RETURNING name_key`,
             [owner.id, input.sender.toLowerCase(), window, input.at, window < anchor, input.sender]
         );
+        // Re-check-in can happen within the same ticket window without awarding a second ticket.
+        if (model.checkInViewer(input.sender, input.at)) model.saveGiveaway();
         if (added.rowCount && !model.isBlocked(input.sender)) {
             context.use('walkers').walkerChat(input.sender, [], false);
             if (window < anchor) {
@@ -154,7 +156,7 @@ async function applyIntent(context, input, client, owner) {
             } else
                 context
                     .use('activity/giveaway-event')
-                    .applyEvent({ type: 'chat', username: input.sender });
+                    .applyEvent({ type: 'chat', username: input.sender, at: input.at });
             model.saveGiveaway();
         }
         return { status: 200, payload: { ok: true } };

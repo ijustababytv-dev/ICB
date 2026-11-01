@@ -57,7 +57,13 @@ function notePresence(body) {
     const at = timestamp();
     const anchor = Date.parse(document.windowStartedAt);
     const window = anchor + Math.floor((Date.parse(at) - anchor) / 600000) * 600000;
-    const key = [active.account.id, window, sender.toLowerCase()].join(':');
+    const key = [
+        active.account.id,
+        window,
+        document.checkIn?.night || '',
+        document.checkIn?.resetAt || '',
+        sender.toLowerCase()
+    ].join(':');
     if (presence.has(key)) return;
     if (pendingPresence.size >= 50000) throw new Error('outbox_full');
     pendingPresence.set(key, { owner: active.account.id, sender, at });

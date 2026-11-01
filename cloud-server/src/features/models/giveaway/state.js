@@ -11,6 +11,7 @@ module.exports = function createModel(context, exports) {
     const mGiveawayActivity = context.use('giveaway/activity');
     const mConfig = context.config;
     const mEvents = context.events;
+    const mCheckIn = require('../../../domain/check-in');
 
     let giveaway = mStorage.mergeDefaults(
         mGiveawayDefaults.GIVEAWAY_DEFAULTS,
@@ -91,13 +92,65 @@ module.exports = function createModel(context, exports) {
         );
     }
 
-    /** Show only tickets earned since the display baseline, leaving lifetime totals intact. */
-    function jarView() {
-        ensureJarBaseline();
+    /** Today's check-in record; a new stream day (6 AM cutoff) starts with nobody here. */
+    function ensureCheckIn() {
+        const night = mGiveawayActivity.nightKey(new Date());
+        if (!giveaway.checkIn || giveaway.checkIn.night !== night) {
+            giveaway.checkIn = mCheckIn.forNight(giveaway.checkIn, night);
+            saveGiveaway();
+        }
+        giveaway.checkIn.required = giveaway.checkInRequired !== false;
+        return giveaway.checkIn;
+    }
+
+    /** Can this viewer be in the jar and the drawing right now? */
+    function isEligible(name) {
+        return mCheckIn.isEligible(ensureCheckIn(), name);
+    }
+
+    /** Mark a viewer as here today (first chat). True only the first time today. */
+    function checkInViewer(name, at) {
+        const ci = ensureCheckIn();
+        const occurred = new Date(at || Date.now());
+        if (
+            mGiveawayActivity.nightKey(occurred) !== ci.night ||
+            (ci.resetAt && occurred.getTime() < Date.parse(ci.resetAt))
+        )
+            return false;
+        return !isBlocked(name) && mCheckIn.markCheckedIn(ci, name);
+    }
+
+    /** Forget who is checked in (second stream the same day). */
+    function clearCheckIn() {
+        const ci = ensureCheckIn();
+        mCheckIn.clearCheckedIn(ci);
+        ci.resetAt = new Date().toISOString();
+    }
+
+    /** Everyone allowed in today's drawing with their FULL saved-up unicorn count. */
+    function poolView() {
+        const ci = ensureCheckIn();
         const counts = {};
         let total = 0;
         for (const [key, e] of Object.entries(giveaway.entrants)) {
-            const snap = giveaway.jarBaseline.snapshot[key];
+            const n = entrantTotal(e);
+            if (n > 0 && !isBlocked(key) && mCheckIn.isEligible(ci, e.username || key)) {
+                counts[e.username || key] = n;
+                total += n;
+            }
+        }
+        return { required: ci.required, counts, total, people: Object.keys(counts).length };
+    }
+
+    /** Show checked-in lifetime tickets, or baseline additions when check-in is disabled. */
+    function jarView() {
+        ensureJarBaseline();
+        const ci = ensureCheckIn();
+        const counts = {};
+        let total = 0;
+        for (const [key, e] of Object.entries(giveaway.entrants)) {
+            if (isBlocked(key) || !mCheckIn.isEligible(ci, e.username || key)) continue;
+            const snap = ci.required ? null : giveaway.jarBaseline.snapshot[key];
             const n = Math.max(0, entrantTotal(e) - (snap ? snapshotTotal(snap) : 0));
             if (n > 0) {
                 counts[e.username] = n;
@@ -114,9 +167,16 @@ module.exports = function createModel(context, exports) {
 
     /** Return detached giveaway data plus transient listener and jar information. */
     function publicGiveaway() {
+        const ci = ensureCheckIn();
         const snapshot = mStorage.clone(giveaway);
         delete snapshot.cloudAuditPending;
-        return { ...snapshot, listener: { ...listenerStatus }, jar: jarView() };
+        return {
+            ...snapshot,
+            listener: { ...listenerStatus },
+            jar: jarView(),
+            pool: poolView(),
+            checkIn: { ...ci, count: Object.keys(ci.users).length }
+        };
     }
 
     /** Truncate and bound finite rates; use the existing default for invalid numbers. */
@@ -289,6 +349,11 @@ module.exports = function createModel(context, exports) {
         broadcastGiveaway,
         snapshotJar,
         jarView,
+        poolView,
+        ensureCheckIn,
+        isEligible,
+        checkInViewer,
+        clearCheckIn,
         purgeBlocked,
         cleanRate,
         migrateGiveaway

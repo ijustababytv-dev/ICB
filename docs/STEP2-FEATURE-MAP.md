@@ -89,9 +89,11 @@ Progress / operational state: `events`.
 
 ### giveaway
 
-Settings: `rates`, `blocked`, `display`.
+Settings: `rates`, `blocked`, `display`, `checkInRequired`. Display includes bounded `jarScale`, `cloudScale` and `unicornScale` multipliers.
 
-Progress / operational state: `entrants`, `chatActiveThisWindow`, `winners`, `manualLog`, `windowStartedAt`, `jarBaseline`, `testDraw`.
+Progress / operational state: `entrants`, `chatActiveThisWindow`, `winners`, `manualLog`, `windowStartedAt`, `jarBaseline`, `testDraw`, `checkIn` (stream-day key, checked-in names and explicit reset timestamp).
+
+Check-in defaults on: only viewers who chat during the current 06:00-to-06:00 reporting day are eligible, using full saved ticket balances. The policy is stored in `owner_settings`; attendance is in `feature_metadata`. Clearing the jar preserves balances and clears attendance. Minimal presence can be sent again after a reset; SQL still deduplicates ticket windows. No new SQL object or migration is required.
 
 ### hub
 

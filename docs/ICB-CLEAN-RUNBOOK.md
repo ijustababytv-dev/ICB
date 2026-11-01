@@ -1,5 +1,21 @@
 # ICB Clean Runbook
 
+## Unicorn Jar attendance and sizing
+
+The Giveaway dashboard has **Only people who chat today can win**, enabled by default.
+Each stream day starts at 06:00 in the account reporting timezone. A viewer's first
+chat brings their full saved unicorn balance into the jar, entrants board and drawing.
+Absent viewers retain their balance. **Empty the jar** clears attendance; a later chat
+can re-enter in the same ten-minute ticket window without earning an extra ticket.
+Chat presence uses the existing ten-second batch cycle, then the normal overlay feed.
+Turning check-in off restores the full eligible drawing pool and the existing
+since-last-empty jar display. Reset preserves the chosen check-in policy.
+
+The dashboard's Board text controls include Jar size (50-150%), Cloud size (50-200%)
+and Unicorn size (50-200%, in addition to Small/Medium/Large). Saving updates cloud
+settings; the read-only jar layer reloads to apply geometry. None of these controls
+changes earned balances. Business rules and persistence remain in the cloud.
+
 ## Purpose
 
 ICB Clean is the one local server for the Chrome command center, Palia Assistant tracker state, and the read-only Meld overlay. Its project folder is:

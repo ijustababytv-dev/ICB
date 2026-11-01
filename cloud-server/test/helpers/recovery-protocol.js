@@ -24,6 +24,8 @@ async function verifyRecoveryProtocol(pool, db, owner) {
         return { body, result: await executeCommand(db, owner, 'giveaway', body) };
     }
 
+    // This scenario tests recovery independently of the attendance policy.
+    await command('/api/giveaway/checkin', { required: false });
     await command('/api/giveaway/manual', { username: 'Guest', amount: 5 });
     const draw = await command('/api/giveaway/draw', { prize: 'plushie' });
     assert.equal(

@@ -51,6 +51,7 @@ try {
 let assets = scanAssets();
 let chain = Promise.resolve();
 const receipts = new Map();
+const presence = new Set();
 
 /** Keep the test backend durable across a local process restart, without adding a runtime fallback store. */
 function commit(context) {
@@ -165,6 +166,22 @@ async function call(route, method, body) {
             if (input.kind === 'command') {
                 const { applyIntent } = require('../../../cloud-server/src/features/inputs');
                 reply = await applyIntent(ctx, input, null, { id: account.id });
+            } else if (['presence', 'presence_batch'].includes(input.kind)) {
+                // Model SQL window uniqueness while exercising the production presence/check-in rules.
+                const client = {
+                    query: async (_sql, values) => {
+                        const key = values.slice(0, 3).join(':');
+                        const added = !presence.has(key);
+                        presence.add(key);
+                        return { rows: [], rowCount: added ? 1 : 0 };
+                    }
+                };
+                reply = await require('../../../cloud-server/src/features/inputs').applyIntent(
+                    ctx,
+                    input,
+                    client,
+                    { id: account.id }
+                );
             }
         }
         const views = {};

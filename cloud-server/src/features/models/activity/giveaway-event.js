@@ -76,8 +76,10 @@ module.exports = function createModel(context, exports) {
                 mGiveawayState.ensureEntrant(username).username
             ] = true;
             mGiveawayState.ensureEntrant(username).lastSeenAt = new Date().toISOString();
-            mGiveawayState.markChatDirty();
-            return reply(200, { ok: true });
+            const checkedIn = mGiveawayState.checkInViewer(username, body.at);
+            if (checkedIn) mGiveawayState.broadcastGiveaway();
+            else mGiveawayState.markChatDirty();
+            return reply(200, { ok: true, checkedIn });
         }
 
         if (type === 'sub') {

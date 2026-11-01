@@ -199,7 +199,9 @@
       "rates",
       "jarBaseline",
       "blocked",
-      "display"
+      "display",
+      "checkInRequired",
+      "checkIn"
     ],
     "progress": [
       "entrants",
@@ -208,7 +210,8 @@
       "manualLog",
       "windowStartedAt",
       "jarBaseline",
-      "testDraw"
+      "testDraw",
+      "checkIn"
     ]
   },
   {
