@@ -29,6 +29,19 @@ test('Home directory links to every static page and every configured resource ca
         assert.ok(destinations.has(url), url);
     assert.ok(home.indexOf('id="dashboardPages"') < home.indexOf('id="rz"'));
     assert.match(home, /href="\/cloud.html" class="page-account">Account &amp; sign out/);
+    for (const [url, label] of [
+        ['sashimi-signin-control', 'Poke Bowl &mdash; Sign-up Dashboard'],
+        ['sashimi-signin', 'Poke Bowl &mdash; Sign-up Overlay'],
+        ['poke-bowl', 'Poke Bowl &mdash; Cooking Tracker'],
+        ['beanburger-signup-control', 'Bean Burger &mdash; Sign-up Dashboard'],
+        ['beanburger-signup', 'Bean Burger &mdash; Sign-up Overlay'],
+        ['bean-burger', 'Bean Burger &mdash; Cooking Tracker']
+    ])
+        assert.ok(home.includes('href="/' + url + '.html">' + label + '</a>'), label);
+    for (const card of cards) {
+        const link = home.match(new RegExp('href="/' + card.id + '\\.html">([^<]+)</a>'));
+        assert.match(link[1], / &mdash; .+Tracker$/, card.id + ': tracker purpose');
+    }
     const login = fs.readFileSync(path.join(htmlRoot, 'cloud.html'), 'utf8');
     assert.match(
         login,

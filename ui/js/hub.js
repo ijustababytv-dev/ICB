@@ -50,6 +50,14 @@ const customList = () =>
         .filter((t) => !t.builtin)
         .map(({ id, icon, name, url, desc }) => ({ id, icon, name, url, desc }));
 
+/** Reuse the directory's purpose labels for built-in tiles without rewriting saved/custom names. */
+function tileLabel(tile) {
+    if (!tile.builtin) return tile.name;
+    const links = document.querySelectorAll('#dashboardPages a');
+    for (const link of links) if (link.getAttribute('href') === tile.url) return link.textContent;
+    return tile.name;
+}
+
 function render(list) {
     tiles = list;
     const n = tiles.filter((t) => t.startup).length;
@@ -62,7 +70,7 @@ function render(list) {
       <div class="tile" draggable="true" data-id="${esc(t.id)}">
         <span class="grip" title="Drag to move">⋮⋮</span>
         <div class="top"><div class="icon">${esc(t.icon)}</div><div class="name">${esc(
-                t.name
+                tileLabel(t)
             )}</div></div>
         <div class="desc">${esc(t.desc || '')}</div>
         <div class="url">${esc(t.url)}</div>

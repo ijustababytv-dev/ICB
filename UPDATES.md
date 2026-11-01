@@ -23,6 +23,7 @@
 
 ## Improvements
 
+- 2026-11-01: Clarified all 113 Home directory labels by purpose: dashboards, sign-up overlays, cooking/resource/collection trackers, widgets and connection tools. Built-in tiles use the same labels; custom names stay intact.
 - 2026-11-01: Cloudinary download verified all 613 images, updated six differing files with backups and skipped 268 identical files. A second comparison found nothing left to download.
 - 2026-11-01: Kept Home navigation bars only on other dashboards; Home continues using its page directory.
 - 2026-11-01: Simplified login to one centered form and removed its account/sync information panel.
@@ -43,6 +44,7 @@
 
 ## Bug Fixes
 
+- 2026-11-01: Distinguished Poke Bowl and Bean Burger sign-up dashboards, sign-up overlays and cooking trackers, and identified the Plushie Jar draw dashboard and overlay by their actual purpose.
 - 2026-11-01: Fixed missing Poke Bowl artwork: the original 2048 x 768 PNG now returns HTTP 200. Eight other tracker originals remain unavailable in the project backup.
 - 2026-11-01: Removed redundant top/bottom ICB Home links from the Home page itself.
 - 2026-11-01: Login status refresh now updates only authentication controls and feedback, without accessing removed diagnostics elements.

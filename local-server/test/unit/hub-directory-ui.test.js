@@ -61,7 +61,7 @@ test('Home adds safe saved decor links and clears them after logout or connectio
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(links.length, 1);
     assert.equal(links[0].href, '/decor/ghosts.html');
-    assert.equal(links[0].textContent, '<img src=x onerror=alert(1)>');
+    assert.equal(links[0].textContent, '<img src=x onerror=alert(1)> — Decor Overlay');
     assert.equal(links[0].innerHTML, undefined);
     ok = false;
     await focus();

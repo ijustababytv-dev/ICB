@@ -42,6 +42,27 @@ async function verifyNavigation(page, name) {
         assert.ok(nav.height >= 32 && nav.display !== 'none', name + ': visible navigation');
     }
     if (name === 'hub') {
+        const labels = await page.evaluate(`(function() {
+            var pokes=['/sashimi-signin-control.html','/sashimi-signin.html','/poke-bowl.html'].map(function(url) {
+                return document.querySelector('.page-directory a[href="'+url+'"]').textContent;
+            });
+            var custom=tileLabel({builtin:false,name:'My chosen name',url:'/sashimi-signin-control.html'});
+            var builtin=tileLabel({builtin:true,name:'Old ambiguous name',url:'/sashimi-signin-control.html'});
+            var shown=document.querySelector('.tile[data-id="sashimi"] .name');
+            return {pokes:pokes,custom:custom,builtin:builtin,shown:shown&&shown.textContent};
+        })()`);
+        assert.deepEqual(labels.pokes, [
+            'Poke Bowl — Sign-up Dashboard',
+            'Poke Bowl — Sign-up Overlay',
+            'Poke Bowl — Cooking Tracker'
+        ]);
+        assert.equal(labels.custom, 'My chosen name');
+        assert.equal(labels.builtin, labels.pokes[0]);
+        assert.equal(
+            labels.shown,
+            labels.pokes[0],
+            'Rendered built-in tile uses its clarified directory label'
+        );
         const failed = await page.evaluate(`(async function() {
             var links=Array.from(document.querySelectorAll('.page-directory a'));
             var failures=[];

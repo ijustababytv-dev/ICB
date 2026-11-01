@@ -26,6 +26,8 @@ This dashboard is for you, off stream. Do not add `control.html` as a Meld layer
 
 Home has a page directory above the stream-title randomizer, with buttons for every
 dashboard and expandable groups for overlays, resource cards and connection tools.
+Labels distinguish dashboards, sign-up overlays, cooking/resource trackers and
+connection tools; built-in tiles use the same labels.
 Other dashboard pages have **← ICB Home** links at the top and bottom. Home, login
 and stream overlays have no navigation bars. Open `/cloud.html` to sign in;
 after signing in, use **Account & sign out** on Home to manage your session.

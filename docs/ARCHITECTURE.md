@@ -34,6 +34,8 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 Dashboard HTML pages include static top/bottom Home links styled by
 `ui/css/page-navigation.css`. Home, login and overlay pages omit these bars. Account
 management stays in Home's directory. `hub.html` keeps a static directory of built-in
+pages with purpose labels; `ui/js/hub.js` reuses those labels for built-in tiles
+without changing custom tile names or saved cloud preferences. The directory lists
 pages so discovery is independent of saved tile preferences; `ui/js/hub/directory.js` adds account-created
 decor effect links. Add new pages to that directory and keep overlay markup free
 of operator navigation. Unit checks compare the directory against the actual HTML

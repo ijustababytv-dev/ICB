@@ -18,7 +18,7 @@
                     return;
                 var link = document.createElement('a');
                 link.href = '/decor/' + effect.id + '.html';
-                link.textContent = effect.name || effect.id;
+                link.textContent = (effect.name || effect.id) + ' — Decor Overlay';
                 container.appendChild(link);
             });
             status.textContent =
