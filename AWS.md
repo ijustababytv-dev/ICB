@@ -1,6 +1,6 @@
 # AWS operations and credentials
 
-Updated 2026-10-31. This is the operator guide for ICB's current AWS setup.
+Updated 2026-11-01. This is the operator guide for ICB's AWS setup.
 Terraform under [terraform/](terraform/README.md) defines infrastructure;
 [database/](database/README.md) holds SQL object definitions and recovery tools.
 Do not put credential values in this document.
@@ -106,7 +106,7 @@ continue using local image files.
 
 | Item | Purpose and location |
 | --- | --- |
-| ICB username/password | App cloud login; usernames are case-insensitive. Salted password hashes are in PostgreSQL. The local Node process keeps the bearer session in memory; sign in again after a local restart. |
+| ICB username/password | Required app cloud login; usernames are case-insensitive. Salted password hashes are in PostgreSQL. A fixed 14-day bearer session is protected locally with Windows CurrentUser DPAPI under `%LOCALAPPDATA%\ICB\auth`; restore validates it online. Sign out forgets it. The password is never saved locally. See [authentication](docs/AUTHENTICATION.md). |
 | PostgreSQL service login | `icb_service`, used by both Lambdas. Terraform supplies endpoint/user/secret ARN as Lambda configuration; the password is read from the separate DB secret. No master credentials go into Lambda. |
 | PostgreSQL administration | RDS master username/password inputs are in ignored `terraform/.env`; generated `icb_migrator`/`icb_service` credentials are in ignored `database/.env.admin`. Use the administrative environment loader below. |
 | Steam API key | Optional achievements/stats integration; owner-specific Secrets Manager value. Replace it through the dashboard above. Steam ID/profile URL is configuration, not a password. |

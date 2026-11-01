@@ -19,6 +19,8 @@ const mViewsResource = require('./views/resource');
 const mHttpResponse = require('./http/response');
 const mHttpStatic = require('./http/static');
 const mReader = require('./reader');
+const mAuthGate = require('./http/auth-gate');
+const stopAuthStreams = mAuthGate.bindStreams();
 const stopBackgroundJobs = require('./background').startBackgroundJobs();
 
 mEvents.setMetadata(() => ({
@@ -54,6 +56,7 @@ const server = http.createServer(async (req, res) => {
         });
         return res.end();
     }
+    if (await mAuthGate.requireSignIn(req, res, url)) return;
     if (url.pathname === '/events' && req.method === 'GET') {
         res.writeHead(200, {
             'Content-Type': 'text/event-stream; charset=utf-8',
@@ -162,6 +165,7 @@ heartbeat.unref();
 
 /** Stop timers and connected streams before closing the sole HTTP listener. */
 function shutdown() {
+    stopAuthStreams();
     stopBackgroundJobs();
     clearInterval(readerTimer);
     clearInterval(heartbeat);

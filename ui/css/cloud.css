@@ -10,6 +10,7 @@ body { padding: 20px; }
 .account-page input { width: 100%; min-width: 0; font: inherit; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #110b19; }
 .account-page input:focus-visible, .account-page button:focus-visible { outline: 3px solid var(--accent2); outline-offset: 3px; }
 .account-page .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.account-page .actions a { display: inline-flex; align-items: center; padding: 11px 0; }
 .account-page button { font: inherit; cursor: pointer; border: 1px solid var(--line); border-radius: 10px; padding: 11px 18px; color: var(--text); background: var(--panel2); }
 .account-page button.primary { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1b0f2a; font-weight: 800; }
 .account-page button:disabled { opacity: .55; cursor: wait; }

@@ -75,12 +75,14 @@ async function handleApi(req, res, url) {
     if (path === '/api/giveaway/event')
         return require('../inputs/listener').handleLegacyEvent(req, res);
     if (path === '/api/hub/startup-urls' && req.method === 'GET') {
+        // Remembered sign-in may finish before the first shared feed; preserve saved startup tabs.
+        await feed.waitForView('/api/hub');
         const tiles = require('../hub').hubPublic().tiles;
         const base = 'http://127.0.0.1:' + config.PORT;
         return sendJson(res, 200, {
             ok: true,
             urls: [
-                base + '/hub.html',
+                base + '/cloud.html?startup=1',
                 ...tiles
                     .filter((tile) => tile.startup)
                     .map((tile) => (tile.url.startsWith('/') ? base + tile.url : tile.url))

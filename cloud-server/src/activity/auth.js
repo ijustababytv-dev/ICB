@@ -18,7 +18,7 @@ function authenticate(db) {
         if (!match) throw fail(401, 'authentication_required');
         const result = await db.withClient((client) =>
             client.query(
-                `SELECT a.id, a.login_name, a.reporting_timezone, a.live_cutover_at, s.token_hash
+                `SELECT a.id, a.login_name, a.reporting_timezone, a.live_cutover_at, s.token_hash, s.expires_at
              FROM sessions s JOIN accounts a ON a.id=s.owner_id
              WHERE s.token_hash=$1 AND NOT s.revoked AND s.expires_at>now() AND a.enabled`,
                 [digest(match[1])]
@@ -81,17 +81,19 @@ function authRoutes(db) {
         if (!(await verifyPassword(password, account)) || !account.enabled)
             throw fail(401, 'invalid_login');
         const token = randomBytes(32).toString('base64url');
-        await transaction(db, async (client) => {
+        const expiresAt = await transaction(db, async (client) => {
             await client.query('DELETE FROM login_attempts WHERE attempt_key=$1', [keys[0]]);
-            await client.query(
-                `INSERT INTO sessions(token_hash,owner_id,expires_at) VALUES($1,$2,now()+interval '7 days')`,
+            // Fixed duration, never a sliding expiry; hours avoid timezone/DST-dependent day lengths.
+            const saved = await client.query(
+                `INSERT INTO sessions(token_hash,owner_id,expires_at) VALUES($1,$2,now()+interval '336 hours') RETURNING expires_at`,
                 [digest(token), account.id]
             );
+            return saved.rows[0].expires_at;
         });
-        res.json({ ok: true, token, account: publicAccount(account) });
+        res.json({ ok: true, token, expires_at: expiresAt, account: publicAccount(account) });
     });
     router.get('/me', authenticate(db), (req, res) =>
-        res.json({ ok: true, account: publicAccount(req.owner) })
+        res.json({ ok: true, expires_at: req.owner.expires_at, account: publicAccount(req.owner) })
     );
     router.post('/logout', authenticate(db), async (req, res) => {
         fields(req.body, []);

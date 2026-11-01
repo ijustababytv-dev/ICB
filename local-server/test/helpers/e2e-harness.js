@@ -42,13 +42,13 @@ fs.writeFileSync(
 let child;
 let stderr = '';
 
-function startServer() {
+function startServer({ auth = false } = {}) {
     stderr = '';
     child = spawn(
         process.execPath,
         [
             '--require',
-            path.join(__dirname, 'cloud-fixture.js'),
+            path.join(__dirname, auth ? 'auth-fixture.js' : 'cloud-fixture.js'),
             path.join(__dirname, '..', '..', 'src', 'index.js')
         ],
         {
@@ -81,13 +81,15 @@ function stopServer() {
     });
 }
 
-async function waitForHealth() {
+async function waitForHealth({ allowSignedOut = false } = {}) {
     for (let i = 0; i < 50; i += 1) {
         try {
             const response = await fetch(`http://127.0.0.1:${port}/api/health`);
             if (response.ok) {
+                const health = await response.json();
+                if (allowSignedOut && health.auth_required) return health;
                 const state = await fetch(`http://127.0.0.1:${port}/api/state`);
-                if (state.ok) return response.json();
+                if (state.ok) return health;
             }
         } catch (_error) {}
         await new Promise((resolve) => setTimeout(resolve, 100));

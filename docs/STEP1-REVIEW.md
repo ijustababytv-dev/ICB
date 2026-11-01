@@ -80,7 +80,9 @@ The missing originals under `assets/resources/` are `poke_bowl.png`, `Apple_Pie.
 
 ## Operating boundaries
 
-Sign-in is required after a local restart. Pending batches retain their original
+The original restart-only session was superseded on 2026-11-01 by
+[required sign-in and protected 14-day sessions](AUTHENTICATION.md).
+Pending batches retain their original
 owner through logout or account changes. An installation's existing local data
 binds to its first collecting account; a different account can read its cloud
 reports without importing the previous owner's local state. One collector per

@@ -81,7 +81,11 @@ test(
             });
             assert.equal(login.status, 200);
             assert.equal(login.data.account.id, ownerId);
+            const remaining = Date.parse(login.data.expires_at) - Date.now();
+            assert.ok(remaining > 14 * 86400000 - 60000 && remaining <= 14 * 86400000);
             const token = login.data.token;
+            const me = await call('/v1/me', 'GET', undefined, token);
+            assert.equal(me.data.expires_at, login.data.expires_at);
             const second = await call('/v1/login', 'POST', {
                 username: 'OTHER',
                 password: 'FixturePassword123!'
@@ -363,6 +367,11 @@ test(
             );
             assert.equal((await call('/v1/logout', 'POST', {}, token)).status, 200);
             assert.equal((await call('/v1/me', 'GET', undefined, token)).status, 401);
+            await pool.query(
+                "UPDATE sessions SET expires_at=now()-interval '1 second' WHERE token_hash=$1",
+                [require('../src/activity/auth').digest(second.data.token)]
+            );
+            assert.equal((await call('/v1/me', 'GET', undefined, second.data.token)).status, 401);
             assert.ok(secondId);
             for (let i = 0; i < 11; i++)
                 await call('/v1/login', 'POST', { username: 'missing', password: 'wrong' });

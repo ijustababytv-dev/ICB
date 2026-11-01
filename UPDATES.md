@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-01: Implemented required Cloud sign-in for all pages, overlays, artwork and feature APIs, with Windows-protected fixed 14-day remembered sessions. Deployed the cloud session update; local activation requires a normal authorized restart.
+
 - 2026-10-31: Added top/bottom arrow Home and Cloud sign-in links to all 34 operator pages, plus a Home directory of all dashboards, overlays, resource cards and connection tools. Stream overlays stay clean.
 - 2026-10-31: Added AWS.md with Steam key replacement steps, infrastructure basics, credential locations and administration/recovery references.
 - 2026-10-31: Deployed Step 2 cloud feature execution: Express/Lambda owns saved settings, signups/attendance, Turn Line, giveaways, polls/teams/hunts, trackers/weekly progress, timers, collections and Steam. Imported and compared all 32 owner features; preserved the existing account/password and 34 historical reporting days.
@@ -17,14 +19,10 @@
 - 2026-10-29: Stripeshell Snail tracker card (`/stripeshell-snail.html`): counts up every Stripeshell Snail caught (`itemtype_bug_snailr`); storage withdrawals don't count. Never resets on its own.
 - 2026-10-29: King Crab tracker card (`/king-crab.html`): counts up every King Crab caught (`itemtype_bug_az3_crab_king`); storage withdrawals don't count. Never resets on its own.
 - 2026-10-29: Vampire Crab tracker card (`/vampire-crab.html`): counts up every Vampire Crab caught (`itemtype_bug_crabr`, confirmed in her game log); storage withdrawals don't count. Never resets on its own.
-- 2026-10-25: Akwinduu Chapaa tracker card (`/akwinduu-chapaa.html`): counts down from 100, 1 per cook line of `itemtype_c_dinner_salisburychapaa` (the game's internal name for it).
-- 2026-10-25: Meaty Stir Fry tracker card (`/meaty-stir-fry.html`): counts down from 100, 1 per cook line of `itemtype_c_stirfry` (confirmed from a real cook; Spicy Stir Fry is separate and not counted).
-- 2026-10-25: Pumpkin Pie tracker card (`/pumpkin-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_pumpkinpie` (confirmed from a real cook in her log).
-- 2026-10-25: Apple Pie tracker card (`/apple-pie.html`): counts down from 100, 1 per cook line of `itemtype_c_dessert_pie_apple` (token confirmed in her logs; no real cook line seen yet, so spot-check the first time it moves).
-- 2026-10-25: Neon Chat (tile on ICB Home): a chat box in the synthwave overlay style as its own Meld layer she sizes and places. Shows emotes, role colours and ★/MOD/VIP/SUB tags, hides !commands, bots and optionally /me lines, fades old messages, and can show follows, subs, gifts, bits and raids as glowing lines. The chat listener now also passes each chatter's badge names and name colour.
-- 2026-10-25: Animated Overlay (tile on ICB Home): her synthwave overlay with a neon glow pulse and flicker, a light that runs along the real neon tubes round the camera and game frames, sun shimmer, twinkling stars and sparkles, colour shift, a power-on intro, and reactions to follows, subs, gifted subs, bits and raids (from the Meld listener; blocked names ignored). Overlay is ES5 and polls every two seconds; art lives in `assets/stream-frame/`.
 
 ## Improvements
+
+- 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 - 2026-10-31: Restyled Cloud sign-in to match Home, with labeled inputs, readable account/sync status and responsive layouts. Added navigation coverage for every operator page and every built-in directory destination.
 - 2026-10-31: Linked AWS.md from AGENTS.md, CLAUDE.md and the README documentation map.
@@ -37,9 +35,10 @@
 - 2026-10-30: Stopped tracking LOGGING-ADJUST.md; the ignored local copy remains available.
 - 2026-10-30: Added LOGGING-ADJUST.md with a proposed minimal activity model, separate summaries, PostgreSQL delivery, and migration checks. Runtime behavior is unchanged.
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
-- 2026-10-25: Neon Chat background colour and strength on the dashboard, with See-through and Solid buttons (strength 0 = only the neon frame shows).
 
 ## Bug Fixes
+
+- 2026-11-01: Sign out and expiry lock open pages and close event streams; obsolete login/restore responses cannot reopen access. Prevented login feedback being erased by session-change reloads and native form submission putting passwords in URLs.
 
 - 2026-10-31: Prevented duplicate sign-in submissions and obsolete status polls from repainting an old account. Unavailable upload counters now display an explicit warning instead of zero.
 - 2026-10-31: Documented that Steam rotation must update the pinned SQL secret version through ICB, and that the immediate check toast confirms queued work rather than successful Steam authentication.

@@ -26,8 +26,10 @@ top or bottom of any operator dashboard. Home's page directory also links every
 dashboard, stream overlay, resource card and connection tool. These navigation
 links are deliberately absent from Meld overlays.
 Sign in as `ijustababytv` with the supplied password; username case is ignored.
-Sessions stay in Node memory, so sign in again after a restart. No live server was
-restarted as part of implementation.
+ICB requires sign-in for every feature and remembers a protected session token on
+this Windows computer for 14 days. A restart validates and restores it automatically;
+Sign out forgets it. See [authentication](AUTHENTICATION.md). No live server is
+restarted as part of a source edit.
 
 The ignored `local-server/.env` contains the public API URL. Cloud credentials
 stay in Secrets Manager; local installations never receive the master DB login.

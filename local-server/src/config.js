@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-// The only local cloud setting is a public API URL; credentials remain process-only after login.
+// The only environment setting is a public API URL; remembered tokens use Windows DPAPI separately.
 const cloudEnvFile = path.resolve(__dirname, '../.env');
 if (!process.env.ICB_CLOUD_API_URL && fs.existsSync(cloudEnvFile)) {
     const match = /^ICB_CLOUD_API_URL=(https:\/\/[^\r\n]+)$/m.exec(

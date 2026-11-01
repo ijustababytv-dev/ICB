@@ -93,7 +93,10 @@ The local server starts at `local-server/src/index.js`; cloud Express code is in
 
 Cloud storage and feature execution use Express/Lambda and PostgreSQL. On normal
 startup, open **Cloud account** on ICB Home (`/cloud.html`) and sign in. Usernames
-are case-insensitive; sessions stay in Node memory, so sign in after a restart.
+are case-insensitive. Cloud sign-in is required throughout ICB. Windows securely
+remembers a session token for 14 days, validates it on restart and forgets it on
+Sign out; your password is never saved. Launchers open the sign-in page and a valid
+remembered session continues to Home. See [sign-in behavior](docs/AUTHENTICATION.md).
 The PC still reads local Palia logs and renders Meld overlays. Saved settings,
 tickets, signups, polls, trackers, timers and Steam state belong to PostgreSQL.
 Chat wording stays transient/local; only counts and recognized command operands
@@ -114,6 +117,7 @@ Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` p
 | [UPDATES.md](UPDATES.md) | Completed work from the last seven days |
 | [Runbook](docs/ICB-CLEAN-RUNBOOK.md) | Operation, diagnostics, backup, and recovery |
 | [AWS guide](AWS.md) | Steam key replacement, AWS infrastructure, credentials, and administrative commands |
+| [Authentication](docs/AUTHENTICATION.md) | Required sign-in, 14-day Windows session storage, expiry and logout |
 | [Step 2 operations](docs/STEP2-OPERATIONS.md) | Cloud authority, cutover, worker, release and rollback |
 | [Step 2 validation](docs/STEP2-VALIDATION.md) | Actual tests, known artwork failures, measurements and costs |
 | [Feature ownership](docs/STEP2-FEATURE-MAP.md) | Field-level inventory and SQL projections |

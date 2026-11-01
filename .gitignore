@@ -33,6 +33,9 @@ dist/
 # Runtime state, cloud sessions/outbox, and historical chat archives stay private.
 /data/
 
+# Windows-protected remembered cloud sessions, including manually copied records.
+*.dpapi
+
 # temp files
 *.tmp
 tmp/

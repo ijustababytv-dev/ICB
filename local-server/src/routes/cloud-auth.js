@@ -28,7 +28,8 @@ async function handleCloudAuth(req, res, url) {
             ok: true,
             ...collector.status(),
             configured: !!process.env.ICB_CLOUD_API_URL,
-            feed: require('../cloud/state-feed').status()
+            feed: require('../cloud/state-feed').status(),
+            ...session.status()
         });
     }
     if (req.method === 'GET' && url.pathname === '/api/cloud/csrf') {
@@ -45,17 +46,19 @@ async function handleCloudAuth(req, res, url) {
     }
     if (!trusted(req)) return sendJson(res, 403, { ok: false, code: 'local_origin_required' });
     try {
+        if (req.method === 'POST' && url.pathname === '/api/cloud/restore') {
+            const body = await readBody(req, 256);
+            if (Object.keys(body).length) throw new Error('invalid_restore');
+            const restored = await session.restore(process.env.ICB_CLOUD_API_URL);
+            return sendJson(res, restored ? 200 : 401, { ok: restored, ...session.status() });
+        }
         if (req.method === 'POST' && url.pathname === '/api/cloud/login') {
             const body = await readBody(req, 2048);
             if (Object.keys(body).some((key) => !['username', 'password'].includes(key)))
                 throw new Error('invalid_login');
             collector.flushCounts();
             require('../cloud/inputs').flushPresence();
-            await session.logout();
             await session.login(process.env.ICB_CLOUD_API_URL, body.username, body.password);
-            const capabilities = await session.call('/v1/features/capabilities');
-            if (capabilities.status !== 200 || capabilities.data.protocol_version !== 2)
-                throw new Error('feature_protocol_required');
             await collector.sync();
             await require('../assets/references').syncAssets();
             await require('../cloud/state-feed').tick(true);
@@ -69,8 +72,15 @@ async function handleCloudAuth(req, res, url) {
             await session.logout();
             return sendJson(res, 200, { ok: true, ...collector.status() });
         }
-    } catch (_error) {
-        return sendJson(res, 401, { ok: false, code: 'cloud_login_failed' });
+    } catch (error) {
+        const code = [
+            'secure_storage_unavailable',
+            'session_protocol_required',
+            'forget_failed'
+        ].includes(error.message)
+            ? error.message
+            : 'cloud_login_failed';
+        return sendJson(res, 401, { ok: false, code });
     }
     return sendJson(res, 404, { ok: false, code: 'not_found' });
 }

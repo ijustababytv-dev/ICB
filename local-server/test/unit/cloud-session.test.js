@@ -9,6 +9,10 @@ const { intentSpec } = require('../../../cloud-server/src/features/intent-spec')
 const { createContext } = require('../../../cloud-server/src/features/context');
 
 test('one installation serializes cloud calls and account changes cancel queued and in-flight old responses', async (t) => {
+    const session = require('../../src/cloud/session-controller').createSession({
+        request: require('../../src/cloud/client').request,
+        store: { read: () => null, write: () => {}, clear: () => {} }
+    });
     let active = 0;
     let max = 0;
     let started = 0;
@@ -29,8 +33,12 @@ test('one installation serializes cloud calls and account changes cancel queued 
                     Buffer.from(
                         JSON.stringify(
                             url.pathname === '/v1/login'
-                                ? { token: 'fixture-only', account: { id: body.username } }
-                                : { ok: true }
+                                ? {
+                                      token: 't'.repeat(43),
+                                      account: { id: body.username, username: body.username },
+                                      expires_at: new Date(Date.now() + 14 * 86400000).toISOString()
+                                  }
+                                : { ok: true, protocol_version: 2 }
                         )
                     )
                 );
@@ -58,8 +66,8 @@ test('one installation serializes cloud calls and account changes cancel queued 
     );
     assert.equal(
         started - before,
-        1,
-        'The obsolete queued call never reached HTTPS; only the new login did.'
+        3,
+        'The obsolete queued call never reached HTTPS; only revoke, login and protocol validation did.'
     );
     assert.equal((await session.call('/new', 'GET', undefined, 'second')).status, 200);
     await session.logout();

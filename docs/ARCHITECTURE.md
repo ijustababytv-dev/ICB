@@ -49,7 +49,9 @@ executes rules and commits typed state, summaries, audit and revisions together.
 views. It finalizes elapsed deadlines using database time. Display events expire.
 
 `local-server/src/cloud/` owns one two-second state feed, versioned RAM caches,
-minimal command proxies and process-only sessions. Local URLs and SSE remain.
+minimal command proxies and a Windows-protected fixed 14-day session. The HTTP
+authentication gate protects all feature routes, pages, assets and SSE. Restoration
+requires cloud validation; see [authentication](AUTHENTICATION.md). Local URLs remain.
 `local-server/src/inputs/` and `activity/` retain ordered owner-bound transport,
 Palia byte cursors, compact chat counts/presence and recognized intents. No local
 award/reset/timer/Steam business loop or feature JSON writer remains. Raw visual

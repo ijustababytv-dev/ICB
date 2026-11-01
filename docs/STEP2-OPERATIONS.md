@@ -3,7 +3,9 @@
 The local bridge remains at `127.0.0.1:8790`. Start it through the existing
 launchers or `npm start`, open `/cloud.html`, and sign in. Username matching is
 case-insensitive. The existing default account/password is preserved. Sessions
-are held only in Node memory; sign in after a normal local restart.
+use a fixed 14-day token protected by Windows CurrentUser DPAPI. Login is required
+throughout ICB; restart restoration validates the token online before granting
+access. Sign out removes it. See [authentication](AUTHENTICATION.md).
 
 Internet is required. The PC tails local Palia logs, normalizes verified item
 facts, relays minimal chat commands/counts, serves local artwork and renders

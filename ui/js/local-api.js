@@ -10,6 +10,38 @@
     var revisions = {};
     var draft = null;
     var offset = 0;
+    var onLoginPage = location.pathname === '/cloud.html';
+
+    /** Lock existing pages as well as new requests; overlays return to their own URL after sign-in. */
+    function requireLogin() {
+        if (onLoginPage) return;
+        document.documentElement.style.visibility = 'hidden';
+        location.replace(
+            '/cloud.html?next=' + encodeURIComponent(location.pathname + location.search)
+        );
+    }
+
+    /** Use ES5 XHR so idle controls and static Meld layers also notice logout or fixed expiry. */
+    function checkAccess() {
+        if (onLoginPage) return;
+        var request = new XMLHttpRequest();
+        nativeOpen.call(request, 'GET', '/api/cloud/status', true);
+        request.timeout = 8000;
+        request.onload = function () {
+            try {
+                var status = JSON.parse(request.responseText);
+                if (request.status === 200 && !status.signed_in && !status.restoring)
+                    requireLogin();
+            } catch (_error) {}
+        };
+
+        nativeSend.call(request);
+    }
+
+    if (!onLoginPage) {
+        checkAccess();
+        setInterval(checkAccess, 5000);
+    }
     window.ICBClock = {
         now: function () {
             return Date.now() + offset;
@@ -58,7 +90,8 @@
     /** Account changes clear old page state without adding another polling loop. */
     function observe(value) {
         if (value === null) return;
-        if (generation !== null && generation !== value) {
+        // The account page owns its login/logout transitions and must keep rejected-login feedback.
+        if (!onLoginPage && generation !== null && generation !== value) {
             location.reload();
             return;
         }
@@ -67,6 +100,7 @@
 
     /** Observe a non-secret local session generation, never a cloud token. */
     function observeFetch(response) {
+        if (response.status === 401) checkAccess();
         metadata(function (name) {
             return response.headers.get(name);
         });
@@ -167,6 +201,7 @@
             this.icbObserved = true;
             var request = this;
             this.addEventListener('loadend', function () {
+                if (request.status === 401) checkAccess();
                 metadata(function (name) {
                     return request.getResponseHeader(name);
                 });

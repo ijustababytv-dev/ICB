@@ -36,6 +36,12 @@ test('Home links to every static page and every configured resource card before 
         assert.ok(destinations.has(url), url);
     assert.ok(home.indexOf('id="dashboardPages"') < home.indexOf('id="rz"'));
     assert.match(home, /href="\/cloud.html" class="page-signin"/);
+    const login = fs.readFileSync(path.join(htmlRoot, 'cloud.html'), 'utf8');
+    assert.match(
+        login,
+        /<form id="login" method="post" action="\/api\/cloud\/login">/,
+        'A script-loading failure must never put passwords into a native GET URL'
+    );
 });
 
 test('All operator pages have static top and bottom arrow links; overlays stay clean', () => {

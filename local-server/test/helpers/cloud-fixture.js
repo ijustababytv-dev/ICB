@@ -212,3 +212,6 @@ session.call = (route, method = 'GET', body = {}) => {
     );
     return pending;
 };
+
+// Only the auth-flow preload imports this transport; production never imports test helpers.
+module.exports = { call, account };

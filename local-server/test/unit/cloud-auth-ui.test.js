@@ -11,6 +11,7 @@ function form() {
     const nodes = {};
     const requests = [];
     const intervals = [];
+    const redirects = [];
     let status = { configured: true, account: null, pending: 0, quarantined: 0 };
     let loginOK = true;
     let unavailable = false;
@@ -34,6 +35,13 @@ function form() {
     }
 
     const context = {
+        URL,
+        URLSearchParams,
+        location: {
+            search: '',
+            origin: 'http://127.0.0.1:8790',
+            replace: (target) => redirects.push(target)
+        },
         document: { getElementById: node },
         setInterval(callback) {
             intervals.push(callback);
@@ -71,6 +79,8 @@ function form() {
         node,
         requests,
         intervals,
+        redirects,
+        location: context.location,
         status(value) {
             status = { ...status, ...value };
         },
@@ -185,4 +195,23 @@ test('A delayed signed-out status cannot overwrite a completed sign-in', async (
     await settle();
     assert.equal(f.node('accountState').textContent, 'Signed in as test-user');
     assert.equal(f.node('logout').hidden, false);
+});
+
+test('Remembered sign-in returns to local pages and rejects external or normalized protocol-relative targets', async () => {
+    for (const [next, expected] of [
+        ['/control.html?view=resources', '/control.html?view=resources'],
+        ['https://evil.invalid', '/'],
+        ['//evil.invalid', '/'],
+        ['/%2e%2e//evil.invalid', '/'],
+        ['/cloud.html?next=/control.html', '/'],
+        ['/\\evil.invalid', '/']
+    ]) {
+        const f = form();
+        await settle();
+        f.location.search = '?next=' + encodeURIComponent(next);
+        f.status({ account: { username: 'fixture' }, remembered: true });
+        f.intervals[0]();
+        await settle();
+        assert.equal(f.redirects.at(-1), expected, next);
+    }
 });
