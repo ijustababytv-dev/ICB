@@ -27,6 +27,8 @@
 
 ## Improvements
 
+- 2026-11-01: Expanded POSTGRES.md with an alphabetical, table-by-table data inventory.
+
 - 2026-11-01: Merged origin/main through 902ec2f into log-adjust, adapting giveaway behavior to cloud transactions and current UI folders. Kept runtime JSON/logs untracked, stopped tracking the machine-specific bridge cursor, and retained current sidebar/authentication.
 
 - 2026-11-01: Referenced the PostgreSQL data inventory from AGENTS.md and CLAUDE.md.
