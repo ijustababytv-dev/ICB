@@ -59,8 +59,9 @@ then reports the same **nine pre-existing missing original artwork files**:
 `Akwinduu_Chapaa.png`, `Vampire_Crab.png`, `King_Crab.png`,
 `Stripeshell_Snail.png`, `Crab_Dishes.png`.
 
-These failures remain visible; artwork was not fabricated and checks were not
-suppressed. The feature migration cannot supply absent original images.
+Those were the failures at migration validation. On 2026-11-01 the Cloudinary
+download restored `poke_bowl.png`; the other eight originals remain missing.
+Artwork was not fabricated and checks were not suppressed.
 
 Actual Gateway → ARM Web Adapter → Express → limited-role RDS smoke checks verify
 case-insensitive login, independent owners, bootstrap, immutable/stale commands,

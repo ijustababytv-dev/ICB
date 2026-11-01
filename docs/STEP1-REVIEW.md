@@ -74,7 +74,8 @@ timers, decorations, and other maintained feature state.
   E2E, headless browser, source-policy, formatter, and Terraform checks are rerun at handoff. E2E retains the existing nine missing-artwork failures; these
   assertions are preserved. See UPDATES.md for the final counts.
 
-The missing originals under `assets/resources/` are `poke_bowl.png`, `Apple_Pie.png`,
+Cloudinary follow-up (2026-11-01): `poke_bowl.png` is restored. The eight remaining
+missing originals under `assets/resources/` are `Apple_Pie.png`,
 `Pumpkin_Pie.png`, `Meaty_Stir_Fry.png`, `Akwinduu_Chapaa.png`, `Vampire_Crab.png`,
 `King_Crab.png`, `Stripeshell_Snail.png`, and `Crab_Dishes.png`.
 

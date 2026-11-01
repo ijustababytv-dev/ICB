@@ -14,7 +14,7 @@ It is intentionally separate from the legacy `C:\Users\mrsch\Documents\ChatGPT\I
 
 Start with the existing batch launchers or `npm start` (`local-server/src/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
 
-Nine tracker-art files are missing in this checkout, listed in [the Step 1 review](STEP1-REVIEW.md). The E2E suite reports them after completing its remaining checks. Restore the original artwork to resolve those asset prerequisites.
+Eight tracker-art files remain missing in this checkout, listed in [the Step 1 review](STEP1-REVIEW.md). Cloudinary restored `poke_bowl.png` on 2026-11-01. The E2E suite reports remaining missing originals after completing its other checks.
 
 Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
 

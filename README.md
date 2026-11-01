@@ -84,7 +84,9 @@ npm.cmd run test:e2e
 
 Run `npm.cmd run format:js` to apply JavaScript formatting and `npm.cmd run test:browser` after browser changes. Every new or changed business rule requires unit tests. E2E and browser tests use port 8791 and temporary state; browser checks use a separate headless profile.
 
-The E2E suite currently reports nine existing missing tracker-art files, listed in [the Step 1 review](docs/STEP1-REVIEW.md). Restore the original artwork; do not suppress the checks.
+The Cloudinary restore recovered Poke Bowl artwork on 2026-11-01. Eight tracker-art
+files remain missing, listed in [the Step 1 review](docs/STEP1-REVIEW.md). Restore
+the original artwork; do not suppress the E2E checks.
 
 For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in the isolated test environment. Normal use searches the standard Palia Assistant log directories.
 

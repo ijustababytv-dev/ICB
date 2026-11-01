@@ -2,6 +2,7 @@
 
 ## New Features
 
+- 2026-11-01: Restored 339 missing project images from Cloudinary using download-cloudinary-images.bat, including the Poke Bowl tracker artwork.
 - 2026-11-01: Implemented required Cloud sign-in for all pages, overlays, artwork and feature APIs, with Windows-protected fixed 14-day remembered sessions. Deployed the cloud session update; local activation requires a normal authorized restart.
 
 - 2026-10-31: Added top/bottom arrow Home and Cloud sign-in links to all 34 operator pages, plus a Home directory of all dashboards, overlays, resource cards and connection tools. Stream overlays stay clean.
@@ -22,6 +23,7 @@
 
 ## Improvements
 
+- 2026-11-01: Cloudinary download verified all 613 images, updated six differing files with backups and skipped 268 identical files. A second comparison found nothing left to download.
 - 2026-11-01: Kept Home navigation bars only on other dashboards; Home continues using its page directory.
 - 2026-11-01: Simplified login to one centered form and removed its account/sync information panel.
 - 2026-11-01: Dashboard navigation now contains only Home links. Home's account button is labeled Account & sign out.
@@ -41,6 +43,7 @@
 
 ## Bug Fixes
 
+- 2026-11-01: Fixed missing Poke Bowl artwork: the original 2048 x 768 PNG now returns HTTP 200. Eight other tracker originals remain unavailable in the project backup.
 - 2026-11-01: Removed redundant top/bottom ICB Home links from the Home page itself.
 - 2026-11-01: Login status refresh now updates only authentication controls and feedback, without accessing removed diagnostics elements.
 - 2026-11-01: Removed both navigation bars from login and redundant Cloud sign-in links from all dashboard headers/footers.
