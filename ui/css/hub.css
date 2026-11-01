@@ -14,27 +14,6 @@
   .health{ font-size:12px; padding:4px 10px; border-radius:999px; background:#173a2a; color:var(--good); }
   .health.offline{ background:#4a1f28; color:var(--bad); }
   .clock{ color:var(--dim); font-variant-numeric:tabular-nums; }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
-  .tile{ position:relative; background:linear-gradient(180deg,var(--panel2),var(--panel)); border:1px solid var(--line); border-radius:18px;
-         padding:18px 18px 14px; display:flex; flex-direction:column; gap:10px; cursor:grab; transition:transform .12s, border-color .12s, opacity .12s; user-select:none; }
-  .tile:hover{ border-color:var(--accent); transform:translateY(-2px); }
-  .tile.dragging{ opacity:.35; }
-  .tile.over{ border-color:var(--accent2); box-shadow:0 0 0 2px var(--accent2) inset; }
-  .tile .top{ display:flex; align-items:center; gap:12px; }
-  .tile .icon{ font-size:30px; width:48px; height:48px; border-radius:14px; background:#130d1c; display:flex; align-items:center; justify-content:center; flex:none; }
-  .tile .name{ font-size:17px; font-weight:700; line-height:1.2; }
-  .tile .desc{ color:var(--dim); font-size:13px; min-height:36px; }
-  .tile .url{ color:#7f70a0; font-size:11px; font-family:Consolas, monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .tile .row{ display:flex; align-items:center; gap:8px; }
-  .open{ flex:1; text-align:center; text-decoration:none; font-weight:700; color:#1b0f2a; padding:9px 12px; border-radius:11px;
-         background:linear-gradient(90deg,var(--accent),var(--accent2)); cursor:pointer; }
-  .open:hover{ filter:brightness(1.08); }
-  .start{ display:flex; align-items:center; gap:7px; color:var(--dim); font-size:13px; cursor:pointer; }
-  .start input{ width:17px; height:17px; accent-color:var(--accent2); cursor:pointer; }
-  .start.on{ color:var(--text); }
-  .grip{ position:absolute; top:10px; right:12px; color:#6d5d8c; font-size:16px; letter-spacing:-2px; }
-  .mini{ border:0; background:transparent; color:var(--dim); cursor:pointer; font-size:13px; padding:2px 6px; border-radius:6px; }
-  .mini:hover{ color:var(--text); background:#2f2442; }
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; margin-top:22px; }
   .card h2{ margin:0 0 10px; font-size:16px; }
   .form{ display:flex; gap:8px; flex-wrap:wrap; }

@@ -39,14 +39,14 @@ async function verifyWorkspace(browser, port, json) {
             sidebarHome:document.querySelector('.ws-home').getAttribute('href'),
             sidebarLast:document.querySelector('#workspace-sidebar').lastElementChild.getAttribute('href'),
             recentAboveRandomizer:!!(document.getElementById('ws-recent-panels').compareDocumentPosition(document.getElementById('rz'))&Node.DOCUMENT_POSITION_FOLLOWING),
-            settingsClosed:!document.querySelector('.ws-settings').open
+            legacySettings:!!document.querySelector('.ws-settings, #grid, #cName')
         })`);
         assert.equal(structure.heading, 'Home');
         assert.equal(structure.oldButtons, false);
         assert.equal(structure.sidebarHome, '/');
         assert.equal(structure.sidebarLast, '/all-pages.html');
         assert.equal(structure.recentAboveRandomizer, true);
-        assert.equal(structure.settingsClosed, true);
+        assert.equal(structure.legacySettings, false);
         await page.evaluate(`(function(){
             localStorage.removeItem(ICBVisits.key(ICBLocalAccount.id));dispatchEvent(new Event('icb-recent'));
         })()`);
@@ -178,6 +178,21 @@ async function verifyWorkspace(browser, port, json) {
         assert.ok(
             directory.urls.includes('/all-pages.html') &&
                 directory.urls.includes('/recent-pages.html')
+        );
+        const sidebarAudit = await page.evaluate(`(function(){
+            ICBWorkspace.updateHub({tiles:[{builtin:false,name:'Saved custom link fixture',url:'https://example.com/icb-fixture'}]});
+            var links=Array.from(document.querySelectorAll('#workspace-sidebar a')).map(function(a){return a.getAttribute('href');});
+            return {missing:ICBWorkspace.pages().filter(function(p){return !links.includes(p.url);}).map(function(p){return p.url;}),custom:links.includes('https://example.com/icb-fixture')};
+        })()`);
+        assert.deepEqual(
+            sidebarAudit.missing,
+            [],
+            'Every catalog destination, including dynamic decor, has a sidebar link'
+        );
+        assert.equal(
+            sidebarAudit.custom,
+            true,
+            'Previously saved custom links appear in Connections'
         );
         const failed = await page.evaluate(`(async function(){
             var pages=ICBWorkspace.pages(), failures=[];

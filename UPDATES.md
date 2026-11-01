@@ -25,6 +25,8 @@
 
 ## Improvements
 
+- 2026-11-01: Removed Home's obsolete startup/custom-link tile section and editor code; saved links remain in Connections, search and All Pages. Audited all 116 catalog pages and 30 former built-in tiles for sidebar coverage.
+
 - 2026-11-01: Replaced the Home button wall with shared navigation across operator dashboards. Startup ordering/custom links remain in collapsed settings. Recent UI history is browser-local and account-separated; automated Meld layers are excluded.
 
 - 2026-11-01: Clarified all 113 Home directory labels by purpose: dashboards, sign-up overlays, cooking/resource/collection trackers, widgets and connection tools. Built-in tiles use the same labels; custom names stay intact.
@@ -47,6 +49,8 @@
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
 
 ## Bug Fixes
+
+- 2026-11-01: Kept Home randomizer, connection checks and saved-link navigation working after removing the legacy tile controls.
 
 - 2026-11-01: Search input does not mark feature forms as edited or freeze their revisions. Recent history removes duplicate visits, ignores query strings and handles corrupt/blocked browser storage. No pinned-tools section or top-right Browse all pages button was added.
 

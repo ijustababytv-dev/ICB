@@ -34,7 +34,7 @@ panels of four pages each. View all Recent Pages opens the full last-opened tabl
 This browser keeps navigation history separately for each signed-in account;
 passwords and tokens never enter that history. Account & sign out is in Connections.
 Login, stream overlays and the compact Aniimo widget keep their independent layouts.
-Startup choices, ordering and custom links remain in Home's collapsed settings area.
+Home uses the sidebar instead of startup tiles. Previously saved custom links remain available under Connections and in search/All Pages.
 
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
 

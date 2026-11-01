@@ -89,10 +89,6 @@
     <div class="note">Updates by itself every 5 seconds. Click <b>How to fix</b> under anything that isn't green. <b>Copy status report</b> copies all of this as text you can paste to Claude or anyone helping you.</div>
   </div>
 
-  <details class="ws-settings"><summary>Startup pages &amp; custom links</summary>
-  <p class="note">Choose pages to open at startup, reorder them, or manage your own links. <span id="startcount"></span></p>
-  <div class="grid" id="grid"></div>
-
   <div class="card guide">
     <h2>🛠 Troubleshooting guide</h2>
     <details><summary>The giveaway dashboard says "Meld listener is NOT running"</summary><ol>
@@ -133,23 +129,6 @@
     </ol></details>
   </div>
 
-  <div class="card">
-    <h2>Add your own link</h2>
-    <div class="form">
-      <input type="text" id="cIcon" placeholder="🔗" maxlength="4" style="width:64px;text-align:center">
-      <input type="text" id="cName" placeholder="Name, e.g. Twitch Dashboard" maxlength="60" style="flex:1;min-width:200px">
-      <input type="text" id="cUrl" placeholder="https://dashboard.twitch.tv/…  or  /some-page.html" style="flex:2;min-width:260px">
-      <button class="btn" onclick="addCustom()">＋ Add tile</button>
-    </div>
-    <div class="note">Works for any website (Twitch, Meld help, your Discord) or any ICB page. Your own tiles can be edited ✎ or removed ✕; the built-in ones can't be removed.</div>
-  </div>
-
-  <div class="card">
-    <h2>Opening pages when ICB starts</h2>
-    <div class="note" style="margin-top:0">Tick <b>Open when ICB starts</b> on any tile. When you run <code>start-icb-clean.bat</code> or <code>restart-icb-clean.bat</code>, Chrome opens ICB Home plus every ticked page, each in its own tab. Clicking <b>Open</b> on a tile again reuses the tab it opened before, instead of stacking up duplicates.</div>
-  </div>
-
-  </details>
   <div class="toast" id="toast"></div>
 
 <script src="/js/client/navigation/search.js"></script>

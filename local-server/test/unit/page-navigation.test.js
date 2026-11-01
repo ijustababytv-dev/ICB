@@ -39,6 +39,28 @@ test('Shared catalog contains every static page and every configured resource ca
     const entries = catalog();
     const destinations = new Set(entries.map((entry) => entry.url));
     assert.equal(destinations.size, entries.length);
+    const sections = new Set([
+        'stream',
+        'community',
+        'overlays',
+        'decor',
+        'reports',
+        'connections'
+    ]);
+    for (const entry of entries)
+        assert.ok(
+            ['/', '/all-pages.html'].includes(entry.url) || sections.has(entry.category),
+            entry.url + ': every destination must have a sidebar section'
+        );
+    const legacyHub = fs.readFileSync(
+        path.join(root, 'cloud-server/src/features/models/hub.js'),
+        'utf8'
+    );
+    for (const match of legacyHub.matchAll(/url: '([^']+)'/g))
+        assert.ok(
+            destinations.has(match[1]),
+            match[1] + ': former Home tile remains in navigation'
+        );
     destinations.add('/hub.html'); // The canonical Home destination is /.
     for (const file of pages()) {
         const url = '/' + path.relative(htmlRoot, file).replace(/\\/g, '/');
@@ -51,7 +73,7 @@ test('Shared catalog contains every static page and every configured resource ca
     assert.ok(home.indexOf('id="ws-recent-panels"') < home.indexOf('id="rz"'));
     assert.doesNotMatch(
         home,
-        /class="page-directory"|id="dashboardPages"|Pinned tools|Browse all pages/
+        /class="page-directory"|id="dashboardPages"|Pinned tools|Browse all pages|ws-settings|id="grid"|id="cName"/
     );
     assert.match(home, /href="\/recent-pages.html">View all Recent Pages/);
     for (const [url, label] of [

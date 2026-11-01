@@ -50,8 +50,9 @@ row of panels with up to four pages each, or the complete history table.
 Catalog inventory tests cover every existing page/resource route. Browser tests
 cover keyboard search, typo rejection, responsive sidebar/panels, last-opened
 ordering, dynamic effect labels, safe text rendering and preservation of feature
-form revision protection. Existing startup ordering/custom links remain in a
-collapsed Home settings section. No pinning feature is implemented.
+form revision protection. Home has no legacy startup/custom-link tile editor.
+Saved custom links remain discoverable through Connections, search and All Pages;
+existing saved startup preferences are preserved. No pinning feature is implemented.
 
 ## Adding or changing behavior
 

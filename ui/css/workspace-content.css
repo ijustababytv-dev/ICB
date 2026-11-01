@@ -175,21 +175,3 @@
     font-size: 13px;
     margin: 12px 0;
 }
-
-.ws-settings {
-    margin-top: 22px;
-    padding: 16px 18px;
-    border: 1px solid #493157;
-    border-radius: 14px;
-    background: #1f172a;
-}
-
-.ws-settings > summary {
-    cursor: pointer;
-    font-weight: 650;
-    color: #d5b6ec;
-}
-
-.ws-settings #grid {
-    margin-top: 18px;
-}
