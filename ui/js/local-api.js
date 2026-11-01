@@ -11,6 +11,41 @@
     var draft = null;
     var offset = 0;
     var onLoginPage = location.pathname === '/cloud.html';
+    var visitedOwner = null;
+    var visitLoading = false;
+
+    /** Record ordinary browser opens once per account/document; automated Meld layers stay out of history. */
+    function observeAccount(account) {
+        if (
+            !account ||
+            visitedOwner === account.id ||
+            (window.top && window.top !== window) ||
+            /Meld\/|obs-browser/i.test(navigator.userAgent)
+        )
+            return;
+        window.ICBLocalAccount = { id: account.id, timezone: account.timezone };
+        function ready() {
+            visitLoading = false;
+            if (!window.ICBLocalAccount || window.ICBLocalAccount.id !== account.id) return;
+            visitedOwner = account.id;
+            window.ICBVisits.open(account.id, location.pathname);
+            var event = document.createEvent('Event');
+            event.initEvent('icb-account', false, false);
+            window.dispatchEvent(event);
+        }
+
+        if (window.ICBVisits) return ready();
+        if (visitLoading) return;
+        visitLoading = true;
+        var script = document.createElement('script');
+        script.src = '/js/client/navigation/visits.js';
+        script.onload = ready;
+        script.onerror = function () {
+            visitLoading = false;
+        };
+
+        document.head.appendChild(script);
+    }
 
     /** Lock existing pages as well as new requests; overlays return to their own URL after sign-in. */
     function requireLogin() {
@@ -30,8 +65,11 @@
         request.onload = function () {
             try {
                 var status = JSON.parse(request.responseText);
-                if (request.status === 200 && !status.signed_in && !status.restoring)
+                if (request.status === 200 && !status.signed_in && !status.restoring) {
+                    window.ICBLocalAccount = null;
                     requireLogin();
+                } else if (request.status === 200 && status.signed_in)
+                    observeAccount(status.account);
             } catch (_error) {}
         };
 
@@ -51,14 +89,26 @@
     /** Keep an unsaved form bound to the feature versions it originally displayed. */
     document.addEventListener(
         'input',
-        function () {
+        function (event) {
+            if (
+                event.target &&
+                event.target.closest &&
+                event.target.closest('.workspace-topbar, .workspace-sidebar')
+            )
+                return;
             if (!draft) draft = JSON.parse(JSON.stringify(revisions));
         },
         true
     );
     document.addEventListener(
         'change',
-        function () {
+        function (event) {
+            if (
+                event.target &&
+                event.target.closest &&
+                event.target.closest('.workspace-topbar, .workspace-sidebar')
+            )
+                return;
             if (!draft) draft = JSON.parse(JSON.stringify(revisions));
         },
         true

@@ -21,11 +21,11 @@ Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md)
 ## Cloud feature operation
 
 The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
-Open `/cloud.html` to sign in. After signing in, Home's **Account & sign out** button
-opens account management. Other dashboards contain only Home navigation links;
-Home and login have no header/footer navigation. Home's page directory also links every
-dashboard, stream overlay, resource card and connection tool. These navigation
-links are deliberately absent from Meld overlays.
+Open `/cloud.html` to sign in. After signing in, **Connections > Account & sign out** in the workspace sidebar opens account management.
+Home is above the six sidebar sections, with All pages at the bottom. Use the search
+field (Ctrl+K) to find a tool or open All pages for the alphabetical directory.
+Home's recent panels show four tools each; View all Recent Pages opens the complete
+last-opened table for this account/browser. Login and Meld overlays have no sidebar.
 Sign in as `ijustababytv` with the supplied password; username case is ignored.
 ICB requires sign-in for every feature and remembers a protected session token on
 this Windows computer for 14 days. A restart validates and restores it automatically;

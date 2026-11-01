@@ -1,0 +1,195 @@
+.ws-page-heading {
+    margin-bottom: 26px;
+}
+
+.ws-page-heading h1 {
+    margin: 0 0 6px;
+    font-size: 38px;
+    letter-spacing: -0.03em;
+}
+
+.ws-page-heading p {
+    margin: 0;
+    color: #bfaacd;
+    font-size: 16px;
+}
+
+.ws-page-heading .startcount {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.ws-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.ws-section-heading h2 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.ws-action {
+    color: #e0b6fc;
+    font: 600 14px/1.455 'Segoe UI', system-ui, sans-serif;
+    text-decoration: none;
+    padding: 9px 13px;
+    border: 1px solid #65477a;
+    border-radius: 9px;
+    background: #2d1e3c;
+}
+
+.ws-action:hover {
+    background: #432951;
+    color: #fff;
+}
+
+.ws-recent {
+    margin: 0 0 28px;
+}
+
+.ws-recent-panels {
+    display: grid;
+    gap: 16px;
+}
+
+.ws-recent-panel {
+    min-width: 0;
+    padding: 4px 14px;
+    border: 1px solid #483158;
+    border-radius: 14px;
+    background: linear-gradient(140deg, #261a34, #1e162b);
+}
+
+.ws-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 70px;
+    padding: 12px 0;
+    text-decoration: none;
+    color: #eadbf9;
+    border-bottom: 1px solid #412b51;
+    font: 600 14px/1.45 'Segoe UI', system-ui, sans-serif;
+}
+
+.ws-recent-item:last-child {
+    border-bottom: 0;
+}
+
+.ws-recent-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: #b7d7ff;
+    background: #26415d;
+    font-size: 18px;
+}
+
+.ws-recent-item .ws-recent-name {
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.ws-recent-item:hover {
+    color: #f4c6ff;
+}
+
+.ws-recent-arrow {
+    color: #d5b3ec;
+}
+
+.ws-empty {
+    margin: 0;
+    color: #bda5cc;
+    padding: 24px;
+    border: 1px dashed #52385f;
+    border-radius: 12px;
+    background: #20162b;
+}
+
+.ws-recent-panels > .ws-empty {
+    grid-column: 1 / -1;
+}
+
+.ws-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #493056;
+    border-radius: 14px;
+    background: #20172c;
+}
+
+.ws-table {
+    width: 100%;
+    min-width: 660px;
+    border-collapse: collapse;
+    font: 14px/1.5 'Segoe UI', system-ui, sans-serif;
+}
+
+.ws-table th {
+    text-align: left;
+    color: #b49ac9;
+    padding: 14px 20px;
+    border-bottom: 1px solid #513261;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ws-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #38253f;
+}
+
+.ws-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.ws-table a {
+    color: #ead5ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.ws-table a:hover {
+    color: #f3b9ff;
+    text-decoration: underline;
+}
+
+.ws-table td:last-child {
+    color: #bda5cd;
+}
+
+.ws-table-note {
+    color: #b69bc8;
+    font-size: 13px;
+    margin: 12px 0;
+}
+
+.ws-settings {
+    margin-top: 22px;
+    padding: 16px 18px;
+    border: 1px solid #493157;
+    border-radius: 14px;
+    background: #1f172a;
+}
+
+.ws-settings > summary {
+    cursor: pointer;
+    font-weight: 650;
+    color: #d5b6ec;
+}
+
+.ws-settings #grid {
+    margin-top: 18px;
+}

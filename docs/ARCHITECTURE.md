@@ -31,15 +31,27 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 
 ## Operator navigation
 
-Dashboard HTML pages include static top/bottom Home links styled by
-`ui/css/page-navigation.css`. Home, login and overlay pages omit these bars. Account
-management stays in Home's directory. `hub.html` keeps a static directory of built-in
-pages with purpose labels; `ui/js/hub.js` reuses those labels for built-in tiles
-without changing custom tile names or saved cloud preferences. The directory lists
-pages so discovery is independent of saved tile preferences; `ui/js/hub/directory.js` adds account-created
-decor effect links. Add new pages to that directory and keep overlay markup free
-of operator navigation. Unit checks compare the directory against the actual HTML
-files and resource definitions; browser checks cover every operator page.
+`ui/js/navigation/` owns the shared operator workspace. Three public catalog files
+split tool, overlay and tracker metadata; `model.js` supplies safe links, sorting
+and tight fuzzy matching. `shell.js` renders the categorized sidebar and search,
+including account-created effects and custom links. `workspace.css` scopes the
+layout away from login, Meld layers and the compact Aniimo widget.
+
+`all-pages.html` lists the catalog alphabetically; `recent-pages.html` shows unique
+pages ordered by their last opening. `visits.js` stores only paths and UTC visit
+timestamps in browser localStorage, keyed by cloud owner. This is browser UI
+history, not feature progress or an authentication store. It is not cloud-synced.
+The ES5 local API helper records normal browser opens once per document/account;
+automated Meld/OBS layers and embedded previews do not generate history. Utility/login pages and query
+strings are excluded. History is capped at 1,000 unique pages and tolerates blocked
+or corrupt storage without stopping navigation. `recent.js` renders one responsive
+row of panels with up to four pages each, or the complete history table.
+
+Catalog inventory tests cover every existing page/resource route. Browser tests
+cover keyboard search, typo rejection, responsive sidebar/panels, last-opened
+ordering, dynamic effect labels, safe text rendering and preservation of feature
+form revision protection. Existing startup ordering/custom links remain in a
+collapsed Home settings section. No pinning feature is implemented.
 
 ## Adding or changing behavior
 

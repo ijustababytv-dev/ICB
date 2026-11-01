@@ -28,6 +28,7 @@ async function main() {
             browser,
             port
         );
+        await require('./workspace').verifyWorkspace(browser, port, json);
         const pages = [
             'cloud',
             'hub',

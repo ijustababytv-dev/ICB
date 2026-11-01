@@ -53,13 +53,12 @@ const customList = () =>
 /** Reuse the directory's purpose labels for built-in tiles without rewriting saved/custom names. */
 function tileLabel(tile) {
     if (!tile.builtin) return tile.name;
-    const links = document.querySelectorAll('#dashboardPages a');
-    for (const link of links) if (link.getAttribute('href') === tile.url) return link.textContent;
-    return tile.name;
+    return window.ICBPageCatalog.find((page) => page.url === tile.url)?.label || tile.name;
 }
 
 function render(list) {
     tiles = list;
+    window.ICBWorkspace?.updateHub({ tiles: list });
     const n = tiles.filter((t) => t.startup).length;
     $('startcount').textContent = n
         ? `${n} page${n === 1 ? '' : 's'} open automatically when ICB starts.`

@@ -3,9 +3,28 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const root = path.resolve(__dirname, '../../..');
 const htmlRoot = path.join(root, 'ui/html');
-const operatorExtras = ['control', 'giveaway-report', 'Aniimo Tracker', 'aniimo-quick'];
+const operatorExtras = [
+    'hub',
+    'control',
+    'giveaway-report',
+    'Aniimo Tracker',
+    'all-pages',
+    'recent-pages'
+];
+
+/** Read the same public catalog used by sidebar, search and directory. */
+function catalog() {
+    const context = { window: {} };
+    for (const name of ['tools', 'overlays', 'trackers'])
+        vm.runInNewContext(
+            fs.readFileSync(path.join(root, 'ui/js/navigation/catalog-' + name + '.js'), 'utf8'),
+            context
+        );
+    return context.window.ICBPageCatalog;
+}
 
 /** Inventory real static pages, including nested listener aliases. */
 function pages(folder = htmlRoot) {
@@ -15,9 +34,11 @@ function pages(folder = htmlRoot) {
     });
 }
 
-test('Home directory links to every static page and every configured resource card', () => {
+test('Shared catalog contains every static page and every configured resource card exactly once', () => {
     const home = fs.readFileSync(path.join(htmlRoot, 'hub.html'), 'utf8');
-    const destinations = new Set([...home.matchAll(/href="([^"]+)"/g)].map((match) => match[1]));
+    const entries = catalog();
+    const destinations = new Set(entries.map((entry) => entry.url));
+    assert.equal(destinations.size, entries.length);
     destinations.add('/hub.html'); // The canonical Home destination is /.
     for (const file of pages()) {
         const url = '/' + path.relative(htmlRoot, file).replace(/\\/g, '/');
@@ -27,20 +48,27 @@ test('Home directory links to every static page and every configured resource ca
     for (const card of cards) assert.ok(destinations.has('/' + card.id + '.html'), card.id);
     for (const url of ['/weekly.html', '/weekly-wide.html', '/ticker.html', '/decor/all.html'])
         assert.ok(destinations.has(url), url);
-    assert.ok(home.indexOf('id="dashboardPages"') < home.indexOf('id="rz"'));
-    assert.match(home, /href="\/cloud.html" class="page-account">Account &amp; sign out/);
+    assert.ok(home.indexOf('id="ws-recent-panels"') < home.indexOf('id="rz"'));
+    assert.doesNotMatch(
+        home,
+        /class="page-directory"|id="dashboardPages"|Pinned tools|Browse all pages/
+    );
+    assert.match(home, /href="\/recent-pages.html">View all Recent Pages/);
     for (const [url, label] of [
-        ['sashimi-signin-control', 'Poke Bowl &mdash; Sign-up Dashboard'],
-        ['sashimi-signin', 'Poke Bowl &mdash; Sign-up Overlay'],
-        ['poke-bowl', 'Poke Bowl &mdash; Cooking Tracker'],
-        ['beanburger-signup-control', 'Bean Burger &mdash; Sign-up Dashboard'],
-        ['beanburger-signup', 'Bean Burger &mdash; Sign-up Overlay'],
-        ['bean-burger', 'Bean Burger &mdash; Cooking Tracker']
+        ['sashimi-signin-control', 'Poke Bowl — Sign-up Dashboard'],
+        ['sashimi-signin', 'Poke Bowl — Sign-up Overlay'],
+        ['poke-bowl', 'Poke Bowl — Cooking Tracker'],
+        ['beanburger-signup-control', 'Bean Burger — Sign-up Dashboard'],
+        ['beanburger-signup', 'Bean Burger — Sign-up Overlay'],
+        ['bean-burger', 'Bean Burger — Cooking Tracker']
     ])
-        assert.ok(home.includes('href="/' + url + '.html">' + label + '</a>'), label);
+        assert.equal(entries.find((entry) => entry.url === '/' + url + '.html').label, label);
     for (const card of cards) {
-        const link = home.match(new RegExp('href="/' + card.id + '\\.html">([^<]+)</a>'));
-        assert.match(link[1], / &mdash; .+Tracker$/, card.id + ': tracker purpose');
+        assert.match(
+            entries.find((entry) => entry.url === '/' + card.id + '.html').label,
+            / — .+Tracker$/,
+            card.id + ': tracker purpose'
+        );
     }
     const login = fs.readFileSync(path.join(htmlRoot, 'cloud.html'), 'utf8');
     assert.match(
@@ -50,13 +78,22 @@ test('Home directory links to every static page and every configured resource ca
     );
 });
 
-test('Other dashboards have Home-only navigation; Home, login and overlays have no navigation bars', () => {
+test('Operator pages share workspace navigation while login, overlays and the compact widget stay independent', () => {
     for (const file of pages()) {
         const content = fs.readFileSync(file, 'utf8');
         const name = path.basename(file, '.html');
         const operator = name.endsWith('-control') || operatorExtras.includes(name);
         const links = [...content.matchAll(/<nav class="icb-page-nav"[\s\S]*?<\/nav>/g)];
-        assert.equal(links.length, operator ? 2 : 0, name);
+        assert.equal(links.length, name === 'aniimo-quick' ? 2 : 0, name);
+        assert.equal(content.includes('data-workspace="true"'), operator, name);
+        if (operator) {
+            assert.match(content, /id="workspace-sidebar"/);
+            assert.match(content, /id="workspace-topbar"/);
+            assert.match(content, /navigation\/shell.js/);
+        } else {
+            assert.ok(!content.includes('/css/workspace.css'), name + ': no workspace chrome');
+        }
+        if (name === 'aniimo-quick') continue;
         if (!operator) {
             assert.ok(
                 !content.includes('/css/page-navigation.css'),
@@ -64,15 +101,5 @@ test('Other dashboards have Home-only navigation; Home, login and overlays have 
             );
             continue;
         }
-        assert.match(content, /href="\/css\/page-navigation.css"/);
-        assert.match(content, /<body[^>]*>\s*<nav class="icb-page-nav"/, name + ': top navigation');
-        for (const link of links) {
-            assert.match(link[0], /class="icb-home-link" href="\/"/);
-            assert.match(link[0], /&larr;/);
-            assert.doesNotMatch(link[0], /cloud\.html|Cloud sign-in|icb-account-link/);
-            assert.equal([...link[0].matchAll(/<a\b/g)].length, 1, name + ': Home only');
-        }
-        assert.match(links[1][0], /Page navigation \(bottom\)/);
-        assert.ok(content.indexOf(links[1][0]) > content.lastIndexOf('</main>'));
     }
 });

@@ -56,7 +56,7 @@ async function main() {
         })()`);
         await wait(
             page,
-            "location.pathname==='/control.html' && !!document.querySelector('.icb-page-nav')"
+            "location.pathname==='/control.html' && !!document.querySelector('#workspace-sidebar')"
         );
         const status = await (await fetch(base + '/api/cloud/status')).json();
         assert.equal(status.signed_in, true);
@@ -72,7 +72,7 @@ async function main() {
         await page.navigate(base + '/cloud.html?startup=1');
         await wait(
             page,
-            "location.pathname==='/hub.html' || (location.pathname==='/' && !!document.getElementById('dashboardPages'))"
+            "location.pathname==='/hub.html' || (location.pathname==='/' && !!document.getElementById('ws-recent-panels'))"
         );
         const restored = await (await fetch(base + '/api/cloud/status')).json();
         assert.equal(restored.signed_in, true);

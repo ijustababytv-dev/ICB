@@ -6,149 +6,26 @@
 <title>ICB Home</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/css/hub.css">
-<link rel="stylesheet" href="/css/hub-directory.css">
+<link rel="stylesheet" href="/css/workspace.css">
+<link rel="stylesheet" href="/css/workspace-search.css">
+<link rel="stylesheet" href="/css/workspace-content.css">
+<link rel="stylesheet" href="/css/workspace-responsive.css">
+<script src="/js/client/navigation/catalog-tools.js"></script>
+<script src="/js/client/navigation/catalog-overlays.js"></script>
+<script src="/js/client/navigation/catalog-trackers.js"></script>
+<script src="/js/client/navigation/model.js"></script>
 </head>
-<body>
-  <header>
-    <h1>✨ <span>ICB Home</span></h1>
-    <div class="spacer"></div>
-    <span class="clock" id="clock"></span>
-    <span class="health" id="health">connecting…</span>
-  </header>
-  <p class="sub">Every ICB dashboard in one place. Drag the tiles into whatever order helps you find things fastest — it's saved.
-     <span class="startcount" id="startcount"></span></p>
-
-  <section class="page-directory" aria-labelledby="pagesTitle">
-    <h2 id="pagesTitle">Open any ICB page</h2>
-    <p>Dashboards and controls for you. Expand the groups below for stream layers and connection tools.</p>
-    <div class="page-buttons" id="dashboardPages">
-        <a href="/cloud.html" class="page-account">Account &amp; sign out</a>
-        <a href="/aniimo-control.html">Aniimo Dex &mdash; Dashboard</a>
-        <a href="/Aniimo Tracker.html">Aniimo &mdash; Catch &amp; Variant Checklist</a>
-        <a href="/aniimo-quick.html">Aniimo &mdash; Quick Check Widget</a>
-        <a href="/stream-frame-control.html">Animated Stream Frame &mdash; Dashboard</a>
-        <a href="/poll-control.html">Badge Vote &mdash; Dashboard</a>
-        <a href="/beanburger-signup-control.html">Bean Burger &mdash; Sign-up Dashboard</a>
-        <a href="/party-control.html">Cake &mdash; Sign-up Dashboard</a>
-        <a href="/chat-avatars-control.html">Chat Avatars &mdash; Dashboard</a>
-        <a href="/walkers-control.html">Chat Unicorns &mdash; Dashboard</a>
-        <a href="/countdown-control.html">Countdown Timers &mdash; Dashboard</a>
-        <a href="/giveaway-report.html">Daily Activity Reports</a>
-        <a href="/decor-control.html">Decor Effects &mdash; Dashboard</a>
-        <a href="/desktop-control.html">Desktop Widgets &mdash; Dashboard</a>
-        <a href="/eventtime-control.html">Event Time Converter &mdash; Dashboard</a>
-        <a href="/flowtree-signup-control.html">Flow Tree &mdash; Sign-up Dashboard</a>
-        <a href="/sprites-control.html">Fortnite Sprites &mdash; Collection Dashboard</a>
-        <a href="/giveaway-control.html">Giveaway &amp; Unicorn Jar &mdash; Dashboard</a>
-        <a href="/hunt-control.html">Team Hunt &mdash; Dashboard</a>
-        <a href="/neon-chat-control.html">Neon Chat &mdash; Dashboard</a>
-        <a href="/newsticker-control.html">News Ticker &mdash; Dashboard</a>
-        <a href="/ocean-fish-control.html">Ocean Fish &mdash; Dashboard</a>
-        <a href="/palia-clock-control.html">Palia Clock &mdash; Dashboard</a>
-        <a href="/tradeup-control.html">Plushie Jar &mdash; Draw Dashboard</a>
-        <a href="/sashimi-signin-control.html">Poke Bowl &mdash; Sign-up Dashboard</a>
-        <a href="/sprite-jar-control.html">Sprite Jar &amp; Sticker Book &mdash; Dashboard</a>
-        <a href="/sprite-tv-control.html">Sprite TV &mdash; Dashboard</a>
-        <a href="/steam-control.html">Steam Achievements &mdash; Dashboard</a>
-        <a href="/timer-control.html">Stream Timer &mdash; Dashboard</a>
-        <a href="/teams-control.html">Team Contest &mdash; Dashboard</a>
-        <a href="/control.html">Tracker Command Center</a>
-        <a href="/turn-line-control.html">Turn Line &mdash; Dashboard</a>
-        <a href="/worldclock-control.html">World Time Bar &mdash; Dashboard</a>
-    </div>
-    <details>
-      <summary>Stream overlays &amp; resource cards</summary>
-      <div class="page-buttons" id="overlayPages">
-        <a href="/aniimo.html">Aniimo Dex &mdash; Overlay</a>
-        <a href="/beanburger-signup.html">Bean Burger &mdash; Sign-up Overlay</a>
-        <a href="/chat-avatars.html">Chat Avatars &mdash; Overlay</a>
-        <a href="/countdown.html">Countdown Timers &mdash; Overlay</a>
-        <a href="/decor-overlay.html">Falling Leaves &mdash; Default Decor Overlay</a>
-        <a href="/eventtime.html">Event Time &mdash; Overlay</a>
-        <a href="/flowtree-signup.html">Flow Tree &mdash; Sign-up Overlay</a>
-        <a href="/giveaway-entrants.html">Giveaway Entrants &mdash; Overlay</a>
-        <a href="/giveaway-winners.html">Giveaway Winners &mdash; Overlay</a>
-        <a href="/hunt.html">Team Hunt &mdash; Overlay</a>
-        <a href="/neon-chat.html">Neon Chat &mdash; Overlay</a>
-        <a href="/newsticker.html">News Ticker &mdash; Overlay</a>
-        <a href="/ocean-fish.html">Ocean Fish &mdash; Overlay</a>
-        <a href="/overlay.html">Resource Totals &mdash; Overlay</a>
-        <a href="/palia-clock.html">Palia Clock &mdash; Overlay</a>
-        <a href="/party.html">Cake &mdash; Sign-up Overlay</a>
-        <a href="/poll.html">Badge Vote &mdash; Overlay</a>
-        <a href="/sashimi-signin.html">Poke Bowl &mdash; Sign-up Overlay</a>
-        <a href="/sprite-jar.html">Sprite Jar &mdash; Overlay</a>
-        <a href="/sprite-tv.html">Sprite TV / Last Sprite Found &mdash; Overlay</a>
-        <a href="/steam.html">Steam Achievements &mdash; Overlay</a>
-        <a href="/stream-frame.html">Animated Stream Frame &mdash; Overlay</a>
-        <a href="/teams.html">Team Contest &mdash; Overlay</a>
-        <a href="/timer.html">Stream Timer &mdash; Overlay</a>
-        <a href="/tradeup-board.html">Plushie Jar &mdash; Draw Overlay</a>
-        <a href="/turn-line.html">Turn Line &mdash; Overlay</a>
-        <a href="/unicorn-jar.html">Giveaway Unicorn Jar &mdash; Overlay</a>
-        <a href="/walkers.html">Chat Unicorns &mdash; Overlay</a>
-        <a href="/webcam.html">Webcam &mdash; Camera Widget</a>
-        <a href="/worldclock.html">World Time Bar &mdash; Overlay</a>
-        <a href="/weekly.html">Weekly Accomplishments &mdash; Overlay</a>
-        <a href="/weekly-wide.html">Weekly Accomplishments &mdash; Wide Overlay</a>
-        <a href="/ticker.html">Resource Tracker Ticker &mdash; Overlay</a>
-        <a href="/decor/all.html">All Decor Effects &mdash; Overlay</a>
-        <a href="/decor/leaves.html">Falling Leaves &mdash; Decor Overlay</a>
-        <a href="/amber-echo.html">Amber Echo &mdash; Resource Tracker</a>
-        <a href="/essence.html">Infected Essence &mdash; Resource Tracker</a>
-        <a href="/sweet-leaf.html">Sweet Leaf &mdash; Resource Tracker</a>
-        <a href="/gold-ore.html">Gold Ore &mdash; Resource Tracker</a>
-        <a href="/palium-ore.html">Palium Ore &mdash; Resource Tracker</a>
-        <a href="/platinum-ore.html">Platinum Ore &mdash; Resource Tracker</a>
-        <a href="/jadium.html">Jadium Ore &mdash; Resource Tracker</a>
-        <a href="/flint.html">Flint &mdash; Resource Tracker</a>
-        <a href="/clay.html">Clay &mdash; Resource Tracker</a>
-        <a href="/coral.html">Coral &mdash; Resource Tracker</a>
-        <a href="/emerald-moss.html">Emerald Carpet Moss &mdash; Resource Tracker</a>
-        <a href="/dragons-beard-peat.html">Dragon&#x27;s Beard Peat &mdash; Resource Tracker</a>
-        <a href="/apples.html">Apples &mdash; Resource Tracker</a>
-        <a href="/meat.html">Meat &mdash; Resource Tracker</a>
-        <a href="/sashimi.html">Sashimi &mdash; Cooking Tracker</a>
-        <a href="/fish-stew.html">Fish Stew &mdash; Cooking Tracker</a>
-        <a href="/ramen-plush.html">Ramen Plush &mdash; Cooking &amp; Plush Tracker</a>
-        <a href="/golden-glory-bee.html">Golden Glory Bee &mdash; Resource Tracker</a>
-        <a href="/queen-ushindi-collection.html">Queen Ushindi Collection &mdash; Collection Tracker</a>
-        <a href="/long-tracker.html">Long Tracker &mdash; Collection Tracker</a>
-        <a href="/ore-vs-kitsuu.html">Ore vs Kitsuu &mdash; Comparison Tracker</a>
-        <a href="/bean-burger.html">Bean Burger &mdash; Cooking Tracker</a>
-        <a href="/poke-bowl.html">Poke Bowl &mdash; Cooking Tracker</a>
-        <a href="/celebration-cake.html">Celebration Cake &mdash; Cooking Tracker</a>
-        <a href="/giant-goldfish.html">Giant Goldfish &mdash; Resource Tracker</a>
-        <a href="/eldershark.html">Eldershark &mdash; Resource Tracker</a>
-        <a href="/inyrevn-mermaid.html">Inyrevn Mermaid &mdash; Resource Tracker</a>
-        <a href="/veggie-chili.html">Veggie Chili &mdash; Cooking Tracker</a>
-        <a href="/highland-shark.html">Highland Shark &mdash; Resource Tracker</a>
-        <a href="/pumpkin-rockhopper.html">Pumpkin Rockhopper Frog vs Plushie &mdash; Comparison Tracker</a>
-        <a href="/banshee-beetle.html">Banshee Beetle vs Plushie &mdash; Comparison Tracker</a>
-        <a href="/tattered-cloth.html">Tattered Cloth &mdash; Resource Tracker</a>
-        <a href="/shmole-spores.html">Shmole Spores &mdash; Resource Tracker</a>
-        <a href="/blue-crab.html">Blue Crab vs Plushie &mdash; Comparison Tracker</a>
-        <a href="/apple-pie.html">Apple Pie &mdash; Cooking Tracker</a>
-        <a href="/pumpkin-pie.html">Pumpkin Pie &mdash; Cooking Tracker</a>
-        <a href="/meaty-stir-fry.html">Meaty Stir Fry &mdash; Cooking Tracker</a>
-        <a href="/akwinduu-chapaa.html">Akwinduu Chapaa &mdash; Cooking Tracker</a>
-        <a href="/vampire-crab.html">Vampire Crab &mdash; Resource Tracker</a>
-        <a href="/king-crab.html">King Crab &mdash; Resource Tracker</a>
-        <a href="/stripeshell-snail.html">Stripeshell Snail &mdash; Resource Tracker</a>
-        <a href="/crab-dishes.html">Vampire Crab Dishes &mdash; Cooking Tracker</a>
-      </div>
-      <div class="page-buttons" id="decorPages" aria-label="Additional decor effects"></div>
-      <p class="directory-status" id="decorDirectoryStatus">Sign in to list any additional saved decor effects.</p>
-    </details>
-    <details>
-      <summary>Connection tools &amp; diagnostics</summary>
-      <p>Listener pages connect Twitch events; keep these off stream.</p>
-      <div class="page-buttons">
-        <a href="/giveaway-listener.html">Twitch Events &mdash; Listener Connection</a>
-        <a href="/wk/giveaway-listener.html">Twitch Events &mdash; Alternate Listener Connection</a>
-        <a href="/meldtest.html">Meld &mdash; Connection Test</a>
-      </div>
-    </details>
+<body data-workspace="true">
+<aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation"></aside>
+<div class="workspace-main"><div class="workspace-topbar" id="workspace-topbar"></div><div class="workspace-page">
+  <div class="ws-page-heading">
+    <h1>Home</h1>
+    <p>Everything you need for your next stream.</p>
+    <span id="clock" hidden></span>
+  </div>
+  <section class="ws-recent" aria-labelledby="ws-recent-title">
+    <div class="ws-section-heading"><h2 id="ws-recent-title">Recently opened</h2><a class="ws-action" href="/recent-pages.html">View all Recent Pages &rarr;</a></div>
+    <div class="ws-recent-panels" id="ws-recent-panels"><p class="ws-empty">Loading recent pages&hellip;</p></div>
   </section>
 
   <div class="rz" id="rz">
@@ -212,6 +89,8 @@
     <div class="note">Updates by itself every 5 seconds. Click <b>How to fix</b> under anything that isn't green. <b>Copy status report</b> copies all of this as text you can paste to Claude or anyone helping you.</div>
   </div>
 
+  <details class="ws-settings"><summary>Startup pages &amp; custom links</summary>
+  <p class="note">Choose pages to open at startup, reorder them, or manage your own links. <span id="startcount"></span></p>
   <div class="grid" id="grid"></div>
 
   <div class="card guide">
@@ -270,11 +149,16 @@
     <div class="note" style="margin-top:0">Tick <b>Open when ICB starts</b> on any tile. When you run <code>start-icb-clean.bat</code> or <code>restart-icb-clean.bat</code>, Chrome opens ICB Home plus every ticked page, each in its own tab. Clicking <b>Open</b> on a tile again reuses the tab it opened before, instead of stacking up duplicates.</div>
   </div>
 
+  </details>
   <div class="toast" id="toast"></div>
 
+<script src="/js/client/navigation/search.js"></script>
+<script src="/js/client/navigation/shell.js"></script>
+<script src="/js/client/navigation/recent.js"></script>
+<script src="/js/client/navigation/directory-view.js"></script>
 <script src="/js/client/hub/randomizer.js"></script>
 <script src="/js/client/hub/health.js"></script>
 <script src="/js/client/hub.js"></script>
-<script src="/js/client/hub/directory.js"></script>
+</div></div>
 </body>
 </html>

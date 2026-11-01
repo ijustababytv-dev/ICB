@@ -6,10 +6,18 @@
 <title>Countdowns — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/css/countdown-control.css">
-<link rel="stylesheet" href="/css/page-navigation.css">
+<link rel="stylesheet" href="/css/workspace.css">
+<link rel="stylesheet" href="/css/workspace-search.css">
+<link rel="stylesheet" href="/css/workspace-content.css">
+<link rel="stylesheet" href="/css/workspace-responsive.css">
+<script src="/js/client/navigation/catalog-tools.js"></script>
+<script src="/js/client/navigation/catalog-overlays.js"></script>
+<script src="/js/client/navigation/catalog-trackers.js"></script>
+<script src="/js/client/navigation/model.js"></script>
 </head>
-<body>
-<nav class="icb-page-nav" aria-label="Page navigation (top)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+<body data-workspace="true">
+<aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation"></aside>
+<div class="workspace-main"><div class="workspace-topbar" id="workspace-topbar"></div><div class="workspace-page">
 <div class="top">
   <div><h1>⏳ <span>Countdowns</span></h1><div class="sub">Your countdown timers for stream. Change the look, the size and what it says when time's up.</div></div>
   <div class="spacer"></div>
@@ -117,7 +125,11 @@
 </div>
 </div>
 
+<script src="/js/client/navigation/search.js"></script>
+<script src="/js/client/navigation/shell.js"></script>
+<script src="/js/client/navigation/recent.js"></script>
+<script src="/js/client/navigation/directory-view.js"></script>
 <script src="/js/client/countdown-control.js"></script>
-<nav class="icb-page-nav" aria-label="Page navigation (bottom)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+</div></div>
 </body>
 </html>

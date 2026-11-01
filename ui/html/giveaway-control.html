@@ -5,10 +5,18 @@
 <meta charset="utf-8">
 <title>Giveaway Control — ICB</title>
 <link rel="stylesheet" href="/css/giveaway-control.css">
-<link rel="stylesheet" href="/css/page-navigation.css">
+<link rel="stylesheet" href="/css/workspace.css">
+<link rel="stylesheet" href="/css/workspace-search.css">
+<link rel="stylesheet" href="/css/workspace-content.css">
+<link rel="stylesheet" href="/css/workspace-responsive.css">
+<script src="/js/client/navigation/catalog-tools.js"></script>
+<script src="/js/client/navigation/catalog-overlays.js"></script>
+<script src="/js/client/navigation/catalog-trackers.js"></script>
+<script src="/js/client/navigation/model.js"></script>
 </head>
-<body>
-<nav class="icb-page-nav" aria-label="Page navigation (top)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+<body data-workspace="true">
+<aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation"></aside>
+<div class="workspace-main"><div class="workspace-topbar" id="workspace-topbar"></div><div class="workspace-page">
 <h1>Giveaway Control <span class="health" id="health">connecting…</span></h1>
 <p class="sub">Live entrants, fluffy unicorn math, and drawings — feeds the on-stream overlays automatically.</p>
 <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:0 0 16px;">
@@ -226,9 +234,13 @@
   <p class="footer-note">Overlays pick up changes within a few seconds — no Meld reload needed. Board text is kept when you hit Reset everything.</p>
 </div>
 
+<script src="/js/client/navigation/search.js"></script>
+<script src="/js/client/navigation/shell.js"></script>
+<script src="/js/client/navigation/recent.js"></script>
+<script src="/js/client/navigation/directory-view.js"></script>
 <script src="/js/client/giveaway-control/awards.js"></script>
 <script src="/js/client/giveaway-control/backups.js"></script>
 <script src="/js/client/giveaway-control.js"></script>
-<nav class="icb-page-nav" aria-label="Page navigation (bottom)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+</div></div>
 </body>
 </html>

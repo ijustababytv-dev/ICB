@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-/** Include every operator page rather than relying on the existing feature smoke-test subset. */
+/** Inventory operator pages, including the new directory/history and independent compact widget. */
 function operatorPages() {
     return fs
         .readdirSync(path.resolve(__dirname, '../html'))
@@ -16,89 +16,44 @@ function operatorPages() {
                     'control.html',
                     'giveaway-report.html',
                     'Aniimo Tracker.html',
-                    'aniimo-quick.html'
+                    'aniimo-quick.html',
+                    'all-pages.html',
+                    'recent-pages.html'
                 ].includes(name)
         )
         .map((name) => name.slice(0, -5));
 }
 
-/** Verify actual layout, destinations and keyboard reachability in a disposable browser target. */
+/** Confirm shared navigation stays off login/Meld layers and every dashboard gets searchable sections. */
 async function verifyNavigation(page, name) {
-    const operator = !['hub', 'cloud'].includes(name) && operatorPages().includes(name);
-    const navigation =
-        await page.evaluate(`Array.from(document.querySelectorAll('.icb-page-nav')).map(function(nav) {
-        var link=nav.querySelector('.icb-home-link');
-        var box=nav.getBoundingClientRect();
-        return { href:link.getAttribute('href'), text:link.textContent, height:box.height,
-            display:getComputedStyle(nav).display, links:nav.querySelectorAll('a').length,
-            account:!!nav.querySelector('a[href="/cloud.html"]') };
+    const workspace = !['cloud', 'aniimo-quick'].includes(name) && operatorPages().includes(name);
+    const state = await page.evaluate(`({
+        bars:document.querySelectorAll('.icb-page-nav').length,
+        sidebars:document.querySelectorAll('#workspace-sidebar').length,
+        search:!!document.getElementById('ws-page-search'),
+        sections:Array.from(document.querySelectorAll('.ws-category summary span:last-child')).map(function(node){return node.textContent;})
     })`);
-    assert.equal(navigation.length, operator ? 2 : 0, name + ': navigation scope');
-    for (const nav of navigation) {
-        assert.equal(nav.href, '/');
-        assert.match(nav.text, /\u2190.*ICB Home/);
-        assert.equal(nav.account, false);
-        assert.equal(nav.links, 1);
-        assert.ok(nav.height >= 32 && nav.display !== 'none', name + ': visible navigation');
-    }
-    if (name === 'hub') {
-        const labels = await page.evaluate(`(function() {
-            var pokes=['/sashimi-signin-control.html','/sashimi-signin.html','/poke-bowl.html'].map(function(url) {
-                return document.querySelector('.page-directory a[href="'+url+'"]').textContent;
-            });
-            var custom=tileLabel({builtin:false,name:'My chosen name',url:'/sashimi-signin-control.html'});
-            var builtin=tileLabel({builtin:true,name:'Old ambiguous name',url:'/sashimi-signin-control.html'});
-            var shown=document.querySelector('.tile[data-id="sashimi"] .name');
-            return {pokes:pokes,custom:custom,builtin:builtin,shown:shown&&shown.textContent};
-        })()`);
-        assert.deepEqual(labels.pokes, [
-            'Poke Bowl — Sign-up Dashboard',
-            'Poke Bowl — Sign-up Overlay',
-            'Poke Bowl — Cooking Tracker'
+    assert.equal(state.bars, name === 'aniimo-quick' ? 2 : 0, name + ': old navigation scope');
+    assert.equal(state.sidebars, workspace ? 1 : 0, name + ': sidebar scope');
+    assert.equal(state.search, workspace, name + ': page search scope');
+    if (workspace)
+        assert.deepEqual(state.sections, [
+            'Stream tools',
+            'Community & games',
+            'Overlays & widgets',
+            'Decor & effects',
+            'Activity reports',
+            'Connections'
         ]);
-        assert.equal(labels.custom, 'My chosen name');
-        assert.equal(labels.builtin, labels.pokes[0]);
-        assert.equal(
-            labels.shown,
-            labels.pokes[0],
-            'Rendered built-in tile uses its clarified directory label'
-        );
-        const failed = await page.evaluate(`(async function() {
-            var links=Array.from(document.querySelectorAll('.page-directory a'));
-            var failures=[];
-            for(var i=0;i<links.length;i+=8) {
-                await Promise.all(links.slice(i,i+8).map(async function(link) {
-                    var response=await fetch(link.href);
-                    if(!response.ok) failures.push(link.getAttribute('href')+': '+response.status);
-                }));
-            }
-            return failures;
-        })()`);
-        assert.deepEqual(failed, [], 'All Home directory destinations return successfully');
-    }
-    if (['hub', 'cloud', 'aniimo-quick'].includes(name)) {
+    if (['hub', 'cloud', 'aniimo-quick', 'all-pages', 'recent-pages'].includes(name)) {
         for (const width of [390, 1280]) {
             await page.setViewport(width, 900);
-            if (name === 'cloud' || name === 'hub') {
-                const fits = await page.evaluate(
-                    'document.documentElement.scrollWidth <= innerWidth'
-                );
-                assert.equal(fits, true, name + ': horizontal overflow at ' + width);
-                continue;
-            }
-            const layout = await page.evaluate(`(function() {
-                var footer=document.querySelectorAll('.icb-page-nav')[1];
-                footer.scrollIntoView();
-                var link=footer.querySelector('.icb-home-link');link.focus();
-                var rect=link.getBoundingClientRect();
-                return { overflow:document.documentElement.scrollWidth>innerWidth,
-                    focused:document.activeElement===link, visible:rect.top>=0&&rect.bottom<=innerHeight };
-            })()`);
-            assert.equal(layout.overflow, false, name + ': horizontal overflow at ' + width);
-            assert.equal(layout.focused, true, name + ': keyboard-accessible footer');
-            assert.equal(layout.visible, true, name + ': reachable footer at ' + width);
+            assert.equal(
+                await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),
+                true,
+                name + ': horizontal overflow at ' + width
+            );
         }
-        await page.evaluate('window.scrollTo(0,0)');
     }
     if (name === 'cloud') {
         const form = await page.evaluate(`({

@@ -6,10 +6,18 @@
 <title>Aniimo Dex — ICB</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/css/aniimo-control.css">
-<link rel="stylesheet" href="/css/page-navigation.css">
+<link rel="stylesheet" href="/css/workspace.css">
+<link rel="stylesheet" href="/css/workspace-search.css">
+<link rel="stylesheet" href="/css/workspace-content.css">
+<link rel="stylesheet" href="/css/workspace-responsive.css">
+<script src="/js/client/navigation/catalog-tools.js"></script>
+<script src="/js/client/navigation/catalog-overlays.js"></script>
+<script src="/js/client/navigation/catalog-trackers.js"></script>
+<script src="/js/client/navigation/model.js"></script>
 </head>
-<body>
-<nav class="icb-page-nav" aria-label="Page navigation (top)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+<body data-workspace="true">
+<aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation"></aside>
+<div class="workspace-main"><div class="workspace-topbar" id="workspace-topbar"></div><div class="workspace-page">
 <div class="top">
   <div><h1>✨ <span>Aniimo</span> Dex</h1><div class="sub">Catch & variant checklist - saved in ICB, with a stream overlay, new-catch pop-ups and chat <code>!need</code> look-ups.</div></div>
   <div class="spacer"></div>
@@ -119,9 +127,13 @@
   <div class="row"><span class="spacer"></span><button onclick="closeForm()">Done</button></div>
 </div></div>
 
+<script src="/js/client/navigation/search.js"></script>
+<script src="/js/client/navigation/shell.js"></script>
+<script src="/js/client/navigation/recent.js"></script>
+<script src="/js/client/navigation/directory-view.js"></script>
 <script src="/js/client/aniimo-control/images.js"></script>
 <script src="/js/client/aniimo-control/roster.js"></script>
 <script src="/js/client/aniimo-control.js"></script>
-<nav class="icb-page-nav" aria-label="Page navigation (bottom)"><a class="icb-home-link" href="/"><span aria-hidden="true">&larr;</span> ICB Home</a></nav>
+</div></div>
 </body>
 </html>

@@ -24,13 +24,17 @@ http://127.0.0.1:8790/control.html
 
 This dashboard is for you, off stream. Do not add `control.html` as a Meld layer.
 
-Home has a page directory above the stream-title randomizer, with buttons for every
-dashboard and expandable groups for overlays, resource cards and connection tools.
-Labels distinguish dashboards, sign-up overlays, cooking/resource trackers and
-connection tools; built-in tiles use the same labels.
-Other dashboard pages have **← ICB Home** links at the top and bottom. Home, login
-and stream overlays have no navigation bars. Open `/cloud.html` to sign in;
-after signing in, use **Account & sign out** on Home to manage your session.
+Operator dashboards have a shared sidebar and searchable page picker. Home sits
+above Stream tools, Community & games, Overlays & widgets, Decor & effects,
+Activity reports and Connections. All pages is at the bottom and opens the A-Z
+directory. Search supports close typo matches, multiple suggestions and Ctrl+K.
+
+Home shows recently opened tools immediately below its subtitle, in responsive
+panels of four pages each. View all Recent Pages opens the full last-opened table.
+This browser keeps navigation history separately for each signed-in account;
+passwords and tokens never enter that history. Account & sign out is in Connections.
+Login, stream overlays and the compact Aniimo widget keep their independent layouts.
+Startup choices, ordering and custom links remain in Home's collapsed settings area.
 
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
 

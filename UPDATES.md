@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-01: Added the categorized operator sidebar, tight fuzzy page search with keyboard suggestions, an alphabetical All Pages directory and a last-opened Recent Pages table. Home shows responsive panels of four recent tools beneath its subtitle.
+
 - 2026-11-01: Restored 339 missing project images from Cloudinary using download-cloudinary-images.bat, including the Poke Bowl tracker artwork.
 - 2026-11-01: Implemented required Cloud sign-in for all pages, overlays, artwork and feature APIs, with Windows-protected fixed 14-day remembered sessions. Deployed the cloud session update; local activation requires a normal authorized restart.
 
@@ -23,6 +25,8 @@
 
 ## Improvements
 
+- 2026-11-01: Replaced the Home button wall with shared navigation across operator dashboards. Startup ordering/custom links remain in collapsed settings. Recent UI history is browser-local and account-separated; automated Meld layers are excluded.
+
 - 2026-11-01: Clarified all 113 Home directory labels by purpose: dashboards, sign-up overlays, cooking/resource/collection trackers, widgets and connection tools. Built-in tiles use the same labels; custom names stay intact.
 - 2026-11-01: Cloudinary download verified all 613 images, updated six differing files with backups and skipped 268 identical files. A second comparison found nothing left to download.
 - 2026-11-01: Kept Home navigation bars only on other dashboards; Home continues using its page directory.
@@ -43,6 +47,8 @@
 - 2026-10-29: Turn Line background: none (see-through), a color panel, or a picture (upload on the dashboard or drop one in `assets/turn-line`), with strength, rounded corners and fill/fit/stretch. The background fills the whole Meld layer, so resize the layer to size it.
 
 ## Bug Fixes
+
+- 2026-11-01: Search input does not mark feature forms as edited or freeze their revisions. Recent history removes duplicate visits, ignores query strings and handles corrupt/blocked browser storage. No pinned-tools section or top-right Browse all pages button was added.
 
 - 2026-11-01: Distinguished Poke Bowl and Bean Burger sign-up dashboards, sign-up overlays and cooking trackers, and identified the Plushie Jar draw dashboard and overlay by their actual purpose.
 - 2026-11-01: Fixed missing Poke Bowl artwork: the original 2048 x 768 PNG now returns HTTP 200. Eight other tracker originals remain unavailable in the project backup.
