@@ -26,8 +26,9 @@ This dashboard is for you, off stream. Do not add `control.html` as a Meld layer
 
 Home has a page directory above the stream-title randomizer, with buttons for every
 dashboard and expandable groups for overlays, resource cards and connection tools.
-Every operator page has **← ICB Home** and **Cloud sign-in** links at the top and
-bottom. Open `/cloud.html` to sign in; stream overlays keep their navigation-free layout.
+Dashboard pages have **← ICB Home** links at the top and bottom. The login page
+and stream overlays have no navigation bars. Open `/cloud.html` to sign in;
+after signing in, use **Account & sign out** on Home to manage your session.
 
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
 

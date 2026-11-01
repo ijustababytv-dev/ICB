@@ -24,19 +24,21 @@ function operatorPages() {
 
 /** Verify actual layout, destinations and keyboard reachability in a disposable browser target. */
 async function verifyNavigation(page, name) {
-    const operator = operatorPages().includes(name);
+    const operator = name !== 'cloud' && operatorPages().includes(name);
     const navigation =
         await page.evaluate(`Array.from(document.querySelectorAll('.icb-page-nav')).map(function(nav) {
         var link=nav.querySelector('.icb-home-link');
         var box=nav.getBoundingClientRect();
         return { href:link.getAttribute('href'), text:link.textContent, height:box.height,
-            display:getComputedStyle(nav).display, account:nav.querySelector('.icb-account-link').getAttribute('href') };
+            display:getComputedStyle(nav).display, links:nav.querySelectorAll('a').length,
+            account:!!nav.querySelector('a[href="/cloud.html"]') };
     })`);
     assert.equal(navigation.length, operator ? 2 : 0, name + ': navigation scope');
     for (const nav of navigation) {
         assert.equal(nav.href, '/');
         assert.match(nav.text, /\u2190.*ICB Home/);
-        assert.equal(nav.account, '/cloud.html');
+        assert.equal(nav.account, false);
+        assert.equal(nav.links, 1);
         assert.ok(nav.height >= 32 && nav.display !== 'none', name + ': visible navigation');
     }
     if (name === 'hub') {
@@ -56,6 +58,13 @@ async function verifyNavigation(page, name) {
     if (['hub', 'cloud', 'aniimo-quick'].includes(name)) {
         for (const width of [390, 1280]) {
             await page.setViewport(width, 900);
+            if (name === 'cloud') {
+                const fits = await page.evaluate(
+                    'document.documentElement.scrollWidth <= innerWidth'
+                );
+                assert.equal(fits, true, 'Standalone login: horizontal overflow at ' + width);
+                continue;
+            }
             const layout = await page.evaluate(`(function() {
                 var footer=document.querySelectorAll('.icb-page-nav')[1];
                 footer.scrollIntoView();

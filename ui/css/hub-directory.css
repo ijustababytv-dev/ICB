@@ -20,7 +20,7 @@
 }
 .page-directory a:hover { border-color: var(--accent); background: #352345; }
 .page-directory a:focus-visible { outline: 3px solid var(--accent2); outline-offset: 3px; }
-.page-directory a.page-signin { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1b0f2a; border-color: transparent; font-weight: 800; }
+.page-directory a.page-account { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #1b0f2a; border-color: transparent; font-weight: 800; }
 .page-directory details { margin-top: 20px; }
 .page-directory summary { cursor: pointer; color: var(--accent); font-weight: 700; padding: 6px 0; }
 .page-directory details .page-buttons { margin-top: 12px; }

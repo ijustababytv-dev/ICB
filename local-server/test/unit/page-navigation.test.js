@@ -5,14 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
 const htmlRoot = path.join(root, 'ui/html');
-const operatorExtras = [
-    'hub',
-    'cloud',
-    'control',
-    'giveaway-report',
-    'Aniimo Tracker',
-    'aniimo-quick'
-];
+const operatorExtras = ['hub', 'control', 'giveaway-report', 'Aniimo Tracker', 'aniimo-quick'];
 
 /** Inventory real static pages, including nested listener aliases. */
 function pages(folder = htmlRoot) {
@@ -35,7 +28,7 @@ test('Home links to every static page and every configured resource card before 
     for (const url of ['/weekly.html', '/weekly-wide.html', '/ticker.html', '/decor/all.html'])
         assert.ok(destinations.has(url), url);
     assert.ok(home.indexOf('id="dashboardPages"') < home.indexOf('id="rz"'));
-    assert.match(home, /href="\/cloud.html" class="page-signin"/);
+    assert.match(home, /href="\/cloud.html" class="page-account">Account &amp; sign out/);
     const login = fs.readFileSync(path.join(htmlRoot, 'cloud.html'), 'utf8');
     assert.match(
         login,
@@ -44,7 +37,7 @@ test('Home links to every static page and every configured resource card before 
     );
 });
 
-test('All operator pages have static top and bottom arrow links; overlays stay clean', () => {
+test('Dashboards have Home-only navigation; login and overlays have no navigation bars', () => {
     for (const file of pages()) {
         const content = fs.readFileSync(file, 'utf8');
         const name = path.basename(file, '.html');
@@ -63,7 +56,8 @@ test('All operator pages have static top and bottom arrow links; overlays stay c
         for (const link of links) {
             assert.match(link[0], /class="icb-home-link" href="\/"/);
             assert.match(link[0], /&larr;/);
-            assert.match(link[0], /href="\/cloud.html"/);
+            assert.doesNotMatch(link[0], /cloud\.html|Cloud sign-in|icb-account-link/);
+            assert.equal([...link[0].matchAll(/<a\b/g)].length, 1, name + ': Home only');
         }
         assert.match(links[1][0], /Page navigation \(bottom\)/);
         assert.ok(content.indexOf(links[1][0]) > content.lastIndexOf('</main>'));

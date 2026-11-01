@@ -22,6 +22,7 @@
 
 ## Improvements
 
+- 2026-11-01: Dashboard navigation now contains only Home links. Home's account button is labeled Account & sign out.
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 - 2026-10-31: Restyled Cloud sign-in to match Home, with labeled inputs, readable account/sync status and responsive layouts. Added navigation coverage for every operator page and every built-in directory destination.
@@ -38,6 +39,7 @@
 
 ## Bug Fixes
 
+- 2026-11-01: Removed both navigation bars from login and redundant Cloud sign-in links from all dashboard headers/footers.
 - 2026-11-01: Sign out and expiry lock open pages and close event streams; obsolete login/restore responses cannot reopen access. Prevented login feedback being erased by session-change reloads and native form submission putting passwords in URLs.
 
 - 2026-10-31: Prevented duplicate sign-in submissions and obsolete status polls from repainting an old account. Unavailable upload counters now display an explicit warning instead of zero.

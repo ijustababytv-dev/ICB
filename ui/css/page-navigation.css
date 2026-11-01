@@ -28,5 +28,4 @@
 .icb-page-nav a:hover { background: #332341; border-color: #c792ff; }
 .icb-page-nav a:focus-visible { outline: 3px solid #ff8fd8; outline-offset: 3px; }
 .icb-page-nav .icb-home-link { color: #fff; background: #352345; }
-.icb-page-nav .icb-account-link { margin-left: auto; }
 @media print { .icb-page-nav { display: none; } }
