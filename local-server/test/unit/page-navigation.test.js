@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
 const htmlRoot = path.join(root, 'ui/html');
-const operatorExtras = ['hub', 'control', 'giveaway-report', 'Aniimo Tracker', 'aniimo-quick'];
+const operatorExtras = ['control', 'giveaway-report', 'Aniimo Tracker', 'aniimo-quick'];
 
 /** Inventory real static pages, including nested listener aliases. */
 function pages(folder = htmlRoot) {
@@ -15,7 +15,7 @@ function pages(folder = htmlRoot) {
     });
 }
 
-test('Home links to every static page and every configured resource card before login', () => {
+test('Home directory links to every static page and every configured resource card', () => {
     const home = fs.readFileSync(path.join(htmlRoot, 'hub.html'), 'utf8');
     const destinations = new Set([...home.matchAll(/href="([^"]+)"/g)].map((match) => match[1]));
     destinations.add('/hub.html'); // The canonical Home destination is /.
@@ -37,7 +37,7 @@ test('Home links to every static page and every configured resource card before 
     );
 });
 
-test('Dashboards have Home-only navigation; login and overlays have no navigation bars', () => {
+test('Other dashboards have Home-only navigation; Home, login and overlays have no navigation bars', () => {
     for (const file of pages()) {
         const content = fs.readFileSync(file, 'utf8');
         const name = path.basename(file, '.html');

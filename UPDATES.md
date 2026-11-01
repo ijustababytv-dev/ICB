@@ -22,6 +22,7 @@
 
 ## Improvements
 
+- 2026-11-01: Kept Home navigation bars only on other dashboards; Home continues using its page directory.
 - 2026-11-01: Simplified login to one centered form and removed its account/sync information panel.
 - 2026-11-01: Dashboard navigation now contains only Home links. Home's account button is labeled Account & sign out.
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
@@ -40,6 +41,7 @@
 
 ## Bug Fixes
 
+- 2026-11-01: Removed redundant top/bottom ICB Home links from the Home page itself.
 - 2026-11-01: Login status refresh now updates only authentication controls and feedback, without accessing removed diagnostics elements.
 - 2026-11-01: Removed both navigation bars from login and redundant Cloud sign-in links from all dashboard headers/footers.
 - 2026-11-01: Sign out and expiry lock open pages and close event streams; obsolete login/restore responses cannot reopen access. Prevented login feedback being erased by session-change reloads and native form submission putting passwords in URLs.

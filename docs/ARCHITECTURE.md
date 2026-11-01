@@ -32,9 +32,9 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 ## Operator navigation
 
 Dashboard HTML pages include static top/bottom Home links styled by
-`ui/css/page-navigation.css`. Login and overlay pages omit these bars. Account
+`ui/css/page-navigation.css`. Home, login and overlay pages omit these bars. Account
 management stays in Home's directory. `hub.html` keeps a static directory of built-in
-pages so navigation works before login; `ui/js/hub/directory.js` adds account-created
+pages so discovery is independent of saved tile preferences; `ui/js/hub/directory.js` adds account-created
 decor effect links. Add new pages to that directory and keep overlay markup free
 of operator navigation. Unit checks compare the directory against the actual HTML
 files and resource definitions; browser checks cover every operator page.

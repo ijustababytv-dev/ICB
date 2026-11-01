@@ -24,7 +24,7 @@ function operatorPages() {
 
 /** Verify actual layout, destinations and keyboard reachability in a disposable browser target. */
 async function verifyNavigation(page, name) {
-    const operator = name !== 'cloud' && operatorPages().includes(name);
+    const operator = !['hub', 'cloud'].includes(name) && operatorPages().includes(name);
     const navigation =
         await page.evaluate(`Array.from(document.querySelectorAll('.icb-page-nav')).map(function(nav) {
         var link=nav.querySelector('.icb-home-link');
@@ -58,11 +58,11 @@ async function verifyNavigation(page, name) {
     if (['hub', 'cloud', 'aniimo-quick'].includes(name)) {
         for (const width of [390, 1280]) {
             await page.setViewport(width, 900);
-            if (name === 'cloud') {
+            if (name === 'cloud' || name === 'hub') {
                 const fits = await page.evaluate(
                     'document.documentElement.scrollWidth <= innerWidth'
                 );
-                assert.equal(fits, true, 'Standalone login: horizontal overflow at ' + width);
+                assert.equal(fits, true, name + ': horizontal overflow at ' + width);
                 continue;
             }
             const layout = await page.evaluate(`(function() {

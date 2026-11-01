@@ -22,8 +22,8 @@ Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md)
 
 The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
 Open `/cloud.html` to sign in. After signing in, Home's **Account & sign out** button
-opens account management. Dashboard navigation contains only Home links; login has
-no header/footer navigation. Home's page directory also links every
+opens account management. Other dashboards contain only Home navigation links;
+Home and login have no header/footer navigation. Home's page directory also links every
 dashboard, stream overlay, resource card and connection tool. These navigation
 links are deliberately absent from Meld overlays.
 Sign in as `ijustababytv` with the supplied password; username case is ignored.
