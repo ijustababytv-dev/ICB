@@ -25,6 +25,8 @@
 
 ## Improvements
 
+- 2026-11-01: Added POSTGRES.md with a compact inventory of stored account, activity, feature and operational data, plus what remains outside PostgreSQL.
+
 - 2026-11-01: Removed Home's obsolete startup/custom-link tile section and editor code; saved links remain in Connections, search and All Pages. Audited all 116 catalog pages and 30 former built-in tiles for sidebar coverage.
 
 - 2026-11-01: Replaced the Home button wall with shared navigation across operator dashboards. Startup ordering/custom links remain in collapsed settings. Recent UI history is browser-local and account-separated; automated Meld layers are excluded.

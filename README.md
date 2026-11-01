@@ -126,6 +126,7 @@ Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` p
 | [UPDATES.md](UPDATES.md) | Completed work from the last seven days |
 | [Runbook](docs/ICB-CLEAN-RUNBOOK.md) | Operation, diagnostics, backup, and recovery |
 | [AWS guide](AWS.md) | Steam key replacement, AWS infrastructure, credentials, and administrative commands |
+| [PostgreSQL inventory](POSTGRES.md) | Brief list of the data stored in the cloud database |
 | [Authentication](docs/AUTHENTICATION.md) | Required sign-in, 14-day Windows session storage, expiry and logout |
 | [Step 2 operations](docs/STEP2-OPERATIONS.md) | Cloud authority, cutover, worker, release and rollback |
 | [Step 2 validation](docs/STEP2-VALIDATION.md) | Actual tests, known artwork failures, measurements and costs |
