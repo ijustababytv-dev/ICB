@@ -10,7 +10,7 @@
 - 2026-11-01: Implemented required Cloud sign-in for all pages, overlays, artwork and feature APIs, with Windows-protected fixed 14-day remembered sessions. Deployed the cloud session update; local activation requires a normal authorized restart.
 
 - 2026-10-31: Added top/bottom arrow Home and Cloud sign-in links to all 34 operator pages, plus a Home directory of all dashboards, overlays, resource cards and connection tools. Stream overlays stay clean.
-- 2026-10-31: Added AWS.md with Steam key replacement steps, infrastructure basics, credential locations and administration/recovery references.
+- 2026-10-31: Added terraform/AWS.md with Steam key replacement steps, infrastructure basics, credential locations and administration/recovery references.
 - 2026-10-31: Deployed Step 2 cloud feature execution: Express/Lambda owns saved settings, signups/attendance, Turn Line, giveaways, polls/teams/hunts, trackers/weekly progress, timers, collections and Steam. Imported and compared all 32 owner features; preserved the existing account/password and 34 historical reporting days.
 - 2026-10-31: Added the leased ARM64 scheduled worker, separate owner integration secrets, private failure queue, delivery/execution alarms and a console-visible $30 account budget. Existing AWS resources keep the baby-icb- prefix.
 - 2026-10-31: Completed Step 1 login, minimal count/support ingestion, independent SQL reports/CSV, owner isolation and durable transport. Raw chat wording is no longer archived.
@@ -27,13 +27,15 @@
 
 ## Improvements
 
-- 2026-11-01: Expanded POSTGRES.md with an alphabetical, table-by-table data inventory.
+- 2026-11-01: Moved the PostgreSQL guide into database/ and the AWS guide into terraform/; updated contributor instructions, documentation references and internal links.
+
+- 2026-11-01: Expanded database/POSTGRES.md with an alphabetical, table-by-table data inventory.
 
 - 2026-11-01: Merged origin/main through 902ec2f into log-adjust, adapting giveaway behavior to cloud transactions and current UI folders. Kept runtime JSON/logs untracked, stopped tracking the machine-specific bridge cursor, and retained current sidebar/authentication.
 
 - 2026-11-01: Referenced the PostgreSQL data inventory from AGENTS.md and CLAUDE.md.
 
-- 2026-11-01: Added POSTGRES.md with a compact inventory of stored account, activity, feature and operational data, plus what remains outside PostgreSQL.
+- 2026-11-01: Added database/POSTGRES.md with a compact inventory of stored account, activity, feature and operational data, plus what remains outside PostgreSQL.
 
 - 2026-11-01: Removed Home's obsolete startup/custom-link tile section and editor code; saved links remain in Connections, search and All Pages. Audited all 116 catalog pages and 30 former built-in tiles for sidebar coverage.
 
@@ -47,7 +49,7 @@
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 - 2026-10-31: Restyled Cloud sign-in to match Home, with labeled inputs, readable account/sync status and responsive layouts. Added navigation coverage for every operator page and every built-in directory destination.
-- 2026-10-31: Linked AWS.md from AGENTS.md, CLAUDE.md and the README documentation map.
+- 2026-10-31: Linked terraform/AWS.md from AGENTS.md, CLAUDE.md and the README documentation map.
 - 2026-10-31: Local code is now a thin Palia/input/artwork/rendering bridge with one shared cloud feed and bounded request queue. Removed inactive local rule modules, business timers, feature JSON writers and repeated overlay-request disk logs. Preserved local URLs, ES5 overlays, tracker skins, desktop widgets and explicit Cloudinary sync.
 - 2026-10-31: PostgreSQL now has 58 tables and 84 indexes in icb, with one object definition per file, separate schema/role/permission folders, immutable upgrade 006 and separately retained administrative SQL bundles. Verified fresh-versus-upgraded structure and a full 58-table backup restore with migration ownership/limited grants.
 - 2026-10-31: Added field-level ownership documentation, fresh frozen cutovers, export/fence/restore tools, SQL audit exports and metadata-only recovery lists. Change notifications retain revision markers rather than duplicate feature payloads. Assets, backups, data, private credentials and both checked-off logging plans remain ignored.

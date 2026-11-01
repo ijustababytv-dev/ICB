@@ -1,5 +1,7 @@
 # PostgreSQL source, backup, and recovery
 
+See [POSTGRES.md](POSTGRES.md) for a brief data inventory and table-by-table descriptions.
+
 This folder is the versioned source needed to recreate ICB's PostgreSQL schema.
 RDS manages its physical database files. Actual account data is recovered with an
 RDS snapshot or a private logical dump, never by committing database files to Git.

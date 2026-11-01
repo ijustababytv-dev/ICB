@@ -1,8 +1,9 @@
 # AWS operations and credentials
 
 Updated 2026-11-01. This is the operator guide for ICB's AWS setup.
-Terraform under [terraform/](terraform/README.md) defines infrastructure;
-[database/](database/README.md) holds SQL object definitions and recovery tools.
+Command examples and plain file paths below are relative to the repository root.
+Terraform under [terraform/](README.md) defines infrastructure;
+[database/](../database/README.md) holds SQL object definitions and recovery tools.
 Do not put credential values in this document.
 
 ## Replace the Steam API key
@@ -106,12 +107,12 @@ continue using local image files.
 
 | Item | Purpose and location |
 | --- | --- |
-| ICB username/password | Required app cloud login; usernames are case-insensitive. Salted password hashes are in PostgreSQL. A fixed 14-day bearer session is protected locally with Windows CurrentUser DPAPI under `%LOCALAPPDATA%\ICB\auth`; restore validates it online. Sign out forgets it. The password is never saved locally. See [authentication](docs/AUTHENTICATION.md). |
+| ICB username/password | Required app cloud login; usernames are case-insensitive. Salted password hashes are in PostgreSQL. A fixed 14-day bearer session is protected locally with Windows CurrentUser DPAPI under `%LOCALAPPDATA%\ICB\auth`; restore validates it online. Sign out forgets it. The password is never saved locally. See [authentication](../docs/AUTHENTICATION.md). |
 | PostgreSQL service login | `icb_service`, used by both Lambdas. Terraform supplies endpoint/user/secret ARN as Lambda configuration; the password is read from the separate DB secret. No master credentials go into Lambda. |
 | PostgreSQL administration | RDS master username/password inputs are in ignored `terraform/.env`; generated `icb_migrator`/`icb_service` credentials are in ignored `database/.env.admin`. Use the administrative environment loader below. |
 | Steam API key | Optional achievements/stats integration; owner-specific Secrets Manager value. Replace it through the dashboard above. Steam ID/profile URL is configuration, not a password. |
 | AWS administration | Existing local AWS CLI profile `Vox`. Runtime Lambdas use scoped IAM roles; they do not need copied PC access keys. |
-| Cloudinary API credentials | Explicit artwork upload/download tools use ignored root `.env.cloudinary` with `CLOUDINARY_URL`; an environment variable also works. See [Cloudinary instructions](docs/CLOUDINARY.md). |
+| Cloudinary API credentials | Explicit artwork upload/download tools use ignored root `.env.cloudinary` with `CLOUDINARY_URL`; an environment variable also works. See [Cloudinary instructions](../docs/CLOUDINARY.md). |
 | Local API address | Ignored `local-server/.env` contains public `ICB_CLOUD_API_URL`. It does not contain a PostgreSQL URL/password or Steam key. |
 
 ICB itself does not store Twitch/Palia passwords or OAuth credentials: Twitch
@@ -123,7 +124,7 @@ The DB service password and Steam key are different secrets. Database password
 rotation must coordinate the SQL role password, private administration settings
 and Terraform-managed DB secret/version. Changing only a Lambda environment
 variable or pasting a new value into Secrets Manager does not rotate the SQL
-role. Follow [Terraform](terraform/README.md) and [database](database/README.md)
+role. Follow [Terraform](README.md) and [database](../database/README.md)
 instructions for that administrative change.
 
 ## AWS access and useful read-only commands
@@ -183,10 +184,10 @@ AWS CLI, Terraform, PostgreSQL tools and the repository's installed cloud tools
 are prerequisites for administration. Recover dumps into a new empty database;
 do not overwrite current progress with old local JSON. Detailed procedures:
 
-- [Cloud operation, migration, rollback and worker failures](docs/STEP2-OPERATIONS.md)
-- [Database creation, grants, backup and restore](database/README.md)
-- [Feature/field ownership](docs/STEP2-FEATURE-MAP.md)
-- [Validation, existing missing-artwork failures and cost measurements](docs/STEP2-VALIDATION.md)
+- [Cloud operation, migration, rollback and worker failures](../docs/STEP2-OPERATIONS.md)
+- [Database creation, grants, backup and restore](../database/README.md)
+- [Feature/field ownership](../docs/STEP2-FEATURE-MAP.md)
+- [Validation, existing missing-artwork failures and cost measurements](../docs/STEP2-VALIDATION.md)
 
 The last cost estimate is about $20–27/month for one busy installation active
 120 hours/month, depending on free allowances and integration use. That is an

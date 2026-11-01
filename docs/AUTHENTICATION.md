@@ -63,4 +63,4 @@ restorable if remote revocation also failed.
 
 Deploy the cloud code before restarting an updated local bridge. The active local
 server is never restarted as part of a source edit. AWS access/release instructions
-are in [AWS.md](../AWS.md) and [Step 2 operations](STEP2-OPERATIONS.md).
+are in [AWS.md](../terraform/AWS.md) and [Step 2 operations](STEP2-OPERATIONS.md).

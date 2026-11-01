@@ -1,5 +1,7 @@
 # ICB AWS infrastructure: Step 1
 
+See [AWS.md](AWS.md) for current AWS operations, credentials and Steam key replacement.
+
 Terraform defines Step 1 infrastructure. It does not implement the application,
 restructure source folders, create SQL roles/tables, import data, or complete the
 Step 1 acceptance tests. No AWS resources are applied by editing these files.

@@ -19,7 +19,7 @@ Application data lives in the `icb` schema and is separated by streamer account.
 
 Raw chat wording and original Palia log files are not archived here. Passwords and Steam API keys are not stored as plaintext. Recent-page browsing history stays in the browser.
 
-Definitions: [database/](database/). Detailed feature mapping: [STEP2-FEATURE-MAP.md](docs/STEP2-FEATURE-MAP.md).
+Definitions: [database/](./). Detailed feature mapping: [STEP2-FEATURE-MAP.md](../docs/STEP2-FEATURE-MAP.md).
 
 ## Tables
 
