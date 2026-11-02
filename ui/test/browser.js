@@ -28,6 +28,10 @@ async function main() {
             browser,
             port
         );
+        await require('../../local-server/test/helpers/feature-countdown-browser').verifyCountdownStart(
+            browser,
+            port
+        );
         await require('./workspace').verifyWorkspace(browser, port, json);
         await require('./giveaway-upstream').verifyGiveawayUpstream(browser, port, json);
         const pages = [

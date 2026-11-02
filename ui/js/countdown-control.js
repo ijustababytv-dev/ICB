@@ -121,7 +121,11 @@ function saveSoon(k, v) {
 function act(a, extra) {
     var b = { id: cur, action: a };
     for (var k in extra || {}) b[k] = extra[k];
-    return api('/api/countdowns', b).then(load);
+    return api('/api/countdowns', b).then(function (r) {
+        if (r.ok === false)
+            alert('The timer did not change: ' + (r.error || r.code) + '. Reload and try again.');
+        return load();
+    });
 }
 
 function showVal(k, v) {
@@ -258,8 +262,8 @@ function setMins(m) {
 function startMins() {
     var m = Number($('mins').value) || 0;
     if (m <= 0) return;
-    save({ lastMinutes: m });
-    act('start', { ms: m * 60000 });
+    // One command: a separate save would use the same revision and get the start rejected.
+    act('start', { ms: m * 60000, set: { lastMinutes: m } });
 }
 
 function zoned(y, mo, d, h, mi, tz) {
@@ -297,8 +301,7 @@ function startClock() {
         p = parts(now, tz),
         t = zoned(p.y, p.mo, p.d, Number(hm[0]), Number(hm[1]), tz);
     if (t <= now) t = zoned(p.y, p.mo, p.d + 1, Number(hm[0]), Number(hm[1]), tz);
-    save({ lastTime: v, lastTz: tz });
-    act('start', { endsAt: t });
+    act('start', { endsAt: t, set: { lastTime: v, lastTz: tz } });
 }
 
 function pauseResume() {
