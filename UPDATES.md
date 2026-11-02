@@ -62,6 +62,8 @@
 
 ## Bug Fixes
 
+- 2026-11-02: Countdown dashboard edits made at the same moment all save. Writes now send one at a time, and a rejected write shows one error instead of being dropped silently.
+
 - 2026-11-02: Countdown Start buttons work again. They sent the remembered input and the start as two requests with the same revision, so the cloud rejected the start without any message. They now send one command, and a rejected timer action shows an error.
 
 - 2026-11-01: Same-window chat can re-enter an emptied jar without a second ticket award. Earlier queued presence cannot undo an explicit clear; the 06:00 account-timezone cutoff survives DST and cold cloud contexts.

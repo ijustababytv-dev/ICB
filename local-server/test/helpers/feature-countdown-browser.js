@@ -15,6 +15,36 @@ async function waitForRunning(page) {
     return countdown;
 }
 
+/** Edits made in the same moment must all save, whichever control or debounce sent them. */
+async function verifySimultaneousEdits(page) {
+    await page.evaluate(`(function(){
+        window.alerts=[];window.alert=function(text){window.alerts.push(text);};
+        [['scale','135'],['plateAlpha','41'],['x','22']].forEach(function(item){
+            var field=document.querySelector('[data-k="'+item[0]+'"]');
+            field.value=item[1];field.dispatchEvent(new Event('input',{bubbles:true}));
+        });
+        save({heading:'SAME MOMENT'});save({subheading:'ALL SAVED'});
+    })()`);
+    let countdown;
+    for (let attempt = 0; attempt < 40; attempt++) {
+        await page.evaluate('new Promise(function(resolve){setTimeout(resolve,150);})');
+        countdown = await page.evaluate(READ_MAIN);
+        if (countdown.scale === 135 && countdown.plateAlpha === 41 && countdown.x === 22) break;
+    }
+    assert.deepEqual(
+        [
+            countdown.scale,
+            countdown.plateAlpha,
+            countdown.x,
+            countdown.heading,
+            countdown.subheading
+        ],
+        [135, 41, 22, 'SAME MOMENT', 'ALL SAVED'],
+        'No simultaneous edit may be dropped.'
+    );
+    assert.deepEqual(await page.evaluate('window.alerts'), []);
+}
+
 /** Both Start buttons must begin the timer and remember their inputs in one revisioned command. */
 async function verifyCountdownStart(browser, port) {
     const page = await browser.newPage();
@@ -41,6 +71,7 @@ async function verifyCountdownStart(browser, port) {
         assert.equal(countdown.status, 'running', 'Clock Start must begin the countdown.');
         assert.equal(countdown.lastTime, '06:30', 'Clock Start must remember its input.');
         assert.deepEqual(page.errors, []);
+        await verifySimultaneousEdits(page);
 
         // A stale page must tell the operator instead of silently leaving the timer unchanged.
         await page.evaluate(`(function(){
@@ -59,7 +90,7 @@ async function verifyCountdownStart(browser, port) {
             alerts = await page.evaluate('window.alerts');
         }
         assert.equal(alerts.length, 1, 'A rejected start must be shown to the operator.');
-        assert.match(alerts[0], /did not change/);
+        assert.match(alerts[0], /did not save/);
         assert.equal((await page.evaluate(READ_MAIN)).status, 'idle');
     } finally {
         await page.close();

@@ -105,8 +105,35 @@ function copyUrl() {
     }
 }
 
+var writes = Promise.resolve(),
+    writesWaiting = 0,
+    writeFailure = null;
+/** Send one write at a time: each needs the revision returned by the one before it. */
+function write(body) {
+    writesWaiting++;
+    var result = writes
+        .then(function () {
+            return api('/api/countdowns', body);
+        })
+        .catch(function (e) {
+            return { ok: false, error: e.message };
+        });
+    writes = result.then(function (r) {
+        writesWaiting--;
+        if (r.ok === false) writeFailure = r.error || r.code;
+        if (!writesWaiting && writeFailure) {
+            alert('Your change did not save: ' + writeFailure + '. Reload and try again.');
+            writeFailure = null;
+        }
+        return load();
+    });
+    return writes.then(function () {
+        return result;
+    });
+}
+
 function save(set) {
-    return api('/api/countdowns', { id: cur, set: set }).then(load);
+    return write({ id: cur, set: set });
 }
 
 function saveSoon(k, v) {
@@ -121,11 +148,7 @@ function saveSoon(k, v) {
 function act(a, extra) {
     var b = { id: cur, action: a };
     for (var k in extra || {}) b[k] = extra[k];
-    return api('/api/countdowns', b).then(function (r) {
-        if (r.ok === false)
-            alert('The timer did not change: ' + (r.error || r.code) + '. Reload and try again.');
-        return load();
-    });
+    return write(b);
 }
 
 function showVal(k, v) {
@@ -312,7 +335,8 @@ function pauseResume() {
 // countdowns
 function addCd(copy) {
     var n = $('newName').value.trim() || (copy ? C().name + ' copy' : 'Countdown');
-    api('/api/countdowns', { add: { name: n, copyFrom: copy ? cur : null } }).then(function (r) {
+    write({ add: { name: n, copyFrom: copy ? cur : null } }).then(function (r) {
+        if (r.ok === false) return;
         $('newName').value = '';
         cur = r.id;
         filledFor = null;
@@ -323,7 +347,7 @@ function addCd(copy) {
 function removeCd() {
     if (L.length < 2) return alert('You need at least one countdown.');
     if (confirm('Delete "' + C().name + '"?'))
-        api('/api/countdowns', { remove: cur }).then(function () {
+        write({ remove: cur }).then(function () {
             cur = null;
             load();
         });
