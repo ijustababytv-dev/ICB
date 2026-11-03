@@ -103,6 +103,13 @@ Port `8790` belongs to ICB Clean. Do not switch it to `8787` while legacy projec
 
 The launcher starts ICB Clean and opens Chrome. It does not start or stop Palia, Palia Assistant, StreamLive, or any legacy server.
 
+To stop ICB, double-click `stop-icb-clean.bat`. It checks that the listener on
+8790 is the ICB Node entry point before stopping it, then confirms the port is
+free. If ICB is already stopped it reports that and succeeds. Palia, Palia
+Assistant, the optional log bridge, desktop widgets, Meld and Chrome stay open.
+For CLI use, `stop-icb-clean.bat --no-pause` returns without waiting for a key;
+exit code 1 means the process was unrecognized or stopping could not be confirmed.
+
 ### The "Run the system" panel
 
 The top card of `control.html` is a live, self-updating checklist. It reads the server's real state and highlights exactly one step as **DO THIS NOW**, with instructions for that step only. Steps flip to **DONE** on their own as each part of the system comes online — nothing is manually ticked off, so the panel cannot drift out of sync with reality.

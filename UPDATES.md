@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-02: Added stop-icb-clean.bat to stop the local ICB server and confirm port 8790 is free, with an already-stopped message and a guard against stopping unrelated apps.
+
 - 2026-11-01: Integrated main's daily Unicorn Jar check-in and jar/cloud/unicorn size sliders. Checked-in viewers bring their full saved ticket balance; absent viewers stay out of the jar, board and draws until they chat.
 
 - 2026-11-01: Added the categorized operator sidebar, tight fuzzy page search with keyboard suggestions, an alphabetical All Pages directory and a last-opened Recent Pages table. Home shows responsive panels of four recent tools beneath its subtitle.

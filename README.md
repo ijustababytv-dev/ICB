@@ -38,6 +38,9 @@ Home uses the sidebar instead of startup tiles. Previously saved custom links re
 
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
 
+To stop the local ICB server, run `stop-icb-clean.bat`. It confirms port 8790 is
+free, including when ICB is already stopped. Palia, Meld and other apps stay open.
+
 Before any future update, run `backup-icb-clean-state.bat` to make a timestamped copy of the clean state files.
 
 Meld Studio gets read-only overlay pages, such as the main overlay:
