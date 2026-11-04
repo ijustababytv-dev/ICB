@@ -1,0 +1,40 @@
+'use strict';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'icb-presence-checkin-'));
+process.env.ICB_CLEAN_DATA_DIR = directory;
+const session = require('../../src/cloud/session');
+const feed = require('../../src/cloud/state-feed');
+const collector = require('../../src/activity/collector');
+const inputs = require('../../src/cloud/inputs');
+
+test('collector re-sends minimal presence after a jar reset or stream-day boundary, with normal chat still batched', (t) => {
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const document = { windowStartedAt: new Date().toISOString(), checkIn: { night: 'first' } };
+    const batches = [];
+    t.mock.method(session, 'current', () => ({ account: { id: 'checkin-owner' } }));
+    t.mock.method(feed, 'document', () => document);
+    t.mock.method(feed, 'status', () => ({}));
+    t.mock.method(collector, 'canCollect', () => true);
+    t.mock.method(collector, 'queue', () => ({ enqueueFeature: (...args) => batches.push(args) }));
+
+    t.mock.method(collector, 'sync', () => {});
+    inputs.notePresence({ username: 'Guest', text: 'must never be saved' });
+    inputs.notePresence({ username: 'GUEST' });
+    inputs.flushPresence();
+    assert.equal(batches.length, 1);
+    assert.equal(batches[0][3].viewers.length, 1);
+    assert.deepEqual(Object.keys(batches[0][3].viewers[0]).sort(), ['at', 'sender']);
+    document.checkIn.resetAt = new Date().toISOString();
+    inputs.notePresence({ username: 'Guest' });
+    inputs.flushPresence();
+    assert.equal(batches.length, 2, 'A later chat can check in again in the same award window');
+    document.checkIn.night = 'next';
+    inputs.notePresence({ username: 'Guest' });
+    inputs.flushPresence();
+    assert.equal(batches.length, 3);
+    assert.ok(!JSON.stringify(batches).includes('must never be saved'));
+});

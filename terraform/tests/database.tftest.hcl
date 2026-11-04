@@ -8,6 +8,9 @@ mock_provider "aws" {
 }
 
 variables {
+  activity_api_enabled    = false
+  activity_database_ready = false
+  activity_release        = null
   # Public fixture, not an operational credential; this value is never deployed.
   db_password = "TestOnly-NotARealSecret123!"
 }
@@ -53,9 +56,10 @@ run "small_public_postgres" {
       !aws_db_instance.database.iam_database_authentication_enabled &&
       aws_db_instance.database.manage_master_user_password == null &&
       one(aws_db_parameter_group.database.parameter).name == "rds.force_ssl" &&
-      one(aws_db_parameter_group.database.parameter).value == "1"
+      one(aws_db_parameter_group.database.parameter).value == "1" &&
+      one(aws_db_parameter_group.database.parameter).apply_method == "pending-reboot"
     )
-    error_message = "Expose only PostgreSQL with password authentication and mandatory TLS."
+    error_message = "Expose only PostgreSQL with password authentication and mandatory TLS; match AWS's apply method to prevent drift."
   }
 
   assert {
@@ -84,4 +88,53 @@ run "restrict_access_later" {
     )
     error_message = "A CIDR override must replace internet-wide access."
   }
+}
+
+run "custom_master_username" {
+  command = plan
+
+  variables {
+    db_username = "icb_owner"
+  }
+
+  assert {
+    condition = (
+      aws_db_instance.database.username == "icb_owner" &&
+      output.database_username == "icb_owner"
+    )
+    error_message = "The configured username must reach RDS and the connection output."
+  }
+}
+
+run "reject_invalid_username" {
+  command = plan
+
+  variables {
+    db_username = "invalid-name"
+  }
+
+  expect_failures = [var.db_username]
+}
+
+run "maximum_username_length" {
+  command = plan
+
+  variables {
+    db_username = "a123456789012345"
+  }
+
+  assert {
+    condition     = aws_db_instance.database.username == "a123456789012345"
+    error_message = "A valid 16-character master username must be accepted."
+  }
+}
+
+run "reject_long_username" {
+  command = plan
+
+  variables {
+    db_username = "a1234567890123456"
+  }
+
+  expect_failures = [var.db_username]
 }

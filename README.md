@@ -11,7 +11,7 @@ This README is the overview and quick start. Operating and recovery procedures a
 All ICB resource tracker skins are **2048 × 768 px, aspect ratio 8:3**, with the live value box left **blank** in the artwork — ICB renders the number on top at runtime.
 
 - Specification: [docs/ICB-TRACKER-SKIN-STANDARD.md](docs/ICB-TRACKER-SKIN-STANDARD.md)
-- Source of truth: [config/tracker-skin-standard.json](config/tracker-skin-standard.json), served at `/api/tracker-skin-standard`
+- Source of truth: [local-server/config/tracker-skin-standard.json](local-server/config/tracker-skin-standard.json), served at `/api/tracker-skin-standard`
 - Layout guide: [docs/tracker-skin-template.svg](docs/tracker-skin-template.svg)
 
 ## Start and operate ICB
@@ -24,7 +24,22 @@ http://127.0.0.1:8790/control.html
 
 This dashboard is for you, off stream. Do not add `control.html` as a Meld layer.
 
+Operator dashboards have a shared sidebar and searchable page picker. Home sits
+above Stream tools, Community & games, Overlays & widgets, Decor & effects,
+Activity reports and Connections. All pages is at the bottom and opens the A-Z
+directory. Search supports close typo matches, multiple suggestions and Ctrl+K.
+
+Home shows recently opened tools immediately below its subtitle, in responsive
+panels of four pages each. View all Recent Pages opens the full last-opened table.
+This browser keeps navigation history separately for each signed-in account;
+passwords and tokens never enter that history. Account & sign out is in Connections.
+Login, stream overlays and the compact Aniimo widget keep their independent layouts.
+Home uses the sidebar instead of startup tiles. Previously saved custom links remain available under Connections and in search/All Pages.
+
 For a one-click health and tracker check, run `diagnose-icb-clean.bat`.
+
+To stop the local ICB server, run `stop-icb-clean.bat`. It confirms port 8790 is
+free, including when ICB is already stopped. Palia, Meld and other apps stay open.
 
 Before any future update, run `backup-icb-clean-state.bat` to make a timestamped copy of the clean state files.
 
@@ -40,7 +55,7 @@ Use **one production server on port 8790**. Do not migrate to port 8787 or start
 
 ## What the application provides
 
-- One dependency-free Node server.
+- One dependency-free local Node server, backed by an owner-scoped Express cloud API.
 - Private operator dashboards and a hub for the stream tools.
 - Read-only overlay pages for Meld Studio.
 - Separate stream settings and live tracker state.
@@ -60,10 +75,11 @@ Settings and live progress stay separate. Historical snapshots are never automat
 
 ## Contributor setup and checks
 
-Use Node.js and npm; the application has no runtime package dependencies. From PowerShell in this folder, install the local commit guard once per checkout:
+Use Node.js and npm; the local runtime has no package dependencies. Cloud dependencies stay in `cloud-server/`. From PowerShell in this folder, install the local commit guard once per checkout:
 
 ```powershell
 npm.cmd run setup:hooks
+npm.cmd run setup:cloud
 ```
 
 After changes, including documentation:
@@ -77,13 +93,28 @@ npm.cmd run test:e2e
 
 Run `npm.cmd run format:js` to apply JavaScript formatting and `npm.cmd run test:browser` after browser changes. Every new or changed business rule requires unit tests. E2E and browser tests use port 8791 and temporary state; browser checks use a separate headless profile.
 
-The E2E suite currently reports the existing missing `assets/resources/poke_bowl.png`. Restore the original artwork; do not suppress the check.
+The Cloudinary restore recovered Poke Bowl artwork on 2026-11-01. Eight tracker-art
+files remain missing, listed in [the Step 1 review](docs/STEP1-REVIEW.md). Restore
+the original artwork; do not suppress the E2E checks.
 
 For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in the isolated test environment. Normal use searches the standard Palia Assistant log directories.
 
 ## Source layout and images
 
-The server starts at `js/server/index.js`. HTML is in `html/`, scripts in `js/`, styles in `css/`, and local extracted images in `images/embedded/`. Operator artwork remains in the ignored `assets/` folder. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+The local server starts at `local-server/src/index.js`; cloud Express code is in `cloud-server/`. Browser HTML, scripts, styles, and bundled images are under `ui/`. SQL and recovery tools are under root `database/`. Operator artwork and runtime `data/` remain private and ignored. Existing URLs and batch launchers still work. See [the architecture map](docs/ARCHITECTURE.md).
+
+Cloud storage and feature execution use Express/Lambda and PostgreSQL. On normal
+startup, open **Cloud account** on ICB Home (`/cloud.html`) and sign in. Usernames
+are case-insensitive. Cloud sign-in is required throughout ICB. Windows securely
+remembers a session token for 14 days, validates it on restart and forgets it on
+Sign out; your password is never saved. Launchers open the sign-in page and a valid
+remembered session continues to Home. See [sign-in behavior](docs/AUTHENTICATION.md).
+The PC still reads local Palia logs and renders Meld overlays. Saved settings,
+tickets, signups, polls, trackers, timers and Steam state belong to PostgreSQL.
+Chat wording stays transient/local; only counts and recognized command operands
+are sent. Internet is required. See [Step 2 operation and recovery](docs/STEP2-OPERATIONS.md),
+[feature ownership](docs/STEP2-FEATURE-MAP.md), and [database recovery](database/README.md).
+The implementation does not restart the user's local server.
 
 The pre-commit hook and source-policy checks enforce the file limits and layout defined in `RULES.md`. Never restore root `server.js`; add features in focused modules.
 
@@ -97,6 +128,12 @@ Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` p
 | [RULES.md](RULES.md) | Mandatory code, test, formatting, documentation, and delivery rules |
 | [UPDATES.md](UPDATES.md) | Completed work from the last seven days |
 | [Runbook](docs/ICB-CLEAN-RUNBOOK.md) | Operation, diagnostics, backup, and recovery |
+| [AWS guide](terraform/AWS.md) | Steam key replacement, AWS infrastructure, credentials, and administrative commands |
+| [PostgreSQL inventory](database/POSTGRES.md) | Brief list of the data stored in the cloud database |
+| [Authentication](docs/AUTHENTICATION.md) | Required sign-in, 14-day Windows session storage, expiry and logout |
+| [Step 2 operations](docs/STEP2-OPERATIONS.md) | Cloud authority, cutover, worker, release and rollback |
+| [Step 2 validation](docs/STEP2-VALIDATION.md) | Actual tests, known artwork failures, measurements and costs |
+| [Feature ownership](docs/STEP2-FEATURE-MAP.md) | Field-level inventory and SQL projections |
 | [Architecture](docs/ARCHITECTURE.md) | Module responsibilities and development commands |
 | [Master handbook](docs/ICB-MASTER-HANDBOOK.md) | Historical methods, failures, and tracker recipes; check current rules before acting |
 | [Skin standard](docs/ICB-TRACKER-SKIN-STANDARD.md) | Artwork dimensions, blank value boxes, and per-skin measurements |

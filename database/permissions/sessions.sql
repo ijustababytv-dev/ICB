@@ -1,0 +1,1 @@
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE sessions TO icb_service;

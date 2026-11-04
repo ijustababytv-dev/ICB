@@ -1,5 +1,21 @@
 # ICB Clean Runbook
 
+## Unicorn Jar attendance and sizing
+
+The Giveaway dashboard has **Only people who chat today can win**, enabled by default.
+Each stream day starts at 06:00 in the account reporting timezone. A viewer's first
+chat brings their full saved unicorn balance into the jar, entrants board and drawing.
+Absent viewers retain their balance. **Empty the jar** clears attendance; a later chat
+can re-enter in the same ten-minute ticket window without earning an extra ticket.
+Chat presence uses the existing ten-second batch cycle, then the normal overlay feed.
+Turning check-in off restores the full eligible drawing pool and the existing
+since-last-empty jar display. Reset preserves the chosen check-in policy.
+
+The dashboard's Board text controls include Jar size (50-150%), Cloud size (50-200%)
+and Unicorn size (50-200%, in addition to Small/Medium/Large). Saving updates cloud
+settings; the read-only jar layer reloads to apply geometry. None of these controls
+changes earned balances. Business rules and persistence remain in the cloud.
+
 ## Purpose
 
 ICB Clean is the one local server for the Chrome command center, Palia Assistant tracker state, and the read-only Meld overlay. Its project folder is:
@@ -10,23 +26,55 @@ C:\Users\aleis\OneDrive\Documents\GitHub\ICB
 
 It is intentionally separate from the legacy `C:\Users\mrsch\Documents\ChatGPT\ICB` project and `C:\StreamLive`. Do not start, edit, or troubleshoot those older projects as part of normal ICB Clean use.
 
-## Source and tests (2026-10-22)
+## Source and tests (2026-10-31)
 
-Start with the existing batch launchers or `npm start` (`js/server/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
+Start with the existing batch launchers or `npm start` (`local-server/src/index.js`). See [the architecture map](ARCHITECTURE.md) for the new folders. All page and API URLs remain the same. Run `npm run test:unit` and `npm run test:e2e`; browser changes also use `npm run test:browser`, which launches only a separate headless test profile.
 
-The existing `assets/resources/poke_bowl.png` file is missing in this checkout. The E2E suite reports that missing artwork after completing its remaining checks. Restoring the original file resolves that asset prerequisite.
+Eight tracker-art files remain missing in this checkout, listed in [the Step 1 review](STEP1-REVIEW.md). Cloudinary restored `poke_bowl.png` on 2026-11-01. The E2E suite reports remaining missing originals after completing its other checks.
 
 Image transfer commands are documented in [Cloudinary image sync](CLOUDINARY.md). Double-click `sync-cloudinary-images.bat` to upload local originals, or `download-cloudinary-images.bat` to download Cloudinary versions into `assets/`. Downloads skip identical files and back up replaced local originals. Neither command changes tracker counts or restarts the server.
 
-## Optional cloud database infrastructure
+## Cloud feature operation
 
-`terraform/` defines a small AWS RDS PostgreSQL database and its dedicated public
-network. See [the Terraform instructions](../terraform/README.md) for deployment,
-TLS connections, credential handling, cost controls, and deliberate removal.
-Applying infrastructure does not migrate ICB data or connect the local application.
-The local server and log reader continue to run normally; no restart is needed
-to edit or validate Terraform. Internet-wide TCP 5432 access is intentional in
-this configuration and can be narrowed with `allowed_ipv4_cidrs`.
+The Express/Lambda API and RDS PostgreSQL storage were deployed on 2026-10-31.
+Open `/cloud.html` to sign in. After signing in, **Connections > Account & sign out** in the workspace sidebar opens account management.
+Home is above the six sidebar sections, with All pages at the bottom. Use the search
+field (Ctrl+K) to find a tool or open All pages for the alphabetical directory.
+Home's recent panels show four tools each; View all Recent Pages opens the complete
+last-opened table for this account/browser. Login and Meld overlays have no sidebar.
+Sign in as `ijustababytv` with the supplied password; username case is ignored.
+ICB requires sign-in for every feature and remembers a protected session token on
+this Windows computer for 14 days. A restart validates and restores it automatically;
+Sign out forgets it. See [authentication](AUTHENTICATION.md). No live server is
+restarted as part of a source edit.
+
+The ignored `local-server/.env` contains the public API URL. Cloud credentials
+stay in Secrets Manager; local installations never receive the master DB login.
+The cloud page shows pending/quarantined uploads and the last acknowledgment.
+Resolve outbox/full/collector/account errors before assuming a report is complete.
+New chat wording is not archived. Existing private raw files were preserved for
+review; they are no longer tracked or appended by the new runtime.
+
+PostgreSQL owns migrated settings and live feature progress. Express/Lambda owns
+awards, queues, scoring, reset rules and deadlines. The local PC reads Palia logs,
+forwards typed inputs and serves cached state/artwork to overlays. It has no local
+counting fallback. Internet and a signed-in cloud session are required.
+See [Step 2 operations](STEP2-OPERATIONS.md) for cutover, release, worker, recovery
+and failure handling. Old JSON files and Step 1 recovery copies are historical
+recovery material; never copy them over newer cloud progress.
+
+See [the Step 1 review](STEP1-REVIEW.md), [database recovery](../database/README.md),
+and [Terraform instructions](../terraform/README.md). For private SQL administration,
+dot-source `database/admin-env.ps1` with the intended role. Preserve ignored
+credentials, release metadata, state, and backups when changing machines.
+
+Current table definitions are in `database/tables/`, one file per table; other
+SQL objects have their own folders. `database/schemas/icb.sql` creates the `icb`
+namespace containing all application tables/indexes and the ledger. In pgAdmin,
+refresh Databases → icb → Schemas → icb → Tables. `database/migrations/` is for upgrade deltas.
+Use `npm run schema:check --prefix cloud-server` with master credentials to verify
+recreation in a disposable schema. Follow the database recovery instructions for
+fresh creation or a private dump restore; creation refuses populated schemas.
 
 ## Historical status (verified 2026-08-14)
 
@@ -55,6 +103,13 @@ Port `8790` belongs to ICB Clean. Do not switch it to `8787` while legacy projec
 
 The launcher starts ICB Clean and opens Chrome. It does not start or stop Palia, Palia Assistant, StreamLive, or any legacy server.
 
+To stop ICB, double-click `stop-icb-clean.bat`. It checks that the listener on
+8790 is the ICB Node entry point before stopping it, then confirms the port is
+free. If ICB is already stopped it reports that and succeeds. Palia, Palia
+Assistant, the optional log bridge, desktop widgets, Meld and Chrome stay open.
+For CLI use, `stop-icb-clean.bat --no-pause` returns without waiting for a key;
+exit code 1 means the process was unrecognized or stopping could not be confirmed.
+
 ### The "Run the system" panel
 
 The top card of `control.html` is a live, self-updating checklist. It reads the server's real state and highlights exactly one step as **DO THIS NOW**, with instructions for that step only. Steps flip to **DONE** on their own as each part of the system comes online — nothing is manually ticked off, so the panel cannot drift out of sync with reality.
@@ -73,13 +128,20 @@ Meld receives only `overlay.html`; never add `control.html` as a Browser layer.
 
 ## State ownership
 
-| File | Owns | Never use it for |
-| --- | --- | --- |
-| `data/settings.json` | Countdown and stream metadata | Amber, Essence, or Sweet Leaf totals |
-| `data/live.json` | Live tracker totals, reader status, session mode | General stream settings |
-| `data/actions.jsonl` | Recent command history | Authoritative tracker totals |
+| Location | Owns |
+| --- | --- |
+| `icb.owner_settings` | Owner presentation/settings only |
+| Typed `icb` feature tables | Live progress, identities, order, votes, scores and timers |
+| `icb.feature_metadata`, `feature_undo` | Operational/undo metadata and recovery snapshots |
+| `icb.stream_daily_stats` and currency summaries | Reports independent of source-log retention |
+| `data/activity-outbox.json` | Owner-bound minimal pending transport, cursor and collector identity |
+| Local artwork and desktop preferences | Machine files/window placement |
+| Old `data/*.json`, `feature_state` | Pre-cutover recovery evidence; never runtime authority |
 
-Normal `PUT /api/settings` saves cannot change live tracker totals. A resource total changes only from a parsed Palia Assistant log event or a deliberate `PUT /api/live/{resource}/correct` correction.
+Normal settings saves cannot change live tracker totals. A resource total changes
+through a typed parsed Palia event, established reset rule or deliberate correction.
+The reader checkpoints byte positions only after a durable enqueue; cloud receipts
+make rebatching/retries harmless. Primary resyncs remain excluded.
 
 ## Palia tracker behavior
 
@@ -204,7 +266,7 @@ If reconciliation has not been completed, enter all three current in-game totals
 ### Before changing server files
 
 1. Run `npm.cmd run test:e2e`.
-2. Run `backup-icb-clean-state.bat`. It creates a timestamped backup under `backups\` containing `data/settings.json`, `data/live.json`, `data/actions.jsonl`, and the historical snapshot.
+2. Run `backup-icb-clean-state.bat`. It copies every catalogued existing owner source, machine transport/preferences and public definitions into a timestamped `backups/` folder with a hash manifest. Current cloud state needs a PostgreSQL dump or feature export as well.
 3. Confirm `/api/health` says port `8790` and `ICB Clean Room`.
 4. Change one thing at a time, then rerun the test.
 
@@ -229,7 +291,7 @@ If reconciliation has not been completed, enter all three current in-game totals
 | Value box position | Directly underneath the resource title |
 | Default status | Required for future standard resource trackers unless Baby explicitly overrides it |
 
-The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `js/test/e2e.js` asserts the standard, so it cannot be changed silently.
+The full specification lives in **[docs/ICB-TRACKER-SKIN-STANDARD.md](ICB-TRACKER-SKIN-STANDARD.md)**. The machine-readable source of truth is **`local-server/config/tracker-skin-standard.json`**, served live at `GET /api/tracker-skin-standard` and summarised in `/api/diagnostics`. `local-server/test/e2e.js` asserts the standard, so it cannot be changed silently.
 
 Two rules worth repeating here because they are the easy ones to get wrong:
 
@@ -248,7 +310,7 @@ Corner radius 64. Both zones centred on x = 1024. Keep key text and artwork insi
 
 **Value boxes are per-skin.** The zone table above is design guidance for new artwork. Each real card declares its own value box in `skins.cards[].valueBox` in the config, measured from the artwork and verified visually; ICB renders the live value into whichever card is showing. Cards do not need matching box positions — that was attempted and abandoned because image generation cannot hit pixel targets. Still mandatory per card: canvas exactly 2048 × 768, blank value box, PNG with transparent corners.
 
-Use the current skin configuration and `config/resource-trackers.json` for card mappings and local artwork paths. Do not depend on an old desktop folder or a historical card count.
+Use the current skin configuration and `local-server/config/resource-trackers.json` for card mappings and local artwork paths. Do not depend on an old desktop folder or a historical card count.
 
 A layout guide at true master size is provided at `docs/tracker-skin-template.svg` — open it in a browser or art tool as a reference. It is a guide, not a skin.
 
@@ -278,6 +340,6 @@ Any MCP, Streamer.bot, Discord, or scene-control integration must be a separate 
 
 Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`; re-read them after another contributor makes changes. `CLAUDE.md` contains pointers only. The handbook is a historical method record.
 
-Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `js/server/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
+Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `local-server/src/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
 
 After any changes, run `npm run check:structure`, `npm run format:check`, `npm run test:unit`, and `npm run test:e2e`; run `npm run test:browser` after browser changes. Tests use temporary state and port 8791. Do not restart the live server or control the user's desktop for verification. Record failures honestly, update `UPDATES.md`, then commit and push the coherent project work.

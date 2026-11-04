@@ -1,0 +1,1 @@
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE feature_timers TO icb_service;

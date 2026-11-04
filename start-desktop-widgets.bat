@@ -1,5 +1,5 @@
 @echo off
-cd /d "%~dp0desktop-widgets"
+cd /d "%~dp0local-server\desktop"
 title ICB Desktop Widgets
 
 where npm >nul 2>nul

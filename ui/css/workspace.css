@@ -1,0 +1,235 @@
+/* Shared operator workspace; never load this stylesheet in login or Meld layers. */
+body[data-workspace] {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #130e1d;
+    color: #f4edff;
+}
+
+.workspace-sidebar,
+.workspace-topbar {
+    font: 14px/1.45 'Segoe UI', system-ui, sans-serif;
+    box-sizing: border-box;
+}
+
+.workspace-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 14px 16px;
+    background: linear-gradient(160deg, #22172f, #171220 65%);
+    border-right: 1px solid #3c2b50;
+    z-index: 60;
+}
+
+.ws-brand {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 12px 24px;
+}
+
+.ws-brand-symbol {
+    color: #e69af9;
+    font-size: 32px;
+}
+
+.ws-brand strong {
+    display: block;
+    font-size: 26px;
+    letter-spacing: 0.02em;
+    color: #f1c0ff;
+}
+
+.ws-brand small {
+    display: block;
+    color: #b7a1ce;
+}
+
+.workspace-sidebar a {
+    text-decoration: none;
+    color: #d6c2ed;
+}
+
+.ws-home,
+.ws-all-pages {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-weight: 650;
+}
+
+.ws-home[aria-current],
+.ws-category a[aria-current] {
+    color: #fff;
+    background: #3b2554;
+    border-color: #63417d;
+}
+
+.ws-home span,
+.ws-all-pages span {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.ws-side-label {
+    padding: 22px 15px 9px;
+    color: #a990c0;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ws-sections {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #5d4076 transparent;
+}
+
+.ws-category {
+    margin: 3px 0;
+}
+
+.ws-category summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 10px;
+    color: #decaf4;
+    border-radius: 10px;
+    font-weight: 550;
+}
+
+.ws-category summary::-webkit-details-marker {
+    display: none;
+}
+
+.ws-category summary::after {
+    content: '›';
+    margin-left: auto;
+    color: #bba2d4;
+}
+
+.ws-category[open] summary::after {
+    transform: rotate(90deg);
+}
+
+.ws-side-icon {
+    width: 23px;
+    font-size: 22px;
+    text-align: center;
+    color: #c7a4e8;
+}
+
+.ws-category ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 6px 11px;
+}
+
+.ws-category a {
+    display: block;
+    font-size: 12px;
+    padding: 9px 10px;
+    border-left: 1px solid #493359;
+    margin-left: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.workspace-sidebar a:hover,
+.ws-category summary:hover {
+    background: #30213f;
+    color: #fff;
+}
+
+.ws-all-pages {
+    margin-top: 14px;
+    border-top: 1px solid #493454;
+    border-radius: 0 0 10px 10px;
+    padding-top: 18px;
+}
+
+.workspace-main {
+    margin-left: 248px;
+    min-width: 0;
+}
+
+.workspace-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 80px;
+    padding: 15px 28px;
+    background: rgba(22, 15, 31, 0.95);
+    border-bottom: 1px solid #35263f;
+    backdrop-filter: blur(12px);
+}
+
+.ws-connection {
+    margin-left: auto;
+    color: #69e2a6;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.ws-connection::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 12px currentColor;
+}
+
+.ws-connection.offline {
+    color: #ff9eab;
+}
+
+.workspace-page {
+    padding: 26px 28px 48px;
+    min-width: 0;
+    max-width: 2000px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+.ws-menu-toggle {
+    display: none;
+    color: #e8d2fa;
+    background: #2c1d38;
+    border: 1px solid #674579;
+    border-radius: 9px;
+    padding: 9px 12px;
+    font: 20px/1 'Segoe UI', system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.ws-nav-backdrop {
+    display: none;
+}
+
+body[data-workspace]
+    :is(.workspace-sidebar, .workspace-topbar, .ws-recent, .ws-table-wrap)
+    a:focus-visible,
+.ws-menu-toggle:focus-visible,
+.ws-category summary:focus-visible {
+    outline: 3px solid #e296f8;
+    outline-offset: 2px;
+}

@@ -1,0 +1,1 @@
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE owner_settings TO icb_service;

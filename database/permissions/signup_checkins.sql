@@ -1,0 +1,1 @@
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE signup_checkins TO icb_service;

@@ -2,7 +2,10 @@
 *.js text eol=lf
 *.cjs text eol=lf
 *.mjs text eol=lf
+*.sh text eol=lf
+*.sql text eol=lf
+database/upgrades/*.json text eol=lf
 .githooks/* text eol=lf
 
 # Preserve third-party distributions exactly as supplied.
-js/vendor/** !text !eol
+ui/js/vendor/** !text !eol

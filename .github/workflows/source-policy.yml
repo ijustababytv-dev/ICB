@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm run check:structure
+      - run: npm run setup:cloud
       - run: npm run test:unit
       - run: npm run format:check
       # Full E2E/browser tests require local, intentionally untracked operator artwork.

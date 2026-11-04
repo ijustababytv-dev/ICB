@@ -3,7 +3,7 @@
 **Status: ACTIVE — adopted 2026-08-14 by Baby (IJUSTABABY). Required default for all ICB resource trackers.**
 
 This document is the human-readable statement of the standard. The machine-readable
-single source of truth is [`config/tracker-skin-standard.json`](../config/tracker-skin-standard.json),
+single source of truth is [`local-server/config/tracker-skin-standard.json`](../local-server/config/tracker-skin-standard.json),
 also served live at `GET http://127.0.0.1:8790/api/tracker-skin-standard`.
 
 If this document and that file ever disagree, **the JSON wins** and this document is the thing to fix.
@@ -111,7 +111,7 @@ renders the live value into whichever card is showing. Skin swapping stays fully
 goal, and the artwork is free.
 
 The authoritative box for any existing card is in `skins.cards[].valueBox` in
-[`config/tracker-skin-standard.json`](../config/tracker-skin-standard.json), also served at
+[`local-server/config/tracker-skin-standard.json`](../local-server/config/tracker-skin-standard.json), also served at
 `GET /api/tracker-skin-standard`.
 
 ### How the boxes were measured
@@ -132,7 +132,7 @@ The per-skin model relaxes the box position — nothing else:
 - **Transparency**: PNG with alpha, corners fully transparent so the rounded card reads correctly in Meld
 - Resource title baked into the art, value box directly beneath it
 
-`js/test/e2e.js` enforces all of the above per card, plus that every resource the server tracks has a skin mapped to it.
+`local-server/test/e2e.js` enforces all of the above per card, plus that every resource the server tracks has a skin mapped to it.
 
 ### Current set
 
@@ -245,8 +245,8 @@ tracker-creation dashboard, by standing instruction. Per new tracker, record and
 
 ## How this is enforced in code
 
-- `config/tracker-skin-standard.json` is the single source of truth.
-- `js/server/config.js` loads it into the `TRACKER_SKIN_STANDARD` constant. No dimension is hardcoded anywhere else.
+- `local-server/config/tracker-skin-standard.json` is the single source of truth.
+- `local-server/src/config.js` loads it into the `TRACKER_SKIN_STANDARD` constant. No dimension is hardcoded anywhere else.
 - `GET /api/tracker-skin-standard` serves the full spec so any tracker component inherits it at runtime.
 - `GET /api/diagnostics` includes a summary, so the standard is visible in routine health output.
-- `js/test/e2e.js` asserts the master size, the confirmed zone geometry, the corner radius, horizontal centring, that zones sit inside the safe area, that `derivedSpacing` agrees with the coordinates, and that the value box is not baked into artwork. **A future session that quietly changes the standard will fail the test suite** — verified by deliberately nudging the value box, shifting the title zone off-centre, and altering the corner radius, each of which produced a named assertion failure.
+- `local-server/test/e2e.js` asserts the master size, the confirmed zone geometry, the corner radius, horizontal centring, that zones sit inside the safe area, that `derivedSpacing` agrees with the coordinates, and that the value box is not baked into artwork. **A future session that quietly changes the standard will fail the test suite** — verified by deliberately nudging the value box, shifting the title zone off-centre, and altering the corner radius, each of which produced a named assertion failure.

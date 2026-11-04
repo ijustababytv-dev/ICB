@@ -30,11 +30,19 @@ dist/
 /data/backups/
 /backups/
 
+# Runtime state, cloud sessions/outbox, and historical chat archives stay private.
+/data/
+/bridge/.palia-log-bridge-state.json
+
+# Windows-protected remembered cloud sessions, including manually copied records.
+*.dpapi
+
 # temp files
 *.tmp
 tmp/
 CLOUD-UPGRADE.md
 LOGGING-ADJUST.md
+LOGGING-ADJUST-STEP2.md
 
 # Terraform local state, plans, provider downloads, and private inputs
 **/.terraform/

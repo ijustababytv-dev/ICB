@@ -1,0 +1,189 @@
+{
+  "version": "006-feature-core.sql",
+  "objects": [
+    {
+      "file": "tables/owner_revisions.sql",
+      "sha256": "dd8da237b4f1c2d3f8e47d630abd9b409e20f899172bb677954ba49ba63cd867"
+    },
+    {
+      "file": "tables/feature_authority.sql",
+      "sha256": "138291b96a5b40aa61e999c3a66bcce8dfdd09a4aa4caf931798e8ac4d9c6278"
+    },
+    {
+      "file": "tables/feature_migrations.sql",
+      "sha256": "6c99154a26bbb7a4457b0168b71b25a8e858a8313b4b8d48922b5c66bd1275d6"
+    },
+    {
+      "file": "tables/feature_commands.sql",
+      "sha256": "161247dd4295df96d47d5035f53d3768e1b987388f2ce28933f484aa96333e19"
+    },
+    {
+      "file": "tables/feature_changes.sql",
+      "sha256": "f75d2ab3215b89a7453b10c0bfafdca0787439c7849f7ee652eac073e410e193"
+    },
+    {
+      "file": "tables/feature_feed_snapshots.sql",
+      "sha256": "f8da2362558b5ae0b4cbfedca57d2afa8388491b2aaeb1f5750d0e7597c09300"
+    },
+    {
+      "file": "tables/feature_display_events.sql",
+      "sha256": "ec69f061428cd1dd754fcc6791696dc524339720faa4dee38099b26f4be03d8d"
+    },
+    {
+      "file": "tables/owner_settings.sql",
+      "sha256": "350a04c3dd1ec467370adef3362f498a2f4c1bffbf5be46a5a6d63226a5de70b"
+    },
+    {
+      "file": "tables/feature_undo.sql",
+      "sha256": "f96f6aed326003f9eed52a960d4dd2e0780f1787c24177633b51a7c5575e6ca0"
+    },
+    {
+      "file": "tables/collector_input_receipts.sql",
+      "sha256": "0dd073a6989bd74141219430393ea51b9ddd89553ab455a005699d1bc08a90aa"
+    },
+    {
+      "file": "tables/collector_sequences.sql",
+      "sha256": "f63fad71666480f9c462470f7d8deebccab1e48ecb44148cf09cc28a8a13e9bd"
+    },
+    {
+      "file": "tables/todos.sql",
+      "sha256": "25c16909a130776e006a65b1519dbd56f83e64bde557da46dbb2fef8a8b849e1"
+    },
+    {
+      "file": "tables/signup_events.sql",
+      "sha256": "a784de7e58ed47dd1f07e3c96a53a43e1f52453f42cfc6e33baf0fc410b5962c"
+    },
+    {
+      "file": "tables/signup_entries.sql",
+      "sha256": "6e5961f5fa74802c85bd6e0586aac7e637a68cbcf0745d8a218a9bbb98c8d22a"
+    },
+    {
+      "file": "tables/signup_checkins.sql",
+      "sha256": "92572a88ff2fdef9cfb79c2a23ccacc3b38521132996116590d6828ef401fe00"
+    },
+    {
+      "file": "tables/turn_rounds.sql",
+      "sha256": "1c92356add789b6a8009826b854d8adb3367fcd0dfbc8aa6437a8f2779a7c29c"
+    },
+    {
+      "file": "tables/turn_entries.sql",
+      "sha256": "c3e0af4aa55bf9005b9e3158cf259bda259b39a9bec815de1d53b719da688ec6"
+    },
+    {
+      "file": "tables/giveaway_entrants.sql",
+      "sha256": "b01e381f4be143fca69044e30889bed071154f9dd07a2cda71104bc879aff8ee"
+    },
+    {
+      "file": "tables/giveaway_awards.sql",
+      "sha256": "ce43781b58e7cb3d92a4b69e04a9e03458e96e1a8aab5f276372c1e99c46e9b6"
+    },
+    {
+      "file": "tables/giveaway_winners.sql",
+      "sha256": "adeb04a28482e3c3807028f7ea64ff1bf5a7709c77ae11ec3d0cdf6049fd5ac9"
+    },
+    {
+      "file": "tables/chat_window_presence.sql",
+      "sha256": "f9e3e932de57ce2de94a017f73a671f7343ca642dced0a7309b16db1851a3b02"
+    },
+    {
+      "file": "tables/poll_options.sql",
+      "sha256": "0d2e443efcb74b5e8738d9107eea406583533c62dc9783befe7bad21470fa0f9"
+    },
+    {
+      "file": "tables/poll_votes.sql",
+      "sha256": "33d68258087c43e1d61758bf395cb7a991508561da7dc1ada76277d05a72b303"
+    },
+    {
+      "file": "tables/team_members.sql",
+      "sha256": "f29c522ce30d47dacc3d4017ff82678f2c22cbc7509fb37b4011470a41364554"
+    },
+    {
+      "file": "tables/hunt_players.sql",
+      "sha256": "ad35901f909e00aed8c4d3760055e41da34f238514de1d80546ce32a5c6734a0"
+    },
+    {
+      "file": "tables/resource_progress.sql",
+      "sha256": "728e00afd08b2245814c35c21f4ceb16af8ec7bac9019e4b55a507fa92a9007c"
+    },
+    {
+      "file": "tables/resource_slot_progress.sql",
+      "sha256": "bebf3b95e7a84df7a68dbcfa43f05d259da5f7a18895c8bd580e94aba0663625"
+    },
+    {
+      "file": "tables/weekly_progress.sql",
+      "sha256": "c83199f882f9503987657d914538e1207e47919e18df817003af1cf49edf6be4"
+    },
+    {
+      "file": "tables/collection_entries.sql",
+      "sha256": "c52241540873876107e25ce58a1e6094eb7b5d13523683de97de7d853ba346e6"
+    },
+    {
+      "file": "tables/feature_timers.sql",
+      "sha256": "fa13931cbdb71b54787659db663f9b1aded660e80d1fb30ab578e43bc9965e27"
+    },
+    {
+      "file": "tables/integration_jobs.sql",
+      "sha256": "1f0a48e31777fe84d0c6413ee45a83971d4532e9d45db7898d22725beba462f0"
+    },
+    {
+      "file": "tables/integration_secrets.sql",
+      "sha256": "5d86ab9c7769d042855840f052f0314cf476a2415b0271fd97f1821751b363b3"
+    },
+    {
+      "file": "tables/steam_achievements.sql",
+      "sha256": "806799273d811ce3b3ac900f974e19eff7758a7e2cb29bfdb8906835b826e388"
+    },
+    {
+      "file": "tables/feature_metadata.sql",
+      "sha256": "d911a2181a916e57dfebd79016041ccf7b25c7c1af50556225c7db45c265bc19"
+    },
+    {
+      "file": "tables/asset_references.sql",
+      "sha256": "cb920b875af5f48b67acfb01e2b8ca407e689c2a1958bb5a71a3fbfdce01920d"
+    },
+    {
+      "file": "tables/steam_accounts.sql",
+      "sha256": "6b853eb86b743fc0783a6b38e10e8ade1ae5f9a033830cfb48bb3cfd12dbbe01"
+    },
+    {
+      "file": "tables/game_sessions.sql",
+      "sha256": "e493859747ba38ce08edf12064fb7198271fe4e40822e9f191837757f9342006"
+    },
+    {
+      "file": "tables/game_event_receipts.sql",
+      "sha256": "97bdbbc9efdf6fce3a3df4eb4d39284f1953bcc32441cac376591555b413d174"
+    },
+    {
+      "file": "tables/giveaway_draws.sql",
+      "sha256": "1ccf99429c2b52c55ffebd4fe6ca8c10b20a2f08909175d4aed2dfac4f8e1fa0"
+    },
+    {
+      "file": "indexes/feature_changes_retention.sql",
+      "sha256": "eeaed1bf1e30e836daa92e9d361a49710a2874bcc9d6085632221dd9183f3a18"
+    },
+    {
+      "file": "indexes/feature_commands_owner_created.sql",
+      "sha256": "dde3329b531a4be4f79b809a530c31b51a31d1a786703a6ed50772675ca54781"
+    },
+    {
+      "file": "indexes/feature_display_expiry.sql",
+      "sha256": "726f445bbecfb0ff19e29baf77119d179e2eefc9c9620e6196bbab1cf20a98c3"
+    },
+    {
+      "file": "indexes/feature_undo_owner_created.sql",
+      "sha256": "fdf5ef4fb7e800f95ea473909f07e7138b2182f0d2e77fa86ba43b19ed8f38ac"
+    },
+    {
+      "file": "indexes/giveaway_awards_owner_time.sql",
+      "sha256": "852883d74662e6dd053ff6506db7ffcd592917ddc331a56a53f998005f092806"
+    },
+    {
+      "file": "indexes/giveaway_draws_owner_time.sql",
+      "sha256": "cc44b136a44938010988bbde565c00bf105952d323f0e7ee07dec7f91d1f5e65"
+    },
+    {
+      "file": "indexes/integration_jobs_due.sql",
+      "sha256": "28d48f516f7d0e19e35e53d854eae4561445a0da4098045825eae155ac4e31bf"
+    }
+  ]
+}

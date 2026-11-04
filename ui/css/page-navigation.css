@@ -1,0 +1,31 @@
+/* Operator pages only: never load these controls in stream overlays. */
+.icb-page-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    clear: both;
+    margin: 12px auto 22px;
+    padding: 10px 14px;
+    max-width: 1180px;
+    box-sizing: border-box;
+    border: 1px solid #49365f;
+    border-radius: 14px;
+    background: #1d1628;
+    font: 600 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+.icb-page-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #ead8ff;
+    text-decoration: none;
+}
+.icb-page-nav a:hover { background: #332341; border-color: #c792ff; }
+.icb-page-nav a:focus-visible { outline: 3px solid #ff8fd8; outline-offset: 3px; }
+.icb-page-nav .icb-home-link { color: #fff; background: #352345; }
+@media print { .icb-page-nav { display: none; } }

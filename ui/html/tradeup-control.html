@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<script src="/js/client/local-api.js"></script>
+<meta charset="utf-8">
+<title>Plushie Wheel — Control</title>
+<link rel="stylesheet" href="/css/tradeup-control.css">
+<link rel="stylesheet" href="/css/workspace.css">
+<link rel="stylesheet" href="/css/workspace-search.css">
+<link rel="stylesheet" href="/css/workspace-content.css">
+<link rel="stylesheet" href="/css/workspace-responsive.css">
+<script src="/js/client/navigation/catalog-tools.js"></script>
+<script src="/js/client/navigation/catalog-overlays.js"></script>
+<script src="/js/client/navigation/catalog-trackers.js"></script>
+<script src="/js/client/navigation/model.js"></script>
+</head>
+<body data-workspace="true">
+<aside class="workspace-sidebar" id="workspace-sidebar" aria-label="Workspace navigation"></aside>
+<div class="workspace-main"><div class="workspace-topbar" id="workspace-topbar"></div><div class="workspace-page">
+<h1>🎡 Plushie Wheel — Control</h1>
+<div class="grid">
+  <div>
+    <div class="panel">
+      <h2>Board</h2>
+      <div class="status-row">
+        <div>Boxes filled: <b id="stFilled">—</b> / 30</div>
+        <div>Catalog size: <b id="stCatalog">—</b></div>
+      </div>
+      <div>
+        <button class="big" id="btnShuffle">🔀 Shuffle Board</button>
+        <button class="big" id="btnSpin">🎯 SPIN</button>
+        <button id="btnClear">Clear result</button>
+      </div>
+      <div id="reveal"></div>
+    </div>
+    <div class="panel">
+      <h2>Activity</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Add a plushie to the pool</h2>
+      <label>Name</label>
+      <input type="text" id="itemName" placeholder="e.g. Golden Bunny Plushie">
+      <label>Type</label>
+      <select id="itemType">
+        <option value="plushie">Plushie</option>
+        <option value="points">Channel Points</option>
+      </select>
+      <div id="pointsRow" style="display:none;">
+        <label>Points value</label>
+        <input type="number" id="itemPoints" placeholder="500">
+      </div>
+      <label>Image (optional)</label>
+      <input type="file" id="itemImage" accept="image/png,image/jpeg,image/webp,image/gif">
+      <button id="btnAddItem" style="margin-top:10px;">➕ Add to pool</button>
+    </div>
+    <div class="panel">
+      <h2>Current pool (all eligible for the board)</h2>
+      <table>
+        <thead><tr><th></th><th>Name</th><th>Type</th><th></th></tr></thead>
+        <tbody id="catalogBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/js/client/navigation/search.js"></script>
+<script src="/js/client/navigation/shell.js"></script>
+<script src="/js/client/navigation/recent.js"></script>
+<script src="/js/client/navigation/directory-view.js"></script>
+<script src="/js/client/tradeup-control.js"></script>
+</div></div>
+</body>
+</html>
