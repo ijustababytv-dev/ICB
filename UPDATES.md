@@ -29,6 +29,8 @@
 
 ## Improvements
 
+- 2026-11-04: Removed the GitHub Actions Source policy workflow. Verification stays local through the existing hooks, structure, formatting and test commands.
+
 - 2026-11-01: Moved the PostgreSQL guide into database/ and the AWS guide into terraform/; updated contributor instructions, documentation references and internal links.
 
 - 2026-11-01: Expanded database/POSTGRES.md with an alphabetical, table-by-table data inventory.
