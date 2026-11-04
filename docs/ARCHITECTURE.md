@@ -91,7 +91,7 @@ Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`, then the historical handbook. `C
 
 Add unit tests for every new or changed business rule, covering relevant boundaries and failure cases. Feature tests that need persistence must point `ICB_CLEAN_DATA_DIR` at a fresh temporary folder before importing the feature. Never import `local-server/src/index.js` in a unit test: that entry point starts the server.
 
-Maintained JS/TS, HTML, and CSS have a 500-line / 40 KB ceiling, enforced locally by `tools/source-policy.js`, unit tests, and a staged-source pre-commit hook. GitHub Actions is deliberately not used. Only two checksum-pinned vendor distributions are exempt. Split by responsibility rather than packing more statements onto each line. Preserve meaningful function comments and business-rule explanations.
+Maintained JS/TS, HTML, and CSS have a 500-line / 40 KB ceiling, enforced by `tools/source-policy.js`, unit tests, a staged-source pre-commit hook, and GitHub Actions. Only two checksum-pinned vendor distributions are exempt. Split by responsibility rather than packing more statements onto each line. Preserve meaningful function comments and business-rule explanations.
 
 Never restore root `server.js`, including a forwarding stub. It was accidentally restored in October and diverged from the active modular server. Its Sprite TV and Poke Bowl attendance changes now live in `cloud-server/src/features/models/sprite-tv.js`, the cloud signup modules, and tested domain functions. Sprite TV pages use separate HTML, CSS, and browser scripts. The duplicate root sprite jar page was retired; the existing modular jar retains its fuller behavior. The main server remains composition and lifecycle wiring only.
 
@@ -117,7 +117,7 @@ Use the existing batch launchers or `npm start`. No second production server and
 - `npm run test:e2e`: temporary port 8791, temporary state, synthetic log, restart persistence, all feature GET routes, and browser assets. It never uses live tracker state.
 - `npm run test:browser`: representative pages in a separate headless Chromium process, including Aniimo editing, walker animation, giveaway drawing, Sprite TV, and signup attendance. Set `ICB_TEST_CHROME` if Chromium is not in a standard location. Set `ICB_TEST_SCREENSHOTS` to a local output directory to retain screenshots.
 - `npm run setup:hooks`: install the repository pre-commit guard for this checkout; also runs during `npm install`. It checks the complete staged snapshot and refuses oversized or misplaced source, changed vendor exemptions, embedded image assets, and root server restoration.
-- `npm run check:structure`: run the same policy against the working tree. Run this, unit tests, and formatting checks locally before committing. Local E2E/browser checks still need the operator's ignored artwork. No GitHub Actions workflow is installed.
+- `npm run check:structure`: run the same policy against the working tree. GitHub Actions runs this, unit tests, and formatting checks on pushes and pull requests. Local E2E/browser checks still need the operator's ignored artwork. Branch protection is a repository-owner setting, not installed by this command.
 - `npm run format:js`: format all maintained JavaScript, including function spacing; no application dependencies are added.
 - `npm run format:check`: verify formatting and preserve parsed behavior without writing files.
 - `npm test`: unit tests followed by end-to-end tests.

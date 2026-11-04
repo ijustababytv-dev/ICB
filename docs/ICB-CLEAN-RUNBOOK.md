@@ -340,6 +340,6 @@ Any MCP, Streamer.bot, Discord, or scene-control integration must be a separate 
 
 Read `AGENTS.md`, `RULES.md`, and `UPDATES.md`; re-read them after another contributor makes changes. `CLAUDE.md` contains pointers only. The handbook is a historical method record.
 
-Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `local-server/src/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; verification runs locally without GitHub Actions.
+Run `npm run setup:hooks` for a fresh checkout (`npm install` also does this). Never recreate root `server.js`: `npm start` and the launchers use `local-server/src/index.js`. New features belong in focused modules, and maintained source must stay within 500 lines and 40 KB per file. The hook checks staged contents; GitHub Actions independently checks committed source.
 
 After any changes, run `npm run check:structure`, `npm run format:check`, `npm run test:unit`, and `npm run test:e2e`; run `npm run test:browser` after browser changes. Tests use temporary state and port 8791. Do not restart the live server or control the user's desktop for verification. Record failures honestly, update `UPDATES.md`, then commit and push the coherent project work.

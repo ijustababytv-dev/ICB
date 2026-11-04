@@ -118,8 +118,6 @@ The implementation does not restart the user's local server.
 
 The pre-commit hook and source-policy checks enforce the file limits and layout defined in `RULES.md`. Never restore root `server.js`; add features in focused modules.
 
-Verification runs locally. This repository does not use GitHub Actions workflows.
-
 Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` previews uploads and `npm run images:sync` uploads new or changed originals. `npm run images:download:plan` previews downloads and `npm run images:download` restores into `assets/`, skipping identical files and backing up replacements. See [the Cloudinary guide](docs/CLOUDINARY.md) for credential setup and file mappings.
 
 ## Documentation map

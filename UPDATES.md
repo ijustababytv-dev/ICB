@@ -29,7 +29,7 @@
 
 ## Improvements
 
-- 2026-11-04: Removed the GitHub Actions Source policy workflow. Verification stays local through the existing hooks, structure, formatting and test commands.
+- 2026-11-04: Restored the GitHub Actions Source policy workflow after briefly disabling it. Pushes and pull requests again run architecture checks, unit tests and formatting checks; local verification remains required.
 
 - 2026-11-01: Moved the PostgreSQL guide into database/ and the AWS guide into terraform/; updated contributor instructions, documentation references and internal links.
 
