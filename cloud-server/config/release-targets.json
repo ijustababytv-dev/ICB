@@ -1,0 +1,9 @@
+{
+  "accountId": "981928628017",
+  "region": "us-east-1",
+  "artifactBucket": "baby-icb-postgre-builds-981928628017-us-east-1",
+  "functions": [
+    "baby-icb-postgres-activity-api",
+    "baby-icb-postgres-feature-worker"
+  ]
+}

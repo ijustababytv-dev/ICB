@@ -6,6 +6,8 @@
 
 # dotenv file
 *.env*
+# Dedicated deployment access keys; never version or package this file.
+/.env.aws
 
 # Visual Studio IDE temp files
 .vs/

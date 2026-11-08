@@ -74,6 +74,26 @@ download ID, not another owner's data. CSV neutralizes formula-leading text.
 
 ## SQL source and release
 
+### Routine feature code (Baby)
+
+After the required tests, run `./cloud-server/tools/release-features.ps1` to
+preview and `./cloud-server/tools/release-features.ps1 -Apply` to release.
+This loads `.env.aws`, checks the AWS account and existing function status,
+builds/uploads the runtime ZIP and updates only the two existing ICB Lambdas.
+It needs no Terraform, database admin credentials or interactive AWS login.
+Revision fencing prevents a concurrent update being silently overwritten;
+the script waits for success, verifies deployed hashes and retains a receipt
+under ignored `backups/releases/`. A partial release is reported as incomplete;
+rerun after checking the receipt to finish the remaining function.
+
+This command does not apply SQL upgrades, alter function configuration, update
+infrastructure, restart the local server or synchronize images. Complete required
+SQL upgrades separately with the administrator before deploying code that needs
+them. Keep the full [tracker checklist](TRACKER-RELEASE-CHECKLIST.md), including
+Cloudinary and target-PC activation.
+
+### Administrative SQL/infrastructure workflow
+
 New tracker definitions require a cloud package release even when no SQL schema
 changes are needed. Follow [the required tracker release checklist](TRACKER-RELEASE-CHECKLIST.md)
 for navigation, Cloudinary image transfer, local activation and verification.
@@ -83,7 +103,13 @@ file under `database/tables/`, and 19 standalone index sources. Constraint index
 are created with their tables. Schemas, roles, permissions and future views/functions
 have their own folders. No DDL runs at HTTP startup or on worker invocation.
 
-Use PowerShell from the repository root, after `aws login --profile Vox` when needed:
+The commands below are the separate administrator workflow, using the human AWS
+profile and private database configuration. They are not Baby's routine feature
+release command. Run them in a fresh PowerShell process using the administrator
+profile; do not load the restricted `.env.aws` credentials into that process.
+Before infrastructure planning, reconcile the release key/version/hash with the
+latest successful code-only receipt so stale Terraform inputs cannot roll back
+feature code. The administrative release command rebuilds the current checkout.
 
 ```powershell
 . ./database/admin-env.ps1 -Role master

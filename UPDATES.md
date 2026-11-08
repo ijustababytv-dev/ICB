@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-08: Created baby-icb-deployer for updates to the two existing ICB Lambdas, their release files and their existing runtime roles. AWS resource creation/deletion and broad account reads are not permitted. Access keys stay in ignored local .env.aws with restricted Windows permissions.
+
 - 2026-11-08: Added a Fish Tacos tracker (token itemtype_c_fishtacos). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /fish-tacos.html. Cloud definition deployed and verified on 2026-11-08; target PCs need current source/artwork and a normal authorized restart.
 
 - 2026-11-02: Added stop-icb-clean.bat to stop the local ICB server and confirm port 8790 is free, with an already-stopped message and a guard against stopping unrelated apps.
@@ -14,6 +16,8 @@
 - 2026-11-01: Implemented required Cloud sign-in for all pages, overlays, artwork and feature APIs, with Windows-protected fixed 14-day remembered sessions. Deployed the cloud session update; local activation requires a normal authorized restart.
 
 ## Improvements
+
+- 2026-11-08: Added a code-only feature release command that automatically loads .env.aws and updates existing Lambdas without Terraform. Documented this workflow for Claude, private credential transfer and deliberate key rotation; infrastructure/SQL administration stays separate.
 
 - 2026-11-08: Made tracker delivery requirements explicit for every contributor, including Claude: navigation, Cloudinary recovery/upload verification, cloud deployment, local activation and honest pending-step reporting.
 
@@ -41,6 +45,8 @@
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 ## Bug Fixes
+
+- 2026-11-08: Dedicated deployment credentials override the legacy Vox profile and clear stale session tokens. The dotenv loader rejects incomplete/unsupported settings without printing credentials; routine releases no longer depend on an expiring human login.
 
 - 2026-11-08: Restored Fish Tacos and the eight previously missing tracker originals from Cloudinary. Kept new overlay URLs reachable during cloud rollout without inventing counts; Fish Tacos ignores lockbox dumps. Added rollout, cooking transport and browser regression coverage. Deployed the cloud package and verified Fish Tacos in the authenticated production feed. Target-PC activation and first real cook remain pending.
 

@@ -2,6 +2,7 @@
 - Read [UPDATES.md](UPDATES.md) for the latest changes and handoff information.
 - Read [README.md](README.md) for the project overview, startup steps, commands, and documentation links.
 - Read [terraform/AWS.md](terraform/AWS.md) for Steam key replacement, credential locations, AWS infrastructure, and administration/recovery references.
+- For routine AWS releases, follow [AGENTS.md](AGENTS.md) and [the deployment credential instructions](terraform/AWS.md#dedicated-deployment-credentials-envaws): credentials are in the ignored root `.env.aws`; `cloud-server/tools/release-features.ps1` loads them automatically. Use that code-only workflow, without Terraform or creating AWS resources. Never display the file contents.
 - Read [database/POSTGRES.md](database/POSTGRES.md) for a brief inventory of database contents and data stored elsewhere.
 - For every new or changed tracker, follow all of [the tracker release checklist](docs/TRACKER-RELEASE-CHECKLIST.md). Config, navigation, image transfer, cloud deployment and local activation are separate required steps; see [AGENTS.md](AGENTS.md) for the completion rules.
 - For new, changed or missing images, follow [the mandatory image delivery workflow](docs/CLOUDINARY.md#required-contributor-workflow) and [AGENTS.md](AGENTS.md). Do not stop at a missing-file report before attempting Cloudinary recovery.

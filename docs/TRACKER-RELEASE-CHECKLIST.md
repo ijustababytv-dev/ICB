@@ -49,8 +49,12 @@ its value stays unconfirmed. A visible page alone does not prove counting works.
 8. [ ] Build and release the cloud package through the documented procedure in
    [AWS operations](../terraform/AWS.md#deployments-and-recovery) and
    [Step 2 operations](STEP2-OPERATIONS.md#sql-source-and-release).
-   Use `./cloud-server/tools/release.ps1 -EnableWorker -Apply` after checks.
-   Renew expired AWS access with `aws login --profile Vox`. Verify the deployed
+   Preview with `./cloud-server/tools/release-features.ps1`, then release with
+   `./cloud-server/tools/release-features.ps1 -Apply` after checks. This updates
+   the two existing Lambdas directly, without Terraform or new infrastructure.
+   The code-only release loads the ignored root `.env.aws`; for direct AWS
+   commands first run `. ./tools/aws-env.ps1` in the same PowerShell process.
+   Use `Vox` only for the separate human administrative fallback. Verify the deployed
    package contains the card; a local ZIP or Git push is not deployment evidence.
    Do not create an SQL migration or modify totals just to add a configured card.
 9. [ ] Activate the updated checkout on the target PC at its normal authorized

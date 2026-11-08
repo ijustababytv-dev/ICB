@@ -1,6 +1,6 @@
 # AWS operations and credentials
 
-Updated 2026-11-01. This is the operator guide for ICB's AWS setup.
+Updated 2026-11-08. This is the operator guide for ICB's AWS setup.
 Command examples and plain file paths below are relative to the repository root.
 Terraform under [terraform/](README.md) defines infrastructure;
 [database/](../database/README.md) holds SQL object definitions and recovery tools.
@@ -111,7 +111,8 @@ continue using local image files.
 | PostgreSQL service login | `icb_service`, used by both Lambdas. Terraform supplies endpoint/user/secret ARN as Lambda configuration; the password is read from the separate DB secret. No master credentials go into Lambda. |
 | PostgreSQL administration | RDS master username/password inputs are in ignored `terraform/.env`; generated `icb_migrator`/`icb_service` credentials are in ignored `database/.env.admin`. Use the administrative environment loader below. |
 | Steam API key | Optional achievements/stats integration; owner-specific Secrets Manager value. Replace it through the dashboard above. Steam ID/profile URL is configuration, not a password. |
-| AWS administration | Existing local AWS CLI profile `Vox`. Runtime Lambdas use scoped IAM roles; they do not need copied PC access keys. |
+| AWS deployments | Dedicated IAM user `baby-icb-deployer`; access key ID/secret are in the ignored root `.env.aws`. Load through `tools/aws-env.ps1`. The code-only feature release does this automatically. |
+| AWS administration | Existing human AWS CLI profile `Vox`, for IAM provisioning, rotation or broader infrastructure administration. Runtime Lambdas keep their own scoped roles and never receive PC deployment keys. |
 | Cloudinary API credentials | Explicit artwork upload/download tools use ignored root `.env.cloudinary` with `CLOUDINARY_URL`; an environment variable also works. See [Cloudinary instructions](../docs/CLOUDINARY.md). |
 | Local API address | Ignored `local-server/.env` contains public `ICB_CLOUD_API_URL`. It does not contain a PostgreSQL URL/password or Steam key. |
 
@@ -128,6 +129,87 @@ role. Follow [Terraform](README.md) and [database](../database/README.md)
 instructions for that administrative change.
 
 ## AWS access and useful read-only commands
+
+### Dedicated deployment credentials (.env.aws)
+
+The dedicated `baby-icb-deployer` IAM user has programmatic access for routine
+ICB releases. Its access key ID and secret are stored only in the ignored root
+`.env.aws`, with Windows permissions restricted to the current user and SYSTEM.
+These are long-term access keys, not an expiring `aws login` session. They remain
+usable until deactivated/deleted; no console password was created.
+
+The file contains `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` and
+`AWS_DEFAULT_REGION`. The loader also accepts an optional `AWS_SESSION_TOKEN`
+for deliberately supplied temporary credentials. Never display the file or paste
+its contents into chat, source, logs, Terraform variables/state, packages or backups.
+Use a private authorized transfer if installing the credentials on Baby's PC;
+Git ignores them. Do not send them through this chat.
+
+For direct deployment/diagnostic commands, run this in the same PowerShell process:
+
+```powershell
+. ./tools/aws-env.ps1
+aws sts get-caller-identity --query Arn --output text
+aws lambda get-function-configuration --function-name baby-icb-postgres-activity-api --region us-east-1 --query LastUpdateStatus
+```
+
+The loader treats file values literally, validates the entire file before changing
+the environment, and clears stale profile/session settings. It prints no values.
+`cloud-server/tools/release-features.ps1` automatically loads it, without
+Terraform or database administration. **Do not
+append `--profile Vox` to routine commands**: that explicitly chooses the human
+profile. With a valid `.env.aws`, routine releases do not require `aws login`.
+If the file is absent, existing profile configuration remains available; if the
+file exists but is incomplete, the loader fails instead of silently changing identities.
+
+The inline `baby-icb-deployer-releases` policy permits only:
+
+- Read and update code/configuration on the two existing functions:
+  `baby-icb-postgres-activity-api` and `baby-icb-postgres-feature-worker`.
+- Read/upload versioned release files under `releases/` in the existing ICB bucket.
+- Pass only those two functions' existing roles to Lambda.
+
+The exact allowed actions are:
+
+| Scope | Actions |
+| --- | --- |
+| The two functions above, account 981928628017, us-east-1 | `lambda:GetFunction`, `lambda:GetFunctionConfiguration`, `lambda:GetPolicy`, `lambda:ListTags`, `lambda:UpdateFunctionCode`, `lambda:UpdateFunctionConfiguration` |
+| `arn:aws:s3:::baby-icb-postgre-builds-981928628017-us-east-1/releases/*` | `s3:GetObject`, `s3:GetObjectVersion`, `s3:PutObject`, `s3:AbortMultipartUpload`, `s3:ListMultipartUploadParts` |
+| Existing roles `baby-icb-postgres-activity-api` and `baby-icb-postgres-feature-worker` in this account | `iam:PassRole`, only when `iam:PassedToService` is `lambda.amazonaws.com` |
+
+There are no AWS managed policies attached. The user cannot create/delete Lambda
+functions, buckets, IAM users, stacks or other infrastructure, and cannot update
+unrelated functions. It has no general Terraform refresh/administration permissions.
+Baby's normal updates are code releases; Terraform and SQL administration stay with
+the separate human administrator. PostgreSQL credentials remain in the existing
+private database environment files, never in `.env.aws`.
+
+Preview and release from the repository root:
+
+```powershell
+./cloud-server/tools/release-features.ps1
+./cloud-server/tools/release-features.ps1 -Apply
+```
+
+Run the mandatory tests first. The script builds the runtime package, verifies the
+account and both existing functions, uploads a versioned ZIP only when needed, and
+updates their code with revision fencing. It waits for successful updates and
+checks the deployed hashes. It records previous hashes/revisions and completed
+functions in ignored `backups/releases/` receipts. An incomplete release remains
+explicitly incomplete; rerun after reviewing the receipt to finish it. If both
+functions already match the package, it makes no changes. It never restarts ICB,
+creates infrastructure, applies SQL upgrades or uploads images. SQL upgrades must
+be completed separately before releasing code that needs them.
+
+The provisioning source is `cloud-server/tools/provision-deployer.ps1`. With the
+human admin profile, rerunning it without `-CreateAccessKey` reapplies its policies
+without creating another key. Initial key creation requires `-CreateAccessKey` and
+refuses to overwrite a populated `.env.aws`. It never stores keys in Terraform.
+For rotation, use the admin profile to create a second key, replace `.env.aws`
+privately, verify caller identity and a feature-release preview, then deactivate/delete the old
+key. If a key is lost, its secret cannot be recovered; create a replacement.
+
+### Human administrative fallback
 
 From PowerShell at the repository root:
 
@@ -156,8 +238,10 @@ notifications require an explicitly configured destination.
 
 ## Deployments and recovery
 
-Steam key changes use the dashboard, not the deployment procedure. For a tested
-code/infrastructure release, use the existing repository workflow:
+Steam key changes use the dashboard. For routine feature-code releases, use the
+code-only command above. The following is the separate administrator workflow for
+a tested infrastructure/SQL release, using the human profile in a fresh process
+without loading the restricted deployment keys:
 
 ```powershell
 ./cloud-server/tools/release.ps1 -EnableWorker -Apply
@@ -168,6 +252,11 @@ RDS changes or resource deletion in its release plan. It updates the public loca
 API URL without restarting the local server. SQL upgrades run separately with
 administrative credentials, never at Lambda startup. Use one Terraform operator
 at a time; preserve ignored state, release metadata, credentials and dumps.
+
+Before an administrator later plans infrastructure changes, reconcile Terraform's
+release key/version/hash with the latest successful code-only release receipt.
+Do not let stale release inputs roll deployed feature code backward. The dedicated
+feature command itself never invokes Terraform or modifies infrastructure settings.
 
 For a private logical backup using the existing administration configuration:
 
