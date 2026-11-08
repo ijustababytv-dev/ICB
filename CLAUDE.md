@@ -3,5 +3,7 @@
 - Read [README.md](README.md) for the project overview, startup steps, commands, and documentation links.
 - Read [terraform/AWS.md](terraform/AWS.md) for Steam key replacement, credential locations, AWS infrastructure, and administration/recovery references.
 - Read [database/POSTGRES.md](database/POSTGRES.md) for a brief inventory of database contents and data stored elsewhere.
+- For every new or changed tracker, follow all of [the tracker release checklist](docs/TRACKER-RELEASE-CHECKLIST.md). Config, navigation, image transfer, cloud deployment and local activation are separate required steps; see [AGENTS.md](AGENTS.md) for the completion rules.
+- For new, changed or missing images, follow [the mandatory image delivery workflow](docs/CLOUDINARY.md#required-contributor-workflow) and [AGENTS.md](AGENTS.md). Do not stop at a missing-file report before attempting Cloudinary recovery.
 - Re-read these files whenever someone else, including Aleister V.M., makes changes; do not rely on an earlier session's assumptions.
-- Commit/push code automatically to GitHub, in groups that make sense, as soon as it makes sense to do so (ex. new feature added), but only after you're able to perform some sort of test on the code.  Be sure to be descriptive with your commit name / description.
+- Follow [RULES.md](RULES.md) and [AGENTS.md](AGENTS.md) for all required checks, completion reporting and commit/push requirements.

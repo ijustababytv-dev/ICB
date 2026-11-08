@@ -12,6 +12,7 @@ Updated 2026-10-31. The local application remains one dependency-free Node serve
 | `local-server/src/*.js` | Thin cache adapters, machine state and transient graphical handlers |
 | `local-server/src/giveaway/` | Read-only giveaway cache/recovery adapters; signup rules are in cloud models |
 | `local-server/src/views/` | Server-rendered resource, weekly, and ticker overlays |
+| `local-server/src/resources.js` | Cloud-confirmed tracker views; local artwork definitions keep overlay URLs reachable during rollout, with unknown counts until cloud confirmation |
 | `local-server/src/background.js` | Explicit background-job scheduling; imports do not start timers |
 | `ui/html/` | All dashboard and overlay HTML, including `ui/html/wk/` |
 | `ui/js/` | Page startup scripts, with large features split into named subfolders |
@@ -122,7 +123,12 @@ Use the existing batch launchers or `npm start`. No second production server and
 - `npm run format:check`: verify formatting and preserve parsed behavior without writing files.
 - `npm test`: unit tests followed by end-to-end tests.
 
-Known existing artwork issue (the complete nine-file list is in STEP2-VALIDATION.md): `local-server/config/resource-trackers.json` references `assets/resources/poke_bowl.png`, which is absent in this checkout. End-to-end tests finish the remaining checks and then fail with the missing-art list. Restore the original artwork to that path; do not fabricate a replacement or suppress the assertion.
+Cloudinary recovery restored Poke Bowl on 2026-11-01 and the other eight missing
+tracker originals plus Fish Tacos on 2026-11-08. Historical validation reports
+retain their original failure evidence. For a missing image in any checkout,
+immediately attempt the recovery workflow in [CLOUDINARY.md](CLOUDINARY.md), then
+rerun E2E; never fabricate artwork or suppress the assertions. New/changed images
+must be synchronized to Cloudinary and verified as identical before handoff.
 
 
 ## Cloud and local boundaries

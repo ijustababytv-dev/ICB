@@ -347,6 +347,8 @@ async function main() {
 
         // Counting, with the traps that actually bite:
         fs.appendFileSync(logFile, 'Inventory gained: itemtype_mineral_ore_gold x7\n', 'utf8');
+        // Synthetic cook fixture verifies the real local-to-cloud transport path.
+        fs.appendFileSync(logFile, 'Inventory gained: itemtype_c_fishtacos (1*) x3\n', 'utf8');
         // a quality marker must not be skipped
         fs.appendFileSync(
             logFile,
@@ -364,6 +366,12 @@ async function main() {
         await new Promise((resolve) => setTimeout(resolve, 1800));
         rt = (await json('/api/resource-trackers')).payload.resourceTrackers;
         const value = (id) => rt.cards.find((c) => c.id === id).count;
+
+        assert.equal(
+            value('fish-tacos'),
+            99,
+            'one Fish Tacos batch decrements once through cloud transport'
+        );
 
         assert.equal(
             value('gold-ore'),

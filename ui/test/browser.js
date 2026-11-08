@@ -38,6 +38,7 @@ async function main() {
             'cloud',
             'hub',
             'control',
+            'fish-tacos',
             'giveaway-control',
             'giveaway-entrants',
             'unicorn-jar',
@@ -78,6 +79,43 @@ async function main() {
                 `${name}: missing code, styles, or extracted images`
             );
             await verifyNavigation(page, name);
+            if (name === 'fish-tacos') {
+                const card = await page.evaluate(`({
+                    width:document.querySelector('#wrap img').naturalWidth,
+                    height:document.querySelector('#wrap img').naturalHeight,
+                    value:document.getElementById('n').textContent,
+                    image:document.querySelector('#wrap img').getBoundingClientRect().toJSON(),
+                    box:document.getElementById('box').getBoundingClientRect().toJSON()
+                })`);
+                assert.ok(card.width > 0 && card.height > 0, 'Fish Tacos artwork loaded');
+                assert.equal(card.value, '100', 'Fish Tacos initial cloud count');
+                assert.ok(card.box.x >= card.image.x && card.box.y >= card.image.y);
+                assert.ok(
+                    card.box.right <= card.image.right && card.box.bottom <= card.image.bottom
+                );
+                if (process.env.ICB_TEST_SCREENSHOTS)
+                    await page.screenshot(
+                        path.join(process.env.ICB_TEST_SCREENSHOTS, 'fish-tacos.png')
+                    );
+                const staticPage = await browser.newPage({ javascript: false });
+                try {
+                    await staticPage.navigate(`http://127.0.0.1:${port}/fish-tacos.html`);
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    assert.equal(
+                        await staticPage.evaluate(
+                            'document.querySelector("#wrap img").naturalWidth > 0'
+                        ),
+                        true,
+                        'Fish Tacos artwork renders with page JavaScript disabled'
+                    );
+                    if (process.env.ICB_TEST_SCREENSHOTS)
+                        await staticPage.screenshot(
+                            path.join(process.env.ICB_TEST_SCREENSHOTS, 'fish-tacos-nojs.png')
+                        );
+                } finally {
+                    await staticPage.close();
+                }
+            }
             if (name === 'unicorn-jar') {
                 const state = await page.evaluate(
                     '({ engine: !!window.ICBJar.engine, width: window.ICBJar.canvas.width, imageLoaded: window.ICBJar.UNI.complete && window.ICBJar.UNI.naturalWidth > 0 })'

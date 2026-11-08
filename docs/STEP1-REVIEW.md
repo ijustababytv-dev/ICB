@@ -1,5 +1,10 @@
 # Step 1 review
 
+Historical review: the statuses and test counts below describe the dated Step 1
+work. Cloudinary recovery on 2026-11-08 restored all eight remaining originals
+listed below plus Fish Tacos; the current E2E suite passes with those images.
+See UPDATES.md and STEP2-OPERATIONS.md for current delivery and operating guidance.
+
 Implementation and cloud deployment completed on 2026-10-31; final local cutover
 and representative-stream acceptance remain open. Step 2 is not implemented. The local
 production server was not restarted; new local behavior takes effect at its next

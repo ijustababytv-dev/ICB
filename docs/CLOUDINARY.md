@@ -13,6 +13,30 @@ npm.cmd run images:sync
 
 `images:plan` compares the local files with Cloudinary without uploading. `images:sync` uploads new images and replaces images whose contents changed. Both commands read the current Cloudinary inventory; they do not rely on file dates or on the local manifest being current. Running the sync again skips identical images.
 
+## Required contributor workflow
+
+These steps apply to every contributor and AI, including Claude. Image sync is
+part of delivering a change, not an optional task for Baby afterward.
+
+1. If a referenced image is missing, immediately run `npm.cmd run images:download:plan`.
+   Check the exact path, including filename spelling. Review differing local files
+   before replacement, then run `npm.cmd run images:download` to attempt recovery.
+   The downloader backs up replaced files. Recheck that the required local file exists.
+2. After adding or changing artwork, run `npm.cmd run images:plan`, review the
+   comparison, then run `npm.cmd run images:sync`. Uploads are already authorized
+   by the project instructions. Preserve remote-only originals.
+3. Run `npm.cmd run images:plan` again and confirm the delivered artwork is
+   identical remotely. A failed or unavailable sync is an unfinished delivery step.
+4. Verify the local artwork URL returns the real image through the signed-in
+   application and inspect the overlay in an isolated headless browser. Cloudinary
+   backup does not replace the local file required by Meld.
+5. Report actual recovery/upload results. Git ignores runtime artwork: commit/push
+   does not deliver it to Baby's PC. Other installations must download it too.
+
+Never report an image as unavailable based only on this checkout. Attempt the
+Cloudinary lookup/download first. If the original or credentials are unavailable,
+state that blocker explicitly; do not invent replacement artwork or hide failures.
+
 ## Credentials
 
 Put the `CLOUDINARY_URL` from Cloudinary **Settings > API Keys** in `.env.cloudinary` at the project root. The file is excluded from Git. A process environment variable named `CLOUDINARY_URL` also works; the local file takes precedence when populated. Never paste credentials into source, documentation, logs, or chat.

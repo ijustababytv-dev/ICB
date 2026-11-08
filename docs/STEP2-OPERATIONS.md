@@ -74,6 +74,10 @@ download ID, not another owner's data. CSV neutralizes formula-leading text.
 
 ## SQL source and release
 
+New tracker definitions require a cloud package release even when no SQL schema
+changes are needed. Follow [the required tracker release checklist](TRACKER-RELEASE-CHECKLIST.md)
+for navigation, Cloudinary image transfer, local activation and verification.
+
 All application objects are in `icb`. There are 58 current table sources, one per
 file under `database/tables/`, and 19 standalone index sources. Constraint indexes
 are created with their tables. Schemas, roles, permissions and future views/functions

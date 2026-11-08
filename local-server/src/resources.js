@@ -23,7 +23,18 @@ function resourceTrackersView() {
 
 /** Static overlay routing needs definitions before sign-in and during cloud errors. */
 function findResourceCard(id) {
-    return resourceTrackersView().cards.find((card) => card.id === id) || null;
+    const confirmed = resourceTrackersView().cards.find((card) => card.id === id);
+    if (confirmed) return confirmed;
+    // A local definition can arrive before the cloud release. Keep its artwork
+    // reachable without inventing progress or introducing local counting rules.
+    const definition = definitions.cards.find((card) => card.id === id);
+    return definition
+        ? {
+              ...definition,
+              count: null,
+              slots: definition.slots?.map((slot) => ({ ...slot, count: null }))
+          }
+        : null;
 }
 
 /** Artwork bytes stay on this computer. */

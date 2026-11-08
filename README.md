@@ -93,9 +93,10 @@ npm.cmd run test:e2e
 
 Run `npm.cmd run format:js` to apply JavaScript formatting and `npm.cmd run test:browser` after browser changes. Every new or changed business rule requires unit tests. E2E and browser tests use port 8791 and temporary state; browser checks use a separate headless profile.
 
-The Cloudinary restore recovered Poke Bowl artwork on 2026-11-01. Eight tracker-art
-files remain missing, listed in [the Step 1 review](docs/STEP1-REVIEW.md). Restore
-the original artwork; do not suppress the E2E checks.
+Cloudinary recovery restored Poke Bowl artwork on 2026-11-01 and the other eight
+missing tracker originals plus Fish Tacos on 2026-11-08. If artwork is missing in
+another checkout, immediately attempt the [Cloudinary recovery workflow](docs/CLOUDINARY.md#required-contributor-workflow)
+and rerun E2E; do not suppress the checks.
 
 For a test log, set `ICB_CLEAN_PALIA_LOG_FILE` or `ICB_CLEAN_PALIA_LOG_DIR` in the isolated test environment. Normal use searches the standard Palia Assistant log directories.
 
@@ -138,3 +139,4 @@ Overlays read local images. Cloudinary sync is explicit: `npm run images:plan` p
 | [Master handbook](docs/ICB-MASTER-HANDBOOK.md) | Historical methods, failures, and tracker recipes; check current rules before acting |
 | [Skin standard](docs/ICB-TRACKER-SKIN-STANDARD.md) | Artwork dimensions, blank value boxes, and per-skin measurements |
 | [Cloudinary guide](docs/CLOUDINARY.md) | Image upload/download setup and behavior |
+| [Tracker release checklist](docs/TRACKER-RELEASE-CHECKLIST.md) | Required definition, navigation, artwork sync, cloud release and local activation steps |

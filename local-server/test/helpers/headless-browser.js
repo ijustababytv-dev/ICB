@@ -86,7 +86,7 @@ async function launchBrowser() {
     }
 
     /** Open a test-owned target with error collection and an isolated viewport. */
-    async function newPage() {
+    async function newPage({ javascript = true } = {}) {
         const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
         const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
         const errors = [],
@@ -106,6 +106,8 @@ async function launchBrowser() {
         await send('Runtime.enable', {}, sessionId);
         await send('Page.enable', {}, sessionId);
         await send('Network.enable', {}, sessionId);
+        if (!javascript)
+            await send('Emulation.setScriptExecutionDisabled', { value: true }, sessionId);
         await send(
             'Emulation.setDeviceMetricsOverride',
             { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false },

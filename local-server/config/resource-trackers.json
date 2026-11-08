@@ -1156,6 +1156,7 @@
             "itemtype_c_fishtacos"
         ],
         "direction": "gained",
+        "eventSource": "inventory",
         "mode": "countdown",
         "startAt": 100,
         "visible": true,
