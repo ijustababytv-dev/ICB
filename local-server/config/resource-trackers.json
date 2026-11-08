@@ -1147,6 +1147,26 @@
           }
         }
       ]
+    },
+    {
+        "id": "fish-tacos",
+        "name": "Fish Tacos",
+        "image": "FISH_TACOS.png",
+        "tokens": [
+            "itemtype_c_fishtacos"
+        ],
+        "direction": "gained",
+        "mode": "countdown",
+        "startAt": 100,
+        "visible": true,
+        "countEvents": true,
+        "_note_2026_11_08": "Built 2026-11-08. Baby supplied token itemtype_c_fishtacos and card art (FISH_TACOS.png, 1774x887). Dish default: countdown from 100, direction gained + countEvents (one cook line = -1 whatever the stack size); selling/eating (Inventory lost) never moves it. Token not yet checked against a real Inventory gained cook line - spot-check on first cook. Value box measured on the cream panel (light+flat detection, checked with overlay) then centered on the panel by hand because the taco/lime overlaps its bottom-left corner.",
+        "valueBox": {
+            "left": 27.06,
+            "top": 48.48,
+            "width": 46.22,
+            "height": 32.7
+        }
     }
   ]
 }

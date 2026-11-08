@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-08: Added a Fish Tacos tracker (token itemtype_c_fishtacos). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /fish-tacos.html. Needs a clean ICB restart and a cloud release to appear.
+
 - 2026-11-02: Added stop-icb-clean.bat to stop the local ICB server and confirm port 8790 is free, with an already-stopped message and a guard against stopping unrelated apps.
 
 - 2026-11-01: Integrated main's daily Unicorn Jar check-in and jar/cloud/unicorn size sliders. Checked-in viewers bring their full saved ticket balance; absent viewers stay out of the jar, board and draws until they chat.
