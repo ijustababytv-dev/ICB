@@ -99,6 +99,12 @@ window.ICBPageCatalog.push(
             'aliases': 'palia recipe cook countdown'
         },
         {
+            'url': '/fish-tacos.html',
+            'label': 'Fish Tacos — Cooking Tracker',
+            'category': 'overlays',
+            'aliases': 'palia recipe cook countdown'
+        },
+        {
             'url': '/ramen-plush.html',
             'label': 'Ramen Plush — Cooking & Plush Tracker',
             'category': 'overlays',
