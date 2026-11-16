@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-16: Tracker artwork position and number colour now come from this computer's config for cards the cloud already knows, so a new art swap (e.g. Infected Essence GOAL, Clay) lines up and uses dark text on light panels right after an ICB restart, without waiting for a cloud release. Counts, modes and counting rules still come from the cloud.
+
 - 2026-11-16: New Infected Essence GOAL card art on /essence.html with the number centered on its parchment panel (dark purple text so it reads on the cream). Same file name, so the art itself needs no setup; the new number position was deployed to the cloud (both Lambda hashes verified) on 2026-11-16 and needs a normal authorized ICB restart.
 
 - 2026-11-16: The Infected Essence card (/essence.html) is now a countdown: set an amount with Set & restock now on the Tracker Command Center and it counts down by every essence you collect until it reaches 0. Your main Infected Essence total is unchanged. Cloud definition deployed (both Lambda hashes verified) on 2026-11-16, with unit coverage; target PCs need a normal authorized restart.
