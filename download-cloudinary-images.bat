@@ -7,3 +7,4 @@ echo.
 if not "%ICB_DOWNLOAD_EXIT%"=="0" echo Image download failed. Read the error above; rerunning is safe.
 pause
 exit /b %ICB_DOWNLOAD_EXIT%
+
