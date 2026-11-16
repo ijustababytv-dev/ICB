@@ -2,7 +2,7 @@
 
 ## New Features
 
-- 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html. Needs a clean ICB restart and a cloud release to appear.
+- 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html, listed in search and All Pages. Artwork uploaded to Cloudinary and cloud definition deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart, and the first real cook is unconfirmed.
 
 - 2026-11-08: Created baby-icb-deployer for updates to the two existing ICB Lambdas, their release files and their existing runtime roles. AWS resource creation/deletion and broad account reads are not permitted. Access keys stay in ignored local .env.aws with restricted Windows permissions.
 
@@ -47,6 +47,8 @@
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 ## Bug Fixes
+
+- 2026-11-16: Sushi now ignores periodic lockbox dumps (inventory-only events, like Fish Tacos), so storing Sushi can't lower its countdown. Added unit coverage.
 
 - 2026-11-08: Dedicated deployment credentials override the legacy Vox profile and clear stale session tokens. The dotenv loader rejects incomplete/unsupported settings without printing credentials; routine releases no longer depend on an expiring human login.
 

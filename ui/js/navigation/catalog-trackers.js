@@ -105,6 +105,12 @@ window.ICBPageCatalog.push(
             'aliases': 'palia recipe cook countdown'
         },
         {
+            'url': '/sushi.html',
+            'label': 'Sushi — Cooking Tracker',
+            'category': 'overlays',
+            'aliases': 'palia recipe cook countdown'
+        },
+        {
             'url': '/ramen-plush.html',
             'label': 'Ramen Plush — Cooking & Plush Tracker',
             'category': 'overlays',

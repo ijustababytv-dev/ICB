@@ -46,3 +46,30 @@ test('configured Fish Tacos counts inventory gains once and ignores losses and r
     applyResourceEvent(state, fact);
     assert.equal(card.count, 0);
 });
+
+// Business rule: a Sushi cook line lowers the countdown by exactly one whatever
+// the stack size. Selling/eating, full-inventory resyncs and periodic lockbox
+// dumps must never move it, and the countdown stops at zero.
+test('configured Sushi counts inventory gains once and ignores losses, lockbox and resyncs', () => {
+    const definition = definitions.cards.find((card) => card.id === 'sushi');
+    const card = { ...definition, count: definition.startAt };
+    const state = { cards: [card] };
+    assert.equal(card.image, 'Sushi.png');
+    assert.equal(card.count, 100);
+    applyResourceEvent(state, gameFact('Inventory gained: itemtype_c_sushi (2*) x4'));
+    assert.equal(card.count, 99);
+    for (const line of [
+        'Inventory lost: itemtype_c_sushi x4',
+        'Lockbox gained: itemtype_c_sushi x30',
+        'Primary gained: itemtype_c_sushi x99',
+        'Inventory gained: itemtype_c_sushi_other x3'
+    ]) {
+        applyResourceEvent(state, gameFact(line));
+        assert.equal(card.count, 99, line);
+    }
+    card.count = 1;
+    const fact = gameFact('Inventory gained: itemtype_c_sushi x2');
+    applyResourceEvent(state, fact);
+    applyResourceEvent(state, fact);
+    assert.equal(card.count, 0);
+});

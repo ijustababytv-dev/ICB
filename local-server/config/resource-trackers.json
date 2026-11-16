@@ -1177,6 +1177,7 @@
             "itemtype_c_sushi"
         ],
         "direction": "gained",
+        "eventSource": "inventory",
         "mode": "countdown",
         "startAt": 100,
         "visible": true,
