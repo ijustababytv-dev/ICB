@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-16: The Infected Essence card (/essence.html) is now a countdown: set an amount with Set & restock now on the Tracker Command Center and it counts down by every essence you collect until it reaches 0. Your main Infected Essence total is unchanged. Needs a clean ICB restart and a cloud release to take effect.
+
 - 2026-11-16: Added a Profit Tracker card (/profit-tracker.html) for a hand-entered amount. On the Tracker Command Center type the amount and press Set, or use Add / Subtract; nothing in the game log moves it and a Palia login never resets it. Big numbers shrink to fit the card box. Artwork is on Cloudinary and the cloud definition was deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart.
 
 - 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html, listed in search and All Pages. Artwork uploaded to Cloudinary and cloud definition deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart, and the first real cook is unconfirmed.

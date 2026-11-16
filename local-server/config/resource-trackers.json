@@ -26,8 +26,12 @@
       "tokens": [
         "itemtype_echo_essence"
       ],
-      "mode": "lifetime",
+      "direction": "gained",
+      "eventSource": "inventory",
+      "mode": "countdown",
+      "startAt": 100,
       "visible": true,
+      "_note_2026_11_16": "Changed 2026-11-16. Baby: set an amount and have the Infected Essence card count DOWN as she collects essence until it hits 0. Was a lifetime card mirroring the live Infected Essence total; now a countdown: direction gained + eventSource inventory + mode countdown, raw quantity (no countEvents) so every essence collected takes that many off (stack of 5 = -5), floors at 0. Set the amount on the dashboard with 'Set & restock now' (batch size). startAt 100 is only a placeholder until she sets her own. The separate live Infected Essence total (reconciliation panel) is NOT touched - only this card changed. Countdown cards restock to their batch size on a collector restart (house behaviour).",
       "valueBox": {
         "left": 36.69,
         "top": 43.97,
