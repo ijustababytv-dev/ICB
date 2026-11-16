@@ -73,3 +73,24 @@ test('configured Sushi counts inventory gains once and ignores losses, lockbox a
     applyResourceEvent(state, fact);
     assert.equal(card.count, 0);
 });
+
+// Business rule: the Infected Essence card counts down by every essence collected
+// (a stack of 5 takes 5 off), floors at zero, and ignores losses, lockbox dumps
+// and full-inventory resyncs.
+test('Infected Essence countdown subtracts collected quantity and floors at zero', () => {
+    const definition = definitions.cards.find((card) => card.id === 'essence');
+    const card = { ...definition, count: 20 };
+    const state = { cards: [card] };
+    applyResourceEvent(state, gameFact('Inventory gained: itemtype_echo_essence x5'));
+    assert.equal(card.count, 15);
+    for (const line of [
+        'Inventory lost: itemtype_echo_essence x5',
+        'Lockbox gained: itemtype_echo_essence x40',
+        'Primary gained: itemtype_echo_essence x99'
+    ]) {
+        applyResourceEvent(state, gameFact(line));
+        assert.equal(card.count, 15, line);
+    }
+    applyResourceEvent(state, gameFact('Inventory gained: itemtype_echo_essence x50'));
+    assert.equal(card.count, 0);
+});
