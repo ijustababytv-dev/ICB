@@ -111,6 +111,12 @@ window.ICBPageCatalog.push(
             'aliases': 'palia recipe cook countdown'
         },
         {
+            'url': '/profit-tracker.html',
+            'label': 'Profit Tracker — Manual Amount',
+            'category': 'overlays',
+            'aliases': 'palia gold money profit manual counter'
+        },
+        {
             'url': '/ramen-plush.html',
             'label': 'Ramen Plush — Cooking & Plush Tracker',
             'category': 'overlays',

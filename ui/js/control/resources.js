@@ -162,6 +162,8 @@ function rtRender() {
         <button class="secondary" data-rtlivereset="${phEsc(
             c.source.split('.').pop()
         )}" data-rtresetname="${phEsc(c.name)}">Reset</button></div>`
+              : c.manual
+              ? rtManualMarkup(c)
               : c.mode === 'lifetime'
               ? `<div class="rt-btns">
         <button data-rt="${phEsc(c.id)}" data-d="-1">−</button>

@@ -9,6 +9,13 @@ function renderResourceCardPage(card, query) {
     const width = Math.max(120, Number(query.get('w')) || 620);
     const box = card.valueBox || { left: 30, top: 45, width: 55, height: 30 };
     const hasSecondary = Boolean(card.secondary);
+    // Light panels (cream/parchment art) can set 'valueColor' to a hex colour so the
+    // number is dark and readable; every other card keeps the white glowing look.
+    const custom = /^#[0-9a-f]{3,8}$/i.test(card.valueColor || '');
+    const valueColor = custom ? card.valueColor : '#ffffff';
+    const textShadow = custom
+        ? '0 2px 0 rgba(255,255,255,.75),0 0 14px rgba(255,255,255,.6)'
+        : '0 0 16px rgba(255,225,150,.85),0 0 40px rgba(255,170,60,.55),0 3px 6px rgba(0,0,0,.85)';
     // Cards with a 'secondary' count (e.g. Ramen Plush) show BOTH numbers as
     // text in the one existing blank box - "<cooked> Ramen Cooked VS <count>
     // Plushies" - instead of a bare number. Two independently-updated spans so
@@ -37,9 +44,9 @@ function renderResourceCardPage(card, query) {
     }%;
        display:table;table-layout:fixed}
   #inner{display:table-cell;vertical-align:middle;text-align:center;white-space:nowrap}
-  #inner{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;font-weight:bold;color:#ffffff;
+  #inner{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;font-weight:bold;color:${valueColor};
      font-size:${Math.round(width * (hasSecondary ? 0.05 : 0.09))}px;line-height:1.05;
-     text-shadow:0 0 16px rgba(255,225,150,.85),0 0 40px rgba(255,170,60,.55),0 3px 6px rgba(0,0,0,.85)}
+     text-shadow:${textShadow}}
   .vs{font-size:.62em;opacity:.85;padding:0 .3em}
 </style>
 </head>
@@ -70,16 +77,14 @@ function renderResourceCardPage(card, query) {
     if (h <= 0) { return; }
     var fs = Math.round(h * (hasSecondary ? 0.42 : 0.70));
     inner.style.fontSize = fs + 'px';
-    if (hasSecondary) {
-      // The combined text is width-sensitive too (it's a sentence, not a
-      // single number) - shrink until it actually fits the box.
-      var w = box.offsetWidth;
-      var guard = 0;
-      while (inner.scrollWidth > w && fs > 8 && guard < 60) {
-        fs -= 1;
-        inner.style.fontSize = fs + 'px';
-        guard++;
-      }
+    // Width-sensitive: the combined secondary text is a sentence, and a manual
+    // total such as a profit can be many digits - shrink until it fits the box.
+    var w = box.offsetWidth;
+    var guard = 0;
+    while (inner.scrollWidth > w && fs > 8 && guard < 120) {
+      fs -= 1;
+      inner.style.fontSize = fs + 'px';
+      guard++;
     }
   }
   function poll(){

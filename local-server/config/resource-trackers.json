@@ -1189,6 +1189,23 @@
             "width": 45.07,
             "height": 30.99
         }
+    },
+    {
+        "id": "profit-tracker",
+        "name": "Profit Tracker",
+        "image": "PROFIT_TRACKER.png",
+        "tokens": [],
+        "mode": "lifetime",
+        "manual": true,
+        "valueColor": "#7a1f5c",
+        "visible": true,
+        "_note_2026_11_16": "Built 2026-11-16. Baby: manual profit counter - nothing to auto-track, she types the in-game profit herself on the dashboard (Set / Add / Subtract). tokens is empty so no log line can ever move it; lifetime mode so a Palia login never resets it and it is not restocked on restart (the count persists in data/resource-trackers.json). 'manual': true makes the dashboard show the amount box instead of the -/+ by 1 buttons. Value box measured by hand on the cream panel (auto-detect only found texture patches) and centered on the panel, checked with an overlay; the overlay page also shrinks big numbers to fit the box.",
+        "valueBox": {
+            "left": 29.31,
+            "top": 49.6,
+            "width": 43.4,
+            "height": 32.7
+        }
     }
   ]
 }

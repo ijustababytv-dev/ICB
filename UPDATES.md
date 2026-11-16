@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-16: Added a Profit Tracker card (/profit-tracker.html) for a hand-entered amount. On the Tracker Command Center type the amount and press Set, or use Add / Subtract; nothing in the game log moves it and a Palia login never resets it. Big numbers shrink to fit the card box. Needs a clean ICB restart and a cloud release to appear.
+
 - 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html, listed in search and All Pages. Artwork uploaded to Cloudinary and cloud definition deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart, and the first real cook is unconfirmed.
 
 - 2026-11-08: Created baby-icb-deployer for updates to the two existing ICB Lambdas, their release files and their existing runtime roles. AWS resource creation/deletion and broad account reads are not permitted. Access keys stay in ignored local .env.aws with restricted Windows permissions.
