@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-16: New Infected Essence GOAL card art on /essence.html with the number centered on its parchment panel (dark purple text so it reads on the cream). Same file name, so the art itself needs no setup; the new number position needs a clean ICB restart and a cloud release.
+
 - 2026-11-16: The Infected Essence card (/essence.html) is now a countdown: set an amount with Set & restock now on the Tracker Command Center and it counts down by every essence you collect until it reaches 0. Your main Infected Essence total is unchanged. Cloud definition deployed (both Lambda hashes verified) on 2026-11-16, with unit coverage; target PCs need a normal authorized restart.
 
 - 2026-11-16: Added a Profit Tracker card (/profit-tracker.html) for a hand-entered amount. On the Tracker Command Center type the amount and press Set, or use Add / Subtract; nothing in the game log moves it and a Palia login never resets it. Big numbers shrink to fit the card box. Artwork is on Cloudinary and the cloud definition was deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart.

@@ -32,11 +32,13 @@
       "startAt": 100,
       "visible": true,
       "_note_2026_11_16": "Changed 2026-11-16. Baby: set an amount and have the Infected Essence card count DOWN as she collects essence until it hits 0. Was a lifetime card mirroring the live Infected Essence total; now a countdown: direction gained + eventSource inventory + mode countdown, raw quantity (no countEvents) so every essence collected takes that many off (stack of 5 = -5), floors at 0. Set the amount on the dashboard with 'Set & restock now' (batch size). startAt 100 is only a placeholder until she sets her own. The separate live Infected Essence total (reconciliation panel) is NOT touched - only this card changed. Countdown cards restock to their batch size on a collector restart (house behaviour).",
+      "valueColor": "#4a1466",
+      "_note_2026_11_16_art": "Art replaced 2026-11-16 with the new 'Infected Essence GOAL' card (same ESSENCE.png file name, 1774x887). Panel moved, so valueBox re-measured: cream panel detected by colour (core 494-1263 x 448-731 px), then centred by hand on the visible panel (centre x 891.7px, y 589px of 1774x887) and checked with an overlay. valueColor dark purple because the panel is cream. Counting unchanged (countdown, see _note_2026_11_16).",
       "valueBox": {
-        "left": 36.69,
-        "top": 43.97,
-        "width": 50.89,
-        "height": 29.74
+        "left": 28,
+        "top": 50.73,
+        "width": 44.53,
+        "height": 31.34
       }
     },
     {
