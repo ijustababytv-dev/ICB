@@ -2,6 +2,8 @@
 
 ## New Features
 
+- 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html. Needs a clean ICB restart and a cloud release to appear.
+
 - 2026-11-08: Created baby-icb-deployer for updates to the two existing ICB Lambdas, their release files and their existing runtime roles. AWS resource creation/deletion and broad account reads are not permitted. Access keys stay in ignored local .env.aws with restricted Windows permissions.
 
 - 2026-11-08: Added a Fish Tacos tracker (token itemtype_c_fishtacos). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /fish-tacos.html. Cloud definition deployed and verified on 2026-11-08; target PCs need current source/artwork and a normal authorized restart.

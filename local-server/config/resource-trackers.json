@@ -1168,6 +1168,26 @@
             "width": 46.22,
             "height": 32.7
         }
+    },
+    {
+        "id": "sushi",
+        "name": "Sushi",
+        "image": "Sushi.png",
+        "tokens": [
+            "itemtype_c_sushi"
+        ],
+        "direction": "gained",
+        "mode": "countdown",
+        "startAt": 100,
+        "visible": true,
+        "countEvents": true,
+        "_note_2026_11_16": "Built 2026-11-16. Baby supplied token itemtype_c_sushi and card art (Sushi.png, 2048x768). Dish default: countdown from 100, direction gained + countEvents (one cook line = -1 whatever the stack size); selling/eating (Inventory lost) never moves it. Token not yet checked against a real Inventory gained cook line - spot-check on first cook. Value box measured by dark+flat detection and checked with a green overlay.",
+        "valueBox": {
+            "left": 27.39,
+            "top": 55.86,
+            "width": 45.07,
+            "height": 30.99
+        }
     }
   ]
 }
