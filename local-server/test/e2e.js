@@ -272,6 +272,11 @@ async function main() {
                         );
                     boxGoodness(slot.valueBox, `${card.id}/${slot.id}`);
                 }
+            } else if (card.manual === true) {
+                // Manual cards (e.g. Profit Tracker) are typed in on the dashboard.
+                // They must carry no tokens, so no game log line can ever move them.
+                assert.equal((card.tokens || []).length, 0, `manual card has tokens: ${card.id}`);
+                boxGoodness(card.valueBox, card.id);
             } else {
                 // Every token must look like a real token. They were all read out of
                 // Baby's own logs; a guessed one is a card stuck at zero all stream.

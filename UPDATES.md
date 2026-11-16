@@ -2,7 +2,7 @@
 
 ## New Features
 
-- 2026-11-16: Added a Profit Tracker card (/profit-tracker.html) for a hand-entered amount. On the Tracker Command Center type the amount and press Set, or use Add / Subtract; nothing in the game log moves it and a Palia login never resets it. Big numbers shrink to fit the card box. Needs a clean ICB restart and a cloud release to appear.
+- 2026-11-16: Added a Profit Tracker card (/profit-tracker.html) for a hand-entered amount. On the Tracker Command Center type the amount and press Set, or use Add / Subtract; nothing in the game log moves it and a Palia login never resets it. Big numbers shrink to fit the card box. Artwork is on Cloudinary and the cloud definition was deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart.
 
 - 2026-11-16: Added a Sushi tracker (token itemtype_c_sushi). It counts down from 100, one per cook line whatever the stack size; selling or eating never moves it. Page: /sushi.html, listed in search and All Pages. Artwork uploaded to Cloudinary and cloud definition deployed (both Lambda hashes verified) on 2026-11-16; target PCs need current source/artwork and a normal authorized restart, and the first real cook is unconfirmed.
 
@@ -49,6 +49,8 @@
 - 2026-11-01: Launchers open sign-in, restored sessions validate online, and successful login returns to the requested page. Added real Windows encryption, restart, access-gate and PostgreSQL expiry coverage.
 
 ## Bug Fixes
+
+- 2026-11-16: Profit Tracker passes the release checks: its navigation label now ends in Tracker, E2E requires manual cards to have no log tokens instead of rejecting them, and its test file is formatted.
 
 - 2026-11-16: Sushi now ignores periodic lockbox dumps (inventory-only events, like Fish Tacos), so storing Sushi can't lower its countdown. Added unit coverage.
 

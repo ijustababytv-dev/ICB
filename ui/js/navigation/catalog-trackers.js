@@ -112,7 +112,7 @@ window.ICBPageCatalog.push(
         },
         {
             'url': '/profit-tracker.html',
-            'label': 'Profit Tracker — Manual Amount',
+            'label': 'Profit — Manual Tracker',
             'category': 'overlays',
             'aliases': 'palia gold money profit manual counter'
         },

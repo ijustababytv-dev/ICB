@@ -9,6 +9,7 @@ const cards = () => ({
         { id: 'clay', mode: 'lifetime', tokens: ['itemtype_mineral_rock_clay'], count: 1 }
     ]
 });
+
 const event = (token, direction) => ({
     source: 'inventory',
     direction,
