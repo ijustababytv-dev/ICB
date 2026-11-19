@@ -1212,6 +1212,26 @@
             "width": 43.4,
             "height": 32.7
         }
+    },
+    {
+        "id": "chappas",
+        "name": "Chappa's",
+        "image": "CHAPPAS.png",
+        "tokens": [
+            "itemtype_product_meat_chapaa"
+        ],
+        "direction": "gained",
+        "eventSource": "inventory",
+        "mode": "lifetime",
+        "valueColor": "#4a1466",
+        "visible": true,
+        "_note_2026_11_18": "Built 2026-11-18 from Baby's UPDATES note: counts chappa meat from looted kills, all 3 chappa types together, counting up for life. Token confirmed in real Palia Assistant logs ('Inventory gained: itemtype_product_meat_chapaa x1'); it is the only chapaa meat token, so the three types share it. Raw quantity, gained + inventory only, so selling/eating, lockbox dumps and resyncs never move it; lifetime mode so a Palia login never resets it. Value box placed on the cream panel of CHAPPAS.png (1774x887); valueColor is dark purple because the panel is cream.",
+        "valueBox": {
+            "left": 28.75,
+            "top": 66.3,
+            "width": 42.5,
+            "height": 19.2
+        }
     }
   ]
 }

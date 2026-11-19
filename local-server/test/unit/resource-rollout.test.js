@@ -5,7 +5,10 @@ const feed = require('../../src/cloud/state-feed');
 const resources = require('../../src/resources');
 const definitions = require('../../config/resource-trackers.json');
 const { gameFact } = require('../../src/domain/game-facts');
-const { applyResourceEvent } = require('../../../cloud-server/src/domain/resource-rules');
+const {
+    applyResourceEvent,
+    resetResourceSession
+} = require('../../../cloud-server/src/domain/resource-rules');
 
 test('new tracker pages survive an older cloud catalog without inventing progress', (t) => {
     t.mock.method(feed, 'watch', () => ({ resourceTrackers: { cards: [] } }));
@@ -93,4 +96,26 @@ test('Infected Essence countdown subtracts collected quantity and floors at zero
     }
     applyResourceEvent(state, gameFact('Inventory gained: itemtype_echo_essence x50'));
     assert.equal(card.count, 0);
+});
+
+// Business rule: Chappa's adds every chappa meat looted and only ever counts up.
+// Selling/eating, lockbox dumps, resyncs, other meats and Palia logins never move it.
+test("Chappa's counts looted meat for life and ignores everything else", () => {
+    const definition = definitions.cards.find((card) => card.id === 'chappas');
+    const card = { ...definition, count: 0 };
+    const state = { cards: [card] };
+    applyResourceEvent(state, gameFact('Inventory gained: itemtype_product_meat_chapaa x2'));
+    applyResourceEvent(state, gameFact('Inventory gained: itemtype_product_meat_chapaa x1'));
+    assert.equal(card.count, 3);
+    for (const line of [
+        'Inventory lost: itemtype_product_meat_chapaa x3',
+        'Lockbox gained: itemtype_product_meat_chapaa x40',
+        'Primary gained: itemtype_product_meat_chapaa x99',
+        'Inventory gained: itemtype_product_meat_rabbit x5'
+    ]) {
+        applyResourceEvent(state, gameFact(line));
+        assert.equal(card.count, 3, line);
+    }
+    resetResourceSession(state, 'palia-login');
+    assert.equal(card.count, 3);
 });

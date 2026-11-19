@@ -81,6 +81,12 @@ window.ICBPageCatalog.push(
             'aliases': 'palia resource inventory counter'
         },
         {
+            'url': '/chappas.html',
+            'label': "Chappa's — Resource Tracker",
+            'category': 'overlays',
+            'aliases': 'palia chapaa chappa meat hunting resource inventory counter'
+        },
+        {
             'url': '/meat.html',
             'label': 'Meat — Resource Tracker',
             'category': 'overlays',

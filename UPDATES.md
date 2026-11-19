@@ -2,7 +2,7 @@
 
 ## New Features
 
-- 2026-11-19: New Chappa's tracker (/chappas.html): counts chappa meat from looted kills, all 3 chappa types together, counting up for life. Needs the cloud release and a clean ICB restart before the number shows; no commits made.
+- 2026-11-19: New Chappa's tracker (/chappas.html): counts chappa meat from looted kills, all 3 chappa types together, counting up for life. Listed in search and All Pages; artwork is on Cloudinary and the cloud definition is deployed. Target PCs need current source/artwork and a normal authorized restart; the first real kill is unconfirmed.
 
 - 2026-11-16: Tracker artwork position and number colour now come from this computer's config for cards the cloud already knows, so a new art swap (e.g. Infected Essence GOAL, Clay) lines up and uses dark text on light panels right after an ICB restart, without waiting for a cloud release. Counts, modes and counting rules still come from the cloud.
 
